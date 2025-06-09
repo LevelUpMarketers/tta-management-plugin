@@ -1,0 +1,272 @@
+/* ==========================================================================
+   Event Page Styles
+   ========================================================================== */
+
+/* Hero */
+.tta-event-hero {
+  background: #f5f5f5;
+  padding: 40px 0;
+}
+.tta-event-hero-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.tta-event-hero-text {
+  flex: 1 1 400px;
+  padding-right: 20px;
+}
+.tta-event-title {
+  font-size: 2.5em;
+  margin-bottom: .5em;
+}
+.tta-event-meta {
+  font-size: 1.1em;
+  margin-bottom: 1em;
+}
+.tta-event-meta .tta-event-date,
+.tta-event-meta .tta-event-price {
+  display: inline-block;
+  margin-right: 1em;
+}
+.tta-button-primary {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #0073aa;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.tta-event-hero-image {
+  flex: 0 0 50%;
+  text-align: right;
+}
+.tta-event-hero-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Accordion: Event Description */
+.tta-event-description-accordion details {
+  margin: 2em 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.5em;
+  background: #fafafa;
+}
+.tta-event-description-accordion summary {
+  font-size: 1.75em;
+  font-weight: bold;
+  cursor: pointer;
+  list-style: none;
+  outline: none;
+  position: relative;
+  padding-right: 1.5em;
+}
+.tta-event-description-accordion summary::-webkit-details-marker {
+  display: none;
+}
+.tta-event-description-accordion summary::after {
+  content: '\25BA';            /* right-pointing arrow */
+  position: absolute;
+  right: 0;
+  top: 0.2em;
+  transition: transform 0.2s ease;
+}
+.tta-event-description-accordion details[open] summary::after {
+  transform: rotate(90deg);
+}
+.tta-event-description-accordion summary + * {
+  margin-top: 0.5em;
+}
+
+/* Main + Sidebar */
+.tta-event-content-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 40px auto;
+}
+.tta-event-main {
+  flex: 0 0 65%;
+  padding-right: 30px;
+}
+.tta-event-main .tta-event-section {
+  margin-top: 2em;
+}
+.tta-event-sidebar {
+  flex: 0 0 30%;
+  background: #fafafa;
+  padding: 20px;
+  border-radius: 4px;
+}
+.tta-event-details h2 {
+  margin-top: 0;
+}
+.tta-event-details ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tta-event-details li {
+  margin-bottom: .5em;
+}
+.tta-event-map iframe {
+  width: 100%;
+  height: 200px;
+  border: 0;
+  border-radius: 4px;
+}
+
+/* Tickets */
+.tta-event-tickets-wrap {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Related Events */
+.tta-related-events {
+  max-width: 1200px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+.tta-related-events-grid {
+  display: flex;
+  gap: 20px;
+}
+.tta-related-event {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+}
+.tta-related-event .thumb {
+  margin-bottom: .5em;
+}
+.tta-related-event h3 {
+  margin: .5em 0 .2em;
+  font-size: 1.1em;
+}
+.tta-related-event time {
+  font-size: .9em;
+  color: #666;
+}
+
+.tta-event-costmod-class-strikethrough span{
+  text-decoration-line: line-through;
+  text-decoration-style: solid;      /* e.g. solid, double, dotted… */
+  text-decoration-color: currentColor;
+  /* text-decoration-thickness: 2px; */ /* optional if you want to bump up the weight */
+}
+
+.tta-related-event {
+  display: flex;
+  flex-direction: column;
+}
+.tta-related-event .thumb {
+  flex: 1;
+}
+.tta-related-event-info {
+  margin-top: auto;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Tickets Section
+   ────────────────────────────────────────────────────────────────────────── */
+.tta-event-buy {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  padding: 20px;
+  margin: 40px 0;
+  position: relative;
+}
+.tta-event-buy h2 {
+  margin: 0 0 10px;
+  font-size: 1.5em;
+  font-weight: normal;
+}
+.tta-event-buy hr {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 10px 0 20px;
+}
+
+/* Ticket line */
+.tta-ticket-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.tta-ticket-name {
+  font-weight: bold;
+}
+.tta-ticket-price {
+  font-size: 1.2em;
+  margin-left: auto;
+}
+.tta-ticket-available {
+  display: block;
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* Quantity chooser */
+.tta-ticket-quantity {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.tta-qty-decrease,
+.tta-qty-increase {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ccc;
+  background: none;
+  font-size: 1.2em;
+  line-height: 1;
+  cursor: pointer;
+  text-align: center;
+  padding: 0;
+}
+.tta-qty-input {
+  width: 50px;
+  height: 32px;
+  border: 1px solid #ccc;
+  text-align: center;
+  margin: 0 8px;
+  font-size: 1em;
+}
+
+/* Get Tickets button */
+#tta-get-tickets {
+  display: inline-block;
+  float: right;
+  margin: 0;
+}
+
+
+/* Responsive */
+@media (max-width: 800px) {
+  .tta-event-content-wrap {
+    flex-direction: column;
+  }
+  .tta-event-hero-inner {
+    flex-direction: column;
+  }
+  .tta-event-hero-image,
+  .tta-event-hero-text {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+  .tta-related-events-grid {
+    flex-direction: column;
+  }
+}

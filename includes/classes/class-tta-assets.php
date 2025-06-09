@@ -103,12 +103,23 @@ class TTA_Assets {
      * Enqueue front‐end CSS/JS.
      */
     public static function enqueue_frontend_assets() {
+        // 1) Main frontend stylesheet (always)
         wp_enqueue_style(
             'tta-frontend-css',
             TTA_PLUGIN_URL . 'assets/css/frontend/style.css',
             [],
             TTA_PLUGIN_VERSION
         );
+
+        // 2) Only on our “Event Page” template, enqueue event‐page.css
+        if ( function_exists( 'is_page_template' ) && is_page_template( 'event-page-template.php' ) ) {
+            wp_enqueue_style(
+                'tta-eventpage-css',
+                TTA_PLUGIN_URL . 'assets/css/frontend/event-page.css',
+                [ 'tta-frontend-css' ],
+                TTA_PLUGIN_VERSION
+            );
+        }
     }
 }
 

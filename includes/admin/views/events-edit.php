@@ -253,6 +253,23 @@ if ( isset( $_GET['event_id'] ) ) {
                 </td>
             </tr>
 
+            <!-- Venue Name -->
+            <tr>
+                <th>
+                    <label for="venuename">Venue Name</label>
+                    <span class="tta-tooltip-icon"
+                          data-tooltip="The name of the Venue"
+                          style="margin-left:4px;">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
+                             alt="Help">
+                    </span>
+                </th>
+                <td>
+                    <input type="text" name="venuename" id="venuename" class="regular-text"
+                           value="<?php echo esc_attr( $event['venuename'] ?? '' ); ?>">
+                </td>
+            </tr>
+
             <!-- Venue Link -->
             <tr>
                 <th>
@@ -335,6 +352,24 @@ if ( isset( $_GET['event_id'] ) ) {
                     <input type="number" name="discountedmembercost" id="discountedmembercost" class="regular-text"
                            step="0.01" min="0"
                            value="<?php echo esc_attr( number_format_i18n( $event['discountedmembercost'] ?? 0, 2 ) ); ?>">
+                </td>
+            </tr>
+
+            <!-- Premium Member Cost -->
+            <tr>
+                <th>
+                    <label for="premiummembercost">Premium Member Cost</label>
+                    <span class="tta-tooltip-icon"
+                          data-tooltip="Enter the premium member discounted price in USD, with cents."
+                          style="margin-left:4px;">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
+                             alt="Help">
+                    </span>
+                </th>
+                <td>
+                    <input type="number" name="premiummembercost" id="premiummembercost" class="regular-text"
+                           step="0.01" min="0"
+                           value="<?php echo esc_attr( number_format_i18n( $event['premiummembercost'] ?? 0, 2 ) ); ?>">
                 </td>
             </tr>
 

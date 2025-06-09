@@ -70,16 +70,15 @@ class TTA_Ajax_Handler {
 
         // 1) Gather & sanitize the incoming event data
         $ute_id             = uniqid( 'tte_', true );
-        $address            = implode(
-            ' - ',
-            array_filter( [
-                sanitize_text_field( $_POST['street_address'] ?? '' ),
-                sanitize_text_field( $_POST['address_2']      ?? '' ),
-                sanitize_text_field( $_POST['city']           ?? '' ),
-                sanitize_text_field( $_POST['state']          ?? '' ),
-                sanitize_text_field( $_POST['zip']            ?? '' ),
-            ] )
-        );
+        // Combine address parts (preserve blank segments)
+        $address_parts = [
+            sanitize_text_field( $_POST['street_address'] ?? '' ),
+            sanitize_text_field( $_POST['address_2']      ?? '' ),
+            sanitize_text_field( $_POST['city']           ?? '' ),
+            sanitize_text_field( $_POST['state']          ?? '' ),
+            sanitize_text_field( $_POST['zip']            ?? '' ),
+        ];
+        $address = implode( ' - ', $address_parts );
         $start              = sanitize_text_field( $_POST['start_time'] ?? '' );
         $end                = sanitize_text_field( $_POST['end_time']   ?? '' );
         $time               = $start . '|' . $end;
@@ -94,10 +93,12 @@ class TTA_Ajax_Handler {
             'time'                 => $time,
             'virtual_event'        => sanitize_text_field( $_POST['virtual_event']        ?? '0' ),
             'address'              => $address,
+            'venuename'            => sanitize_text_field( $_POST['venuename']            ?? '' ),
             'venueurl'             => esc_url_raw   ( $_POST['venueurl']            ?? '' ),
             'type'                 => sanitize_text_field( $_POST['type']                 ?? '' ),
             'baseeventcost'        => floatval        ( $_POST['baseeventcost']        ?? 0 ),
             'discountedmembercost' => floatval        ( $_POST['discountedmembercost'] ?? 0 ),
+            'premiummembercost' => floatval        ( $_POST['premiummembercost'] ?? 0 ),
             'attendancelimit'      => $attendance_limit,
             'waitlistavailable'    => $waitlist_available,
             'refundsavailable'     => sanitize_text_field( $_POST['refundsavailable']    ?? '0' ),
@@ -123,6 +124,7 @@ class TTA_Ajax_Handler {
             'waitlist_id'          => 0,
             'baseeventcost'        => $event_data['baseeventcost'],
             'discountedmembercost' => $event_data['discountedmembercost'],
+            'premiummembercost' => $event_data['premiummembercost'],
             'attendancelimit'      => $attendance_limit,
         ];
         $wpdb->insert( $tickets_table, $ticket_data );
@@ -231,17 +233,14 @@ class TTA_Ajax_Handler {
 
         $id = intval( $_POST['tta_event_id'] );
 
-        // 1) Combine address & time
-        $address = implode(
-            ' - ',
-            array_filter([
-                sanitize_text_field( $_POST['street_address'] ?? '' ),
-                sanitize_text_field( $_POST['address_2']     ?? '' ),
-                sanitize_text_field( $_POST['city']          ?? '' ),
-                sanitize_text_field( $_POST['state']         ?? '' ),
-                sanitize_text_field( $_POST['zip']           ?? '' ),
-            ])
-        );
+         $address_parts = [
+            sanitize_text_field( $_POST['street_address'] ?? '' ),
+            sanitize_text_field( $_POST['address_2']      ?? '' ),
+            sanitize_text_field( $_POST['city']           ?? '' ),
+            sanitize_text_field( $_POST['state']          ?? '' ),
+            sanitize_text_field( $_POST['zip']            ?? '' ),
+        ];
+        $address = implode( ' - ', $address_parts );
         $start = sanitize_text_field( $_POST['start_time'] ?? '' );
         $end   = sanitize_text_field( $_POST['end_time']   ?? '' );
         $time  = $start . '|' . $end;
@@ -254,10 +253,12 @@ class TTA_Ajax_Handler {
             'time'                 => $time,
             'virtual_event'        => sanitize_text_field( $_POST['virtual_event']        ?? '0' ),
             'address'              => $address,
+            'venuename'            => sanitize_text_field( $_POST['venuename']            ?? '' ),
             'venueurl'             => esc_url_raw   ( $_POST['venueurl']            ?? '' ),
             'type'                 => sanitize_text_field( $_POST['type']                 ?? '' ),
             'baseeventcost'        => floatval        ( $_POST['baseeventcost']        ?? 0 ),
             'discountedmembercost' => floatval        ( $_POST['discountedmembercost'] ?? 0 ),
+            'premiummembercost'    => floatval        ( $_POST['premiummembercost'] ?? 0 ),
             'attendancelimit'      => intval          ( $_POST['attendancelimit']      ?? 0 ),
             'waitlistavailable'    => sanitize_text_field( $_POST['waitlistavailable']   ?? '0' ),
             'refundsavailable'     => sanitize_text_field( $_POST['refundsavailable']    ?? '0' ),
@@ -290,6 +291,7 @@ class TTA_Ajax_Handler {
             'event_name'           => $event_data['name'],
             'baseeventcost'        => $event_data['baseeventcost'],
             'discountedmembercost' => $event_data['discountedmembercost'],
+            'premiummembercost' => $event_data['premiummembercost'],
             'attendancelimit'      => $event_data['attendancelimit'],
         ];
         $wpdb->update(

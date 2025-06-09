@@ -18,10 +18,12 @@ class TTA_DB_Setup {
             date DATE NOT NULL,
             baseeventcost DECIMAL(10,2) DEFAULT 0.00,
             discountedmembercost DECIMAL(10,2) DEFAULT 0.00,
+            premiummembercost DECIMAL(10,2) DEFAULT 0.00,
             address VARCHAR(500) DEFAULT '',
             type VARCHAR(50) DEFAULT 'free',
             time VARCHAR(50) DEFAULT 'N/A',
             venueurl VARCHAR(255) DEFAULT '',
+            venuename VARCHAR(255) DEFAULT '',     /* ← NEW column */
             url2 VARCHAR(255) DEFAULT '',
             url3 VARCHAR(255) DEFAULT '',
             url4 VARCHAR(255) DEFAULT '',
@@ -42,6 +44,7 @@ class TTA_DB_Setup {
             PRIMARY KEY (id),
             KEY ute_id (ute_id)
         ) $charset_collate";
+
 
         // Members table
         $tables[] = "CREATE TABLE {$prefix}members (
@@ -83,6 +86,7 @@ class TTA_DB_Setup {
             attendancelimit        INT UNSIGNED     NOT NULL,
             baseeventcost          DECIMAL(10,2)    NOT NULL,
             discountedmembercost   DECIMAL(10,2)    NOT NULL,
+            premiummembercost      DECIMAL(10,2) DEFAULT 0.00,
             PRIMARY KEY  (id)
         ) $charset_collate";
 
