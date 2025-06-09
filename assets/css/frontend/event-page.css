@@ -204,6 +204,9 @@
   align-items: baseline;
   margin-bottom: 10px;
 }
+.tta-ticket-item .tta-ticket-price{
+  display:block;
+}
 .tta-ticket-name {
   font-weight: bold;
 }
@@ -226,15 +229,16 @@
 }
 .tta-qty-decrease,
 .tta-qty-increase {
+  background-color: #0073aa;
   width: 32px;
   height: 32px;
-  border: 1px solid #ccc;
-  background: none;
+  border-radius: 4px;
   font-size: 1.2em;
   line-height: 1;
   cursor: pointer;
   text-align: center;
   padding: 0;
+  padding-bottom: 4px;
 }
 .tta-qty-input {
   width: 50px;

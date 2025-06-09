@@ -205,7 +205,7 @@ elseif ( 'premium' === $membership_level ) {
       $limit      = isset( $ticket['attendancelimit'] ) ? intval( $ticket['attendancelimit'] ) : 0;
       $available  = $limit > 0 ? $limit : 0;
       $avail_text = $available > 0
-          ? sprintf( esc_html__( '%d available', 'tta' ), $available )
+          ? sprintf( esc_html__( 'Only %d Available', 'tta' ), $available )
           : esc_html__( 'Sold Out', 'tta' );
 
       // 3) Choose price based on membership level
@@ -216,17 +216,25 @@ elseif ( 'premium' === $membership_level ) {
       } else {
           $ticket_price = $price_str;
       }
+
+      // 2) Start with the default cost row
+      $cost_bottomticket_row = "<span class='tta-ticket-price tta-event-costmod-class'><strong>Cost: </strong>" .  $price_str . "</span>";
+
+      // 3) Modify for basic vs. premium members
+      if ( 'basic' === $membership_level ) {
+          $cost_bottomticket_row = "<span class='tta-ticket-price tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-basic'><strong>Cost: </strong><span>" .  $price_str . "</span> " . $price_str_basic . "</span>";
+      }
+      elseif ( 'premium' === $membership_level ) {
+          $cost_bottomticket_row = "<span class='tta-ticket-price tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-premium'><strong>Cost: </strong><span>" .  $price_str . "</span> " . $price_str_premium . "</span>";
+      }
       ?>
 
       <section class="tta-event-buy">
-        <h2><?php esc_html_e( 'Tickets', 'tta' ); ?></h2>
-
+        <h2><?php esc_html_e( 'Get Your Tickets Now', 'tta' ); ?></h2>
         <div class="tta-ticket-item">
           <span class="tta-ticket-name"><?php echo esc_html( $event['name'] ); ?></span>
-          <span class="tta-ticket-price"><?php echo esc_html( $ticket_price ); ?></span>
-          <span class="tta-ticket-available"><?php echo esc_html( $avail_text ); ?></span>
+          <span class="tta-ticket-price"><?php echo $cost_bottomticket_row; echo esc_html( $avail_text ); ?></span>
         </div>
-
         <div class="tta-ticket-quantity">
           <button type="button" class="tta-qty-decrease" aria-label="<?php esc_attr_e( 'Decrease quantity', 'tta' ); ?>">–</button>
           <input
@@ -239,7 +247,6 @@ elseif ( 'premium' === $membership_level ) {
           />
           <button type="button" class="tta-qty-increase" aria-label="<?php esc_attr_e( 'Increase quantity', 'tta' ); ?>">+</button>
         </div>
-
         <button
           type="button"
           id="tta-get-tickets"
