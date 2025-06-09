@@ -1,0 +1,236 @@
+/* assets/css/backend/admin.css */
+
+#wpbody-content > div.wrap > form > .form-table > tbody > tr, #tta-event-edit-form table > tbody > tr{
+	display:inline-block;
+	margin-top: 20px;
+	vertical-align: top;
+}
+
+.regular-text.interest-field{
+    display: block;
+    margin-top: 5px;
+}
+
+.tta-waitlist-holder-for-css{
+    background-color: #f7f7f7;
+    padding: 20px;
+    margin: 20px;
+    border: solid 1px #b9b9b9;
+    border-radius: 5px;
+}
+
+#tta-member-edit-form .form-table{
+    width: initial;
+}
+
+#tta-member-edit-form .form-table tr{
+    margin-top: 20px;
+    display: inline-block;
+    vertical-align: top;
+    min-width:220px;
+}
+
+#tta-member-edit-form .form-table textarea{
+    min-height:200px;
+}
+
+#tta-member-edit-form .form-table td{
+    display:block;
+}
+
+#tta-member-edit-form .form-table td, #tta-member-edit-form .form-table textarea, #tta-member-edit-form .form-table input[type="text"], #tta-member-edit-form .form-table select{
+    width:96%;
+}
+
+
+
+
+
+
+
+#tta-members-create .form-table{
+    width: initial;
+}
+
+#tta-members-create .form-table tr{
+    margin-top: 20px;
+    display: inline-block;
+    vertical-align: top;
+    min-width:220px;
+}
+
+#tta-members-create .form-table textarea{
+    min-height:200px;
+}
+
+#tta-members-create .form-table td{
+    display:block;
+}
+
+#tta-members-create .form-table td, #tta-members-create .form-table textarea, #tta-members-create .form-table input[type="text"], #tta-members-create .form-table select{
+    width:96%;
+}
+
+.tta-member-edit-unexpanded-profile-img{
+    max-width: 150px;
+    max-height: 100px;
+}
+
+.tta-member-center-profile-img{
+    text-align: center;
+}
+
+#profileimage-preview img{
+    max-width:150px;
+    margin-top:20px;
+}
+
+/* ------------ Spinner Styling ------------ */
+
+/* Container for the spinner: hidden by default (opacity:0). */
+.tta-admin-progress-spinner-div {
+  display: inline-block;
+  transition: opacity 0.3s ease;
+  /* keep it aligned with the button */
+  vertical-align: middle;
+  margin-left: 8px; /* adjust spacing as you wish */
+}
+
+/* The <img> itself continuously spins */
+.tta-admin-progress-spinner-svg {
+  width: 20px;   /* adjust size as needed */
+  height: 20px;
+  animation: spin 1s linear infinite;
+  opacity: 0;
+}
+
+/* Define a simple 0→360° rotation */
+@keyframes spin {
+  from   { transform: rotate(0deg); }
+  to     { transform: rotate(360deg); }
+}
+
+.tta-admin-progress-response-p{
+    margin-top:0px!important;
+    font-weight: bold;
+    font-size: 20px!important;
+    max-width: 600px;
+    min-height: 135px;
+}
+
+form p.submit{
+   display: inline-block; 
+}
+
+.tta-waitlist-entry{
+    background-color: #cbcbcb;
+    text-align: center;
+    border-radius: 5px;
+    padding: 10px;
+    margin:10px;
+}
+
+.tta-waitlist-entry th{
+  text-align:center;
+  margin-bottom:10px;
+}
+
+.form-table .tta-waitlist-entry td{
+  width: 200px;
+  padding: 0;
+}
+
+.form-table .tta-remove-waitlist:hover {
+    background: #135e96;
+    border-color: #135e96;
+    color: #fff;
+}
+
+.tta-waitlist-entry img{
+    width: 100px;
+    height: auto;
+    margin-bottom:10px;
+}
+
+.tta-remove-waitlist, .tta-waitlist-entry a{
+    display: block;
+}
+
+.form-table .tta-remove-waitlist{
+    margin-left: auto;
+    margin-right: auto;
+    color: white;
+    background-color: #2271b1;
+    border-color: #2271b1;
+    padding: 0px 5px 3px 5px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.tta-waitlist-entry a{
+    font-size:20px;
+    color:#000;
+}
+
+.tta-events-wrap h1 {
+    color: #2c3e50;
+}
+
+.form-table th {
+    padding: 0;
+    display: block;
+}
+
+.form-table td {
+    margin-bottom: 9px;
+    padding: 5px 10px 0px 0px;
+    line-height: 1.3;
+    vertical-align: middle;
+}
+
+.form-table select, .form-table input[type=date], .form-table input[type=datetime-local], .form-table input[type=datetime], .form-table input[type=email], .form-table input[type=month], .form-table input[type=number], .form-table input[type=password], .form-table input[type=search], .form-table input[type=tel], .form-table input[type=text], .form-table input[type=time], .form-table input[type=url], .form-table input[type=week] {
+    width: 200px;
+}
+
+.toplevel_page_tta-events #wpbody-content > div.wrap > form > table > tbody > tr {
+    vertical-align: top;
+}
+
+#otherimage-preview img, #mainimage-preview img{
+	vertical-align:top;
+    margin-top:5px;
+} 
+
+/* inline edit row styling */
+.tta-inline-row td {
+  animation: tta-fade-slide-down 0.3s ease-out;
+}
+
+/* keyframes for fade + slide down */
+@keyframes tta-fade-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Arrow styling */
+.tta-toggle-arrow {
+  display: inline-block;
+  /* 1) Scale up 1.5× */
+  transform: rotate(0deg) scale(1.5);
+  /* 2) Point up by default (0° = up if using an “up” arrow icon) */
+  transition: transform 0.3s ease;
+  position: relative;
+  top: 20px;
+  pointer-events: none;
+}
+
+.tta-toggle-arrow.open {
+  /* Rotate to point down (180°) when open */
+  transform: rotate(180deg) scale(1.5);
+}

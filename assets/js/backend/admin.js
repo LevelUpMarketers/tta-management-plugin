@@ -1,0 +1,553 @@
+jQuery(function($){
+
+  //
+  // Create New Event
+  //
+  var $createForm = $('#tta-event-form');
+  if ( $createForm.length ) {
+    $createForm.on('submit', function(e){
+      e.preventDefault();
+
+      // Show spinner
+      $('.tta-admin-progress-spinner-svg').css({ opacity: 1, display: 'inline-block' });
+      // Clear previous response text
+      $('.tta-admin-progress-response-p').text('');
+
+      var $btn = $createForm.find('.submit .button-primary').prop('disabled', true);
+      var data = $createForm.serialize()
+               + '&action=tta_save_event'
+               + '&tta_event_save_nonce=' + TTA_Ajax.save_event_nonce;
+
+      $.post(TTA_Ajax.ajax_url, data, function(res){
+        // Artificial 5-second delay before showing the response
+        setTimeout(function(){
+          // Hide spinner
+          $('.tta-admin-progress-spinner-svg').fadeOut(200);
+
+          // Inject response message into our designated <p>
+          var cls = res.success ? 'updated' : 'error';
+          var msg = res.data.message || 'Unknown error';
+          var $resp = $('.tta-admin-progress-response-p')
+            .removeClass('updated error')
+            .addClass(cls);
+
+          // if a page_url was returned, append it as an <a>
+          if ( res.data.page_url ) {
+            $resp.html(msg);
+          } else {
+            $resp.text(msg);
+          }
+
+          // If success and returned a new ID, prepend hidden field
+          if ( res.success && res.data.id && !$createForm.find('input[name="tta_event_id"]').length ) {
+            $createForm.prepend('<input type="hidden" name="tta_event_id" value="' + res.data.id + '">');
+          }
+
+          $btn.prop('disabled', false);
+        }, 5000);
+      }, 'json')
+      .fail(function(){
+        // Even on AJAX error, wait 5 seconds before hiding spinner & showing “failed”
+        setTimeout(function(){
+          $('.tta-admin-progress-spinner-svg').fadeOut(200);
+          var $resp = $('.tta-admin-progress-response-p');
+          $resp
+            .removeClass('updated')
+            .addClass('error')
+            .text('Request failed.');
+          $btn.prop('disabled', false);
+        }, 5000);
+      });
+    });
+  }
+
+  //
+  // Create New Member
+  //
+  var $memberForm = $('#tta-member-form');
+  if ( $memberForm.length ) {
+    $memberForm.on('submit', function(e){
+      e.preventDefault();
+
+      // Before doing anything, verify that the two email fields match
+      var email        = $('#email').val().trim();
+      var emailConfirm = $('#email_verify').val().trim();
+      if ( email !== emailConfirm ) {
+        // Show error and abort
+        var $resp = $('.tta-admin-progress-response-p')
+          .removeClass('updated')
+          .addClass('error')
+          .text('Whoops! The email addresses do not match. Please correct and try again.');
+        return;
+      }
+
+      // Show spinner
+      $('.tta-admin-progress-spinner-svg').css({ opacity: 1, display: 'inline-block' });
+      // Clear previous response text
+      $('.tta-admin-progress-response-p').text('');
+
+      var $btn = $memberForm.find('.submit .button-primary').prop('disabled', true);
+      var data = $memberForm.serialize()
+               + '&action=tta_save_member'
+               + '&tta_member_save_nonce=' + TTA_Ajax.save_member_nonce;
+
+      $.post(TTA_Ajax.ajax_url, data, function(res){
+        // Artificial 5-second delay before showing the response
+        setTimeout(function(){
+          // Hide spinner
+          $('.tta-admin-progress-spinner-svg').fadeOut(200);
+
+          // Inject response message into our designated <p>
+          var cls = res.success ? 'updated' : 'error';
+          var msg = res.data.message || 'Unknown error';
+          var $resp = $('.tta-admin-progress-response-p')
+            .removeClass('updated error')
+            .addClass(cls)
+            .html(msg);
+
+          $btn.prop('disabled', false);
+        }, 5000);
+      }, 'json')
+      .fail(function(){
+        // Even on AJAX error, wait 5 seconds before hiding spinner & showing “failed”
+        setTimeout(function(){
+          $('.tta-admin-progress-spinner-svg').fadeOut(200);
+          var $resp = $('.tta-admin-progress-response-p');
+          $resp
+            .removeClass('updated')
+            .addClass('error')
+            .text('Request failed.');
+          $btn.prop('disabled', false);
+        }, 5000);
+      });
+    });
+  }
+
+  //
+  // Inline Edit: fetch & inject an edit form when clicking a row (Events)
+  //
+  $(document).on('click', '.widefat tbody tr[data-event-id]', function(e){
+    // Don’t trigger if clicking inside controls
+    if ($(e.target).is('a, button, input, textarea, select')) {
+      return;
+    }
+
+    var $row      = $(this);
+    var $arrow    = $row.find('.tta-toggle-arrow');
+    var eventId   = $row.data('event-id');
+    var colspan   = $row.find('td').length;
+    var $existing = $row.next('.tta-inline-row');
+
+    // If already open, close it
+    if ( $existing.length ) {
+      $arrow.removeClass('open');
+      $existing.find('.tta-inline-container').fadeOut(200, function(){
+        $existing.remove();
+      });
+      return;
+    }
+
+    // Otherwise close any other open form first
+    $('.tta-inline-row').each(function(){
+      var $otherRow = $(this).prev('tr');
+      $otherRow.find('.tta-toggle-arrow').removeClass('open');
+      $(this).find('.tta-inline-container').fadeOut(200, function(){
+        $(this).closest('.tta-inline-row').remove();
+      });
+    });
+
+    // Start arrow animation immediately
+    $arrow.addClass('open');
+
+    // Fetch the pre-populated edit form HTML for this event
+    $.post(TTA_Ajax.ajax_url, {
+      action:          'tta_get_event_form',
+      event_id:        eventId,
+      get_event_nonce: TTA_Ajax.get_event_nonce
+    }, function(res){
+      if ( ! res.success ) {
+        console.error('Event fetch failed', res.data && res.data.message);
+        return;
+      }
+      var html = res.data.html;
+
+      // Build a new row with a hidden container, then fade it in
+      var $newRow = $(
+        '<tr class="tta-inline-row">' +
+          '<td colspan="' + colspan + '">' +
+            '<div class="tta-inline-container" style="display:none;"></div>' +
+          '</td>' +
+        '</tr>'
+      );
+      $row.after($newRow);
+
+      // Insert HTML & fadeIn
+      var $container = $newRow.find('.tta-inline-container');
+      $container.html(html).fadeIn(200, function(){
+        // After fadeIn completes, scroll viewport so this row is in view,
+        // leaving 120px above it so the trigger row stays visible.
+        var offset = $newRow.offset().top;
+        $('html, body').animate({ scrollTop: offset - 120 }, 300);
+
+        //
+        // At this point, the HTML (including the `wp_editor()` textarea) is in the DOM.
+        // Now we must explicitly initialize TinyMCE + Quicktags on that textarea ID.
+        //
+        if ( typeof wp !== 'undefined' && typeof wp.editor !== 'undefined' ) {
+          // If TinyMCE was previously initialized on this ID, remove it first:
+          try {
+            wp.editor.remove('tta_event_description');
+          } catch(err) {
+            // ignore if not already initialized
+          }
+
+          // Then initialize the full editor, matching the Create‐Page configuration:
+          wp.editor.initialize('tta_event_description', {
+            tinymce: {
+              wpautop: true,
+              toolbar1: [
+                'formatselect',
+                'bold',
+                'italic',
+                'bullist',
+                'numlist',
+                'blockquote',
+                'alignleft',
+                'aligncenter',
+                'alignright',
+                'alignjustify',
+                'link',
+                'table',
+                'fullscreen',
+                'wp_adv',
+                'styleselect',
+                'shortcodes'
+              ].join(','),
+              toolbar2: [
+                'strikethrough',
+                'hr',
+                'forecolor',
+                'pastetext',
+                'pasteword',
+                'removeformat',
+                'charmap',
+                'ltr',
+                'rtl',
+                'undo',
+                'redo',
+                'help',
+                'fontsizeselect'
+              ].join(','),
+              toolbar3: '',
+              toolbar4: '',
+              block_formats:
+                'Paragraph=p;Heading 1=h1;Heading 2=h2;Heading 3=h3;Heading 4=h4;Heading 5=h5;Heading 6=h6'
+            },
+            mediaButtons: true,
+            quicktags: true
+          });
+        }
+      });
+    }, 'json');
+  });
+
+  //
+  // Also open inline edit when clicking the Edit link
+  //
+  $(document).on('click', '.tta-edit-link', function(e){
+    e.preventDefault();
+    $(this).closest('tr').trigger('click');
+  });
+
+  //
+  // Update Existing Event (delegate to injected form)
+  //
+  $(document).on('submit', '#tta-event-edit-form', function(e){
+    e.preventDefault();
+    var $form = $(this);
+
+    // Show spinner
+    $('.tta-admin-progress-spinner-svg').css({ opacity: 1, display: 'inline-block' });
+    // Clear previous response text
+    $('.tta-admin-progress-response-p').text('');
+
+    var $btn  = $form.find('.submit .button-primary').prop('disabled', true);
+
+    // Rebuild userids before serializing
+    rebuildUserids();
+
+    var data = $form.serialize()
+             + '&action=tta_update_event'
+             + '&tta_event_save_nonce=' + TTA_Ajax.save_event_nonce;
+
+    $.post(TTA_Ajax.ajax_url, data, function(res){
+      // Artificial 5-second delay before showing the response
+      setTimeout(function(){
+        // Hide spinner
+        $('.tta-admin-progress-spinner-svg').fadeOut(200);
+
+        // Display response under the spinner
+        var cls = res.success ? 'updated' : 'error';
+        var msg = res.data.message || 'Unknown error';
+        var $resp = $('.tta-admin-progress-response-p')
+          .removeClass('updated error')
+          .addClass(cls);
+
+        // if a page_url was returned, append it as an <a>
+        if ( res.data.page_url ) {
+          $resp.html(msg);
+        } else {
+          $resp.text(msg);
+        }
+
+        $btn.prop('disabled', false);
+      }, 5000);
+    }, 'json')
+    .fail(function(){
+      // Even on AJAX error, wait 5 seconds before hiding spinner & showing “failed”
+      setTimeout(function(){
+        $('.tta-admin-progress-spinner-svg').fadeOut(200);
+        var $resp = $('.tta-admin-progress-response-p');
+        $resp
+          .removeClass('updated')
+          .addClass('error')
+          .text('Request failed.');
+        $btn.prop('disabled', false);
+      }, 5000);
+    });
+  });
+
+  //
+  // Remove a waitlist entry
+  //
+  $(document).on('click', '.tta-remove-waitlist', function(e){
+    e.preventDefault();
+    $(this).closest('.tta-waitlist-entry').remove();
+    rebuildUserids();
+  });
+
+  //
+  // Show/hide waitlist section when dropdown changes
+  //
+  $(document).on('change', '#waitlistavailable', function(){
+    if ( $(this).val() === '1' ) {
+      $('#tta-waitlist-container').slideDown(200);
+    } else {
+      $('#tta-waitlist-container').slideUp(200);
+    }
+  });
+
+  //
+  // Rebuild the CSV of user IDs and store in a hidden input
+  //
+  function rebuildUserids(){
+    var uids = [];
+    $('#tta-waitlist-container .tta-waitlist-entry').each(function(){
+      uids.push( $(this).data('userid') );
+    });
+    var csv = uids.join(',');
+    var $form = $('#tta-event-edit-form');
+    var $input = $form.find('input[name="userids"]');
+    if ( ! $input.length ) {
+      $input = $('<input>')
+        .attr({ type: 'hidden', name: 'userids' })
+        .appendTo( $form );
+    }
+    $input.val(csv);
+  }
+
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Inline Edit for “Manage Members” rows
+  //
+  $(document).on('click', '.widefat tbody tr[data-member-id]', function(e){
+    // Don’t trigger if clicking inside controls
+    if ( $(e.target).is('a, button, input, textarea, select') ) {
+      return;
+    }
+
+    var $row      = $(this);
+    var $arrow    = $row.find('.tta-toggle-arrow');
+    var memberId  = $row.data('member-id');
+    var colspan   = $row.find('td').length;
+    var $existing = $row.next('.tta-inline-row');
+
+    // If already open, close it
+    if ( $existing.length ) {
+      $arrow.removeClass('open');
+      $existing.find('.tta-inline-container').fadeOut(200, function(){
+        $existing.remove();
+      });
+      return;
+    }
+
+    // Otherwise close any other open inline‐edit form
+    $('.tta-inline-row').each(function(){
+      var $otherRow = $(this).prev('tr');
+      $otherRow.find('.tta-toggle-arrow').removeClass('open');
+      $(this).find('.tta-inline-container').fadeOut(200, function(){
+        $(this).closest('.tta-inline-row').remove();
+      });
+    });
+
+    // Start arrow animation immediately
+    $arrow.addClass('open');
+
+    // Fetch the pre-populated edit form HTML for this member
+    $.post(TTA_Ajax.ajax_url, {
+      action:       'tta_get_member_form',
+      member_id:    memberId,
+      get_member_nonce: TTA_Ajax.get_member_nonce
+    }, function(res){
+      if ( ! res.success ) {
+        console.error('Member fetch failed', res.data && res.data.message);
+        return;
+      }
+      var html = res.data.html;
+
+      // Build a new row with a hidden container, then fade it in
+      var $newRow = $(
+        '<tr class="tta-inline-row">' +
+          '<td colspan="' + colspan + '">' +
+            '<div class="tta-inline-container" style="display:none;"></div>' +
+          '</td>' +
+        '</tr>'
+      );
+      $row.after($newRow);
+
+      // Insert HTML & fadeIn
+      var $container = $newRow.find('.tta-inline-container');
+      $container.html(html).fadeIn(200, function(){
+        // After fadeIn completes, scroll viewport so this row is in view,
+        // leaving 120px above it so the trigger row stays visible.
+        var offset = $newRow.offset().top;
+        $('html, body').animate({ scrollTop: offset - 120 }, 300);
+
+        //
+        // If you added any WP editor areas inside members‐edit.php (e.g. a Biography WYSIWYG),
+        // you would initialize them here, just like for events.
+        //
+        if ( typeof wp !== 'undefined' && typeof wp.editor !== 'undefined' ) {
+          try {
+            wp.editor.remove('biography_edit');
+          } catch(err) {
+            // ignore if not already initialized
+          }
+          // If you wanted a full TinyMCE field for bio, you’d do something like:
+          // wp.editor.initialize('biography_edit', { tinymce: {...}, quicktags: true, mediaButtons: true });
+        }
+      });
+    }, 'json');
+  });
+
+
+  //
+  // Also open inline edit when clicking the “Edit” link in the row
+  //
+  $(document).on('click', '.tta-edit-link', function(e){
+    e.preventDefault();
+    $(this).closest('tr').trigger('click');
+  });
+
+
+  //
+  // Update Existing Member (delegate to injected form)
+  //
+  $(document).on('submit', '#tta-member-edit-form', function(e){
+    // Before doing anything, verify that the two email fields match
+    var email        = $('#email_edit').val().trim();
+    var emailConfirm = $('#email_verify_edit').val().trim();
+    if ( email !== emailConfirm ) {
+      e.preventDefault();
+      $('.tta-admin-progress-response-p')
+        .removeClass('updated')
+        .addClass('error')
+        .text('Whoops! The email addresses do not match. Please correct and try again.');
+      return;
+    }
+
+    e.preventDefault();
+    var $form = $(this);
+
+    // Show spinner
+    $('.tta-admin-progress-spinner-svg').css({ opacity: 1, display: 'inline-block' });
+    // Clear previous response text
+    $('.tta-admin-progress-response-p').text('');
+
+    var $btn  = $form.find('.submit .button-primary').prop('disabled', true);
+
+    // Update existing member
+    var data = $form.serialize()
+             + '&action=tta_update_member'
+             + '&tta_member_update_nonce=' + TTA_Ajax.update_member_nonce;
+
+    $.post(TTA_Ajax.ajax_url, data, function(res){
+      // Artificial 5-second delay before showing the response
+      setTimeout(function(){
+        // Hide spinner
+        $('.tta-admin-progress-spinner-svg').fadeOut(200);
+
+        // Display response under the spinner
+        var cls = res.success ? 'updated' : 'error';
+        var msg = res.data.message || 'Unknown error';
+        var $resp = $('.tta-admin-progress-response-p')
+          .removeClass('updated error')
+          .addClass(cls)
+          .html(msg);
+
+        $btn.prop('disabled', false);
+      }, 5000);
+    }, 'json')
+    .fail(function(){
+      // Even on AJAX error, wait 5 seconds before hiding spinner & showing “failed”
+      setTimeout(function(){
+        $('.tta-admin-progress-spinner-svg').fadeOut(200);
+        var $resp = $('.tta-admin-progress-response-p');
+        $resp
+          .removeClass('updated')
+          .addClass('error')
+          .text('Request failed.');
+        $btn.prop('disabled', false);
+      }, 5000);
+    });
+  });
+
+
+  //
+  // Add new “Interests” field in inline‐edit
+  //
+  $(document).on('click', '#add-interest-edit', function(e){
+    e.preventDefault();
+    var count = $('#interests-container input.interest-field').length + 1;
+    var $newInput = $('<input>')
+      .attr({
+        type: 'text',
+        name: 'interests[]',
+        class: 'regular-text interest-field',
+        placeholder: 'Interest #' + count
+      });
+    $('#interests-container').append('<br>').append($newInput);
+  });
+
+
+  //
+  // Basic phone-number formatting mask in inline‐edit
+  //
+  $(document).on('input', '#phone_edit', function(){
+    var val = $(this).val().replace(/\D/g, '');
+    if ( val.length > 3 && val.length <= 6 ) {
+      val = '(' + val.slice(0,3) + ') ' + val.slice(3);
+    } else if ( val.length > 6 ) {
+      val = '(' + val.slice(0,3) + ') ' + val.slice(3,6) + '-' + val.slice(6,10);
+    }
+    $(this).val( val );
+  });
+
+  //
+  // Media uploader for both events & members (already in media-uploader.js)
+  //  • .tta-upload-single   → main/gallery for events
+  //  • .tta-member-upload-single → profile image for members
+  //  • .tta-upload-multiple → gallery images
+  //
+
+});/* end jQuery(function($) ) */
