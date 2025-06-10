@@ -29,9 +29,7 @@ class TTA_DB_Setup {
             url4 VARCHAR(255) DEFAULT '',
             mainimageid BIGINT UNSIGNED DEFAULT 0,
             otherimageids TEXT,
-            attendancelimited TINYINT(1) DEFAULT 0,
             waitlistavailable TINYINT(1) DEFAULT 0,
-            attendancelimit INT UNSIGNED DEFAULT 0,
             waitlist_id INT UNSIGNED DEFAULT 0,
             page_id INT UNSIGNED DEFAULT 0,
             ticket_id INT UNSIGNED DEFAULT 0,
@@ -82,11 +80,12 @@ class TTA_DB_Setup {
             id                     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             event_ute_id           VARCHAR(100)     NOT NULL,
             event_name             VARCHAR(255)     NOT NULL,
+            ticket_name            VARCHAR(255)     NOT NULL,
             waitlist_id            INT UNSIGNED     NOT NULL,
             attendancelimit        INT UNSIGNED     NOT NULL,
             baseeventcost          DECIMAL(10,2)    NOT NULL,
             discountedmembercost   DECIMAL(10,2)    NOT NULL,
-            premiummembercost      DECIMAL(10,2) DEFAULT 0.00,
+            premiummembercost      DECIMAL(10,2)    DEFAULT 0.00,
             PRIMARY KEY  (id)
         ) $charset_collate";
 

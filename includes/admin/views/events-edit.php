@@ -373,23 +373,6 @@ if ( isset( $_GET['event_id'] ) ) {
                 </td>
             </tr>
 
-            <!-- Attendance Limit -->
-            <tr>
-                <th>
-                    <label for="attendancelimit">Attendance Limit</label>
-                    <span class="tta-tooltip-icon"
-                          data-tooltip="Set max attendees; 0 = unlimited."
-                          style="margin-left:4px;">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
-                             alt="Help">
-                    </span>
-                </th>
-                <td>
-                    <input type="number" name="attendancelimit" id="attendancelimit" min="0" step="1"
-                           value="<?php echo esc_attr( $event['attendancelimit'] ?? 0 ); ?>">
-                </td>
-            </tr>
-
             <!-- Waitlist Available? -->
             <tr>
                 <th>

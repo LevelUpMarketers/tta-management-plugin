@@ -45,6 +45,8 @@ class TTA_Ajax_Handler {
         // Frontend “update my profile” action (logged-in users only)
         add_action( 'wp_ajax_tta_front_update_member', [ $this, 'update_member_front' ] );
 
+        add_action( 'wp_ajax_tta_get_ticket_form', [ $this, 'get_ticket_form' ] );
+
 
     }
 
@@ -83,7 +85,6 @@ class TTA_Ajax_Handler {
         $end                = sanitize_text_field( $_POST['end_time']   ?? '' );
         $time               = $start . '|' . $end;
         $waitlist_available = sanitize_text_field( $_POST['waitlistavailable'] ?? '0' );
-        $attendance_limit   = intval( $_POST['attendancelimit'] ?? 0 );
 
         $event_data = [
             'ute_id'               => $ute_id,
@@ -99,7 +100,6 @@ class TTA_Ajax_Handler {
             'baseeventcost'        => floatval        ( $_POST['baseeventcost']        ?? 0 ),
             'discountedmembercost' => floatval        ( $_POST['discountedmembercost'] ?? 0 ),
             'premiummembercost' => floatval        ( $_POST['premiummembercost'] ?? 0 ),
-            'attendancelimit'      => $attendance_limit,
             'waitlistavailable'    => $waitlist_available,
             'refundsavailable'     => sanitize_text_field( $_POST['refundsavailable']    ?? '0' ),
             'discountcode'         => sanitize_text_field( $_POST['discountcode']        ?? '' ),
@@ -125,7 +125,6 @@ class TTA_Ajax_Handler {
             'baseeventcost'        => $event_data['baseeventcost'],
             'discountedmembercost' => $event_data['discountedmembercost'],
             'premiummembercost' => $event_data['premiummembercost'],
-            'attendancelimit'      => $attendance_limit,
         ];
         $wpdb->insert( $tickets_table, $ticket_data );
         $ticket_id = $wpdb->insert_id;
@@ -259,7 +258,6 @@ class TTA_Ajax_Handler {
             'baseeventcost'        => floatval        ( $_POST['baseeventcost']        ?? 0 ),
             'discountedmembercost' => floatval        ( $_POST['discountedmembercost'] ?? 0 ),
             'premiummembercost'    => floatval        ( $_POST['premiummembercost'] ?? 0 ),
-            'attendancelimit'      => intval          ( $_POST['attendancelimit']      ?? 0 ),
             'waitlistavailable'    => sanitize_text_field( $_POST['waitlistavailable']   ?? '0' ),
             'refundsavailable'     => sanitize_text_field( $_POST['refundsavailable']    ?? '0' ),
             'discountcode'         => sanitize_text_field( $_POST['discountcode']        ?? '' ),
@@ -292,7 +290,6 @@ class TTA_Ajax_Handler {
             'baseeventcost'        => $event_data['baseeventcost'],
             'discountedmembercost' => $event_data['discountedmembercost'],
             'premiummembercost' => $event_data['premiummembercost'],
-            'attendancelimit'      => $event_data['attendancelimit'],
         ];
         $wpdb->update(
             $tickets_table,
@@ -429,6 +426,38 @@ class TTA_Ajax_Handler {
 
         wp_send_json_success([ 'html' => $html ]);
     }
+
+    /**
+     * Return the “edit ticket” form via AJAX
+     */
+    public function get_ticket_form() {
+        check_ajax_referer( 'tta_ticket_get_action', 'get_ticket_nonce' );
+
+        global $wpdb;
+        $tickets_table = $wpdb->prefix . 'tta_tickets';
+        $events_table  = $wpdb->prefix . 'tta_events';
+
+        $ticket_id = intval( $_POST['ticket_id'] ?? 0 );
+        if ( ! $ticket_id ) {
+            wp_send_json_error( [ 'message' => 'Invalid ticket ID.' ] );
+        }
+
+        $ticket = $wpdb->get_row(
+            $wpdb->prepare( "SELECT t.*, e.name AS event_name FROM {$tickets_table} t JOIN {$events_table} e ON e.ute_id = t.event_ute_id WHERE t.id = %d", $ticket_id ),
+            ARRAY_A
+        );
+        if ( ! $ticket ) {
+            wp_send_json_error( [ 'message' => 'Ticket not found.' ] );
+        }
+
+        // Render the edit form view into a buffer
+        ob_start();
+        include plugin_dir_path( __FILE__ ) . '../admin/views/tickets-edit.php';
+        $html = ob_get_clean();
+
+        wp_send_json_success( [ 'html' => $html ] );
+    }
+
 
     /**
      * Handle AJAX request to create a new Member (insert only),

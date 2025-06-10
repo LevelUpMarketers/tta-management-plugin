@@ -413,7 +413,7 @@ wp_enqueue_media();
                                   style="background:none;border:none;cursor:pointer;margin-left:8px;"
                                 >
                                     <img
-                                      src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/delete-icon.svg' ); ?>"
+                                      src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>"
                                       alt="×"
                                       style="width:16px;height:16px;"
                                     />

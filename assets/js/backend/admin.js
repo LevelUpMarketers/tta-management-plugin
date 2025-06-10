@@ -550,4 +550,153 @@ jQuery(function($){
   //  • .tta-upload-multiple → gallery images
   //
 
+
+
+// ── Inline Edit for Tickets ──────────────────────────────────────────────
+  $(document).on('click', '.widefat tbody tr[data-ticket-id]', function(e){
+    console.log('clciked');
+    if ($(e.target).is('a, button, input, select')) return;
+
+    var $row      = $(this),
+        $arrow    = $row.find('.tta-toggle-arrow'),
+        ticketId  = $row.data('ticket-id'),
+        colspan   = $row.find('td').length,
+        $existing = $row.next('.tta-inline-row');
+
+    // close if already open
+    if ($existing.length) {
+      $arrow.removeClass('open');
+      $existing.find('.tta-inline-container').fadeOut(200,function(){
+        $existing.remove();
+      });
+      return;
+    }
+
+    // close any other open
+    $('.tta-inline-row').each(function(){
+      var $other = $(this).prev('tr');
+      $other.find('.tta-toggle-arrow').removeClass('open');
+      $(this).find('.tta-inline-container').fadeOut(200,function(){
+        $(this).closest('.tta-inline-row').remove();
+      });
+    });
+
+    $arrow.addClass('open');
+
+    // fetch ticket form
+    $.post(
+      TTA_Ajax.ajax_url,
+      {
+        action:            'tta_get_ticket_form',
+        ticket_id:         ticketId,
+        get_ticket_nonce:  TTA_Ajax.get_ticket_nonce
+      },
+      function(res){
+        if (!res.success) return console.error(res.data.message);
+
+        var html = res.data.html;
+        var $newRow = $(
+          '<tr class="tta-inline-row"><td colspan="'+colspan+'">'+
+            '<div class="tta-inline-container" style="display:none;"></div>'+
+          '</td></tr>'
+        );
+        $row.after($newRow);
+
+        var $container = $newRow.find('.tta-inline-container');
+        $container.html(html).fadeIn(200, function(){
+          $('html,body').animate({ scrollTop: $newRow.offset().top - 120 }, 300);
+        });
+      },
+      'json'
+    );
+  });
+
+  // also open on clicking “Edit”
+  $(document).on('click', '.tta-edit-ticket', function(e){
+    e.preventDefault();
+    $(this).closest('tr').trigger('click');
+  });
+
+  // ── Handle ticket‐save (delegate) ────────────────────────────────────────
+  $(document).on('submit','#tta-ticket-edit-form',function(e){
+    e.preventDefault();
+    var $form = $(this),
+        $btn  = $form.find('button[type=submit]').prop('disabled',true),
+        $spin = $form.find('.tta-admin-progress-spinner-svg').css({display:'inline-block',opacity:0}).fadeTo(200,1),
+        data  = $form.serialize() 
+              + '&action=tta_update_ticket'
+              + '&tta_ticket_save_nonce=' + TTA_Ajax.save_ticket_nonce;
+
+    $.post(TTA_Ajax.ajax_url, data, function(res){
+      setTimeout(function(){
+        $spin.fadeTo(200,0,function(){ $(this).hide(); });
+        var cls = res.success ? 'updated':'error',
+            msg = res.data.message||'Error saving ticket';
+        $form.find('.tta-admin-progress-response-p')
+             .removeClass('updated error')
+             .addClass(cls)
+             .text(msg);
+        $btn.prop('disabled',false);
+      },5000);
+    },'json')
+    .fail(function(){
+      setTimeout(function(){
+        $spin.fadeTo(200,0,function(){ $(this).hide(); });
+        $form.find('.tta-admin-progress-response-p')
+             .removeClass('updated')
+             .addClass('error')
+             .text('Request failed.');
+        $btn.prop('disabled',false);
+      },5000);
+    });
+  });
+
+// Add New Ticket (with incrementing number)
+  $(document).on('click', '#add-new-ticket', function(){
+    var $form = $('#tta-ticket-edit-form');
+    // Count how many “New Ticket” sections already exist:
+    var existingNew = $form.find('h3').filter(function(){
+      return $(this).text().trim().indexOf('New Ticket') === 0;
+    }).length;
+    var index = existingNew + 1;
+
+    // Clone the template
+    var $tpl = $('#tta-new-ticket-template').contents().clone();
+    // Update the heading
+    $tpl.find('h3').text('New Ticket ' + index);
+
+    // Clear any inputs just in case
+    $tpl.find('input').val('');
+
+    // Insert before the submit buttons
+    $(this).closest('p.submit').before($tpl);
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 });/* end jQuery(function($) ) */
