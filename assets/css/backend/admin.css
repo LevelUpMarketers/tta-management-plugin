@@ -206,6 +206,157 @@ form p.submit{
   animation: tta-fade-slide-down 0.3s ease-out;
 }
 
+.tta-delete-new-ticket img{
+    width: 15px;
+    top: 2px;
+    right: 2px;
+    position: relative;
+}
+
+.tta-delete-new-ticket{
+    position:absolute;
+    bottom:0.5em;
+    right:0.5em;
+    background:none;
+    border:none;
+    cursor:pointer;
+}
+
+.tta-delete-new-ticket-span{
+    font-size:14px;
+}
+
+/* Delete‐ticket icon in ticket‐edit rows */
+.tta-delete-ticket-row {
+  padding: 0;
+}
+.tta-delete-ticket-row img {
+  display: block;
+}
+.tta-ticket-row {
+  position: relative;
+  padding-top: 1.5em; /* ensure room for the delete icon */
+}
+
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Waitlist Entries Styling                                                  */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+.tta-ticket-waitlist details {
+  margin-top: 1em;
+}
+
+.tta-ticket-row .form-table th{
+    position:relative;
+}
+
+.tta-ticket-row .form-table th label{
+    position:relative;
+    left: 20px;
+}
+
+.tta-ticket-row .form-table th .tta-tooltip-icon, .tta-ticket-row .tta-ticket-waitlist summary span{
+    position: absolute;
+    display: inline-block;
+    vertical-align: middle;
+    cursor: help;
+    width: 15px;
+    margin-left: 4px;
+    left: -2px;
+    top: 3px;
+}
+
+.tta-ticket-row .tta-ticket-waitlist summary span{
+    left: -22px;
+}
+
+.tta-ticket-waitlist summary{
+    font-weight: 600;
+    color: #1d2327;
+    font-size: 14px;
+    margin-bottom:20px;
+    left:20px;
+    position: relative;
+}
+
+.tta-wl-entry {
+  background: #f9f9f9;
+  padding: 1em;
+  margin-bottom: 1.5em;
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.tta-wl-thumb {
+  margin-right: 1em;
+}
+.tta-wl-thumb-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Make the info table horizontally scrollable on small screens */
+.tta-wl-info-wrapper {
+  overflow-x: auto;
+  flex: 1;
+}
+
+/* Fixed layout table with equal columns */
+.tta-wl-info-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 600px; /* ensure scroll on narrow viewports */
+  table-layout: fixed;
+}
+.tta-wl-info-table th,
+.tta-wl-info-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  vertical-align: top;
+  width: calc(100% / 6);
+  word-wrap: break-word;
+}
+
+/* Bold headings */
+.tta-wl-info-table th {
+  font-weight: bold;
+  background: #efefef;
+}
+
+/* Remove button styling */
+.tta-remove-waitlist-entry {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.tta-remove-waitlist-entry img {
+  width: 16px;
+  height: 16px;
+}
+
+/* Fallback no-entries text */
+.no-waitlist {
+  color: #666;
+  margin-top: 0.5em;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+  .tta-wl-entry {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tta-wl-info-table th,
+  .tta-wl-info-table td {
+    width: auto;
+  }
+}
+
+
 /* keyframes for fade + slide down */
 @keyframes tta-fade-slide-down {
   from {

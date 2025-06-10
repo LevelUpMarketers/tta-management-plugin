@@ -553,63 +553,42 @@ jQuery(function($){
 
 
 // ── Inline Edit for Tickets ──────────────────────────────────────────────
-  $(document).on('click', '.widefat tbody tr[data-ticket-id]', function(e){
-    console.log('clciked');
-    if ($(e.target).is('a, button, input, select')) return;
+  // Expand an event row to show its tickets
+  $(document).on('click', '.widefat tbody tr[data-event-ute-id]', function(e){
+    // ignore clicks on links/buttons inside
+    if ($(e.target).is('a, button, img')) return;
 
-    var $row      = $(this),
-        $arrow    = $row.find('.tta-toggle-arrow'),
-        ticketId  = $row.data('ticket-id'),
-        colspan   = $row.find('td').length,
-        $existing = $row.next('.tta-inline-row');
+    var $row    = $(this),
+        ute     = $row.data('event-ute-id'),
+        $arrow  = $row.find('.tta-toggle-arrow'),
+        colspan = $row.find('td').length,
+        $ex     = $row.next('.tta-inline-row');
 
-    // close if already open
-    if ($existing.length) {
+    // toggle close if already open
+    if ($ex.length) {
       $arrow.removeClass('open');
-      $existing.find('.tta-inline-container').fadeOut(200,function(){
-        $existing.remove();
-      });
+      $ex.remove();
       return;
     }
 
     // close any other open
-    $('.tta-inline-row').each(function(){
-      var $other = $(this).prev('tr');
-      $other.find('.tta-toggle-arrow').removeClass('open');
-      $(this).find('.tta-inline-container').fadeOut(200,function(){
-        $(this).closest('.tta-inline-row').remove();
-      });
-    });
+    $('.tta-inline-row').remove();
+    $('.tta-toggle-arrow').removeClass('open');
 
     $arrow.addClass('open');
 
-    // fetch ticket form
-    $.post(
-      TTA_Ajax.ajax_url,
-      {
-        action:            'tta_get_ticket_form',
-        ticket_id:         ticketId,
-        get_ticket_nonce:  TTA_Ajax.get_ticket_nonce
-      },
-      function(res){
-        if (!res.success) return console.error(res.data.message);
-
-        var html = res.data.html;
-        var $newRow = $(
-          '<tr class="tta-inline-row"><td colspan="'+colspan+'">'+
-            '<div class="tta-inline-container" style="display:none;"></div>'+
-          '</td></tr>'
-        );
-        $row.after($newRow);
-
-        var $container = $newRow.find('.tta-inline-container');
-        $container.html(html).fadeIn(200, function(){
-          $('html,body').animate({ scrollTop: $newRow.offset().top - 120 }, 300);
-        });
-      },
-      'json'
-    );
+    $.post( TTA_Ajax.ajax_url, {
+      action           : 'tta_get_ticket_form',   
+      event_ute_id     : ute,
+      get_ticket_nonce : TTA_Ajax.get_ticket_nonce
+    }, function(res){
+      if ( ! res.success ) return console.error(res);
+      var $new = $('<tr class="tta-inline-row"><td colspan="'+colspan+'"><div class="tta-inline-container"></div></td></tr>');
+      $row.after($new);
+      $new.find('.tta-inline-container').html(res.data.html).slideDown(200);
+    }, 'json');
   });
+
 
   // also open on clicking “Edit”
   $(document).on('click', '.tta-edit-ticket', function(e){
@@ -620,12 +599,27 @@ jQuery(function($){
   // ── Handle ticket‐save (delegate) ────────────────────────────────────────
   $(document).on('submit','#tta-ticket-edit-form',function(e){
     e.preventDefault();
+
+    $('#tta-ticket-edit-form .tta-ticket-row').each(function(){
+      var uids = [];
+      // collect each remaining waitlist-entry's userid
+      $(this).find('.tta-wl-entry[data-userid]').each(function(){
+        uids.push( $(this).data('userid') );
+      });
+      // write it into the single hidden input in this row
+      $(this).find('input.tta-hidden-waitlist').val( uids.join(',') );
+    });
+
+
+
     var $form = $(this),
         $btn  = $form.find('button[type=submit]').prop('disabled',true),
         $spin = $form.find('.tta-admin-progress-spinner-svg').css({display:'inline-block',opacity:0}).fadeTo(200,1),
         data  = $form.serialize() 
               + '&action=tta_update_ticket'
               + '&tta_ticket_save_nonce=' + TTA_Ajax.save_ticket_nonce;
+
+              console.log($form);
 
     $.post(TTA_Ajax.ajax_url, data, function(res){
       setTimeout(function(){
@@ -651,10 +645,11 @@ jQuery(function($){
     });
   });
 
-// Add New Ticket (with incrementing number)
+  // Add New Ticket (with incrementing number)
   $(document).on('click', '#add-new-ticket', function(){
     var $form = $('#tta-ticket-edit-form');
-    // Count how many “New Ticket” sections already exist:
+
+    // Count existing “New Ticket” entries
     var existingNew = $form.find('h3').filter(function(){
       return $(this).text().trim().indexOf('New Ticket') === 0;
     }).length;
@@ -662,15 +657,58 @@ jQuery(function($){
 
     // Clone the template
     var $tpl = $('#tta-new-ticket-template').contents().clone();
-    // Update the heading
-    $tpl.find('h3').text('New Ticket ' + index);
 
-    // Clear any inputs just in case
+    // Update only the text node in the <h3>, preserving the delete button
+    var $h3 = $tpl.find('h3');
+    $h3.contents()
+       .filter(function() { return this.nodeType === 3; })
+       .first()
+       .replaceWith('New Ticket ' + index + ' ');
+
+    // Clear any inputs
     $tpl.find('input').val('');
 
     // Insert before the submit buttons
     $(this).closest('p.submit').before($tpl);
   });
+
+  // Remove a newly added ticket & re-number
+  $(document).on('click', '.tta-delete-new-ticket', function(){
+    // Remove this ticket block
+    $(this).closest('.tta-ticket-row').remove();
+
+    // Find *only* the New-Ticket headings (those with a delete button)
+    var $newH3s = $('#tta-ticket-edit-form .tta-ticket-row h3').filter(function(){
+      return $(this).find('.tta-delete-new-ticket').length;
+    });
+
+    // Re-number them in order
+    $newH3s.each(function(i){
+      var $h3  = $(this),
+          $btn = $h3.find('.tta-delete-new-ticket').detach();
+
+      // strip out old text nodes
+      $h3.contents().filter(function(){
+        return this.nodeType === Node.TEXT_NODE;
+      }).remove();
+
+      // prepend fresh title + space, then reattach the delete button
+      $h3.prepend('New Ticket ' + (i+1) + ' ');
+      $h3.append($btn);
+    });
+  });
+
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Remove a waitlist entry in the Tickets edit form
+  // ─────────────────────────────────────────────────────────────────────
+  $(document).on('click', '.tta-remove-waitlist-entry', function(e){
+    e.preventDefault();
+    // simply drop the entire entry block
+    $(this).closest('.tta-wl-entry').remove();
+  });
+
+
 
 
 

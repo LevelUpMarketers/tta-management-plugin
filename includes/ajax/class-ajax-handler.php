@@ -47,6 +47,10 @@ class TTA_Ajax_Handler {
 
         add_action( 'wp_ajax_tta_get_ticket_form', [ $this, 'get_ticket_form' ] );
 
+        // right after your existing add_action for tta_get_ticket_form:
+        add_action( 'wp_ajax_tta_update_ticket', [ $this, 'update_ticket' ] );
+                
+
 
     }
 
@@ -121,6 +125,7 @@ class TTA_Ajax_Handler {
         $ticket_data = [
             'event_ute_id'         => $ute_id,
             'event_name'           => $event_data['name'],
+            'ticket_name'          => 'General Admission',
             'waitlist_id'          => 0,
             'baseeventcost'        => $event_data['baseeventcost'],
             'discountedmembercost' => $event_data['discountedmembercost'],
@@ -433,29 +438,20 @@ class TTA_Ajax_Handler {
     public function get_ticket_form() {
         check_ajax_referer( 'tta_ticket_get_action', 'get_ticket_nonce' );
 
-        global $wpdb;
-        $tickets_table = $wpdb->prefix . 'tta_tickets';
-        $events_table  = $wpdb->prefix . 'tta_events';
-
-        $ticket_id = intval( $_POST['ticket_id'] ?? 0 );
-        if ( ! $ticket_id ) {
-            wp_send_json_error( [ 'message' => 'Invalid ticket ID.' ] );
+        $ute = sanitize_text_field( $_POST['event_ute_id'] ?? '' );
+        if ( ! $ute ) {
+            wp_send_json_error([ 'message' => 'Missing event ID.' ]);
         }
 
-        $ticket = $wpdb->get_row(
-            $wpdb->prepare( "SELECT t.*, e.name AS event_name FROM {$tickets_table} t JOIN {$events_table} e ON e.ute_id = t.event_ute_id WHERE t.id = %d", $ticket_id ),
-            ARRAY_A
-        );
-        if ( ! $ticket ) {
-            wp_send_json_error( [ 'message' => 'Ticket not found.' ] );
-        }
+        // Make $ticket stub so tickets-edit.php loops properly
+        $GLOBALS['ticket'] = ['event_ute_id' => $ute];
 
-        // Render the edit form view into a buffer
+        // Capture the tickets-edit.php output
         ob_start();
-        include plugin_dir_path( __FILE__ ) . '../admin/views/tickets-edit.php';
+        include plugin_dir_path(__FILE__) . '../admin/views/tickets-edit.php';
         $html = ob_get_clean();
 
-        wp_send_json_success( [ 'html' => $html ] );
+        wp_send_json_success([ 'html' => $html ]);
     }
 
 
@@ -961,6 +957,100 @@ class TTA_Ajax_Handler {
             'profileimgid'  => $profileimgid,
         ]);
     }
+
+    /**
+     * AJAX: Save updates to tickets & their waitlists.
+     */
+    public function update_ticket() {
+        // 1) Verify nonce
+        check_ajax_referer( 'tta_ticket_save_action', 'tta_ticket_save_nonce' );
+
+        // 2) Must have event_ute_id
+        if ( empty( $_POST['event_ute_id'] ) ) {
+            wp_send_json_error( [ 'message' => 'Missing event identifier.' ] );
+        }
+
+        global $wpdb;
+        $tickets_table  = $wpdb->prefix . 'tta_tickets';
+        $waitlist_table = $wpdb->prefix . 'tta_waitlist';
+        $ute = sanitize_text_field( $_POST['event_ute_id'] );
+
+        // 3) Grab all submitted arrays
+        $names            = $_POST['event_name']             ?? [];
+        $limits           = $_POST['attendancelimit']        ?? [];
+        $base_costs       = $_POST['baseeventcost']          ?? [];
+        $member_costs     = $_POST['discountedmembercost']   ?? [];
+        $premium_costs    = $_POST['premiummembercost']      ?? [];
+        $waitlist_csv_by_tid = $_POST['waitlist_userids']    ?? [];
+
+        error_log(print_r($waitlist_csv_by_tid,true));
+
+        // 4) Loop through each ticket by ID
+        foreach ( $names as $tid => $raw_name ) {
+            $tid = intval( $tid );
+            // 4a) Update ticket row
+            $wpdb->update(
+                $tickets_table,
+                [
+                    'ticket_name'           => sanitize_text_field( $raw_name ),
+                    'attendancelimit'       => intval( $limits[ $tid ] ?? 0 ),
+                    'baseeventcost'         => floatval( $base_costs[ $tid ] ?? 0 ),
+                    'discountedmembercost'  => floatval( $member_costs[ $tid ] ?? 0 ),
+                    'premiummembercost'     => floatval( $premium_costs[ $tid ] ?? 0 ),
+                ],
+                [ 'id' => $tid ],
+                [ '%s', '%d', '%f', '%f', '%f' ],
+                [ '%d' ]
+            );
+
+            // 4b) Handle its waitlist
+            $csv = sanitize_text_field( $waitlist_csv_by_tid[ $tid ] ?? '' );
+
+            error_log($csv);
+            if ( '' === $csv ) {
+                // If CSV is blank, clear out the userids column (do not delete row)
+                $wpdb->update(
+                    $waitlist_table,
+                    [ 'userids' => '' ],
+                    [ 'ticket_id' => $tid ],
+                    [ '%s' ],
+                    [ '%d' ]
+                );
+            } else {
+                // Otherwise update existing row or insert new one
+                $exists = (bool) $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT COUNT(*) FROM {$waitlist_table} WHERE ticket_id = %d",
+                        $tid
+                    )
+                );
+                if ( $exists ) {
+                    $wpdb->update(
+                        $waitlist_table,
+                        [ 'userids' => $csv ],
+                        [ 'ticket_id' => $tid ],
+                        [ '%s' ],
+                        [ '%d' ]
+                    );
+                } else {
+                    $wpdb->insert(
+                        $waitlist_table,
+                        [
+                            'event_ute_id' => $ute,
+                            'ticket_id'    => $tid,
+                            'userids'      => $csv,
+                        ],
+                        [ '%s', '%d', '%s' ]
+                    );
+                }
+            }
+        }
+
+        // 5) All done
+        wp_send_json_success( [ 'message' => __( 'Tickets & waitlists saved.', 'tta' ) ] );
+    }
+
+
 
 
 
