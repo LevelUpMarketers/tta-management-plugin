@@ -113,8 +113,8 @@
 .tta-admin-progress-response-p{
     margin-top:0px!important;
     font-weight: bold;
-    font-size: 20px!important;
-    max-width: 600px;
+    font-size: 17px!important;
+    max-width: 800px;
     min-height: 135px;
 }
 
@@ -206,14 +206,14 @@ form p.submit{
   animation: tta-fade-slide-down 0.3s ease-out;
 }
 
-.tta-delete-new-ticket img{
+.tta-delete-new-ticket img, .tta-delete-ticket img{
     width: 15px;
     top: 2px;
     right: 2px;
     position: relative;
 }
 
-.tta-delete-new-ticket{
+.tta-delete-new-ticket, .tta-delete-ticket{
     position:absolute;
     bottom:0.5em;
     right:0.5em;
@@ -247,6 +247,10 @@ form p.submit{
   margin-top: 1em;
 }
 
+.tta-ticket-row .form-table{
+    margin-top:1em;
+}
+
 .tta-ticket-row .form-table th{
     position:relative;
 }
@@ -278,6 +282,7 @@ form p.submit{
     margin-bottom:20px;
     left:20px;
     position: relative;
+    cursor: pointer;
 }
 
 .tta-wl-entry {

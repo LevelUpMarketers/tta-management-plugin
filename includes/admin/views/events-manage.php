@@ -7,8 +7,42 @@ $table = $wpdb->prefix . 'tta_events';
 // Handle deletion
 if ( isset( $_GET['action'] ) && $_GET['action'] === 'delete' && isset( $_GET['event_id'] ) ) {
     if ( check_admin_referer( 'tta_event_delete_nonce' ) ) {
-        $wpdb->delete( $table, [ 'id' => intval( $_GET['event_id'] ) ] );
-        echo '<div class="updated"><p>Event deleted.</p></div>';
+        $event_id = intval( $_GET['event_id'] );
+
+        // 1) Fetch the event's unique identifier (ute_id)
+        $ute_id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT ute_id FROM {$table} WHERE id = %d",
+                $event_id
+            )
+        );
+
+        if ( $ute_id ) {
+            // 2) Delete all waitlists for that event
+            $waitlist_table = $wpdb->prefix . 'tta_waitlist';
+            $wpdb->delete(
+                $waitlist_table,
+                [ 'event_ute_id' => $ute_id ],
+                [ '%s' ]
+            );
+
+            // 3) Delete all tickets for that event
+            $tickets_table = $wpdb->prefix . 'tta_tickets';
+            $wpdb->delete(
+                $tickets_table,
+                [ 'event_ute_id' => $ute_id ],
+                [ '%s' ]
+            );
+        }
+
+        // 4) Finally delete the event itself
+        $wpdb->delete(
+            $table,
+            [ 'id' => $event_id ],
+            [ '%d' ]
+        );
+
+        echo '<div class="updated"><p>Event, its tickets, and waitlists have been deleted.</p></div>';
     }
 }
 

@@ -70,10 +70,16 @@
   display: none;
 }
 .tta-event-description-accordion summary::after {
-  content: '\25BA';            /* right-pointing arrow */
+  content: "";                        /* empty so no arrow glyph is drawn */
+  display: inline-block;              /* allow width/height */
+  width: 1em;                         /* or the pixel size of your SVG */
+  height: 1em;
   position: absolute;
   right: 0;
   top: 0.2em;
+  background-image: url("../../images/public/circle-arrow.svg");
+  background-repeat: no-repeat;
+  background-size: contain;           /* scale it to fit the box */
   transition: transform 0.2s ease;
 }
 .tta-event-description-accordion details[open] summary::after {
@@ -199,20 +205,24 @@
 
 /* Ticket line */
 .tta-ticket-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 10px;
+  float:right;
 }
 .tta-ticket-item .tta-ticket-price{
   display:block;
 }
 .tta-ticket-name {
   font-weight: bold;
+  font-size: 16px;
+}
+.tta-fomo-remaining-styling{
+    color: red;
+    font-style: italic;
+    text-transform: uppercase;
 }
 .tta-ticket-price {
-  font-size: 1.2em;
   margin-left: auto;
+  font-size: 14px;
+  text-align: right;
 }
 .tta-ticket-available {
   display: block;
@@ -221,11 +231,19 @@
   margin-top: 4px;
 }
 
+.tta-tickets-addtocart-button{
+  width: 100%;
+  display: inline-block;
+  margin-top: 25px;
+}
+
 /* Quantity chooser */
-.tta-ticket-quantity {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
+.tta-top-indiv-wrapper {
+    border-top: solid 1px #eee;
+    border-bottom: solid 1px #eee;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-top:20px;
 }
 .tta-qty-decrease,
 .tta-qty-increase {

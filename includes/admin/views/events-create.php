@@ -1,5 +1,3 @@
-/* includes/admin/views/events-create.php */
-
 <?php
 global $wpdb;
 $table   = $wpdb->prefix . 'tta_events';

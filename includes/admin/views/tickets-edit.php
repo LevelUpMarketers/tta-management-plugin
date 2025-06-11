@@ -19,7 +19,7 @@ $tickets = $wpdb->get_results(
   <!-- ensure event ID is sent along -->
   <input type="hidden" name="event_ute_id" value="<?php echo esc_attr( $event_ute_id ); ?>">
 
-  <?php foreach ( $tickets as $t ) :
+  <?php foreach ( $tickets as $key => $t ) :
     $tid = intval( $t['id'] );
 
     // Pull waitlist entries for this ticket
@@ -33,6 +33,27 @@ $tickets = $wpdb->get_results(
 
     // Grab the raw CSV string (or empty)
     $existing_userids = $waitlist_entries[0]['userids'] ?? '';
+
+
+    $existing_userids_for_count = trim( $existing_userids );
+
+    // 1) Is it empty?
+    $is_empty = ( $existing_userids_for_count === '' );
+
+    // 2) Does it contain a comma?
+    $has_commas = ! $is_empty && strpos( $existing_userids_for_count, ',' ) !== false;
+
+    // 3) Explode, filter, and count
+    if ( $is_empty ) {
+        $waitlist_count = 0;
+    } else {
+        // explode on commas
+        $parts = explode( ',', $existing_userids_for_count );
+        // trim each part and discard any empty strings
+        $ids = array_filter( array_map( 'trim', $parts ), 'strlen' );
+        $waitlist_count = count( $ids );
+    }
+
   ?>
     <section
       class="tta-ticket-row"
@@ -40,14 +61,20 @@ $tickets = $wpdb->get_results(
       style="position:relative;border:1px solid #ddd;padding:1em;margin-bottom:1em;"
     >
       <h3 style="margin:0;">
-        <?php esc_html_e( 'Ticket #', 'tta' ); echo esc_html( $tid ); ?>
+        <?php echo esc_html_e( ' Ticket: ', 'tta' ); echo esc_html( $t['ticket_name'] ); ?>
+
+
+       <?php if ( 0 !== $key ) : ?>
         <button type="button"
                 class="tta-delete-ticket"
                 data-ticket-id="<?php echo esc_attr( $tid ); ?>"
-                style="position:absolute; top:0.5em; right:0.5em; background:none; border:none; cursor:pointer;">
-          <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>"
-               alt="<?php esc_attr_e( 'Delete ticket', 'tta' ); ?>">
+                style="position:absolute; right:0.5em; background:none; border:none; cursor:pointer;">
+            <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>"
+                 alt="<?php esc_attr_e( 'Delete ticket', 'tta' ); ?>">
         </button>
+      <?php endif; ?>
+
+
       </h3>
 
       <table class="form-table">
@@ -145,7 +172,7 @@ $tickets = $wpdb->get_results(
             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                  alt="Help">
           </span>
-          (<?php echo count( $waitlist_entries ); ?>)
+          (<?php echo $waitlist_count; ?>)
         </summary>
 
         <?php if ( $waitlist_entries ) : ?>
@@ -333,7 +360,11 @@ $tickets = $wpdb->get_results(
             data-event-ute-id="<?php echo esc_attr( $event_ute_id ); ?>">
       <?php esc_html_e( 'Add New Ticket', 'tta' ); ?>
     </button>
-    <span class="tta-admin-progress-spinner-svg" style="display:none;opacity:0;"></span>
-    <p class="tta-admin-progress-response-p"></p>
+    <div class="tta-admin-progress-spinner-div">
+        <img class="tta-admin-progress-spinner-svg" src="http://trying-to-adult-rva-2025.local/wp-content/plugins/tta-management-plugin/assets/images/admin/loading.svg" alt="Loading…" style="display:none; opacity:0;">
+    </div>
+    <div class="tta-admin-progress-response-div">
+        <p class="tta-admin-progress-response-p"></p>
+    </div>
   </p>
 </form>

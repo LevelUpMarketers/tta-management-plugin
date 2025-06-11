@@ -2,9 +2,6 @@
 /**
  * File: includes/classes/class-tta-assets.php
  * Purpose: Enqueue CSS/JS for both the backend and frontend.
- *          On our Events and Members admin pages, we explicitly load the full wp_editor
- *          (TinyMCE + Quicktags) so that wp_editor() shows the full toolbar, and also
- *          enable wp_enqueue_media() so that our media‐picker buttons work.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -25,12 +22,11 @@ class TTA_Assets {
      * Enqueue admin‐only CSS/JS.
      *
      * We only load wp_enqueue_editor() (plus our admin.js + CSS) when we're on
-     * our plugin’s Events or Members screens (page=tta-events OR page=tta-members).
+     * our plugin’s Events, Members, or Tickets screens.
      *
      * @param string $hook_suffix The current admin page.
      */
     public static function enqueue_backend_assets( $hook_suffix ) {
-        // Only run on our plugin pages: “Events” or “Members”
         if ( isset( $_GET['page'] ) && in_array( $_GET['page'], [ 'tta-events', 'tta-members', 'tta-tickets' ], true ) ) {
 
             // 1) Make sure the full TinyMCE / Quicktags / editor CSS are loaded:
@@ -44,10 +40,10 @@ class TTA_Assets {
                 wp_enqueue_style( 'editor-buttons' );
             }
 
-            // 2) Enable the media uploader for wp.media() (for image pickers, etc.)
+            // 2) Enable the media uploader for wp.media()
             wp_enqueue_media();
 
-            // 3) Now load our own plugin’s admin CSS & JS
+            // 3) Now load our plugin’s admin CSS & JS
 
             // Admin CSS (tooltips, layout, etc.)
             wp_enqueue_style(
@@ -66,7 +62,6 @@ class TTA_Assets {
             );
 
             // Admin JS (our AJAX handlers, inline-row toggles, media pickers, spinner logic, etc.)
-            // Declare dependencies so that TinyMCE, Quicktags, and media‐uploader have already loaded.
             wp_enqueue_script(
                 'tta-admin-js',
                 TTA_PLUGIN_URL . 'assets/js/backend/admin.js',
@@ -75,6 +70,7 @@ class TTA_Assets {
                 true
             );
 
+            // Media uploader helper JS
             wp_enqueue_script(
                 'tta-media-js',
                 TTA_PLUGIN_URL . 'assets/js/backend/media-uploader.js',
@@ -83,7 +79,7 @@ class TTA_Assets {
                 true
             );
 
-            // We localize the AJAX URL and nonces for both Events & Members forms
+            // 4) Localize nonces & AJAX URL for our admin JS
             wp_localize_script(
                 'tta-admin-js',
                 'TTA_Ajax',
@@ -113,13 +109,31 @@ class TTA_Assets {
             TTA_PLUGIN_VERSION
         );
 
-        // 2) Only on our “Event Page” template, enqueue event‐page.css
+        // 2) Only on our “Event Page” template, enqueue event‐page.css and cart JS
         if ( function_exists( 'is_page_template' ) && is_page_template( 'event-page-template.php' ) ) {
+            // Event page CSS
             wp_enqueue_style(
                 'tta-eventpage-css',
                 TTA_PLUGIN_URL . 'assets/css/frontend/event-page.css',
                 [ 'tta-frontend-css' ],
                 TTA_PLUGIN_VERSION
+            );
+
+            // Cart & quantity JS
+            wp_enqueue_script(
+                'tta-cart-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/tta-cart.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+            wp_localize_script(
+                'tta-cart-js',
+                'tta_ajax',
+                [
+                    'ajax_url' => admin_url( 'admin-ajax.php' ),
+                    'nonce'    => wp_create_nonce( 'tta_frontend_nonce' ),
+                ]
             );
         }
     }

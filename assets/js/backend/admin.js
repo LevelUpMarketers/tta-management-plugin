@@ -518,15 +518,62 @@ jQuery(function($){
   //
   $(document).on('click', '#add-interest-edit', function(e){
     e.preventDefault();
-    var count = $('#interests-container input.interest-field').length + 1;
-    var $newInput = $('<input>')
-      .attr({
-        type: 'text',
-        name: 'interests[]',
-        class: 'regular-text interest-field',
-        placeholder: 'Interest #' + count
-      });
-    $('#interests-container').append('<br>').append($newInput);
+
+    var $container = $('#interests-container');
+    var count = $container.find('input.interest-field').length + 1;
+
+    // Create the new input
+    var $input = $('<input>', {
+      type: 'text',
+      name: 'interests[]',
+      class: 'regular-text interest-field',
+      placeholder: 'Interest #' + count
+    });
+
+    // Create the delete button
+    var $button = $('<button>', {
+      type: 'button',
+      class: 'delete-interest',
+      'aria-label': 'Remove this interest',
+      style: 'background:none;border:none;cursor:pointer;margin-left:8px;'
+    }).append(
+      $('<img>', {
+        src: 'http://trying-to-adult-rva-2025.local/wp-content/plugins/tta-management-plugin/assets/images/admin/bin.svg',
+        alt: '×',
+        style: 'width:16px;height:16px;'
+      })
+    );
+
+    // Wrap input + button in a container div (optional, but keeps things tidy)
+    var $entry = $('<div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;"></div>')
+      .append($input)
+      .append($button);
+
+    // Append a line break for spacing, then our entry
+    $container.append($entry);
+  });
+
+  // Delegate click on delete-interest to remove its entry
+  $(document).on('click', '.delete-interest', function(e){
+    e.preventDefault();
+    var $entry = $(this).closest('.interest-item');
+    // Remove the <br> immediately before, if present
+    $entry.prev('br').remove();
+    $entry.remove();
+  });
+
+
+  // Prevent submission if emails don't match
+  $('#tta-member-edit-form').on('submit', function(e){
+      var email       = $('#email_edit').val().trim();
+      var emailVerify = $('#email_verify_edit').val().trim();
+      if ( email !== emailVerify ) {
+          e.preventDefault();
+          $('.tta-admin-progress-response-p')
+              .removeClass('updated')
+              .addClass('error')
+              .text('Whoops! The email addresses do not match. Please correct and try again.');
+      }
   });
 
 
@@ -658,12 +705,7 @@ jQuery(function($){
     // Clone the template
     var $tpl = $('#tta-new-ticket-template').contents().clone();
 
-    // Update only the text node in the <h3>, preserving the delete button
-    var $h3 = $tpl.find('h3');
-    $h3.contents()
-       .filter(function() { return this.nodeType === 3; })
-       .first()
-       .replaceWith('New Ticket ' + index + ' ');
+
 
     // Clear any inputs
     $tpl.find('input').val('');
@@ -682,20 +724,20 @@ jQuery(function($){
       return $(this).find('.tta-delete-new-ticket').length;
     });
 
-    // Re-number them in order
-    $newH3s.each(function(i){
-      var $h3  = $(this),
-          $btn = $h3.find('.tta-delete-new-ticket').detach();
+    
+  });
 
-      // strip out old text nodes
-      $h3.contents().filter(function(){
-        return this.nodeType === Node.TEXT_NODE;
-      }).remove();
+    // Remove a newly added ticket & re-number
+  $(document).on('click', '.tta-delete-ticket', function(){
+    // Remove this ticket block
+    $(this).closest('.tta-ticket-row').remove();
 
-      // prepend fresh title + space, then reattach the delete button
-      $h3.prepend('New Ticket ' + (i+1) + ' ');
-      $h3.append($btn);
+    // Find *only* the New-Ticket headings (those with a delete button)
+    var $newH3s = $('#tta-ticket-edit-form .tta-ticket-row h3').filter(function(){
+      return $(this).find('.tta-delete-ticket').length;
     });
+
+
   });
 
 
