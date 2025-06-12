@@ -167,6 +167,18 @@ $page_post   = get_post( $page_id );
 $raw_content = $page_post ? $page_post->post_content : '';
 
 // ───────────────
+// 9b) Build a short excerpt for the summary
+// ───────────────
+$description_excerpt = '';
+if ( $raw_content ) {
+    $description_excerpt = wp_trim_words(
+        wp_strip_all_tags( $raw_content ),
+        30,
+        '…'
+    );
+}
+
+// ───────────────
 // 10) Determine sidebar cost row
 // ───────────────
 if ( $ticket_count > 1 ) {
@@ -188,15 +200,45 @@ if ( $ticket_count > 1 ) {
         $price_str_basic   = $p_basic   ? sprintf( esc_html__( '$%s', 'tta' ), number_format_i18n( $p_basic,   2 ) ) : esc_html__( 'Free', 'tta' );
         $price_str_premium = $p_premium ? sprintf( esc_html__( '$%s', 'tta' ), number_format_i18n( $p_premium, 2 ) ) : esc_html__( 'Free', 'tta' );
 
-        $cost_sidebar_row = "<li class='tta-event-costmod-class'><strong>Cost: </strong>{$price_str}</li>";
+        $cost_sidebar_row = 
+            '<li class="tta-event-costmod-class">'
+          . '<img class="tta-event-details-icon" src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/money.svg' ) . '" alt="Help"> '
+          . '<div class="tta-event-details-icon-after"><strong>Cost: </strong>' . esc_html( $price_str )
+          . '</div></li>';
+
         if ( 'basic' === $membership_level ) {
-            $cost_sidebar_row = "<li class='tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-basic'><strong>Cost: </strong><span>{$price_str}</span> {$price_str_basic}</li>";
+            $cost_sidebar_row =
+                '<li class="tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-basic">'
+              . '<img class="tta-event-details-icon" src="' 
+                  . esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/money.svg' ) 
+                  . '" alt="Help"> '
+              . '<div class="tta-event-details-icon-after"><strong>Cost: </strong><span>' . esc_html( $price_str ) . '</span> ' 
+              . esc_html( $price_str_basic )
+              . '</div></li>';
         } elseif ( 'premium' === $membership_level ) {
-            $cost_sidebar_row = "<li class='tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-premium'><strong>Cost: </strong><span>{$price_str}</span> {$price_str_premium}</li>";
+            $cost_sidebar_row =
+                '<li class="tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-premium">'
+              . '<img class="tta-event-details-icon" src="' 
+                  . esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/money.svg' ) 
+                  . '" alt="Help"> '
+              . '<div class="tta-event-details-icon-after"><strong>Cost: </strong><span>' . esc_html( $price_str ) . '</span> ' 
+              . esc_html( $price_str_premium )
+              . '</div></li>';
         }
+
     } else {
-        // Mixed prices
-        $cost_sidebar_row = "<li class='tta-event-costmod-class'><strong>Cost: </strong>Various</li>";
+       // Mixed prices
+      $cost_sidebar_row =
+          '<li class="tta-event-costmod-class">'
+        . '<img class="tta-event-details-icon" src="' 
+            . esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/money.svg' ) 
+            . '" alt="Help"> '
+        . '<div class="tta-event-details-icon-after"><strong>' 
+            . esc_html__( 'Cost:', 'tta' ) 
+            . '</strong> ' 
+            . esc_html__( 'Various', 'tta' ) 
+        . '</div></li>';
+
     }
 } else {
     // Single ticket
@@ -209,37 +251,79 @@ if ( $ticket_count > 1 ) {
     $price_str_basic   = $p_basic   ? sprintf( esc_html__( '$%s', 'tta' ), number_format_i18n( $p_basic,   2 ) ) : esc_html__( 'Free', 'tta' );
     $price_str_premium = $p_premium ? sprintf( esc_html__( '$%s', 'tta' ), number_format_i18n( $p_premium, 2 ) ) : esc_html__( 'Free', 'tta' );
 
-    $cost_sidebar_row = "<li class='tta-event-costmod-class'><strong>Cost: </strong>{$price_str}</li>";
+    $cost_sidebar_row =
+        '<li class="tta-event-costmod-class">'
+      . '<img class="tta-event-details-icon" src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/money.svg' ) . '" alt="Help"> '
+      . '<div class="tta-event-details-icon-after"><strong>Cost: </strong>' . esc_html( $price_str )
+      . '</div></li>';
+
     if ( 'basic' === $membership_level ) {
-        $cost_sidebar_row = "<li class='tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-basic'><strong>Cost: </strong><span>{$price_str}</span> {$price_str_basic}</li>";
+        $cost_sidebar_row =
+            '<li class="tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-basic">'
+          . '<img class="tta-event-details-icon" src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/money.svg' ) . '" alt="Help"> '
+          . '<div class="tta-event-details-icon-after"><strong>Cost: </strong><span>' . esc_html( $price_str ) . '</span> '
+          . esc_html( $price_str_basic )
+          . '</div></li>';
     } elseif ( 'premium' === $membership_level ) {
-        $cost_sidebar_row = "<li class='tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-premium'><strong>Cost: </strong><span>{$price_str}</span> {$price_str_premium}</li>";
+        $cost_sidebar_row =
+            '<li class="tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-premium">'
+          . '<img class="tta-event-details-icon" src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/money.svg' ) . '" alt="Help"> '
+          . '<div class="tta-event-details-icon-after"><strong>Cost: </strong><span>' . esc_html( $price_str ) . '</span> '
+          . esc_html( $price_str_premium )
+          . '</div></li>';
     }
-}
+
+  }
 ?>
 
 <div class="wrap event-page tta-event-page">
 
   <!-- HERO -->
-  <section class="tta-event-hero">
-    <div class="tta-event-hero-inner">
-      <div class="tta-event-hero-text">
-        <h1 class="tta-event-title"><?php echo esc_html( $event['name'] ); ?></h1>
-        <div class="tta-event-meta">
-          <time class="tta-event-date" datetime="<?php echo esc_attr( date( 'c', $timestamp ) ); ?>">
+<!-- HERO -->
+<section class="tta-event-hero">
+  <div class="tta-event-hero-inner">
+
+    <div class="tta-event-hero-text">
+      <h1 class="tta-event-title">
+        <?php echo esc_html( $event['name'] ); ?>
+      </h1>
+      <div class="tta-event-meta">
+        <div class="tta-event-meta-item">
+          <img
+            class="tta-event-details-icon"
+            src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/calendar.svg' ); ?>"
+            alt="<?php esc_attr_e( 'Date icon', 'tta' ); ?>"
+          />
+          <time
+            class="tta-event-date"
+            datetime="<?php echo esc_attr( date( 'c', $timestamp ) ); ?>"
+          >
             <?php echo esc_html( $date_str ); ?>
           </time>
-          <span class="tta-event-time"><?php echo esc_html( $time_str ); ?></span>
         </div>
-        <a href="#tta-tickets" class="tta-button tta-button-primary">
-          <?php esc_html_e( 'Buy Tickets', 'tta' ); ?>
-        </a>
+        <div class="tta-event-meta-item">
+          <img
+            class="tta-event-details-icon"
+            src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/clock.svg' ); ?>"
+            alt="<?php esc_attr_e( 'Date icon', 'tta' ); ?>"
+          />
+          <span class="tta-event-time">
+            <?php echo esc_html( $time_str ); ?>
+          </span>
+        </div>
       </div>
-      <div class="tta-event-hero-image">
-        <?php echo $hero_html; ?>
-      </div>
+
+      <a href="#tta-event-buy" class="tta-button tta-button-primary">
+        <?php esc_html_e( 'Buy Tickets', 'tta' ); ?>
+      </a>
     </div>
-  </section>
+    <div class="tta-event-hero-image">
+      <?php echo $hero_html; ?>
+    </div>
+
+  </div>
+</section>
+
 
   <!-- MAIN + SIDEBAR -->
   <div class="tta-event-content-wrap">
@@ -249,28 +333,21 @@ if ( $ticket_count > 1 ) {
 
       <?php if ( $raw_content ) : ?>
         <section class="tta-event-section tta-event-description-accordion">
-          <details>
-            <summary><?php esc_html_e( 'Event Description', 'tta' ); ?></summary>
-            <?php echo apply_filters( 'the_content', $raw_content ); ?>
-          </details>
+          <div class="tta-accordion">
+            <div class="tta-accordion-content">
+              <h2><?php esc_html_e( 'About This Event', 'tta' ); ?></h2>
+              <?php echo apply_filters( 'the_content', $raw_content ); ?>
+            </div>
+            <button type="button" class="tta-button tta-button-primary tta-accordion-toggle">
+              <?php esc_html_e( 'Read more', 'tta' ); ?>
+            </button>
+          </div>
         </section>
       <?php endif; ?>
 
-      <?php if ( ! empty( $event['howitworks'] ) ) : ?>
-        <section class="tta-event-section">
-          <h2><?php esc_html_e( 'How It Works', 'tta' ); ?></h2>
-          <?php echo wpautop( wp_kses_post( $event['howitworks'] ) ); ?>
-        </section>
-      <?php endif; ?>
+      
 
-      <?php if ( ! empty( $event['whatoexpect'] ) ) : ?>
-        <section class="tta-event-section">
-          <h2><?php esc_html_e( 'What to Expect', 'tta' ); ?></h2>
-          <?php echo wpautop( wp_kses_post( $event['whatoexpect'] ) ); ?>
-        </section>
-      <?php endif; ?>
-
-      <section class="tta-event-buy">
+      <section id="tta-event-buy" class="tta-event-buy">
         <h2><?php esc_html_e( 'Get Your Tickets Now', 'tta' ); ?></h2>
 
         <?php if ( $tickets ) : ?>
@@ -279,7 +356,7 @@ if ( $ticket_count > 1 ) {
             $available  = $limit > 0 ? $limit : 0;
             $avail_text = $available > 0
                 ? sprintf( esc_html__( 'Only %d Left!', 'tta' ), $available )
-                : esc_html__( 'Sold Out', 'tta' );
+                : esc_html__( '', 'tta' );
             $avail_text = '<span class="tta-fomo-remaining-styling">' . $avail_text . '</span>';
 
             // membership‐tier pricing for this row
@@ -336,6 +413,67 @@ if ( $ticket_count > 1 ) {
         </div>
       </section>
 
+      <?php
+      // Grab & sanitize gallery IDs
+      $other_ids = ! empty( $event['otherimageids'] )
+          ? array_filter( array_map( 'intval', explode( ',', $event['otherimageids'] ) ) )
+          : [];
+
+      if ( ! empty( $other_ids ) ) : ?>
+        <section class="tta-event-section tta-event-image-gallery-accordion">
+          <div class="tta-accordion">
+            <div class="tta-accordion-content">
+              <h2><?php esc_html_e( 'Image Gallery', 'tta' ); ?></h2>
+              <div class="tta-gallery-grid">
+                <?php foreach ( $other_ids as $img_id ) : ?>
+                  <div class="tta-gallery-item">
+                    <?php
+                      // use a medium-large size for good resolution;
+                      // WP will crop/scale as needed
+                      echo wp_get_attachment_image( $img_id, 'medium_large' );
+                    ?>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            </div>
+            <button type="button" class="tta-button tta-button-primary tta-accordion-toggle-image-gallery">
+              <?php esc_html_e( 'View Gallery', 'tta' ); ?>
+            </button>
+          </div>
+        </section>
+
+        <section class="tta-event-section tta-event-image-gallery-accordion tta-event-attendees-section">
+          <div class="tta-accordion">
+            <div class="tta-accordion-content">
+              <h2><?php esc_html_e( 'Attendees', 'tta' ); ?></h2>
+              <div class="tta-gallery-grid">
+                <?php foreach ( $other_ids as $img_id ) : ?>
+                  <div class="tta-gallery-item">
+                    <?php
+                      // use a medium-large size for good resolution;
+                      // WP will crop/scale as needed
+                      echo wp_get_attachment_image( $img_id, 'medium_large' );
+                    ?>
+                  </div>
+                <?php endforeach; ?>
+                <?php foreach ( $other_ids as $img_id ) : ?>
+                  <div class="tta-gallery-item">
+                    <?php
+                      // use a medium-large size for good resolution;
+                      // WP will crop/scale as needed
+                      echo wp_get_attachment_image( $img_id, 'medium_large' );
+                    ?>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            </div>
+            <button type="button" class="tta-button tta-button-primary tta-accordion-toggle-image-gallery">
+              <?php esc_html_e( 'View All Attendees', 'tta' ); ?>
+            </button>
+          </div>
+        </section>
+      <?php endif; ?>
+
     </main>
 
     <!-- SIDEBAR -->
@@ -343,15 +481,33 @@ if ( $ticket_count > 1 ) {
       <div class="tta-event-details">
         <h2><?php esc_html_e( 'Event Details', 'tta' ); ?></h2>
         <ul>
-          <li><strong><?php esc_html_e( 'Date', 'tta' ); ?>:</strong> <?php echo esc_html( $date_str ); ?></li>
-          <li><strong><?php esc_html_e( 'Time', 'tta' ); ?>:</strong> <?php echo esc_html( $time_str ); ?></li>
-          <?php echo $cost_sidebar_row; ?>
-          <li><strong><?php esc_html_e( 'Venue', 'tta' ); ?>:</strong> <?php echo esc_html( $event['venuename'] ); ?></li>
           <li>
-            <strong><?php esc_html_e( 'Location', 'tta' ); ?>:</strong>
-            <a href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener">
-              <?php echo esc_html( $formatted_address ); ?>
-            </a>
+            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/calendar.svg' ); ?>" alt="Help">
+            <div class="tta-event-details-icon-after">
+              <strong><?php esc_html_e( 'Date', 'tta' ); ?>:</strong> <?php echo esc_html( $date_str ); ?>
+            </div>
+          </li>
+          <li>
+            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/clock.svg' ); ?>" alt="Help">
+            <div class="tta-event-details-icon-after">
+              <strong><?php esc_html_e( 'Time', 'tta' ); ?>:</strong> <?php echo esc_html( $time_str ); ?>
+            </div>
+          </li>
+          <?php echo $cost_sidebar_row; ?>
+          <li>
+            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/store.svg' ); ?>" alt="Help">
+            <div class="tta-event-details-icon-after">
+              <strong><?php esc_html_e( 'Venue', 'tta' ); ?>:</strong> <?php echo '<a href="' . $event['venueurl'] . '">' . esc_html( $event['venuename'] ) . '</a>'; ?>
+            </div>
+          </li>
+          <li>
+            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/location.svg' ); ?>" alt="Help">
+            <div class="tta-event-details-icon-after">
+              <strong><?php esc_html_e( 'Location', 'tta' ); ?>:</strong>
+              <a href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener">
+                <?php echo esc_html( $formatted_address ); ?>
+              </a>
+            </div>
           </li>
           <li class="tta-event-map-embed">
             <iframe
@@ -360,6 +516,115 @@ if ( $ticket_count > 1 ) {
               src="https://maps.google.com/maps?q=<?php echo rawurlencode( $formatted_address ); ?>&output=embed">
             </iframe>
           </li>
+
+
+
+          <?php
+          // 1) Collect your raw URL columns
+          $raw_urls = [
+              $event['url2'] ?? '',
+              $event['url3'] ?? '',
+              $event['url4'] ?? '',
+          ];
+
+          $additional_links = [];
+
+          // 2) Map hostnames to icon filenames
+          $icon_map = [
+              'facebook.com'     => 'facebook.svg',
+              'instagram.com'    => 'instagram.svg',
+              'pinterest.com'    => 'pinterest.svg',
+              'reddit.com'       => 'reddit.svg',
+              'tripadvisor.com'  => 'tripadvisor.svg',
+              'yelp.com'         => 'yelp.svg',
+          ];
+
+                    // 4) Add the venue’s own website (if set)
+          if ( ! empty( $event['venueurl'] ) ) {
+              $additional_links[] = [
+                  'href' => esc_url( $event['venueurl'] ),
+                  'icon' => esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/website.svg' ),
+                  'alt'  => esc_attr__( 'Venue Website', 'tta' ),
+              ];
+          }
+
+          // 3) Loop and detect service
+          foreach ( $raw_urls as $url ) {
+              $url = trim( $url );
+              if ( empty( $url ) ) {
+                  continue;
+              }
+
+              $host = parse_url( $url, PHP_URL_HOST );
+              $service_key = 'external-link.svg'; // default icon
+
+              if ( $host ) {
+                  $host = strtolower( $host );
+                  foreach ( $icon_map as $domain => $icon_file ) {
+                      if ( false !== strpos( $host, $domain ) ) {
+                          $service_key = $icon_file;
+                          break;
+                      }
+                  }
+              }
+
+              $additional_links[] = [
+                  'href' => esc_url( $url ),
+                  'icon' => esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/' . $service_key ),
+                  // alt text based on filename (without extension)
+                  'alt'  => esc_attr( ucfirst( pathinfo( $service_key, PATHINFO_FILENAME ) ) ),
+              ];
+          }
+
+
+
+
+          // 4) Only render if there’s at least one valid link
+          if ( ! empty( $additional_links ) ) : ?>
+            <li>
+              <section class="tta-event-section tta-event-additional-links">
+                <h2 class="tta-eventpage-sidebar-heading"><?php esc_html_e( 'Venue Links', 'tta' ); ?></h2>
+                <div class="tta-additional-links">
+                  <?php foreach ( $additional_links as $link ) : ?>
+                    <a href="<?php echo $link['href']; ?>" target="_blank" rel="noopener">
+                      <img src="<?php echo $link['icon']; ?>" alt="<?php echo $link['alt']; ?>" />
+                    </a>
+                  <?php endforeach; ?>
+                </div>
+              </section>
+            </li>
+          <?php endif; ?>
+
+
+
+
+          <li>
+            <section class="tta-event-section tta-event-description-accordion">
+              <div class="tta-accordion">
+                <div class="tta-accordion-content">
+                  <h2 class="tta-eventpage-sidebar-heading"><?php esc_html_e( 'Refund Policy', 'tta' ); ?></h2>
+                  <p>PLEASE READ BELOW! Once you claim a ticket via the Trying to Adult RVA website, you are expected to show for that event.</p>
+                  <p>If it is a free event, please notify the event host if you are no longer able to attend so that your ticket can be made available to others. Please read the attendance rules for more information.</p>
+                  <p>If it is a paid event, you are responsible for finding a replacement if you can no longer attend. The replacement cannot be a banned/removed member. The best way to find a replacement is to post a comment on the specific Meetup event page.
+                  <p>You can also message the event host for additional assistance. Once you find a replacement, please send a message to the event host to assist with the exchange.  Please do not use payment apps to exchange tickets. If you cannot find someone to claim your spot, you will forfeit the cost paid.</p>
+                </div>
+                <button type="button" class="tta-button tta-button-primary tta-accordion-toggle">
+                  <?php esc_html_e( 'Read more', 'tta' ); ?>
+                </button>
+              </div>
+            </section>
+          </li>
+
+
+
+
+
+
+
+
+
+
+
         </ul>
       </div>
 
@@ -397,6 +662,11 @@ if ( $ticket_count > 1 ) {
             <div class="thumb"><?php echo $img; ?></div>
             <div class="tta-related-event-info">
               <h3><?php echo esc_html( $re['name'] ); ?></h3>
+              <img
+                class="tta-event-details-icon"
+                src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/calendar.svg' ); ?>"
+                alt="<?php esc_attr_e( 'Date icon', 'tta' ); ?>"
+              />
               <time datetime="<?php echo esc_attr( $dt_iso ); ?>"><?php echo esc_html( $dt_disp ); ?></time>
             </div>
           </a>

@@ -13,6 +13,10 @@
   vertical-align: top;
 }
 
+.tta-member-dashboard-wrap{
+  padding:50px;
+}
+
 /* Interests */
 .interest-item {
   margin-bottom: 8px;
@@ -56,7 +60,7 @@
 /* Sidebar */
 .tta-dashboard-sidebar {
   flex: 0 0 240px;
-  border-right: 1px solid #ddd;
+  border: 1px solid #ddd;
   background: #f9f9f9; padding: 20px; box-sizing: border-box;
 }
 /* Tabs */
@@ -72,8 +76,12 @@
 }
 /* Content */
 .tta-dashboard-content {
-  flex:1; padding:20px; box-sizing:border-box;
-  transition: opacity 0.2s ease;
+    flex: 1;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: opacity 0.2s ease;
+    background-color: #fbfbfb;
+    border: solid 1px #ddd;
 }
 .tta-dashboard-content.fading { opacity: 0; }
 
@@ -150,7 +158,7 @@
 #biography { vertical-align: top; }
 
 /* View- vs. edit-mode */
-.view-value { display:inline; }
+.view-value { display:inline; overflow:hidden;}
 .edit-input { display:none !important; }
 .is-editing .view-value { display:none!important; }
 .is-editing .edit-input  { display:inline-block !important; }
@@ -185,8 +193,8 @@
 }
 
 .view-value img{
-  width: 125px;
-  height: auto;
+  max-height:150px;
+  max-width:150px;
 }
 
 #select-profile-image{

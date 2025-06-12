@@ -3,6 +3,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+$bio = stripslashes( $member['biography'] );
+
 // Assume $member, $street_address, $address_2, $city, $state, $zip are already defined above
 ?>
 <div id="tab-profile" class="tta-dashboard-section">
@@ -313,11 +315,11 @@ if ( ! defined( 'ABSPATH' ) ) {
             </span>
           </th>
           <td>
-            <p class="view-value"><?php echo esc_html( $member['biography'] ?: '—' ); ?></p>
+            <p class="view-value"><?php echo esc_html( $bio ?: '—' ); ?></p>
             <textarea class="edit-input large-text"
                       name="biography"
                       id="biography"
-                      placeholder="<?php esc_attr_e( 'Tell us about yourself…', 'tta' ); ?>"><?php echo esc_textarea( $member['biography'] ); ?></textarea>
+                      placeholder="<?php esc_attr_e( 'Tell us about yourself…', 'tta' ); ?>"><?php echo esc_textarea( $bio ); ?></textarea>
           </td>
         </tr>
 

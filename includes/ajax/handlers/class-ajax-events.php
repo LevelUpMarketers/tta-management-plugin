@@ -145,7 +145,7 @@ class TTA_Ajax_Events {
         // 8) Return success
         $page_url = $page_id ? get_permalink( $page_id ) : '';
         wp_send_json_success( [
-            'message'  => 'Your Event was created successfully! <a href="' . esc_url( $page_url ) . '" target="_blank">View it here</a>.',
+            'message'  => 'Your Event was created successfully! <a href="' . esc_url( $page_url ) . '" target="_blank">View the Event Page here</a>. Make sure to now visit the <a href="/wp-admin/admin.php?page=tta-tickets">Tickets tab</a> to create additional Tickets and set attendance limits (if applicable). If this event has no attendance limit and needs no additional Tickets, no action is needed.',
             'id'       => $event_id,
             'ticket'   => $ticket_id,
             'waitlist' => $waitlist_id,

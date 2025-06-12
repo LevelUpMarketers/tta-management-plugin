@@ -18,6 +18,11 @@
   flex: 1 1 400px;
   padding-right: 20px;
 }
+.tta-event-hero-text a:hover{
+  background-color:#2f516a;
+  text-decoration:none;
+}
+
 .tta-event-title {
   font-size: 2.5em;
   margin-bottom: .5em;
@@ -54,7 +59,7 @@
   margin: 2em 0;
   border: 1px solid #ddd;
   border-radius: 4px;
-  padding: 0.5em;
+  padding: 1.5em;
   background: #fafafa;
 }
 .tta-event-description-accordion summary {
@@ -100,9 +105,7 @@
   flex: 0 0 65%;
   padding-right: 30px;
 }
-.tta-event-main .tta-event-section {
-  margin-top: 2em;
-}
+
 .tta-event-sidebar {
   flex: 0 0 30%;
   background: #fafafa;
@@ -149,16 +152,22 @@
   text-align: center;
   text-decoration: none;
   color: inherit;
+  background-color: #fafafa;
+  padding: 20px;
+  border-radius: 4px;
+}
+.tta-related-event img{
+  border-radius: 4px;
 }
 .tta-related-event .thumb {
   margin-bottom: .5em;
 }
 .tta-related-event h3 {
   margin: .5em 0 .2em;
-  font-size: 1.1em;
+  font-size: 18px;
 }
 .tta-related-event time {
-  font-size: .9em;
+  font-size: 16px;
   color: #666;
 }
 
@@ -273,6 +282,135 @@
   float: right;
   margin: 0;
 }
+
+
+
+.tta-event-description-accordion .tta-accordion {
+  position: relative;
+  margin-bottom: 2em;
+}
+
+.tta-accordion-content {
+    max-height: 200px;
+    overflow: hidden;
+    position: relative;
+    background: #fafafa;
+    padding: 20px;
+    border-radius: 4px;
+    transition: max-height 0.4s ease;/* animate max-height */
+}
+.tta-event-time, .tta-event-date{
+  font-size: 16px;
+  font-weight: bold;
+}
+.tta-accordion-content h2{
+  margin-top:0;
+}
+
+.tta-accordion-content::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 60px;
+  background: linear-gradient(transparent, #fff);
+  pointer-events: none;
+  transition: opacity 0.4s ease;   /* fade animation */
+}
+
+.tta-event-sidebar .tta-accordion-content::after {
+  background: linear-gradient(transparent, #fafafa);
+}
+.tta-event-sidebar .tta-accordion-content{
+  padding:0px;
+}
+
+.tta-eventpage-sidebar-heading{
+  margin-top:20px!important;
+}
+
+.tta-accordion-content.expanded {
+  max-height: 2000px;              /* large enough to fit all content */
+}
+
+.tta-additional-links a:hover{
+  text-decoration:none;
+}
+
+.tta-additional-links img{
+  width: 30px;
+  margin-right: 5px;
+}
+
+.tta-accordion-content.expanded::after {
+  opacity: 0;                      /* hide the fade */
+}
+
+.tta-accordion-toggle, .tta-accordion-toggle-image-gallery {
+  display: block;
+  margin: 0.5em auto;
+  padding: 0.5em 1em;
+  cursor: pointer;
+}
+
+.tta-event-details-icon{
+    width: 18px;
+    display: inline-block;
+    position: relative;
+    top: 2px;
+    right: 2px;
+}
+
+.tta-event-details-icon-after{
+    display: inline-block;
+    width: 93%;
+    vertical-align: top;
+}
+
+/* Gallery grid */
+.tta-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1em;
+}
+
+.tta-gallery-item img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.tta-event-attendees-section img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 100px;
+}
+
+.tta-event-attendees-section{
+  margin-top:30px;
+}
+
+.tta-event-attendees-section .tta-gallery-grid{
+  text-align: center;
+}
+
+.tta-event-map-embed{
+  margin-top:20px;
+}
+
+/* Accordion fade + transition already in place from your description section */
+
+
+
+
+
+
+
+
+
+
+
 
 
 /* Responsive */

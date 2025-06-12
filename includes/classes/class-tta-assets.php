@@ -109,7 +109,7 @@ class TTA_Assets {
             TTA_PLUGIN_VERSION
         );
 
-        // 2) Only on our “Event Page” template, enqueue event‐page.css and cart JS
+        // 2) Only on our “Event Page” template, enqueue event‐page.css and cart + event JS
         if ( function_exists( 'is_page_template' ) && is_page_template( 'event-page-template.php' ) ) {
             // Event page CSS
             wp_enqueue_style(
@@ -127,6 +127,14 @@ class TTA_Assets {
                 TTA_PLUGIN_VERSION,
                 true
             );
+            // Event page specific JS
+            wp_enqueue_script(
+                'tta-eventpage-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/event-page.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
             wp_localize_script(
                 'tta-cart-js',
                 'tta_ajax',
@@ -137,6 +145,7 @@ class TTA_Assets {
             );
         }
     }
+
 }
 
 TTA_Assets::init();
