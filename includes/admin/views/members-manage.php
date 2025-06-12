@@ -80,7 +80,7 @@ $total_pages = ceil( $total_members / $per_page );
                 <th class="manage-column column-lastname">Last Name</th>
                 <th class="manage-column column-email">Email</th>
                 <th class="manage-column column-membertype">Type</th>
-                <th class="manage-column column-joined">Joined At</th>
+                <th class="manage-column column-joined">Joined</th>
                 <th class="manage-column column-actions">Actions</th>
             </tr>
         </thead>
@@ -108,6 +108,15 @@ $total_pages = ceil( $total_members / $per_page );
                     }
                 ?>
 
+                <?php
+                    // convert to a UNIX timestamp
+                    $ts = strtotime( $member['joined_at'] );
+
+                    // human‐readable absolute date
+                    $readable_date = date_i18n( 'F j, Y \a\t g:i A', $ts );
+                    // e.g. “June 12, 2025 at 11:30 AM”
+
+                ?>
 
                 <tr data-member-id="<?php echo esc_attr( $member['id'] ); ?>">
                     <td class="tta-member-center-profile-img"><?php echo '<img class="tta-member-edit-unexpanded-profile-img" src="' . $image_url . '"/>' ?></td>
@@ -115,7 +124,7 @@ $total_pages = ceil( $total_members / $per_page );
                     <td><?php echo esc_html( $member['last_name'] ); ?></td>
                     <td><?php echo esc_html( $member['email'] ); ?></td>
                     <td><?php echo esc_html( ucfirst( str_replace( '_', ' ', $member['member_type'] ) ) ); ?></td>
-                    <td><?php echo esc_html( $member['joined_at'] ); ?></td>
+                    <td><?php echo esc_html( $readable_date ); ?></td>
                     <td>
                         <a href="#" class="tta-edit-link">Edit</a>
                     </td>

@@ -571,55 +571,6 @@ if ( isset( $_GET['event_id'] ) ) {
     $show_waitlist = ( $event['waitlistavailable'] ?? '0' ) === '1';
     ?>
 
-    <div id="tta-waitlist-container" style="<?php echo $show_waitlist ? '' : 'display:none;'; ?>">
-        <div class="tta-waitlist-holder-for-css">
-            <h2>Current Waitlist</h2>
-            <table class="form-table">
-                <tbody>
-                <?php if ( $userids ) : ?>
-                    <?php foreach ( $userids as $pos => $uid ) :
-                        $uid          = intval( $uid );
-                        $user         = get_userdata( $uid );
-                        $name         = $user ? $user->display_name : "User #{$uid}";
-                        $profileimgid = $wpdb->get_var( $wpdb->prepare(
-                            "SELECT profileimgid FROM {$wpdb->prefix}tta_members WHERE wpuserid = %d",
-                            $uid
-                        ) );
-                        if ( $profileimgid ) {
-                            $img = wp_get_attachment_image(
-                                $profileimgid,
-                                [32,32],
-                                false,
-                                [ 'alt' => esc_attr( $name ) ]
-                            );
-                        } else {
-                            $placeholder = esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' );
-                            $img = '<img src="' . $placeholder . '" alt="Profile">';
-                        }
-                        $edit_link = admin_url( 'user-edit.php?user_id=' . $uid );
-                    ?>
-                    <tr class="tta-waitlist-entry" data-userid="<?php echo $uid; ?>">
-                        <th>#<?php echo esc_html( $pos + 1 ); ?></th>
-                        <td>
-                            <?php echo $img; ?>
-                            <a href="<?php echo esc_url( $edit_link ); ?>">
-                                <?php echo esc_html( $name ); ?>
-                            </a>
-                            <button type="button"
-                                    class="button-link tta-remove-waitlist">
-                                Remove
-                            </button>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                <?php else : ?>
-                    <tr><td colspan="2">No one is currently on the waitlist.</td></tr>
-                <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
     <p class="submit">
         <button type="submit" name="tta_event_save" class="button button-primary">
             <?php echo $editing ? 'Update Event' : 'Create Event'; ?>

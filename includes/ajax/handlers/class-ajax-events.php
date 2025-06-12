@@ -221,7 +221,69 @@ class TTA_Ajax_Events {
         ];
         $wpdb->update( $tickets_table, $ticket_update, [ 'event_ute_id' => $ute_id ] );
 
-        // Waitlist handling omitted for brevity (same as save_event)
+        
+        // 4) If waitlists are enabled, ensure each ticket has a waitlist row
+        if ( '1' === $event_data['waitlistavailable'] ) {
+            $tickets = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT id, waitlist_id, ticket_name FROM {$tickets_table} WHERE event_ute_id = %d",
+                    $ute_id
+                ),
+                ARRAY_A
+            );
+
+            foreach ( $tickets as $ticket ) {
+                $tid          = intval( $ticket['id'] );
+                $existing_wl  = intval( $ticket['waitlist_id'] );
+
+                if ( ! $existing_wl ) {
+                    // Double-check no existing waitlist row
+                    $row = $wpdb->get_var(
+                        $wpdb->prepare(
+                            "SELECT id FROM {$waitlist_table} WHERE ticket_id = %d",
+                            $tid
+                        )
+                    );
+
+                    if ( ! $row ) {
+                        // Insert full waitlist record
+                        $wpdb->insert(
+                            $waitlist_table,
+                            [
+                                'ticket_id'     => $tid,
+                                'event_ute_id'  => $ute_id,
+                                'ticket_name'   => sanitize_text_field( $ticket['ticket_name'] ),
+                                'event_name'    => sanitize_text_field( $event_data['name'] ),
+                                'userids'       => '',
+                            ],
+                            [ '%d', '%s', '%s', '%s', '%s' ]
+                        );
+                        $row = $wpdb->insert_id;
+                    }
+
+                    // Link ticket → waitlist
+                    $wpdb->update(
+                        $tickets_table,
+                        [ 'waitlist_id' => $row ],
+                        [ 'id' => $tid ],
+                        [ '%d' ],
+                        [ '%d' ]
+                    );
+
+                    // If the event itself has no waitlist_id, set it once
+                    if ( ! $waitlist_id ) {
+                        $wpdb->update(
+                            $events_table,
+                            [ 'waitlist_id' => $row ],
+                            [ 'id' => $id ],
+                            [ '%d' ],
+                            [ '%d' ]
+                        );
+                        $waitlist_id = $row;
+                    }
+                }
+            }
+        }
 
         // Save description
         if ( isset( $_POST['description'] ) && $page_id ) {

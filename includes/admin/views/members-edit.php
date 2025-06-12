@@ -16,7 +16,7 @@ if ( ! $member ) {
 
 // For user meta (profileimgid), if needed:
 $wp_user_id   = intval( $member['wpuserid'] );
-$profileimgid = get_user_meta( $wp_user_id, 'profileimgid', true );
+$profileimgid = $member['profileimgid'];
 
 // Parse address into components using “ – ” (en-dash) as delimiter
 $street_address = '';
@@ -115,6 +115,100 @@ wp_enqueue_media();
                 </td>
             </tr>
 
+            <!-- Street Address -->
+            <tr>
+                <th>
+                    <label for="street_address_edit">Street Address</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s street address.">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <input type="text"
+                           name="street_address"
+                           id="street_address_edit"
+                           class="regular-text"
+                           value="<?php echo esc_attr( $street_address ); ?>">
+                </td>
+            </tr>
+
+            <!-- Address Line 2 -->
+            <tr>
+                <th>
+                    <label for="address_2_edit">Address 2</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s suite, apartment, etc.">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <input type="text"
+                           name="address_2"
+                           id="address_2_edit"
+                           class="regular-text"
+                           value="<?php echo esc_attr( $address_2 ); ?>">
+                </td>
+            </tr>
+
+            <!-- City -->
+            <tr>
+                <th>
+                    <label for="city_edit">City</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s city.">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <input type="text"
+                           name="city"
+                           id="city_edit"
+                           class="regular-text"
+                           value="<?php echo esc_attr( $city ); ?>">
+                </td>
+            </tr>
+
+            <!-- State -->
+            <tr>
+                <th>
+                    <label for="state_edit">State</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s state.">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <select name="state" id="state_edit">
+                        <?php
+                        // Use helper function instead of hard-coded array
+                        $states = tta_get_us_states();
+                        foreach ( $states as $abbr => $name ) {
+                            printf(
+                                '<option value="%s" %s>%s</option>',
+                                esc_attr( $abbr ),
+                                selected( $state, $abbr, false ),
+                                esc_html( $name )
+                            );
+                        }
+                        ?>
+                    </select>
+                </td>
+            </tr>
+
+            <!-- ZIP Code -->
+            <tr>
+                <th>
+                    <label for="zip_edit">ZIP</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s ZIP code.">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <input type="text"
+                           name="zip"
+                           id="zip_edit"
+                           class="regular-text"
+                           value="<?php echo esc_attr( $zip ); ?>">
+                </td>
+            </tr>
+
             <!-- Phone -->
             <tr>
                 <th>
@@ -180,100 +274,6 @@ wp_enqueue_media();
                         <option value="basic"   <?php selected( $member['membership_level'], 'basic' ); ?>>Basic</option>
                         <option value="premium" <?php selected( $member['membership_level'], 'premium' ); ?>>Premium</option>
                     </select>
-                </td>
-            </tr>
-
-            <!-- Street Address -->
-            <tr>
-                <th>
-                    <label for="street_address_edit">Street Address</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s street address.">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <input type="text"
-                           name="street_address"
-                           id="street_address_edit"
-                           class="regular-text"
-                           value="<?php echo esc_attr( $street_address ); ?>">
-                </td>
-            </tr>
-
-            <!-- Address Line 2 -->
-            <tr>
-                <th>
-                    <label for="address_2_edit">Address Line 2</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s suite, apartment, etc.">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <input type="text"
-                           name="address_2"
-                           id="address_2_edit"
-                           class="regular-text"
-                           value="<?php echo esc_attr( $address_2 ); ?>">
-                </td>
-            </tr>
-
-            <!-- City -->
-            <tr>
-                <th>
-                    <label for="city_edit">City</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s city.">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <input type="text"
-                           name="city"
-                           id="city_edit"
-                           class="regular-text"
-                           value="<?php echo esc_attr( $city ); ?>">
-                </td>
-            </tr>
-
-            <!-- State -->
-            <tr>
-                <th>
-                    <label for="state_edit">State</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s state.">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <select name="state" id="state_edit">
-                        <?php
-                        // Use helper function instead of hard-coded array
-                        $states = tta_get_us_states();
-                        foreach ( $states as $abbr => $name ) {
-                            printf(
-                                '<option value="%s" %s>%s</option>',
-                                esc_attr( $abbr ),
-                                selected( $state, $abbr, false ),
-                                esc_html( $name )
-                            );
-                        }
-                        ?>
-                    </select>
-                </td>
-            </tr>
-
-            <!-- ZIP Code -->
-            <tr>
-                <th>
-                    <label for="zip_edit">ZIP Code</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s ZIP code.">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <input type="text"
-                           name="zip"
-                           id="zip_edit"
-                           class="regular-text"
-                           value="<?php echo esc_attr( $zip ); ?>">
                 </td>
             </tr>
 
@@ -344,41 +344,6 @@ wp_enqueue_media();
                            value="<?php echo esc_attr( $member['twitter'] ); ?>">
                 </td>
             </tr>
-
-            <!-- Biography -->
-            <tr>
-                <th>
-                    <label for="biography_edit">Biography</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s bio.">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <textarea name="biography"
-                              id="biography_edit"
-                              rows="5"
-                              class="large-text"
-                              placeholder="Tell us about yourself…"><?php echo esc_textarea( $member['biography'] ); ?></textarea>
-                </td>
-            </tr>
-
-            <!-- Admin Notes -->
-            <tr>
-                <th>
-                    <label for="notes_edit">Admin Notes</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Edit confidential notes.">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <textarea name="notes"
-                              id="notes_edit"
-                              rows="4"
-                              class="large-text"
-                              placeholder="Confidential notes…"><?php echo esc_textarea( $member['notes'] ); ?></textarea>
-                </td>
-            </tr>
-
             <!-- Interests -->
             <tr>
                 <th>
@@ -432,6 +397,66 @@ wp_enqueue_media();
                     </button>
                 </td>
             </tr>
+            <tr style="width:10000%;"></tr>
+            <!-- Biography -->
+            <tr>
+                <th>
+                    <label for="biography_edit">Biography</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Edit the member’s bio.">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <textarea name="biography"
+                              id="biography_edit"
+                              rows="5"
+                              class="large-text"
+                              placeholder="Tell us about yourself…"><?php echo esc_textarea( $member['biography'] ); ?></textarea>
+                </td>
+            </tr>
+
+            <!-- Admin Notes -->
+            <tr>
+                <th>
+                    <label for="notes_edit">Admin Notes</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Edit confidential notes.">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <textarea name="notes"
+                              id="notes_edit"
+                              rows="4"
+                              class="large-text"
+                              placeholder="Confidential notes…"><?php echo esc_textarea( $member['notes'] ); ?></textarea>
+                </td>
+            </tr>
+
+            <!-- Profile Image -->
+            <tr>
+                <th>
+                    <label>Profile Image</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Change profile picture.">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <div class="tta-profile-image-wrapper">
+                        <button type="button" class="button tta-member-upload-single" data-target="#profileimgid_edit">
+                            Select Profile Image
+                        </button>
+                        <input type="hidden" id="profileimgid_edit" name="profileimgid" value="<?php echo esc_attr( $profileimgid ); ?>">
+                        <div id="profileimage-preview_edit" style="margin-top:10px;">
+                            <?php if ( $profileimgid ): ?>
+                                <?php echo '<img src="' . esc_url( wp_get_attachment_image_url( $profileimgid, 'full' ) ) . '"/>' ?>
+                            <?php else: ?>
+                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' ); ?>"
+                                     alt="Placeholder Profile" style="max-width:150px;" />
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </td>
+            </tr>
 
             <!-- Opt-In Preferences -->
             <tr>
@@ -478,32 +503,6 @@ wp_enqueue_media();
                             </span>
                         </label>
                     </fieldset>
-                </td>
-            </tr>
-
-            <!-- Profile Image -->
-            <tr>
-                <th>
-                    <label>Profile Image</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Change profile picture.">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <div class="tta-profile-image-wrapper">
-                        <button type="button" class="button tta-member-upload-single" data-target="#profileimgid_edit">
-                            Select Profile Image
-                        </button>
-                        <input type="hidden" id="profileimgid_edit" name="profileimgid" value="<?php echo esc_attr( $profileimgid ); ?>">
-                        <div id="profileimage-preview_edit" style="margin-top:10px;">
-                            <?php if ( $profileimgid ): ?>
-                                <?php echo wp_get_attachment_image( $profileimgid, 'thumbnail' ); ?>
-                            <?php else: ?>
-                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' ); ?>"
-                                     alt="Placeholder Profile" style="max-width:150px;" />
-                            <?php endif; ?>
-                        </div>
-                    </div>
                 </td>
             </tr>
 

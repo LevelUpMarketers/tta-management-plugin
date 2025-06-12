@@ -312,6 +312,42 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </td>
                 </tr>
 
+                <!-- Interests -->
+                <tr>
+                    <th>
+                        <label for="interests">Interests</label>
+                        <span class="tta-tooltip-icon"
+                              data-tooltip="Add one or more interests; click “+ Add Another Interest” to add more."
+                              style="margin-left:4px;">
+                            <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
+                                 alt="Help">
+                        </span>
+                    </th>
+                    <td>
+                        <div id="interests-container">
+                            <div id="interests-item" style="margin-bottom:8px; display:flex; align-items:center;">
+                                <input type="text" name="interests[]" class="regular-text interest-field" placeholder="Interest #1">
+                                <button
+                                  type="button"
+                                  class="delete-interest"
+                                  aria-label="Remove this interest"
+                                  style="background:none;border:none;cursor:pointer;margin-left:8px;"
+                                >
+                                    <img
+                                      src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>"
+                                      alt="×"
+                                      style="width:16px;height:16px;"
+                                    />
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="button" id="add-interest" style="margin-top:8px;">
+                            + Add Another Interest
+                        </button>
+                    </td>
+                </tr>
+                <tr style="width:10000%;"></tr>
+                
                 <!-- Biography -->
                 <tr>
                     <th>
@@ -344,24 +380,28 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </td>
                 </tr>
 
-                <!-- Interests -->
+                <!-- Profile Image -->
                 <tr>
                     <th>
-                        <label for="interests">Interests</label>
+                        <label>Profile Image</label>
                         <span class="tta-tooltip-icon"
-                              data-tooltip="Add one or more interests; click “+ Add Another Interest” to add more."
+                              data-tooltip="Select or upload a profile picture for the member."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
                     </th>
                     <td>
-                        <div id="interests-container">
-                            <input type="text" name="interests[]" class="regular-text interest-field" placeholder="Interest #1">
+                        <div class="tta-profile-image-wrapper">
+                            <button type="button" class="button tta-member-upload-single" data-target="#profileimgid">
+                                Select Profile Image
+                            </button>
+                            <input type="hidden" id="profileimgid" name="profileimgid" value="">
+                            <div id="profileimage-preview" style="margin-top:10px;">
+                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' ); ?>"
+                                     alt="Placeholder Profile" style="max-width:150px;"/>
+                            </div>
                         </div>
-                        <button type="button" class="button" id="add-interest" style="margin-top:8px;">
-                            + Add Another Interest
-                        </button>
                     </td>
                 </tr>
 
@@ -422,30 +462,6 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </td>
                 </tr>
 
-                <!-- Profile Image -->
-                <tr>
-                    <th>
-                        <label>Profile Image</label>
-                        <span class="tta-tooltip-icon"
-                              data-tooltip="Select or upload a profile picture for the member."
-                              style="margin-left:4px;">
-                            <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
-                                 alt="Help">
-                        </span>
-                    </th>
-                    <td>
-                        <div class="tta-profile-image-wrapper">
-                            <button type="button" class="button tta-member-upload-single" data-target="#profileimgid">
-                                Select Profile Image
-                            </button>
-                            <input type="hidden" id="profileimgid" name="profileimgid" value="">
-                            <div id="profileimage-preview" style="margin-top:10px;">
-                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' ); ?>"
-                                     alt="Placeholder Profile" style="max-width:150px;"/>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
             </tbody>
         </table>
 
@@ -467,32 +483,3 @@ if ( ! defined( 'ABSPATH' ) ) {
         </p>
     </form>
 </div>
-
-<script type="text/javascript">
-jQuery(function($){
-    // Add new “Interests” field when button is clicked
-    $('#add-interest').on('click', function(e){
-        e.preventDefault();
-        var count = $('#interests-container .interest-field').length + 1;
-        var $newInput = $('<input>')
-            .attr({
-                type: 'text',
-                name: 'interests[]',
-                class: 'regular-text interest-field',
-                placeholder: 'Interest #' + count
-            });
-        $('#interests-container').append($newInput);
-    });
-
-    // Basic phone-number formatting mask
-    $('#phone').on('input', function(){
-        var val = $(this).val().replace(/\D/g, '');
-        if (val.length > 3 && val.length <= 6) {
-            val = '(' + val.slice(0,3) + ') ' + val.slice(3);
-        } else if (val.length > 6) {
-            val = '(' + val.slice(0,3) + ') ' + val.slice(3,6) + '-' + val.slice(6,10);
-        }
-        $(this).val(val);
-    });
-});
-</script>

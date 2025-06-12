@@ -63,11 +63,11 @@ jQuery(function($){
   $('body').on('click', '.tta-member-upload-single', function(e){
     e.preventDefault();
 
-    var $button  = $(this),
-        target   = $button.data('target'),                  // e.g. "#profileimgid"
-        $input   = $(target),                                // hidden <input>
+    var $button   = $(this),
+        target    = $button.data('target'),                  // e.g. "#profileimgid"
+        $input    = $(target),                                // hidden <input>
         previewID = target.replace('imgid', 'image-preview'),
-        $preview = $(previewID);
+        $preview  = $(previewID);
 
     // Open WordPress media frame
     var frame = wp.media({
@@ -79,10 +79,11 @@ jQuery(function($){
 
     frame.on('select', function(){
       var attachment = frame.state().get('selection').first().toJSON(),
-          thumb      = (attachment.sizes && attachment.sizes.thumbnail)
-                         ? attachment.sizes.thumbnail.url
+          // always pull the full-size image, fallback to attachment.url
+          fullSize   = (attachment.sizes && attachment.sizes.full)
+                         ? attachment.sizes.full.url
                          : attachment.url,
-          html       = '<img src="' + thumb + '"/>'; // circular preview
+          html       = '<img src="' + fullSize + '"/>';
 
       $input.val( attachment.id );
       $preview.html( html );
@@ -90,6 +91,7 @@ jQuery(function($){
 
     frame.open();
   });
+
 
   // ───────────────────────────────────────────────────────────
   // 3) MULTIPLE-IMAGE UPLOADER (existing for “.tta-upload-multiple”)

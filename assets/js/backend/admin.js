@@ -326,16 +326,7 @@ jQuery(function($){
     rebuildUserids();
   });
 
-  //
-  // Show/hide waitlist section when dropdown changes
-  //
-  $(document).on('change', '#waitlistavailable', function(){
-    if ( $(this).val() === '1' ) {
-      $('#tta-waitlist-container').slideDown(200);
-    } else {
-      $('#tta-waitlist-container').slideUp(200);
-    }
-  });
+
 
   //
   // Rebuild the CSV of user IDs and store in a hidden input
@@ -553,6 +544,72 @@ jQuery(function($){
     $container.append($entry);
   });
 
+
+
+
+//
+  // Add new “Interests” field in inline‐edit
+  //
+  $(document).on('click', '#add-interest', function(e){
+    e.preventDefault();
+
+    var $container = $('#interests-container');
+    var count = $container.find('input.interest-field').length + 1;
+
+    // Create the new input
+    var $input = $('<input>', {
+      type: 'text',
+      name: 'interests[]',
+      class: 'regular-text interest-field',
+      placeholder: 'Interest #' + count
+    });
+
+    // Create the delete button
+    var $button = $('<button>', {
+      type: 'button',
+      class: 'delete-interest',
+      'aria-label': 'Remove this interest',
+      style: 'background:none;border:none;cursor:pointer;margin-left:8px;'
+    }).append(
+      $('<img>', {
+        src: 'http://trying-to-adult-rva-2025.local/wp-content/plugins/tta-management-plugin/assets/images/admin/bin.svg',
+        alt: '×',
+        style: 'width:16px;height:16px;'
+      })
+    );
+
+    // Wrap input + button in a container div (optional, but keeps things tidy)
+    var $entry = $('<div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;"></div>')
+      .append($input)
+      .append($button);
+
+    // Append a line break for spacing, then our entry
+    $container.append($entry);
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // Delegate click on delete-interest to remove its entry
   $(document).on('click', '.delete-interest', function(e){
     e.preventDefault();
@@ -590,12 +647,16 @@ jQuery(function($){
     $(this).val( val );
   });
 
-  //
-  // Media uploader for both events & members (already in media-uploader.js)
-  //  • .tta-upload-single   → main/gallery for events
-  //  • .tta-member-upload-single → profile image for members
-  //  • .tta-upload-multiple → gallery images
-  //
+  // Basic phone-number formatting mask
+  $('#phone').on('input', function(){
+      var val = $(this).val().replace(/\D/g, '');
+      if (val.length > 3 && val.length <= 6) {
+          val = '(' + val.slice(0,3) + ') ' + val.slice(3);
+      } else if (val.length > 6) {
+          val = '(' + val.slice(0,3) + ') ' + val.slice(3,6) + '-' + val.slice(6,10);
+      }
+      $(this).val(val);
+  });
 
 
 

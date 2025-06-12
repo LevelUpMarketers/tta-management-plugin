@@ -42,7 +42,9 @@
     width:96%;
 }
 
-
+.tta-edit-link{
+    pointer-events:none;
+}
 
 
 
@@ -80,8 +82,9 @@
     text-align: center;
 }
 
-#profileimage-preview img{
+#profileimage-preview img, #profileimage-preview_edit img{
     max-width:150px;
+    max-height:150px;
     margin-top:20px;
 }
 
