@@ -106,4 +106,15 @@ class TTA_Cart {
       [ '%d' ]
     );
   }
+
+  /**
+   * Finalize checkout and trigger completion actions.
+   *
+   * This basic implementation simply empties the cart.
+   * Hooked listeners can handle ticket delivery or payment processing.
+   */
+  public function finalize_purchase() {
+    $this->empty_cart();
+    do_action( 'tta_checkout_complete', $this->cart_id );
+  }
 }
