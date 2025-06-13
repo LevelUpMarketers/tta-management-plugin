@@ -23,6 +23,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 }
 
 $discount_code = $_SESSION['tta_discount_code'] ?? '';
+
 $items         = $cart->get_items();
 $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
 ?>
