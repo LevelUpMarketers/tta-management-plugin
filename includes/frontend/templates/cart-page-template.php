@@ -9,9 +9,10 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-get_header();
-
+// Instantiate the cart before any output so sessions start correctly
 $cart = new TTA_Cart();
+
+get_header();
 
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_checkout'] ) ) {
     $cart->finalize_purchase();
