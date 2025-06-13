@@ -1,0 +1,38 @@
+/* assets/css/frontend/cart-page.css */
+
+.tta-cart-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.tta-cart-table th,
+.tta-cart-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+.tta-cart-checkout-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #0073aa;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tta-cart-update-button {
+  padding: 6px 12px;
+  margin-left: 10px;
+}
+
+.tta-remove-item {
+  background: none;
+  border: none;
+  color: #a00;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}

@@ -40,6 +40,7 @@ require_once TTA_PLUGIN_DIR . 'includes/helpers.php';
 // Core includes
 require_once TTA_PLUGIN_DIR . 'includes/class-db-setup.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-event-page-manager.php';
+require_once TTA_PLUGIN_DIR . 'includes/frontend/class-cart-page-manager.php';
 require_once TTA_PLUGIN_DIR . 'includes/api/class-authorizenet-api.php';
 require_once TTA_PLUGIN_DIR . 'includes/email/class-email-handler.php';
 require_once TTA_PLUGIN_DIR . 'includes/sms/class-sms-handler.php';
@@ -52,12 +53,15 @@ require_once TTA_PLUGIN_DIR . 'includes/shortcodes/class-events-shortcode.php';
 require_once TTA_PLUGIN_DIR . 'includes/shortcodes/class-members-shortcode.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-tta-member-dashboard.php';
 require_once TTA_PLUGIN_DIR . 'includes/cart/class-cart.php';
+require_once TTA_PLUGIN_DIR . 'includes/cart/class-cart-cleanup.php';
 
 
 
 // Activation & Deactivation
 register_activation_hook( __FILE__, array( 'TTA_DB_Setup', 'install' ) );
+register_activation_hook( __FILE__, array( 'TTA_Cart_Cleanup', 'schedule_event' ) );
 register_deactivation_hook( __FILE__, array( 'TTA_DB_Setup', 'uninstall' ) );
+register_deactivation_hook( __FILE__, array( 'TTA_Cart_Cleanup', 'clear_event' ) );
 
 // Initialize plugin
 add_action( 'plugins_loaded', array( 'TTA_Plugin', 'init' ) );
@@ -82,6 +86,9 @@ class TTA_Plugin {
         // Notification handlers
         TTA_Email_Handler::get_instance();
         TTA_SMS_Handler::get_instance();
+
+        // Expired cart cleanup
+        TTA_Cart_Cleanup::init();
     }
 }
 ?>

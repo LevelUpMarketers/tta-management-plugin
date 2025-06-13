@@ -109,7 +109,7 @@ class TTA_Assets {
             TTA_PLUGIN_VERSION
         );
 
-        // 2) Only on our “Event Page” template, enqueue event‐page.css and cart + event JS
+        // 2) Only on our “Event Page” template, enqueue event-page.css and cart + event JS
         if ( function_exists( 'is_page_template' ) && is_page_template( 'event-page-template.php' ) ) {
             // Event page CSS
             wp_enqueue_style(
@@ -135,6 +135,33 @@ class TTA_Assets {
                 TTA_PLUGIN_VERSION,
                 true
             );
+            wp_localize_script(
+                'tta-cart-js',
+                'tta_ajax',
+                [
+                    'ajax_url' => admin_url( 'admin-ajax.php' ),
+                    'nonce'    => wp_create_nonce( 'tta_frontend_nonce' ),
+                ]
+            );
+        }
+
+        // 3) Cart Page template assets
+        if ( function_exists( 'is_page_template' ) && is_page_template( 'cart-page-template.php' ) ) {
+            wp_enqueue_style(
+                'tta-cartpage-css',
+                TTA_PLUGIN_URL . 'assets/css/frontend/cart-page.css',
+                [ 'tta-frontend-css' ],
+                TTA_PLUGIN_VERSION
+            );
+
+            wp_enqueue_script(
+                'tta-cart-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/tta-cart.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+
             wp_localize_script(
                 'tta-cart-js',
                 'tta_ajax',

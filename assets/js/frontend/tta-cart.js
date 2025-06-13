@@ -17,16 +17,10 @@ jQuery(function($){
   $('#tta-get-tickets').on('click', function(){
     var items = [];
     $('.tta-qty-input').each(function(){
-      var qty = parseInt($(this).val(),10);
-      if ( qty > 0 ) {
-        var ticket_id = $(this).attr('name').match(/\d+/)[0];
-        items.push({ ticket_id: ticket_id, quantity: qty });
-      }
+      var qty = parseInt($(this).val(),10) || 0;
+      var ticket_id = $(this).attr('name').match(/\d+/)[0];
+      items.push({ ticket_id: ticket_id, quantity: qty });
     });
-    if ( ! items.length ) {
-      alert('Please select at least one ticket.');
-      return;
-    }
     $.post( tta_ajax.ajax_url, {
       action: 'tta_add_to_cart',
       items:  JSON.stringify(items),

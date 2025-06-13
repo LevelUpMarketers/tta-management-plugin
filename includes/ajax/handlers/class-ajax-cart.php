@@ -39,7 +39,7 @@ class TTA_Ajax_Cart {
 
         foreach ( $items as $it ) {
             $ticket_id = intval( $it['ticket_id'] );
-            $qty       = max( 1, intval( $it['quantity'] ) );
+            $qty       = intval( $it['quantity'] );
 
             $ticket = $wpdb->get_row(
                 $wpdb->prepare(
@@ -62,11 +62,15 @@ class TTA_Ajax_Cart {
                 $price = floatval( $ticket['baseeventcost'] );
             }
 
-            $cart->add_item( $ticket_id, $qty, $price );
+            if ( $qty <= 0 ) {
+                $cart->remove_item( $ticket_id );
+            } else {
+                $cart->add_item( $ticket_id, $qty, $price );
+            }
         }
 
-        $cart_page_id = get_option( 'tta_cart_page_id' );
-        $cart_url     = $cart_page_id ? get_permalink( $cart_page_id ) : home_url();
+        // Always send users to the dedicated cart page
+        $cart_url = home_url( '/cart' );
 
         wp_send_json_success( [ 'cart_url' => $cart_url ] );
     }
