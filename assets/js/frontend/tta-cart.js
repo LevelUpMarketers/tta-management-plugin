@@ -33,4 +33,42 @@ jQuery(function($){
       }
     }, 'json');
   });
+
+  function collectCartData(){
+    var data = { cart_qty: {}, discount_code: $('#tta-discount-code').val() || '' };
+    $('.tta-cart-qty').each(function(){
+      var id = $(this).attr('name').match(/\d+/)[0];
+      data.cart_qty[id] = $(this).val();
+    });
+    return data;
+  }
+
+  function sendCartUpdate(){
+    var payload = collectCartData();
+    payload.action = 'tta_update_cart';
+    payload.nonce  = tta_ajax.nonce;
+
+    $('#tta-cart-container').fadeTo(200, 0.3);
+    $('.tta-admin-progress-spinner-svg').css({opacity:1,display:'inline-block'});
+
+    $.post( tta_ajax.ajax_url, payload, function(res){
+      setTimeout(function(){
+        $('.tta-admin-progress-spinner-svg').fadeOut(200);
+        if ( res.success ) {
+          $('#tta-cart-container').html(res.data.html).fadeTo(200,1);
+        } else {
+          alert(res.data.message || 'Error updating cart.');
+          $('#tta-cart-container').fadeTo(200,1);
+        }
+      }, 1000);
+    }, 'json');
+  }
+
+  $(document).on('change', '.tta-cart-qty, #tta-discount-code', sendCartUpdate);
+
+  $(document).on('click', '.tta-remove-item', function(){
+    var id = $(this).data('ticket');
+    $('input[name="cart_qty['+id+']"]').val(0);
+    sendCartUpdate();
+  });
 });

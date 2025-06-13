@@ -36,3 +36,19 @@
   line-height: 1;
   cursor: pointer;
 }
+
+/* Spinner */
+.tta-admin-progress-spinner-svg {
+  display: none;
+  opacity: 0;
+  width: 25px;
+  height: 25px;
+  vertical-align: middle;
+  transition: opacity 0.2s ease;
+  animation: tta-spinner-rotate 1s linear infinite;
+}
+
+@keyframes tta-spinner-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
