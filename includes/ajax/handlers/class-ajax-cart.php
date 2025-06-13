@@ -65,8 +65,8 @@ class TTA_Ajax_Cart {
             $cart->add_item( $ticket_id, $qty, $price );
         }
 
-        $cart_page_id = get_option( 'tta_cart_page_id' );
-        $cart_url     = $cart_page_id ? get_permalink( $cart_page_id ) : home_url();
+        // Always send users to the dedicated cart page
+        $cart_url = home_url( '/cart' );
 
         wp_send_json_success( [ 'cart_url' => $cart_url ] );
     }
