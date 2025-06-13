@@ -113,7 +113,7 @@ class TTA_Cart {
   public function get_items() {
     return $this->wpdb->get_results(
       $this->wpdb->prepare(
-        "SELECT ci.*, t.ticket_name, e.discountcode
+          "SELECT ci.*, t.ticket_name, t.event_ute_id, e.discountcode
          FROM {$this->items_table} ci
          JOIN {$this->wpdb->prefix}tta_tickets t ON ci.ticket_id = t.id
          LEFT JOIN {$this->wpdb->prefix}tta_events e ON t.event_ute_id = e.ute_id

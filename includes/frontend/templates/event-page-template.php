@@ -5,6 +5,9 @@
  * @package TTA
  */
 
+// Initialize cart early so sessions start before output
+$cart = new TTA_Cart();
+
 // ───────────────
 // 1) Load custom header (without the page-header block)
 // ───────────────
@@ -51,6 +54,14 @@ $tickets       = $wpdb->get_results(
     ARRAY_A
 );
 $ticket_count = count( $tickets );
+
+// Build a map of quantities for this event from the cart
+$cart_quantities = [];
+foreach ( $cart->get_items() as $it ) {
+    if ( isset( $it['event_ute_id'] ) && $it['event_ute_id'] === $event['ute_id'] ) {
+        $cart_quantities[ intval( $it['ticket_id'] ) ] = intval( $it['quantity'] );
+    }
+}
 
 // ───────────────
 // 4) Fetch “related” upcoming events
@@ -388,7 +399,7 @@ if ( $ticket_count > 1 ) {
                     type="number"
                     name="tta_ticket_qty[<?php echo esc_attr( $ticket['id'] ); ?>]"
                     class="tta-qty-input"
-                    value="0"
+                    value="<?php echo esc_attr( $cart_quantities[ $ticket['id'] ] ?? 0 ); ?>"
                     min="0"
                     <?php if ( $available ): ?>max="<?php echo esc_attr( $available ); ?>"<?php endif; ?>
                   />
