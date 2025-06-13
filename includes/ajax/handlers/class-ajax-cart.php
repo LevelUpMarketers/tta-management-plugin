@@ -10,6 +10,8 @@ class TTA_Ajax_Cart {
     public static function init() {
         add_action( 'wp_ajax_tta_add_to_cart',      [ __CLASS__, 'ajax_add_to_cart' ] );
         add_action( 'wp_ajax_nopriv_tta_add_to_cart',[ __CLASS__, 'ajax_add_to_cart' ] );
+        add_action( 'wp_ajax_tta_update_cart',      [ __CLASS__, 'ajax_update_cart' ] );
+        add_action( 'wp_ajax_nopriv_tta_update_cart',[ __CLASS__, 'ajax_update_cart' ] );
     }
 
     public static function ajax_add_to_cart() {
@@ -39,7 +41,7 @@ class TTA_Ajax_Cart {
 
         foreach ( $items as $it ) {
             $ticket_id = intval( $it['ticket_id'] );
-            $qty       = max( 1, intval( $it['quantity'] ) );
+            $qty       = intval( $it['quantity'] );
 
             $ticket = $wpdb->get_row(
                 $wpdb->prepare(
@@ -62,13 +64,32 @@ class TTA_Ajax_Cart {
                 $price = floatval( $ticket['baseeventcost'] );
             }
 
-            $cart->add_item( $ticket_id, $qty, $price );
+            if ( $qty <= 0 ) {
+                $cart->remove_item( $ticket_id );
+            } else {
+                $cart->add_item( $ticket_id, $qty, $price );
+            }
         }
 
         // Always send users to the dedicated cart page
         $cart_url = home_url( '/cart' );
 
         wp_send_json_success( [ 'cart_url' => $cart_url ] );
+    }
+
+    public static function ajax_update_cart() {
+        check_ajax_referer( 'tta_frontend_nonce', 'nonce' );
+
+        $cart = new TTA_Cart();
+
+        foreach ( (array) ( $_POST['cart_qty'] ?? [] ) as $ticket_id => $qty ) {
+            $cart->update_quantity( intval( $ticket_id ), intval( $qty ) );
+        }
+
+        $_SESSION['tta_discount_code'] = sanitize_text_field( $_POST['discount_code'] ?? '' );
+
+        $html = tta_render_cart_contents( $cart, $_SESSION['tta_discount_code'] );
+        wp_send_json_success( [ 'html' => $html ] );
     }
 }
 

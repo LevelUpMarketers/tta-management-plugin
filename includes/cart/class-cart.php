@@ -56,7 +56,11 @@ class TTA_Cart {
   }
 
   public function add_item( $ticket_id, $qty, $price ) {
-    // upsert logic
+    if ( $qty <= 0 ) {
+      $this->remove_item( $ticket_id );
+      return;
+    }
+
     $exists = $this->wpdb->get_var(
       $this->wpdb->prepare(
         "SELECT COUNT(*) FROM {$this->items_table} WHERE cart_id = %d AND ticket_id = %d",
@@ -85,18 +89,51 @@ class TTA_Cart {
     }
   }
 
+  public function update_quantity( $ticket_id, $qty ) {
+    if ( $qty <= 0 ) {
+      $this->remove_item( $ticket_id );
+    } else {
+      $this->wpdb->update(
+        $this->items_table,
+        [ 'quantity' => $qty ],
+        [ 'cart_id' => $this->cart_id, 'ticket_id' => $ticket_id ],
+        ['%d'],['%d','%d']
+      );
+    }
+  }
+
+  public function remove_item( $ticket_id ) {
+    $this->wpdb->delete(
+      $this->items_table,
+      [ 'cart_id' => $this->cart_id, 'ticket_id' => $ticket_id ],
+      [ '%d','%d' ]
+    );
+  }
+
   public function get_items() {
     return $this->wpdb->get_results(
       $this->wpdb->prepare(
-        "SELECT ci.*, t.ticket_name 
+          "SELECT ci.*, t.ticket_name, t.event_ute_id, e.discountcode
          FROM {$this->items_table} ci
-         JOIN {$this->wpdb->prefix}tta_tickets t
-           ON ci.ticket_id = t.id
+         JOIN {$this->wpdb->prefix}tta_tickets t ON ci.ticket_id = t.id
+         LEFT JOIN {$this->wpdb->prefix}tta_events e ON t.event_ute_id = e.ute_id
          WHERE ci.cart_id = %d",
         $this->cart_id
       ),
       ARRAY_A
     );
+  }
+
+  public function get_total( $discount_code = '' ) {
+    $total = 0;
+    foreach ( $this->get_items() as $it ) {
+      $sub = $it['quantity'] * $it['price'];
+      if ( $discount_code && strtolower( $discount_code ) === strtolower( $it['discountcode'] ) ) {
+        $sub *= 0.9; // 10% discount
+      }
+      $total += $sub;
+    }
+    return $total;
   }
 
   public function empty_cart() {
@@ -115,6 +152,9 @@ class TTA_Cart {
    */
   public function finalize_purchase() {
     $this->empty_cart();
+    if ( isset( $_SESSION['tta_discount_code'] ) ) {
+      unset( $_SESSION['tta_discount_code'] );
+    }
     do_action( 'tta_checkout_complete', $this->cart_id );
   }
 }

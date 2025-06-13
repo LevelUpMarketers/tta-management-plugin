@@ -14,11 +14,15 @@ $cart = new TTA_Cart();
 
 get_header();
 
-if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_checkout'] ) ) {
-    $cart->finalize_purchase();
-    wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
-    exit;
+if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
+    if ( isset( $_POST['tta_checkout'] ) ) {
+        $cart->finalize_purchase();
+        wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
+        exit;
+    }
 }
+
+$discount_code = $_SESSION['tta_discount_code'] ?? '';
 
 $items         = $cart->get_items();
 $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
@@ -31,45 +35,19 @@ $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
         </p>
     <?php endif; ?>
 
-    <?php if ( $items ) : ?>
-        <form method="post">
-            <table class="tta-cart-table">
-                <thead>
-                    <tr>
-                        <th><?php esc_html_e( 'Ticket', 'tta' ); ?></th>
-                        <th><?php esc_html_e( 'Quantity', 'tta' ); ?></th>
-                        <th><?php esc_html_e( 'Price', 'tta' ); ?></th>
-                        <th><?php esc_html_e( 'Subtotal', 'tta' ); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php $total = 0; ?>
-                    <?php foreach ( $items as $it ) : ?>
-                        <?php $sub = $it['quantity'] * $it['price']; $total += $sub; ?>
-                        <tr>
-                            <td><?php echo esc_html( $it['ticket_name'] ); ?></td>
-                            <td><?php echo intval( $it['quantity'] ); ?></td>
-                            <td><?php echo esc_html( number_format( $it['price'], 2 ) ); ?></td>
-                            <td><?php echo esc_html( number_format( $sub, 2 ) ); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="3"><?php esc_html_e( 'Total', 'tta' ); ?></th>
-                        <td><?php echo esc_html( number_format( $total, 2 ) ); ?></td>
-                    </tr>
-                </tfoot>
-            </table>
-            <p>
-                <button class="tta-cart-checkout-button" name="tta_checkout" type="submit">
-                    <?php esc_html_e( 'Checkout', 'tta' ); ?>
-                </button>
-            </p>
-        </form>
-    <?php else : ?>
-        <p><?php esc_html_e( 'Your cart is empty.', 'tta' ); ?></p>
-    <?php endif; ?>
+    <form id="tta-cart-form" method="post">
+        <div id="tta-cart-container">
+            <?php echo tta_render_cart_contents( $cart, $discount_code ); ?>
+        </div>
+        <p>
+            <button class="tta-cart-checkout-button" name="tta_checkout" type="submit">
+                <?php esc_html_e( 'Checkout', 'tta' ); ?>
+            </button>
+        </p>
+        <span class="tta-progress-spinner">
+            <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+        </span>
+    </form>
 </div>
 
 <?php
