@@ -17,7 +17,11 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
     check_admin_referer( 'tta_checkout_action', 'tta_checkout_nonce' );
 
     $discount_code = $_SESSION['tta_discount_code'] ?? '';
-    $amount = $cart->get_total( $discount_code );
+    $cart_changed  = $cart->sync_with_inventory();
+    $amount        = $cart->get_total( $discount_code );
+    if ( $cart_changed ) {
+        $checkout_error = __( 'Some items became unavailable. Your cart was updated; please review and try again.', 'tta' );
+    }
 
     $exp_input  = sanitize_text_field( $_POST['card_exp'] );
     $exp_digits = preg_replace( '/\D/', '', $exp_input );
@@ -54,9 +58,13 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
         );
 
         if ( $result['success'] ) {
-            $cart->finalize_purchase( $result['transaction_id'], $amount );
-            wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
-            exit;
+            $res = $cart->finalize_purchase( $result['transaction_id'], $amount );
+            if ( is_wp_error( $res ) ) {
+                $checkout_error = $res->get_error_message();
+            } else {
+                wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
+                exit;
+            }
         } else {
             $checkout_error = $result['error'];
         }
