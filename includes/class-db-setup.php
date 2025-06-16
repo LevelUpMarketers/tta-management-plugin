@@ -183,6 +183,26 @@ class TTA_DB_Setup {
                 ON DELETE CASCADE
         ) $charset_collate";
 
+        // ─────────────────────────────────────────────────────────────────
+        // Transactions table
+        // ─────────────────────────────────────────────────────────────────
+        $sql_statements[] = "
+        CREATE TABLE {$prefix}transactions (
+            id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            wpuserid        BIGINT UNSIGNED NOT NULL,
+            member_id       BIGINT UNSIGNED NULL,
+            transaction_id  VARCHAR(50)     NOT NULL,
+            amount          DECIMAL(10,2)  NOT NULL,
+            discount_code   VARCHAR(255)   DEFAULT '',
+            discount_saved  DECIMAL(10,2)  DEFAULT 0.00,
+            details         TEXT           NULL,
+            created_at      DATETIME       DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY     (id),
+            KEY wpuserid_idx       (wpuserid),
+            KEY member_id_idx      (member_id),
+            KEY transaction_id_idx (transaction_id)
+        ) $charset_collate";
+
         // Run dbDelta on each statement
         foreach ( $sql_statements as $sql ) {
             dbDelta( $sql );

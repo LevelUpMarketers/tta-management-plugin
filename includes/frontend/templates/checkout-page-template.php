@@ -10,21 +10,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Initialize cart early for sessions
-$cart = new TTA_Cart();
-
-get_header();
-
+$cart          = new TTA_Cart();
 $checkout_error = '';
+
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] ) ) {
     check_admin_referer( 'tta_checkout_action', 'tta_checkout_nonce' );
 
     $discount_code = $_SESSION['tta_discount_code'] ?? '';
     $amount = $cart->get_total( $discount_code );
 
-    $exp_parts = explode( '/', sanitize_text_field( $_POST['card_exp'] ) );
-    $exp_date  = '';
-    if ( count( $exp_parts ) === 2 ) {
-        $exp_date = '20' . str_pad( $exp_parts[1], 2, '0', STR_PAD_LEFT ) . '-' . str_pad( $exp_parts[0], 2, '0', STR_PAD_LEFT );
+    $exp_input  = sanitize_text_field( $_POST['card_exp'] );
+    $exp_digits = preg_replace( '/\D/', '', $exp_input );
+    $exp_date   = '';
+    if ( strlen( $exp_digits ) === 4 ) {
+        $month = substr( $exp_digits, 0, 2 );
+        $year  = substr( $exp_digits, 2, 2 );
+        if ( (int) $month >= 1 && (int) $month <= 12 ) {
+            $exp_date = '20' . $year . '-' . $month;
+        } else {
+            $checkout_error = __( 'Invalid expiration month.', 'tta' );
+        }
+    } else {
+        $checkout_error = __( 'Invalid expiration date format.', 'tta' );
     }
 
     $billing = [
@@ -36,23 +43,27 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
         'zip'        => sanitize_text_field( $_POST['billing_zip'] ),
     ];
 
-    $api    = new TTA_AuthorizeNet_API();
-    $result = $api->charge(
-        $amount,
-        preg_replace( '/\D/', '', $_POST['card_number'] ),
-        $exp_date,
-        sanitize_text_field( $_POST['card_cvc'] ),
-        $billing
-    );
+    if ( empty( $checkout_error ) ) {
+        $api    = new TTA_AuthorizeNet_API();
+        $result = $api->charge(
+            $amount,
+            preg_replace( '/\D/', '', $_POST['card_number'] ),
+            $exp_date,
+            sanitize_text_field( $_POST['card_cvc'] ),
+            $billing
+        );
 
-    if ( $result['success'] ) {
-        $cart->finalize_purchase();
-        wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
-        exit;
-    } else {
-        $checkout_error = $result['error'];
+        if ( $result['success'] ) {
+            $cart->finalize_purchase( $result['transaction_id'], $amount );
+            wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
+            exit;
+        } else {
+            $checkout_error = $result['error'];
+        }
     }
 }
+
+get_header();
 
 $discount_code = $_SESSION['tta_discount_code'] ?? '';
 $items         = $cart->get_items();
@@ -131,7 +142,7 @@ $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
             <p>
                 <label>
                     <?php esc_html_e( 'Expiration', 'tta' ); ?><br />
-                    <input type="text" name="card_exp" placeholder="MM/YY" required />
+                    <input type="text" id="tta-card-exp" name="card_exp" placeholder="MM/YY" required maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" />
                 </label>
             </p>
             <p>

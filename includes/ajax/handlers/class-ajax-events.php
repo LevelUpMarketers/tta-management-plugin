@@ -53,7 +53,11 @@ class TTA_Ajax_Events {
             'premiummembercost'    => floatval( $_POST['premiummembercost']   ?? 0 ),
             'waitlistavailable'    => $waitlist_available,
             'refundsavailable'     => sanitize_text_field( $_POST['refundsavailable']    ?? '0' ),
-            'discountcode'         => sanitize_text_field( $_POST['discountcode']        ?? '' ),
+            'discountcode'         => tta_build_discount_data(
+                $_POST['discountcode'] ?? '',
+                $_POST['discount_type'] ?? 'percent',
+                $_POST['discount_amount'] ?? 0
+            ),
             'url2'                 => esc_url_raw( $_POST['url2']                ?? '' ),
             'url3'                 => esc_url_raw( $_POST['url3']                ?? '' ),
             'url4'                 => esc_url_raw( $_POST['url4']                ?? '' ),
@@ -194,7 +198,11 @@ class TTA_Ajax_Events {
             'premiummembercost'    => floatval( $_POST['premiummembercost']    ?? 0 ),
             'waitlistavailable'    => sanitize_text_field( $_POST['waitlistavailable']   ?? '0' ),
             'refundsavailable'     => sanitize_text_field( $_POST['refundsavailable']    ?? '0' ),
-            'discountcode'         => sanitize_text_field( $_POST['discountcode']        ?? '' ),
+            'discountcode'         => tta_build_discount_data(
+                $_POST['discountcode'] ?? '',
+                $_POST['discount_type'] ?? 'percent',
+                $_POST['discount_amount'] ?? 0
+            ),
             'url2'                 => esc_url_raw( $_POST['url2']                ?? '' ),
             'url3'                 => esc_url_raw( $_POST['url3']                ?? '' ),
             'url4'                 => esc_url_raw( $_POST['url4']                ?? '' ),

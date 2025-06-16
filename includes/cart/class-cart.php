@@ -14,7 +14,8 @@ class TTA_Cart {
     $this->carts_table = $wpdb->prefix . 'tta_carts';
     $this->items_table = $wpdb->prefix . 'tta_cart_items';
     $this->init_session();
-    $this->ensure_cart();
+    // Only load an existing cart on construct; don't create one until needed.
+    $this->ensure_cart( false );
   }
 
   protected function init_session() {
@@ -27,8 +28,8 @@ class TTA_Cart {
     $this->session_key = $_SESSION['tta_cart_session'];
   }
 
-  protected function ensure_cart() {
-    // load or create a cart row
+  protected function ensure_cart( $create = true ) {
+    // load or optionally create a cart row
     $row = $this->wpdb->get_row(
       $this->wpdb->prepare(
         "SELECT * FROM {$this->carts_table} WHERE session_key = %s",
@@ -38,7 +39,7 @@ class TTA_Cart {
     );
     if ( $row ) {
       $this->cart_id = (int)$row['id'];
-    } else {
+    } elseif ( $create ) {
       $now = current_time('mysql');
       $expires = date('Y-m-d H:i:s', strtotime('+30 minutes'));
       $this->wpdb->insert(
@@ -56,6 +57,7 @@ class TTA_Cart {
   }
 
   public function add_item( $ticket_id, $qty, $price ) {
+    $this->ensure_cart( true );
     if ( $qty <= 0 ) {
       $this->remove_item( $ticket_id );
       return;
@@ -90,6 +92,7 @@ class TTA_Cart {
   }
 
   public function update_quantity( $ticket_id, $qty ) {
+    $this->ensure_cart( true );
     if ( $qty <= 0 ) {
       $this->remove_item( $ticket_id );
     } else {
@@ -103,6 +106,7 @@ class TTA_Cart {
   }
 
   public function remove_item( $ticket_id ) {
+    $this->ensure_cart( false );
     $this->wpdb->delete(
       $this->items_table,
       [ 'cart_id' => $this->cart_id, 'ticket_id' => $ticket_id ],
@@ -111,6 +115,7 @@ class TTA_Cart {
   }
 
   public function get_items() {
+    $this->ensure_cart( false );
     return $this->wpdb->get_results(
       $this->wpdb->prepare(
           "SELECT ci.*, t.ticket_name, t.event_ute_id, e.discountcode
@@ -126,17 +131,31 @@ class TTA_Cart {
 
   public function get_total( $discount_code = '' ) {
     $total = 0;
+    $info  = null;
     foreach ( $this->get_items() as $it ) {
       $sub = $it['quantity'] * $it['price'];
-      if ( $discount_code && strtolower( $discount_code ) === strtolower( $it['discountcode'] ) ) {
-        $sub *= 0.9; // 10% discount
-      }
       $total += $sub;
+      if ( null === $info && $discount_code ) {
+        $d = tta_parse_discount_data( $it['discountcode'] );
+        if ( $d['code'] && strtolower( $discount_code ) === strtolower( $d['code'] ) ) {
+          $info = $d;
+        }
+      }
     }
+
+    if ( $discount_code && $info ) {
+      if ( 'flat' === $info['type'] ) {
+        $total = max( 0, $total - $info['amount'] );
+      } else {
+        $total *= max( 0, 1 - ( $info['amount'] / 100 ) );
+      }
+    }
+
     return $total;
   }
 
   public function empty_cart() {
+    $this->ensure_cart( false );
     $this->wpdb->delete(
       $this->items_table,
       [ 'cart_id' => $this->cart_id ],
@@ -150,11 +169,66 @@ class TTA_Cart {
    * This basic implementation simply empties the cart.
    * Hooked listeners can handle ticket delivery or payment processing.
    */
-  public function finalize_purchase() {
-    $this->empty_cart();
-    if ( isset( $_SESSION['tta_discount_code'] ) ) {
-      unset( $_SESSION['tta_discount_code'] );
+  public function finalize_purchase( $transaction_id = '', $amount = 0 ) {
+    global $wpdb;
+
+    $discount_code = $_SESSION['tta_discount_code'] ?? '';
+    $items         = $this->get_items();
+    $discount_total = 0;
+    $discount_info  = null;
+    $total_before   = 0;
+
+    // Decrement availability and locate discount info
+    foreach ( $items as &$item ) {
+      $wpdb->query(
+        $wpdb->prepare(
+          "UPDATE {$wpdb->prefix}tta_tickets SET ticketlimit = GREATEST(ticketlimit - %d, 0) WHERE id = %d",
+          intval( $item['quantity'] ),
+          intval( $item['ticket_id'] )
+        )
+      );
+
+      $sub  = $item['quantity'] * $item['price'];
+      $total_before += $sub;
+
+      if ( null === $discount_info && $discount_code ) {
+        $info = tta_parse_discount_data( $item['discountcode'] );
+        if ( $info['code'] && strtolower( $discount_code ) === strtolower( $info['code'] ) ) {
+          $discount_info = $info;
+        }
+      }
     }
+    unset( $item );
+
+    if ( $discount_code && $discount_info ) {
+      if ( 'flat' === $discount_info['type'] ) {
+        $discount_total = min( $total_before, $discount_info['amount'] );
+      } else {
+        $discount_total = $total_before * ( $discount_info['amount'] / 100 );
+      }
+    }
+
+    // Distribute savings proportionally across items
+    foreach ( $items as &$item ) {
+      $sub = $item['quantity'] * $item['price'];
+      $share = $total_before > 0 ? ( $sub / $total_before ) : 0;
+      $item_saved = $discount_total * $share;
+      $item['discount_used']  = $discount_total > 0 ? 1 : 0;
+      $item['discount_saved'] = round( $item_saved, 2 );
+    }
+    unset( $item );
+
+    // Log transaction details
+    if ( $transaction_id ) {
+      TTA_Transaction_Logger::log( $transaction_id, $amount, $items, $discount_code, $discount_total );
+    }
+
+    $this->empty_cart();
+    $wpdb->delete( $this->carts_table, [ 'id' => $this->cart_id ], [ '%d' ] );
+
+    unset( $_SESSION['tta_cart_session'] );
+    unset( $_SESSION['tta_discount_code'] );
+
     do_action( 'tta_checkout_complete', $this->cart_id );
   }
 }
