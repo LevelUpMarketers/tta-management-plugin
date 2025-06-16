@@ -19,11 +19,17 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
     $discount_code = $_SESSION['tta_discount_code'] ?? '';
     $amount = $cart->get_total( $discount_code );
 
-    $exp_input = sanitize_text_field( $_POST['card_exp'] );
-    $exp_date  = '';
-    if ( preg_match( '/^(0[1-9]|1[0-2])\/\d{2}$/', $exp_input ) ) {
-        $exp_parts = explode( '/', $exp_input );
-        $exp_date  = '20' . $exp_parts[1] . '-' . $exp_parts[0];
+    $exp_input  = sanitize_text_field( $_POST['card_exp'] );
+    $exp_digits = preg_replace( '/\D/', '', $exp_input );
+    $exp_date   = '';
+    if ( strlen( $exp_digits ) === 4 ) {
+        $month = substr( $exp_digits, 0, 2 );
+        $year  = substr( $exp_digits, 2, 2 );
+        if ( (int) $month >= 1 && (int) $month <= 12 ) {
+            $exp_date = '20' . $year . '-' . $month;
+        } else {
+            $checkout_error = __( 'Invalid expiration month.', 'tta' );
+        }
     } else {
         $checkout_error = __( 'Invalid expiration date format.', 'tta' );
     }
@@ -136,7 +142,7 @@ $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
             <p>
                 <label>
                     <?php esc_html_e( 'Expiration', 'tta' ); ?><br />
-                    <input type="text" id="tta-card-exp" name="card_exp" placeholder="MM/YY" required />
+                    <input type="text" id="tta-card-exp" name="card_exp" placeholder="MM/YY" required maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" />
                 </label>
             </p>
             <p>
