@@ -14,3 +14,4 @@ Without these values, checkout will fail and an admin notice will be displayed.
 ## Documentation
 
 - [Cart and Checkout Flow](docs/CartFlow.md)
+- [Project TODOs](TODO.md)
