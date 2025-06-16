@@ -154,6 +154,34 @@ class TTA_Cart {
     return $total;
   }
 
+  /**
+   * Ensure cart quantities reflect remaining ticket inventory.
+   *
+   * Items with no stock are removed and quantities are reduced when
+   * fewer tickets remain than requested. Returns true if the cart was
+   * modified in any way.
+   */
+  public function sync_with_inventory() {
+    global $wpdb;
+    $modified = false;
+    foreach ( $this->get_items() as $item ) {
+      $available = (int) $wpdb->get_var(
+        $wpdb->prepare(
+          "SELECT ticketlimit FROM {$wpdb->prefix}tta_tickets WHERE id = %d",
+          intval( $item['ticket_id'] )
+        )
+      );
+      if ( $available <= 0 ) {
+        $this->remove_item( $item['ticket_id'] );
+        $modified = true;
+      } elseif ( $available < intval( $item['quantity'] ) ) {
+        $this->update_quantity( $item['ticket_id'], $available );
+        $modified = true;
+      }
+    }
+    return $modified;
+  }
+
   public function empty_cart() {
     $this->ensure_cart( false );
     $this->wpdb->delete(
@@ -178,15 +206,44 @@ class TTA_Cart {
     $discount_info  = null;
     $total_before   = 0;
 
-    // Decrement availability and locate discount info
-    foreach ( $items as &$item ) {
-      $wpdb->query(
+    // Check availability before attempting updates
+    foreach ( $items as $chk ) {
+      $available = (int) $wpdb->get_var(
         $wpdb->prepare(
-          "UPDATE {$wpdb->prefix}tta_tickets SET ticketlimit = GREATEST(ticketlimit - %d, 0) WHERE id = %d",
-          intval( $item['quantity'] ),
-          intval( $item['ticket_id'] )
+          "SELECT ticketlimit FROM {$wpdb->prefix}tta_tickets WHERE id = %d",
+          intval( $chk['ticket_id'] )
         )
       );
+      if ( $available < intval( $chk['quantity'] ) ) {
+        return new WP_Error( 'tta_sold_out', __( 'One or more tickets are no longer available.', 'tta' ) );
+      }
+    }
+
+    // Decrement availability atomically
+    $updated = [];
+    foreach ( $items as &$item ) {
+      $affected = $wpdb->query(
+        $wpdb->prepare(
+          "UPDATE {$wpdb->prefix}tta_tickets SET ticketlimit = ticketlimit - %d WHERE id = %d AND ticketlimit >= %d",
+          intval( $item['quantity'] ),
+          intval( $item['ticket_id'] ),
+          intval( $item['quantity'] )
+        )
+      );
+      if ( ! $affected ) {
+        // revert any previous adjustments
+        foreach ( $updated as $u ) {
+          $wpdb->query(
+            $wpdb->prepare(
+              "UPDATE {$wpdb->prefix}tta_tickets SET ticketlimit = ticketlimit + %d WHERE id = %d",
+              intval( $u['qty'] ),
+              intval( $u['id'] )
+            )
+          );
+        }
+        return new WP_Error( 'tta_sold_out', __( 'Not enough tickets remain.', 'tta' ) );
+      }
+      $updated[] = [ 'id' => $item['ticket_id'], 'qty' => $item['quantity'] ];
 
       $sub  = $item['quantity'] * $item['price'];
       $total_before += $sub;

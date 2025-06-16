@@ -15,10 +15,14 @@ $cart = new TTA_Cart();
 get_header();
 
 $discount_code = $_SESSION['tta_discount_code'] ?? '';
+$notice        = tta_get_cart_notice();
 
 $items = $cart->get_items();
 ?>
 <div class="wrap tta-cart-page">
+    <?php if ( $notice ) : ?>
+        <p class="tta-cart-notice"><?php echo esc_html( $notice ); ?></p>
+    <?php endif; ?>
     <form id="tta-cart-form">
         <div id="tta-cart-container">
             <?php echo tta_render_cart_contents( $cart, $discount_code ); ?>
