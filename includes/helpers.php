@@ -120,6 +120,36 @@ function tta_build_discount_data( $code, $type = 'percent', $amount = 0 ) {
 }
 
 /**
+ * Store a notice to display on the cart page.
+ *
+ * @param string $message
+ */
+function tta_set_cart_notice( $message ) {
+    if ( ! session_id() ) {
+        session_start();
+    }
+    $_SESSION['tta_cart_notice'] = sanitize_text_field( $message );
+}
+
+/**
+ * Fetch and clear any cart notice stored in the session.
+ *
+ * @return string
+ */
+function tta_get_cart_notice() {
+    if ( ! session_id() ) {
+        session_start();
+    }
+    if ( empty( $_SESSION['tta_cart_notice'] ) ) {
+        return '';
+    }
+
+    $msg = sanitize_text_field( $_SESSION['tta_cart_notice'] );
+    unset( $_SESSION['tta_cart_notice'] );
+    return $msg;
+}
+
+/**
  * Render the cart table HTML for the given cart.
  *
  * @param TTA_Cart $cart
