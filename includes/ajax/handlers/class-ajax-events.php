@@ -73,6 +73,7 @@ class TTA_Ajax_Events {
             'event_ute_id'         => $ute_id,
             'event_name'           => $event_data['name'],
             'ticket_name'          => 'General Admission',
+            'ticketlimit'          => 10000,
             'waitlist_id'          => 0,
             'baseeventcost'        => $event_data['baseeventcost'],
             'discountedmembercost' => $event_data['discountedmembercost'],

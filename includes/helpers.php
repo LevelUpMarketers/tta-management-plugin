@@ -116,3 +116,50 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_code = '' ) {
     }
     return trim( ob_get_clean() );
 }
+
+/**
+ * Render a read-only summary of the cart for the checkout page.
+ *
+ * @param TTA_Cart $cart
+ * @param string   $discount_code
+ * @return string
+ */
+function tta_render_checkout_summary( TTA_Cart $cart, $discount_code = '' ) {
+    ob_start();
+    $items = $cart->get_items();
+    $total = $cart->get_total( $discount_code );
+    if ( $items ) {
+        ?>
+        <table class="tta-checkout-summary">
+            <thead>
+                <tr>
+                    <th><?php esc_html_e( 'Ticket', 'tta' ); ?></th>
+                    <th><?php esc_html_e( 'Qty', 'tta' ); ?></th>
+                    <th><?php esc_html_e( 'Price', 'tta' ); ?></th>
+                    <th><?php esc_html_e( 'Subtotal', 'tta' ); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ( $items as $it ) : ?>
+                    <?php $sub = $it['quantity'] * $it['price']; ?>
+                    <tr>
+                        <td><?php echo esc_html( $it['ticket_name'] ); ?></td>
+                        <td><?php echo intval( $it['quantity'] ); ?></td>
+                        <td><?php echo esc_html( number_format( $it['price'], 2 ) ); ?></td>
+                        <td><?php echo esc_html( number_format( $sub, 2 ) ); ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="3"><?php esc_html_e( 'Total', 'tta' ); ?></th>
+                    <td><?php echo esc_html( number_format( $total, 2 ) ); ?></td>
+                </tr>
+            </tfoot>
+        </table>
+        <?php
+    } else {
+        echo '<p>' . esc_html__( 'Your cart is empty.', 'tta' ) . '</p>';
+    }
+    return trim( ob_get_clean() );
+}

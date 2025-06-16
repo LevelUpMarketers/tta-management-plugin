@@ -102,7 +102,7 @@ class TTA_DB_Setup {
             event_name             VARCHAR(255) NOT NULL,
             ticket_name            VARCHAR(255) NOT NULL,
             waitlist_id            BIGINT UNSIGNED NOT NULL,
-            attendancelimit        INT UNSIGNED NOT NULL,
+            ticketlimit            INT UNSIGNED NOT NULL DEFAULT 10000,
             baseeventcost          DECIMAL(10,2) NOT NULL,
             discountedmembercost   DECIMAL(10,2) NOT NULL,
             premiummembercost      DECIMAL(10,2) DEFAULT 0.00,
