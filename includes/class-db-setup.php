@@ -56,7 +56,9 @@ class TTA_DB_Setup {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY  (id),
-            KEY ute_id (ute_id)
+            KEY ute_id (ute_id),
+            KEY page_id_idx (page_id),
+            KEY date_idx (date)
         ) $charset_collate";
 
         // ─────────────────────────────────────────────────────────────────
@@ -89,6 +91,7 @@ class TTA_DB_Setup {
             opt_in_event_update_sms         TINYINT(1) DEFAULT 0,
             PRIMARY KEY  (id),
             KEY wpuserid_idx (wpuserid),
+            KEY name_idx (last_name, first_name),
             UNIQUE KEY email (email)
         ) $charset_collate";
 
@@ -157,7 +160,8 @@ class TTA_DB_Setup {
             expires_at   DATETIME        NOT NULL,
             locked_until DATETIME        NULL,
             PRIMARY KEY    (id),
-            UNIQUE KEY     session_key_idx (session_key)
+            UNIQUE KEY     session_key_idx (session_key),
+            KEY expires_at_idx (expires_at)
         ) $charset_collate";
 
         // ─────────────────────────────────────────────────────────────────
