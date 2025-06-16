@@ -49,34 +49,33 @@ class TTA_Transaction_Logger {
             [ '%d', '%d', '%s', '%f', '%s', '%f', '%s' ]
         );
 
-        // Record a history row per item for quick lookup by event
-        foreach ( $items as $item ) {
+        // Record a single history row for this transaction
+        $event_id = 0;
+        if ( ! empty( $items[0]['event_ute_id'] ) ) {
             $event_id = $wpdb->get_var(
                 $wpdb->prepare(
-                    "SELECT id FROM {$wpdb->prefix}tta_events WHERE ute_id = %s",
-                    $item['event_ute_id']
+                    "SELECT id FROM {$wpdb->prefix}tta_events WHERE ute_id = %s LIMIT 1",
+                    $items[0]['event_ute_id']
                 )
             );
-
-            $wpdb->insert(
-                $history_table,
-                [
-                    'member_id'   => $member_id ?: 0,
-                    'wpuserid'    => $user_id,
-                    'event_id'    => intval( $event_id ),
-                    'action_type' => 'purchase',
-                    'action_data' => wp_json_encode([
-                        'ticket_id'      => intval( $item['ticket_id'] ),
-                        'ticket_name'    => $item['ticket_name'],
-                        'quantity'       => intval( $item['quantity'] ),
-                        'price'          => floatval( $item['price'] ),
-                        'discount_used'  => ! empty( $item['discount_used'] ) ? 1 : 0,
-                        'discount_saved' => floatval( $item['discount_saved'] ?? 0 ),
-                        'transaction_id' => $transaction_id,
-                    ]),
-                ],
-                [ '%d', '%d', '%d', '%s', '%s' ]
-            );
         }
+
+        $wpdb->insert(
+            $history_table,
+            [
+                'member_id'   => $member_id ?: 0,
+                'wpuserid'    => $user_id,
+                'event_id'    => intval( $event_id ),
+                'action_type' => 'purchase',
+                'action_data' => wp_json_encode([
+                    'items'          => $items,
+                    'transaction_id' => $transaction_id,
+                    'discount_code'  => $discount_code,
+                    'discount_saved' => $discount_saved,
+                    'amount'         => $amount,
+                ]),
+            ],
+            [ '%d', '%d', '%d', '%s', '%s' ]
+        );
     }
 }
