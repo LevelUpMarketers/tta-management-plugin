@@ -150,7 +150,27 @@ class TTA_Cart {
    * This basic implementation simply empties the cart.
    * Hooked listeners can handle ticket delivery or payment processing.
    */
-  public function finalize_purchase() {
+  public function finalize_purchase( $transaction_id = '', $amount = 0 ) {
+    global $wpdb;
+
+    $items = $this->get_items();
+
+    // Decrement ticket availability for each item
+    foreach ( $items as $item ) {
+      $wpdb->query(
+        $wpdb->prepare(
+          "UPDATE {$wpdb->prefix}tta_tickets SET ticketlimit = GREATEST(ticketlimit - %d, 0) WHERE id = %d",
+          intval( $item['quantity'] ),
+          intval( $item['ticket_id'] )
+        )
+      );
+    }
+
+    // Log transaction details
+    if ( $transaction_id ) {
+      TTA_Transaction_Logger::log( $transaction_id, $amount, $items );
+    }
+
     $this->empty_cart();
     if ( isset( $_SESSION['tta_discount_code'] ) ) {
       unset( $_SESSION['tta_discount_code'] );

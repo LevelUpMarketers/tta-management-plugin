@@ -54,7 +54,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
         );
 
         if ( $result['success'] ) {
-            $cart->finalize_purchase();
+            $cart->finalize_purchase( $result['transaction_id'], $amount );
             wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
             exit;
         } else {
