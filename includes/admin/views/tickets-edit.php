@@ -97,7 +97,7 @@ $tickets = $wpdb->get_results(
         </tr>
         <tr>
           <th>
-            <label for="attendancelimit_<?php echo $tid; ?>"><?php esc_html_e( 'Attendance Limit', 'tta' ); ?></label>
+            <label for="ticketlimit_<?php echo $tid; ?>"><?php esc_html_e( 'Ticket Limit', 'tta' ); ?></label>
             <span class="tta-tooltip-icon"
                   data-tooltip="<?php esc_attr_e( 'Maximum number of tickets available.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
@@ -106,9 +106,9 @@ $tickets = $wpdb->get_results(
           </th>
           <td>
             <input type="number"
-                   name="attendancelimit[<?php echo $tid; ?>]"
-                   id="attendancelimit_<?php echo $tid; ?>"
-                   value="<?php echo esc_attr( $t['attendancelimit'] ); ?>">
+                   name="ticketlimit[<?php echo $tid; ?>]"
+                   id="ticketlimit_<?php echo $tid; ?>"
+                   value="<?php echo esc_attr( $t['ticketlimit'] ); ?>">
           </td>
         </tr>
         <tr>
@@ -291,14 +291,14 @@ $tickets = $wpdb->get_results(
         </tr>
         <tr>
           <th>
-            <label><?php esc_html_e( 'Attendance Limit', 'tta' ); ?></label>
+            <label><?php esc_html_e( 'Ticket Limit', 'tta' ); ?></label>
             <span class="tta-tooltip-icon"
                   data-tooltip="<?php esc_attr_e( 'Maximum number of tickets available.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                    alt="Help">
             </span>
           </th>
-          <td><input type="number" name="new_attendancelimit[]" value="0"></td>
+          <td><input type="number" name="new_ticketlimit[]" value="10000"></td>
         </tr>
         <tr>
           <th>
