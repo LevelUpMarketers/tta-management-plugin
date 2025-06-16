@@ -45,7 +45,7 @@ if ( ! $event ) {
 $tickets_table = $wpdb->prefix . 'tta_tickets';
 $tickets       = $wpdb->get_results(
     $wpdb->prepare(
-        "SELECT id, ticket_name, attendancelimit, baseeventcost, discountedmembercost, premiummembercost
+        "SELECT id, ticket_name, ticketlimit, baseeventcost, discountedmembercost, premiummembercost
          FROM {$tickets_table}
          WHERE event_ute_id = %s
          ORDER BY id ASC",
@@ -362,12 +362,12 @@ if ( $ticket_count > 1 ) {
         <h2><?php esc_html_e( 'Get Your Tickets Now', 'tta' ); ?></h2>
 
         <?php if ( $tickets ) : ?>
-          <?php foreach ( $tickets as $ticket ) : 
-            $limit      = intval( $ticket['attendancelimit'] );
+          <?php foreach ( $tickets as $ticket ) :
+            $limit      = intval( $ticket['ticketlimit'] );
             $available  = $limit > 0 ? $limit : 0;
             $avail_text = $available > 0
                 ? sprintf( esc_html__( 'Only %d Left!', 'tta' ), $available )
-                : esc_html__( '', 'tta' );
+                : esc_html__( 'Sold Out', 'tta' );
             $avail_text = '<span class="tta-fomo-remaining-styling">' . $avail_text . '</span>';
 
             // membership‐tier pricing for this row
@@ -417,7 +417,7 @@ if ( $ticket_count > 1 ) {
             type="button"
             id="tta-get-tickets"
             class="tta-button tta-button-primary"
-            <?php disabled( empty( $tickets ) || intval( $tickets[0]['attendancelimit'] ) < 1 ); ?>
+            <?php disabled( empty( $tickets ) || intval( $tickets[0]['ticketlimit'] ) < 1 ); ?>
           >
             <?php esc_html_e( 'Get Tickets', 'tta' ); ?>
           </button>

@@ -20,6 +20,34 @@ define( 'TTA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TTA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'TTA_PLUGIN_VERSION', '0.2.0' );
 
+// Attempt to load Authorize.Net credentials from environment variables
+if ( getenv( 'TTA_AUTHNET_LOGIN_ID' ) && ! defined( 'TTA_AUTHNET_LOGIN_ID' ) ) {
+    define( 'TTA_AUTHNET_LOGIN_ID', getenv( 'TTA_AUTHNET_LOGIN_ID' ) );
+}
+if ( getenv( 'TTA_AUTHNET_TRANSACTION_KEY' ) && ! defined( 'TTA_AUTHNET_TRANSACTION_KEY' ) ) {
+    define( 'TTA_AUTHNET_TRANSACTION_KEY', getenv( 'TTA_AUTHNET_TRANSACTION_KEY' ) );
+}
+if ( ! defined( 'TTA_AUTHNET_SANDBOX' ) ) {
+    $sandbox = getenv( 'TTA_AUTHNET_SANDBOX' );
+    define( 'TTA_AUTHNET_SANDBOX', $sandbox ? ( 'true' === strtolower( $sandbox ) ) : true );
+}
+
+// Warn administrators if Authorize.Net credentials are missing
+if ( is_admin() ) {
+    add_action( 'admin_notices', function () {
+        if ( current_user_can( 'manage_options' ) && ( ! defined( 'TTA_AUTHNET_LOGIN_ID' ) || ! defined( 'TTA_AUTHNET_TRANSACTION_KEY' ) ) ) {
+            echo '<div class="notice notice-error"><p>' .
+                esc_html__( 'Authorize.Net credentials are not configured. Define TTA_AUTHNET_LOGIN_ID and TTA_AUTHNET_TRANSACTION_KEY in wp-config.php or your server environment.', 'tta' ) .
+                '</p></div>';
+        }
+    } );
+}
+
+// Load Composer autoloader if present
+if ( file_exists( TTA_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
+    require_once TTA_PLUGIN_DIR . 'vendor/autoload.php';
+}
+
 // Autoload TTA_ classes
 spl_autoload_register( function ( $class ) {
     if ( 0 !== strpos( $class, 'TTA_' ) ) {
@@ -41,6 +69,7 @@ require_once TTA_PLUGIN_DIR . 'includes/helpers.php';
 require_once TTA_PLUGIN_DIR . 'includes/class-db-setup.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-event-page-manager.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-cart-page-manager.php';
+require_once TTA_PLUGIN_DIR . 'includes/frontend/class-checkout-page-manager.php';
 require_once TTA_PLUGIN_DIR . 'includes/api/class-authorizenet-api.php';
 require_once TTA_PLUGIN_DIR . 'includes/email/class-email-handler.php';
 require_once TTA_PLUGIN_DIR . 'includes/sms/class-sms-handler.php';

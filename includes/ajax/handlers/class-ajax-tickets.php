@@ -71,7 +71,7 @@ class TTA_Ajax_Tickets {
 
         // 3) Grab submitted arrays for existing tickets
         $names               = $_POST['event_name']           ?? [];
-        $limits              = $_POST['attendancelimit']      ?? [];
+        $limits              = $_POST['ticketlimit']          ?? [];
         $base_costs          = $_POST['baseeventcost']        ?? [];
         $member_costs        = $_POST['discountedmembercost'] ?? [];
         $premium_costs       = $_POST['premiummembercost']    ?? [];
@@ -87,7 +87,7 @@ class TTA_Ajax_Tickets {
                 $tickets_table,
                 [
                     'ticket_name'          => $ticket_name,
-                    'attendancelimit'      => intval( $limits[ $tid ] ?? 0 ),
+                    'ticketlimit'          => intval( $limits[ $tid ] ?? 0 ),
                     'baseeventcost'        => floatval( $base_costs[ $tid ] ?? 0 ),
                     'discountedmembercost' => floatval( $member_costs[ $tid ] ?? 0 ),
                     'premiummembercost'    => floatval( $premium_costs[ $tid ] ?? 0 ),
@@ -159,7 +159,7 @@ class TTA_Ajax_Tickets {
         // 6) Insert any new tickets (and waitlists if enabled)
         if ( ! empty( $_POST['new_event_name'] ) ) {
             $new_names   = $_POST['new_event_name']            ?? [];
-            $new_limits  = $_POST['new_attendancelimit']       ?? [];
+            $new_limits  = $_POST['new_ticketlimit']          ?? [];
             $new_base    = $_POST['new_baseeventcost']         ?? [];
             $new_member  = $_POST['new_discountedmembercost']  ?? [];
             $new_prem    = $_POST['new_premiummembercost']     ?? [];
@@ -177,7 +177,7 @@ class TTA_Ajax_Tickets {
                         'event_ute_id'          => $ute,
                         'event_name'            => $event_name,
                         'ticket_name'           => $ticket_name,
-                        'attendancelimit'       => intval( $new_limits[ $i ]    ?? 0 ),
+                        'ticketlimit'           => intval( $new_limits[ $i ]    ?? 10000 ),
                         'baseeventcost'         => floatval( $new_base[ $i ]     ?? 0 ),
                         'discountedmembercost'  => floatval( $new_member[ $i ]   ?? 0 ),
                         'premiummembercost'     => floatval( $new_prem[ $i ]     ?? 0 ),
