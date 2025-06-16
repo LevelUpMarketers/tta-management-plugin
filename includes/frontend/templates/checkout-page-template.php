@@ -20,7 +20,9 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
     $cart_changed  = $cart->sync_with_inventory();
     $amount        = $cart->get_total( $discount_code );
     if ( $cart_changed ) {
-        $checkout_error = __( 'Some items became unavailable. Your cart was updated; please review and try again.', 'tta' );
+        tta_set_cart_notice( __( 'Some items became unavailable. Your cart was updated; please review and try again.', 'tta' ) );
+        wp_safe_redirect( home_url( '/cart' ) );
+        exit;
     }
 
     $exp_input  = sanitize_text_field( $_POST['card_exp'] );
