@@ -10,11 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Initialize cart early for sessions
-$cart = new TTA_Cart();
-
-get_header();
-
+$cart          = new TTA_Cart();
 $checkout_error = '';
+
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] ) ) {
     check_admin_referer( 'tta_checkout_action', 'tta_checkout_nonce' );
 
@@ -58,6 +56,8 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
         }
     }
 }
+
+get_header();
 
 $discount_code = $_SESSION['tta_discount_code'] ?? '';
 $items         = $cart->get_items();
