@@ -21,10 +21,13 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
     $discount_code = $_SESSION['tta_discount_code'] ?? '';
     $amount = $cart->get_total( $discount_code );
 
-    $exp_parts = explode( '/', sanitize_text_field( $_POST['card_exp'] ) );
+    $exp_input = sanitize_text_field( $_POST['card_exp'] );
     $exp_date  = '';
-    if ( count( $exp_parts ) === 2 ) {
-        $exp_date = '20' . str_pad( $exp_parts[1], 2, '0', STR_PAD_LEFT ) . '-' . str_pad( $exp_parts[0], 2, '0', STR_PAD_LEFT );
+    if ( preg_match( '/^(0[1-9]|1[0-2])\/\d{2}$/', $exp_input ) ) {
+        $exp_parts = explode( '/', $exp_input );
+        $exp_date  = '20' . $exp_parts[1] . '-' . $exp_parts[0];
+    } else {
+        $checkout_error = __( 'Invalid expiration date format.', 'tta' );
     }
 
     $billing = [
@@ -36,21 +39,23 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
         'zip'        => sanitize_text_field( $_POST['billing_zip'] ),
     ];
 
-    $api    = new TTA_AuthorizeNet_API();
-    $result = $api->charge(
-        $amount,
-        preg_replace( '/\D/', '', $_POST['card_number'] ),
-        $exp_date,
-        sanitize_text_field( $_POST['card_cvc'] ),
-        $billing
-    );
+    if ( empty( $checkout_error ) ) {
+        $api    = new TTA_AuthorizeNet_API();
+        $result = $api->charge(
+            $amount,
+            preg_replace( '/\D/', '', $_POST['card_number'] ),
+            $exp_date,
+            sanitize_text_field( $_POST['card_cvc'] ),
+            $billing
+        );
 
-    if ( $result['success'] ) {
-        $cart->finalize_purchase();
-        wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
-        exit;
-    } else {
-        $checkout_error = $result['error'];
+        if ( $result['success'] ) {
+            $cart->finalize_purchase();
+            wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
+            exit;
+        } else {
+            $checkout_error = $result['error'];
+        }
     }
 }
 
@@ -131,7 +136,7 @@ $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
             <p>
                 <label>
                     <?php esc_html_e( 'Expiration', 'tta' ); ?><br />
-                    <input type="text" name="card_exp" placeholder="MM/YY" required />
+                    <input type="text" id="tta-card-exp" name="card_exp" placeholder="MM/YY" required />
                 </label>
             </p>
             <p>
