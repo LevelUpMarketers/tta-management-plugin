@@ -63,6 +63,63 @@ function tta_get_us_states() {
 }
 
 /**
+ * Decode a discount string stored in the events table.
+ *
+ * @param string $raw
+ * @return array{code:string,type:string,amount:float}
+ */
+function tta_parse_discount_data( $raw ) {
+    $default = [ 'code' => '', 'type' => 'percent', 'amount' => 0 ];
+    if ( ! $raw ) {
+        return $default;
+    }
+
+    $data = json_decode( $raw, true );
+    if ( is_array( $data ) && isset( $data['code'] ) ) {
+        $code   = sanitize_text_field( $data['code'] );
+        $type   = in_array( $data['type'], [ 'flat', 'percent' ], true ) ? $data['type'] : 'percent';
+        $amount = floatval( $data['amount'] ?? 0 );
+        return [
+            'code'   => $code,
+            'type'   => $type,
+            'amount' => $amount,
+        ];
+    }
+
+    // Legacy plain code string defaults to 10% discount
+    return [
+        'code'   => sanitize_text_field( $raw ),
+        'type'   => 'percent',
+        'amount' => 10,
+    ];
+}
+
+/**
+ * Encode discount data for storage.
+ *
+ * @param string $code
+ * @param string $type
+ * @param float  $amount
+ * @return string
+ */
+function tta_build_discount_data( $code, $type = 'percent', $amount = 0 ) {
+    $code   = sanitize_text_field( $code );
+    if ( '' === $code ) {
+        return '';
+    }
+    $type   = in_array( $type, [ 'flat', 'percent' ], true ) ? $type : 'percent';
+    $amount = floatval( $amount );
+
+    $data = [
+        'code'   => $code,
+        'type'   => $type,
+        'amount' => $amount,
+    ];
+
+    return wp_json_encode( $data );
+}
+
+/**
  * Render the cart table HTML for the given cart.
  *
  * @param TTA_Cart $cart

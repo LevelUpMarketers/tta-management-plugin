@@ -128,8 +128,13 @@ class TTA_Cart {
     $total = 0;
     foreach ( $this->get_items() as $it ) {
       $sub = $it['quantity'] * $it['price'];
-      if ( $discount_code && strtolower( $discount_code ) === strtolower( $it['discountcode'] ) ) {
-        $sub *= 0.9; // 10% discount
+      $info = tta_parse_discount_data( $it['discountcode'] );
+      if ( $discount_code && $info['code'] && strtolower( $discount_code ) === strtolower( $info['code'] ) ) {
+        if ( 'flat' === $info['type'] ) {
+          $sub = max( 0, $sub - $info['amount'] );
+        } else {
+          $sub *= max( 0, 1 - ( $info['amount'] / 100 ) );
+        }
       }
       $total += $sub;
     }

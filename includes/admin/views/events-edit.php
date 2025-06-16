@@ -21,6 +21,10 @@ if ( isset( $_GET['event_id'] ) ) {
     );
     if ( $event ) {
         $editing = true;
+        $disc               = tta_parse_discount_data( $event['discountcode'] );
+        $event['discountcode']   = $disc['code'];
+        $event['discount_type']  = $disc['type'];
+        $event['discount_amount'] = $disc['amount'];
     }
 }
 ?>
@@ -425,6 +429,22 @@ if ( isset( $_GET['event_id'] ) ) {
                 <td>
                     <input type="text" name="discountcode" id="discountcode" class="regular-text"
                            value="<?php echo esc_attr( $event['discountcode'] ?? '' ); ?>">
+                </td>
+            </tr>
+            <tr>
+                <th><label for="discount_type">Discount Type</label></th>
+                <td>
+                    <select name="discount_type" id="discount_type">
+                        <option value="flat" <?php selected( $event['discount_type'] ?? 'percent', 'flat' ); ?>>Flat $ Amount Off</option>
+                        <option value="percent" <?php selected( $event['discount_type'] ?? 'percent', 'percent' ); ?>>Percentage Off</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="discount_amount">Discount Amount</label></th>
+                <td>
+                    <input type="number" name="discount_amount" id="discount_amount" step="0.01" min="0"
+                           value="<?php echo esc_attr( $event['discount_amount'] ?? 0 ); ?>">
                 </td>
             </tr>
 
