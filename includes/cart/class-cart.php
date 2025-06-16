@@ -151,10 +151,72 @@ class TTA_Cart {
    * Hooked listeners can handle ticket delivery or payment processing.
    */
   public function finalize_purchase() {
-    $this->empty_cart();
-    if ( isset( $_SESSION['tta_discount_code'] ) ) {
-      unset( $_SESSION['tta_discount_code'] );
+    // Begin a DB transaction so stock updates and history logs are atomic
+    $this->wpdb->query( 'START TRANSACTION' );
+
+    $tickets_table  = $this->wpdb->prefix . 'tta_tickets';
+    $history_table  = $this->wpdb->prefix . 'tta_memberhistory';
+    $members_table  = $this->wpdb->prefix . 'tta_members';
+    $events_table   = $this->wpdb->prefix . 'tta_events';
+
+    $wp_user   = get_current_user_id();
+    $member_id = (int) $this->wpdb->get_var(
+      $this->wpdb->prepare(
+        "SELECT id FROM {$members_table} WHERE wpuserid = %d",
+        $wp_user
+      )
+    );
+
+    foreach ( $this->get_items() as $item ) {
+      $qty = intval( $item['quantity'] );
+
+      // reduce available ticket stock
+      $this->wpdb->query(
+        $this->wpdb->prepare(
+          "UPDATE {$tickets_table} SET ticketlimit = GREATEST(ticketlimit - %d, 0) WHERE id = %d",
+          $qty,
+          intval( $item['ticket_id'] )
+        )
+      );
+
+      // fetch numeric event id for logging
+      $event_id = (int) $this->wpdb->get_var(
+        $this->wpdb->prepare(
+          "SELECT id FROM {$events_table} WHERE ute_id = %s",
+          $item['event_ute_id']
+        )
+      );
+
+      // record purchase in member history
+      $this->wpdb->insert(
+        $history_table,
+        [
+          'member_id'   => $member_id,
+          'wpuserid'    => $wp_user,
+          'event_id'    => $event_id,
+          'action_type' => 'purchase',
+          'action_data' => maybe_serialize( [
+            'ticket_id' => intval( $item['ticket_id'] ),
+            'qty'       => $qty,
+          ] ),
+        ],
+        [ '%d', '%d', '%d', '%s', '%s' ]
+      );
     }
-    do_action( 'tta_checkout_complete', $this->cart_id );
+
+    if ( empty( $this->wpdb->last_error ) ) {
+      // Commit the transaction if no DB errors occurred
+      $this->wpdb->query( 'COMMIT' );
+
+      // Clear the cart only after successful commit
+      $this->empty_cart();
+      if ( isset( $_SESSION['tta_discount_code'] ) ) {
+        unset( $_SESSION['tta_discount_code'] );
+      }
+      do_action( 'tta_checkout_complete', $this->cart_id );
+    } else {
+      // Revert all operations on error
+      $this->wpdb->query( 'ROLLBACK' );
+    }
   }
 }
