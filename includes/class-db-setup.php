@@ -193,6 +193,8 @@ class TTA_DB_Setup {
             member_id       BIGINT UNSIGNED NULL,
             transaction_id  VARCHAR(50)     NOT NULL,
             amount          DECIMAL(10,2)  NOT NULL,
+            discount_code   VARCHAR(255)   DEFAULT '',
+            discount_saved  DECIMAL(10,2)  DEFAULT 0.00,
             details         TEXT           NULL,
             created_at      DATETIME       DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY     (id),

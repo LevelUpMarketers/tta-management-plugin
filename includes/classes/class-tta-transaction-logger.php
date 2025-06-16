@@ -15,9 +15,11 @@ class TTA_Transaction_Logger {
      * @param string $transaction_id Authorize.Net transaction ID
      * @param float  $amount         Total charged amount
      * @param array  $items          Cart items from TTA_Cart::get_items()
+     * @param string $discount_code  Discount code used at checkout
+     * @param float  $discount_saved Total savings from discounts
      * @param int    $user_id        Optional WordPress user ID
      */
-    public static function log( $transaction_id, $amount, array $items, $user_id = 0 ) {
+    public static function log( $transaction_id, $amount, array $items, $discount_code = '', $discount_saved = 0, $user_id = 0 ) {
         global $wpdb;
 
         $user_id = $user_id ?: get_current_user_id();
@@ -40,9 +42,11 @@ class TTA_Transaction_Logger {
                 'member_id'      => $member_id,
                 'transaction_id' => $transaction_id,
                 'amount'         => $amount,
+                'discount_code'  => $discount_code,
+                'discount_saved' => $discount_saved,
                 'details'        => wp_json_encode( $items ),
             ],
-            [ '%d', '%d', '%s', '%f', '%s' ]
+            [ '%d', '%d', '%s', '%f', '%s', '%f', '%s' ]
         );
 
         // Record a history row per item for quick lookup by event
@@ -66,6 +70,8 @@ class TTA_Transaction_Logger {
                         'ticket_name'    => $item['ticket_name'],
                         'quantity'       => intval( $item['quantity'] ),
                         'price'          => floatval( $item['price'] ),
+                        'discount_used'  => ! empty( $item['discount_used'] ) ? 1 : 0,
+                        'discount_saved' => floatval( $item['discount_saved'] ?? 0 ),
                         'transaction_id' => $transaction_id,
                     ]),
                 ],

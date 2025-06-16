@@ -158,10 +158,12 @@ class TTA_Cart {
   public function finalize_purchase( $transaction_id = '', $amount = 0 ) {
     global $wpdb;
 
-    $items = $this->get_items();
+    $discount_code = $_SESSION['tta_discount_code'] ?? '';
+    $items         = $this->get_items();
+    $discount_total = 0;
 
-    // Decrement ticket availability for each item
-    foreach ( $items as $item ) {
+    // Decrement ticket availability and flag used discounts per item
+    foreach ( $items as &$item ) {
       $wpdb->query(
         $wpdb->prepare(
           "UPDATE {$wpdb->prefix}tta_tickets SET ticketlimit = GREATEST(ticketlimit - %d, 0) WHERE id = %d",
@@ -169,17 +171,35 @@ class TTA_Cart {
           intval( $item['ticket_id'] )
         )
       );
+
+      $sub  = $item['quantity'] * $item['price'];
+      $info = tta_parse_discount_data( $item['discountcode'] );
+      $saved = 0;
+      if ( $discount_code && $info['code'] && strtolower( $discount_code ) === strtolower( $info['code'] ) ) {
+        if ( 'flat' === $info['type'] ) {
+          $saved = min( $sub, $info['amount'] );
+        } else {
+          $saved = $sub * ( $info['amount'] / 100 );
+        }
+      }
+
+      $item['discount_used']   = $saved > 0 ? 1 : 0;
+      $item['discount_saved']  = round( $saved, 2 );
+      $discount_total         += $saved;
     }
+    unset( $item );
 
     // Log transaction details
     if ( $transaction_id ) {
-      TTA_Transaction_Logger::log( $transaction_id, $amount, $items );
+      TTA_Transaction_Logger::log( $transaction_id, $amount, $items, $discount_code, $discount_total );
     }
 
     $this->empty_cart();
-    if ( isset( $_SESSION['tta_discount_code'] ) ) {
-      unset( $_SESSION['tta_discount_code'] );
-    }
+    $wpdb->delete( $this->carts_table, [ 'id' => $this->cart_id ], [ '%d' ] );
+
+    unset( $_SESSION['tta_cart_session'] );
+    unset( $_SESSION['tta_discount_code'] );
+
     do_action( 'tta_checkout_complete', $this->cart_id );
   }
 }
