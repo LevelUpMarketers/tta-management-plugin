@@ -12,6 +12,8 @@ This document summarizes the current logic around the cart and checkout process 
 
 2. **Viewing the Cart**
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
+   - Each cart row now shows the linked event name above the ticket type along with a live five minute countdown.
+   - Countdown timers remove items immediately when they expire.
    - Quantities and discount codes are updated via the `tta_update_cart` AJAX endpoint. This calls `TTA_Cart::update_quantity()` and stores a discount code in the session.
 
 3. **Checkout**
@@ -26,6 +28,7 @@ This document summarizes the current logic around the cart and checkout process 
 ## Branching Logic Highlights
 
 - Pricing logic branches on membership level when adding items to the cart.
+- Each member may purchase a maximum of two tickets per event. Quantities in the cart plus past purchases are checked during the `tta_add_to_cart` AJAX request.
 - Checkout can branch if inventory changes mid-process, redirecting back to the cart with a notice.
 - Payment failure stops checkout and displays the returned error.
 - Successful completion empties the cart and fires hooks for additional actions (e.g., ticket emails).

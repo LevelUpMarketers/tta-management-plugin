@@ -39,13 +39,19 @@ class TTA_Ajax_Cart {
 
         $cart = new TTA_Cart();
 
+        $existing = [];
+        foreach ( $cart->get_items() as $row ) {
+            $e = $row['event_ute_id'];
+            $existing[ $e ] = ( $existing[ $e ] ?? 0 ) + intval( $row['quantity'] );
+        }
+
         foreach ( $items as $it ) {
             $ticket_id = intval( $it['ticket_id'] );
             $qty       = intval( $it['quantity'] );
 
             $ticket = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT baseeventcost, discountedmembercost, premiummembercost
+                    "SELECT event_ute_id, baseeventcost, discountedmembercost, premiummembercost
                      FROM {$wpdb->prefix}tta_tickets
                      WHERE id = %d",
                     $ticket_id
@@ -54,6 +60,13 @@ class TTA_Ajax_Cart {
             );
             if ( ! $ticket ) {
                 continue;
+            }
+
+            $event_ute = $ticket['event_ute_id'];
+            $purchased = is_user_logged_in() ? tta_get_purchased_ticket_count( get_current_user_id(), $event_ute ) : 0;
+            $allowed   = max( 0, 2 - $purchased - ( $existing[ $event_ute ] ?? 0 ) );
+            if ( $qty > $allowed ) {
+                $qty = $allowed;
             }
 
             if ( 'basic' === $membership_level ) {
@@ -68,6 +81,7 @@ class TTA_Ajax_Cart {
                 $cart->remove_item( $ticket_id );
             } else {
                 $cart->add_item( $ticket_id, $qty, $price );
+                $existing[ $event_ute ] = ( $existing[ $event_ute ] ?? 0 ) + $qty;
             }
         }
 

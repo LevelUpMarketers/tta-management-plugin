@@ -174,6 +174,8 @@ class TTA_DB_Setup {
             ticket_id  BIGINT UNSIGNED NOT NULL,
             quantity   INT UNSIGNED     NOT NULL,
             price      DECIMAL(10,2)    NOT NULL,
+            added_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            expires_at DATETIME        NOT NULL,
             PRIMARY KEY   (id),
             KEY cart_idx   (cart_id),
             KEY ticket_idx (ticket_id),

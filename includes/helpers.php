@@ -150,6 +150,34 @@ function tta_get_cart_notice() {
 }
 
 /**
+ * Get count of tickets a user has already purchased for an event.
+ *
+ * @param int    $user_id
+ * @param string $event_ute_id
+ * @return int
+ */
+function tta_get_purchased_ticket_count( $user_id, $event_ute_id ) {
+    global $wpdb;
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT action_data FROM {$wpdb->prefix}tta_memberhistory WHERE wpuserid = %d AND action_type = 'purchase'",
+            $user_id
+        ),
+        ARRAY_A
+    );
+    $total = 0;
+    foreach ( $rows as $row ) {
+        $data = json_decode( $row['action_data'], true );
+        foreach ( (array) ( $data['items'] ?? [] ) as $it ) {
+            if ( ( $it['event_ute_id'] ?? '' ) === $event_ute_id ) {
+                $total += intval( $it['quantity'] );
+            }
+        }
+    }
+    return $total;
+}
+
+/**
  * Render the cart table HTML for the given cart.
  *
  * @param TTA_Cart $cart
@@ -174,8 +202,15 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_code = '' ) {
             <tbody>
                 <?php foreach ( $items as $it ) : ?>
                     <?php $sub = $it['quantity'] * $it['price']; ?>
-                    <tr>
-                        <td><?php echo esc_html( $it['ticket_name'] ); ?></td>
+                    <?php $remain = max( 0, strtotime( $it['expires_at'] ) - time() ); ?>
+                    <tr data-expire="<?php echo esc_attr( $remain ); ?>">
+                        <td>
+                            <a href="<?php echo esc_url( get_permalink( $it['page_id'] ) ); ?>">
+                                <?php echo esc_html( $it['event_name'] ); ?>
+                            </a><br>
+                            <?php echo esc_html( $it['ticket_name'] ); ?>
+                            <span class="tta-countdown"></span>
+                        </td>
                         <td>
                             <input type="number" name="cart_qty[<?php echo esc_attr( $it['ticket_id'] ); ?>]" value="<?php echo esc_attr( $it['quantity'] ); ?>" min="0" class="tta-cart-qty">
                         </td>

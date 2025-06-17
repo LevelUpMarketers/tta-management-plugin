@@ -78,6 +78,7 @@ class TTA_Cart {
         ['%d','%f'],['%d','%d']
       );
     } else {
+      $expire = date( 'Y-m-d H:i:s', time() + 300 );
       $this->wpdb->insert(
         $this->items_table,
         [
@@ -85,8 +86,9 @@ class TTA_Cart {
           'ticket_id' => $ticket_id,
           'quantity'  => $qty,
           'price'     => $price,
+          'expires_at' => $expire,
         ],
-        ['%d','%d','%d','%f']
+        ['%d','%d','%d','%f','%s']
       );
     }
   }
@@ -114,11 +116,27 @@ class TTA_Cart {
     );
   }
 
+  protected function expire_items() {
+    $this->ensure_cart( false );
+    $expired = $this->wpdb->get_results(
+      $this->wpdb->prepare(
+        "SELECT ticket_id FROM {$this->items_table} WHERE cart_id = %d AND expires_at <= %s",
+        $this->cart_id,
+        current_time('mysql')
+      ),
+      ARRAY_A
+    );
+    foreach ( $expired as $row ) {
+      $this->remove_item( intval( $row['ticket_id'] ) );
+    }
+  }
+
   public function get_items() {
     $this->ensure_cart( false );
+    $this->expire_items();
     return $this->wpdb->get_results(
       $this->wpdb->prepare(
-          "SELECT ci.*, t.ticket_name, t.event_ute_id, e.discountcode
+          "SELECT ci.*, t.ticket_name, t.event_ute_id, e.discountcode, e.name AS event_name, e.page_id
          FROM {$this->items_table} ci
          JOIN {$this->wpdb->prefix}tta_tickets t ON ci.ticket_id = t.id
          LEFT JOIN {$this->wpdb->prefix}tta_events e ON t.event_ute_id = e.ute_id

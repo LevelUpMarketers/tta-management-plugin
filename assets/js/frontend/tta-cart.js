@@ -71,4 +71,26 @@ jQuery(function($){
     $('input[name="cart_qty['+id+']"]').val(0);
     sendCartUpdate();
   });
+
+  function startTimers(){
+    $('.tta-cart-table tbody tr').each(function(){
+      var $row = $(this);
+      var remain = parseInt($row.data('expire'),10) || 0;
+      var $cd = $row.find('.tta-countdown');
+      if(!remain || !$cd.length) return;
+      var intv = setInterval(function(){
+        remain--;
+        if(remain <= 0){
+          clearInterval(intv);
+          $row.find('.tta-remove-item').click();
+          return;
+        }
+        var m = Math.floor(remain/60);
+        var s = remain % 60;
+        $cd.text(m+':' + (s<10?'0':'')+s);
+      },1000);
+    });
+  }
+
+  startTimers();
 });
