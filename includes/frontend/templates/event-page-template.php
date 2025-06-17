@@ -7,6 +7,7 @@
 
 // Initialize cart early so sessions start before output
 $cart = new TTA_Cart();
+$cart_items = $cart->get_items();
 
 // ───────────────
 // 1) Load custom header (without the page-header block)
@@ -61,7 +62,7 @@ $ticket_count = count( $tickets );
 
 // Build a map of quantities for this event from the cart
 $cart_quantities = [];
-foreach ( $cart->get_items() as $it ) {
+foreach ( $cart_items as $it ) {
     if ( isset( $it['event_ute_id'] ) && $it['event_ute_id'] === $event['ute_id'] ) {
         $cart_quantities[ intval( $it['ticket_id'] ) ] = intval( $it['quantity'] );
     }

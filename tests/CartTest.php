@@ -60,7 +60,7 @@ class CartTest extends TestCase {
         function get_permalink($id){return 'post/'.$id;}
         $html = tta_render_cart_contents($cart,'');
         $this->assertStringContainsString('post/55',$html);
-        $this->assertStringContainsString('data-expire', $html);
+        $this->assertStringContainsString('data-expire-at', $html);
     }
 
     public function test_item_cleanup_queries(){

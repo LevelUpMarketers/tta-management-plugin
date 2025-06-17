@@ -202,8 +202,8 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_code = '' ) {
             <tbody>
                 <?php foreach ( $items as $it ) : ?>
                     <?php $sub = $it['quantity'] * $it['price']; ?>
-                    <?php $remain = max( 0, strtotime( $it['expires_at'] ) - time() ); ?>
-                    <tr data-expire="<?php echo esc_attr( $remain ); ?>">
+                    <?php $expire_at = strtotime( $it['expires_at'] ); ?>
+                    <tr data-expire-at="<?php echo esc_attr( $expire_at ); ?>">
                         <td>
                             <a href="<?php echo esc_url( get_permalink( $it['page_id'] ) ); ?>">
                                 <?php echo esc_html( $it['event_name'] ); ?>

@@ -7,6 +7,7 @@ This document summarizes the current logic around the cart and checkout process 
 1. **Adding Tickets**
    - Visitors interact with the **Event Page** template. When the page loads a `TTA_Cart` instance is created so session data exists early.
    - Ticket details are fetched from the database. Prices vary depending on membership level (`free`, `basic`, or `premium`).
+   - Expired cart items are cleared before ticket data loads so availability displays correctly.
    - Quantity selectors on the event page prevent selecting more than two tickets in total. A notice appears when the limit would be exceeded. Sold out ticket rows have their quantity controls disabled and the **Get Tickets** button is disabled if no tickets remain.
    - When a user adds tickets, the browser issues an AJAX request to `tta_add_to_cart`. The handler calculates the price, reserves inventory, and calls `TTA_Cart::add_item()`.
    - Cart data is stored in the `tta_carts` and `tta_cart_items` tables keyed by a session ID. Ticket availability is decreased immediately on add and the related event cache is cleared.
@@ -15,7 +16,8 @@ This document summarizes the current logic around the cart and checkout process 
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
    - Each cart row now shows the linked event name above the ticket type along with a live five minute countdown.
    - Countdown timers remove items immediately when they expire.
-    - Timers restart after any AJAX update so they remain visible.
+    - Timers calculate remaining time from the expiration timestamp so they stay accurate when the tab is hidden.
+    - Timers restart after any AJAX update or when the page regains focus.
    - Quantities and discount codes are updated via the `tta_update_cart` AJAX endpoint. This calls `TTA_Cart::update_quantity()` and stores a discount code in the session.
 
 3. **Checkout**

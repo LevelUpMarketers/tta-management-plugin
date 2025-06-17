@@ -83,11 +83,11 @@ jQuery(function($){
     clearTimers();
     $('.tta-cart-table tbody tr').each(function(){
       var $row = $(this);
-      var remain = parseInt($row.data('expire'),10) || 0;
+      var expireAt = parseInt($row.data('expire-at'),10) * 1000;
       var $cd = $row.find('.tta-countdown');
-      if(!remain || !$cd.length) return;
-      var intv = setInterval(function(){
-        remain--;
+      if(!expireAt || !$cd.length) return;
+      function update(){
+        var remain = Math.floor((expireAt - Date.now())/1000);
         if(remain <= 0){
           clearInterval(intv);
           $row.find('.tta-remove-item').click();
@@ -96,10 +96,17 @@ jQuery(function($){
         var m = Math.floor(remain/60);
         var s = remain % 60;
         $cd.text(m+':' + (s<10?'0':'')+s);
-      },1000);
+      }
+      update();
+      var intv = setInterval(update,1000);
       countdownTimers.push(intv);
     });
   }
 
   startTimers();
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden){
+      startTimers();
+    }
+  });
 });
