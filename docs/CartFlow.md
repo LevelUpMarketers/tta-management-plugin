@@ -7,8 +7,8 @@ This document summarizes the current logic around the cart and checkout process 
 1. **Adding Tickets**
    - Visitors interact with the **Event Page** template. When the page loads a `TTA_Cart` instance is created so session data exists early.
    - Ticket details are fetched from the database. Prices vary depending on membership level (`free`, `basic`, or `premium`).
-   - When a user adds tickets, the browser issues an AJAX request to `tta_add_to_cart`. The handler calculates the appropriate price and calls `TTA_Cart::add_item()`.
-   - Cart data is stored in the `tta_carts` and `tta_cart_items` tables keyed by a session ID.
+   - When a user adds tickets, the browser issues an AJAX request to `tta_add_to_cart`. The handler calculates the price, reserves inventory, and calls `TTA_Cart::add_item()`.
+   - Cart data is stored in the `tta_carts` and `tta_cart_items` tables keyed by a session ID. Ticket availability is decreased immediately on add.
 
 2. **Viewing the Cart**
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
@@ -20,11 +20,12 @@ This document summarizes the current logic around the cart and checkout process 
    - The **Checkout Page** template performs checkout when the form is submitted (`tta_do_checkout`).
    - `TTA_Cart::sync_with_inventory()` ensures requested quantities are still available. If inventory changed, a notice is stored and the user is redirected back to the cart.
    - A total is calculated with any discount code applied. Payment details are sent to `TTA_AuthorizeNet_API::charge()`.
-   - On success, `TTA_Cart::finalize_purchase()` reduces ticket inventory atomically, logs the transaction, clears the cart tables, and triggers the `tta_checkout_complete` action. On failure, an error message is shown.
+   - On success, `TTA_Cart::finalize_purchase()` logs the transaction, clears the cart tables, and triggers the `tta_checkout_complete` action. Inventory has already been reserved when items were added.
 
 4. **Cleanup**
    - `TTA_Cart_Cleanup` schedules an hourly task and also runs on checkout completion to remove expired cart rows.
    - A second cron task runs every ten minutes to purge expired cart items and free their ticket inventory.
+   - Expired items are deleted from carts automatically and their reserved stock is released back to the ticket pool.
 
 ## Branching Logic Highlights
 
