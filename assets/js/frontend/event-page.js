@@ -51,3 +51,29 @@ jQuery(function($){
     });
   });
 })(jQuery);
+
+jQuery(function($){
+  function showNotice($input, msg){
+    var $wrap = $input.closest('.tta-ticket-quantity');
+    var $n = $wrap.find('.tta-ticket-notice');
+    if(!$n.length) return;
+    $n.text(msg).fadeIn(200);
+    clearTimeout($n.data('timer'));
+    $n.data('timer', setTimeout(function(){ $n.fadeOut(200); }, 4000));
+  }
+
+  function enforceLimit(){
+    var $input = $(this);
+    var total = 0;
+    $('.tta-qty-input').each(function(){ total += parseInt($(this).val(),10)||0; });
+    if(total > 2){
+      var others = total - parseInt($input.val(),10)||0;
+      var allowed = Math.max(0, 2 - others);
+      $input.val(allowed);
+      var msg = $('.tta-qty-input').length > 1 ? tta_event.multi_limit_msg : tta_event.single_limit_msg;
+      showNotice($input, msg);
+    }
+  }
+
+  $(document).on('change', '.tta-qty-input', enforceLimit);
+});

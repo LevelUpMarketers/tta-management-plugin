@@ -56,21 +56,88 @@ class TTA_Cart {
     }
   }
 
+  /**
+   * Adjust ticket inventory when reserving or releasing items.
+   *
+   * @param int $ticket_id Ticket ID.
+   * @param int $qty_diff  Positive number to release, negative to reserve.
+   */
+  protected function adjust_inventory( $ticket_id, $qty_diff ) {
+    $ticket_id = intval( $ticket_id );
+    $qty_diff  = intval( $qty_diff );
+    if ( 0 === $qty_diff ) {
+      return;
+    }
+
+    if ( $qty_diff < 0 ) {
+      // Reserve stock only if enough tickets remain.
+      $this->wpdb->query(
+        $this->wpdb->prepare(
+          "UPDATE {$this->wpdb->prefix}tta_tickets SET ticketlimit = ticketlimit + %d WHERE id = %d AND ticketlimit >= %d",
+          $qty_diff,
+          $ticket_id,
+          -$qty_diff
+        )
+      );
+    } else {
+      // Release previously reserved stock.
+      $this->wpdb->query(
+        $this->wpdb->prepare(
+          "UPDATE {$this->wpdb->prefix}tta_tickets SET ticketlimit = ticketlimit + %d WHERE id = %d",
+          $qty_diff,
+          $ticket_id
+        )
+      );
+    }
+
+    // Invalidate cached ticket data for this event.
+    $event_ute_id = $this->wpdb->get_var(
+      $this->wpdb->prepare(
+        "SELECT event_ute_id FROM {$this->wpdb->prefix}tta_tickets WHERE id = %d",
+        $ticket_id
+      )
+    );
+    if ( $event_ute_id ) {
+      TTA_Cache::delete( 'tickets_' . $event_ute_id );
+    }
+  }
+
   public function add_item( $ticket_id, $qty, $price ) {
     $this->ensure_cart( true );
+    $ticket_id = intval( $ticket_id );
+    $qty       = intval( $qty );
     if ( $qty <= 0 ) {
       $this->remove_item( $ticket_id );
       return;
     }
 
-    $exists = $this->wpdb->get_var(
+    $existing_qty = (int) $this->wpdb->get_var(
       $this->wpdb->prepare(
-        "SELECT COUNT(*) FROM {$this->items_table} WHERE cart_id = %d AND ticket_id = %d",
+        "SELECT quantity FROM {$this->items_table} WHERE cart_id = %d AND ticket_id = %d",
         $this->cart_id,
         $ticket_id
       )
     );
-    if ( $exists ) {
+    $diff = $qty - $existing_qty;
+
+    if ( $diff > 0 ) {
+      $available = (int) $this->wpdb->get_var(
+        $this->wpdb->prepare(
+          "SELECT ticketlimit FROM {$this->wpdb->prefix}tta_tickets WHERE id = %d",
+          $ticket_id
+        )
+      );
+      if ( $available < $diff ) {
+        $qty  = $existing_qty + $available;
+        $diff = $available;
+      }
+    }
+
+    if ( $diff !== 0 ) {
+      $this->adjust_inventory( $ticket_id, -$diff );
+    }
+
+    if ( $existing_qty ) {
       $this->wpdb->update(
         $this->items_table,
         [ 'quantity' => $qty, 'price' => $price ],
@@ -78,6 +145,7 @@ class TTA_Cart {
         ['%d','%f'],['%d','%d']
       );
     } else {
+      $expire = date( 'Y-m-d H:i:s', time() + 300 );
       $this->wpdb->insert(
         $this->items_table,
         [
@@ -85,28 +153,84 @@ class TTA_Cart {
           'ticket_id' => $ticket_id,
           'quantity'  => $qty,
           'price'     => $price,
+          'expires_at' => $expire,
         ],
-        ['%d','%d','%d','%f']
+        ['%d','%d','%d','%f','%s']
       );
     }
   }
 
   public function update_quantity( $ticket_id, $qty ) {
     $this->ensure_cart( true );
+    $ticket_id   = intval( $ticket_id );
+    $qty         = intval( $qty );
+    $existing_qty = (int) $this->wpdb->get_var(
+      $this->wpdb->prepare(
+        "SELECT quantity FROM {$this->items_table} WHERE cart_id = %d AND ticket_id = %d",
+        $this->cart_id,
+        $ticket_id
+      )
+    );
+
     if ( $qty <= 0 ) {
       $this->remove_item( $ticket_id );
-    } else {
+      return;
+    }
+
+    $diff = $qty - $existing_qty;
+    if ( $diff > 0 ) {
+      $available = (int) $this->wpdb->get_var(
+        $this->wpdb->prepare(
+          "SELECT ticketlimit FROM {$this->wpdb->prefix}tta_tickets WHERE id = %d",
+          $ticket_id
+        )
+      );
+      if ( $available < $diff ) {
+        $qty  = $existing_qty + $available;
+        $diff = $available;
+      }
+    }
+
+    if ( $diff !== 0 ) {
+      $this->adjust_inventory( $ticket_id, -$diff );
+    }
+
+    if ( $existing_qty ) {
       $this->wpdb->update(
         $this->items_table,
         [ 'quantity' => $qty ],
         [ 'cart_id' => $this->cart_id, 'ticket_id' => $ticket_id ],
         ['%d'],['%d','%d']
       );
+    } else {
+      $expire = date( 'Y-m-d H:i:s', time() + 300 );
+      $this->wpdb->insert(
+        $this->items_table,
+        [
+          'cart_id'   => $this->cart_id,
+          'ticket_id' => $ticket_id,
+          'quantity'  => $qty,
+          'price'     => 0,
+          'expires_at' => $expire,
+        ],
+        ['%d','%d','%d','%f','%s']
+      );
     }
   }
 
   public function remove_item( $ticket_id ) {
     $this->ensure_cart( false );
+    $ticket_id = intval( $ticket_id );
+    $qty = (int) $this->wpdb->get_var(
+      $this->wpdb->prepare(
+        "SELECT quantity FROM {$this->items_table} WHERE cart_id = %d AND ticket_id = %d",
+        $this->cart_id,
+        $ticket_id
+      )
+    );
+    if ( $qty ) {
+      $this->adjust_inventory( $ticket_id, $qty );
+    }
     $this->wpdb->delete(
       $this->items_table,
       [ 'cart_id' => $this->cart_id, 'ticket_id' => $ticket_id ],
@@ -114,11 +238,27 @@ class TTA_Cart {
     );
   }
 
+  protected function expire_items() {
+    $this->ensure_cart( false );
+    $expired = $this->wpdb->get_results(
+      $this->wpdb->prepare(
+        "SELECT ticket_id FROM {$this->items_table} WHERE cart_id = %d AND expires_at <= %s",
+        $this->cart_id,
+        current_time('mysql')
+      ),
+      ARRAY_A
+    );
+    foreach ( $expired as $row ) {
+      $this->remove_item( intval( $row['ticket_id'] ) );
+    }
+  }
+
   public function get_items() {
     $this->ensure_cart( false );
+    $this->expire_items();
     return $this->wpdb->get_results(
       $this->wpdb->prepare(
-          "SELECT ci.*, t.ticket_name, t.event_ute_id, e.discountcode
+          "SELECT ci.*, t.ticket_name, t.event_ute_id, e.discountcode, e.name AS event_name, e.page_id
          FROM {$this->items_table} ci
          JOIN {$this->wpdb->prefix}tta_tickets t ON ci.ticket_id = t.id
          LEFT JOIN {$this->wpdb->prefix}tta_events e ON t.event_ute_id = e.ute_id
@@ -219,32 +359,7 @@ class TTA_Cart {
       }
     }
 
-    // Decrement availability atomically
-    $updated = [];
     foreach ( $items as &$item ) {
-      $affected = $wpdb->query(
-        $wpdb->prepare(
-          "UPDATE {$wpdb->prefix}tta_tickets SET ticketlimit = ticketlimit - %d WHERE id = %d AND ticketlimit >= %d",
-          intval( $item['quantity'] ),
-          intval( $item['ticket_id'] ),
-          intval( $item['quantity'] )
-        )
-      );
-      if ( ! $affected ) {
-        // revert any previous adjustments
-        foreach ( $updated as $u ) {
-          $wpdb->query(
-            $wpdb->prepare(
-              "UPDATE {$wpdb->prefix}tta_tickets SET ticketlimit = ticketlimit + %d WHERE id = %d",
-              intval( $u['qty'] ),
-              intval( $u['id'] )
-            )
-          );
-        }
-        return new WP_Error( 'tta_sold_out', __( 'Not enough tickets remain.', 'tta' ) );
-      }
-      $updated[] = [ 'id' => $item['ticket_id'], 'qty' => $item['quantity'] ];
-
       $sub  = $item['quantity'] * $item['price'];
       $total_before += $sub;
 

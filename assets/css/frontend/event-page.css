@@ -275,6 +275,24 @@
   margin: 0 8px;
   font-size: 1em;
 }
+.tta-ticket-notice {
+  color: #b00;
+  font-size: 0.9em;
+  margin-top: 4px;
+  display: none;
+}
+
+/* Disabled controls */
+.tta-disabled,
+button[disabled],
+input[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+#tta-get-tickets:disabled {
+  cursor: not-allowed;
+}
 
 /* Get Tickets button */
 #tta-get-tickets {
