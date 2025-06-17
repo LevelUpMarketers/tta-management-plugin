@@ -108,6 +108,7 @@ class CartTest extends TestCase {
         if(!function_exists('wp_generate_uuid4')){ function wp_generate_uuid4(){ return 'x'; } }
         if(!function_exists('current_time')){ function current_time($t='mysql'){ return 'now'; } }
         if(!function_exists('get_current_user_id')){ function get_current_user_id(){ return 0; } }
+        if(!function_exists('home_url')){ function home_url($p=''){ return '/'.$p; } }
         require_once __DIR__ . '/../includes/cart/class-cart.php';
         $cart = new TTA_Cart();
         $cart->add_item(5,1,10);
@@ -149,5 +150,51 @@ class CartTest extends TestCase {
         $cart = new TTA_Cart();
         $cart->add_item(5,1,10);
         $this->assertArrayNotHasKey('tta_cache_tickets_ev1', $transients);
+    }
+
+    public function test_ajax_add_to_cart_enforces_limit(){
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $items = [];
+            public $insert_id = 1;
+            public function get_row($q,$o=ARRAY_A){
+                return [
+                    'event_ute_id'=>'ev1',
+                    'baseeventcost'=>10,
+                    'discountedmembercost'=>8,
+                    'premiummembercost'=>7
+                ];
+            }
+            public function get_var($q){
+                if (strpos($q,'ticketlimit')!==false) return 5;
+                return null;
+            }
+            public function get_results($q,$o=ARRAY_A){ return []; }
+            public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%d/',$v,$q,1); $q=preg_replace('/%s/',$v,$q,1);} return $q; }
+            public function query($q){ return 1; }
+            public function insert($t,$d,$f){ if(isset($d['ticket_id'])){ $this->items[$d['ticket_id']]=$d['quantity']; } }
+            public function update($t,$d,$w,$f1=null,$f2=null){ if(isset($w['ticket_id'])){ $this->items[$w['ticket_id']]=$d['quantity']; } }
+            public function delete($t,$w,$f){ }
+        };
+        if(!function_exists('check_ajax_referer')){ function check_ajax_referer($a,$b){} }
+        if(!function_exists('wp_send_json_success')){ function wp_send_json_success($d){ $GLOBALS['_last_json']=['success'=>true,'data'=>$d]; return $GLOBALS['_last_json']; } }
+        if(!function_exists('wp_send_json_error')){ function wp_send_json_error($d){ $GLOBALS['_last_json']=['success'=>false,'data'=>$d]; return $GLOBALS['_last_json']; } }
+        if(!function_exists('add_action')){ function add_action($t,$c){} }
+        if(!function_exists('is_user_logged_in')){ function is_user_logged_in(){ return false; } }
+        if(!function_exists('wp_generate_uuid4')){ function wp_generate_uuid4(){ return 'x'; } }
+        if(!function_exists('current_time')){ function current_time($t='mysql'){ return 'now'; } }
+        if(!function_exists('get_current_user_id')){ function get_current_user_id(){ return 0; } }
+
+        require_once __DIR__ . '/../includes/helpers.php';
+        require_once __DIR__ . '/../includes/cart/class-cart.php';
+        require_once __DIR__ . '/../includes/ajax/handlers/class-ajax-cart.php';
+
+        $_POST['items'] = json_encode([['ticket_id'=>1,'quantity'=>3]]);
+        $_POST['nonce'] = 'n';
+
+        TTA_Ajax_Cart::ajax_add_to_cart();
+
+        $this->assertSame(2, $wpdb->items[1]);
     }
 }

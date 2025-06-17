@@ -411,6 +411,7 @@ if ( $ticket_count > 1 ) {
                   />
                   <button type="button" class="tta-qty-increase" aria-label="<?php esc_attr_e( 'Increase quantity', 'tta' ); ?>">+</button>
                 </div>
+                <div class="tta-ticket-notice" aria-live="polite"></div>
               </div>
             </div>
           <?php endforeach; ?>
