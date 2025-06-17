@@ -1,4 +1,5 @@
 jQuery(function($){
+  var countdownTimers = [];
   // Quantity controls
   $('.tta-qty-increase').on('click', function(){
     var $input = $(this).closest('.tta-ticket-quantity').find('.tta-qty-input');
@@ -45,6 +46,7 @@ jQuery(function($){
 
   function sendCartUpdate(){
     var payload = collectCartData();
+    clearTimers();
     payload.action = 'tta_update_cart';
     payload.nonce  = tta_ajax.nonce;
 
@@ -60,6 +62,7 @@ jQuery(function($){
           alert(res.data.message || 'Error updating cart.');
           $('#tta-cart-container').fadeTo(200,1);
         }
+        startTimers();
       }, 1000);
     }, 'json');
   }
@@ -72,7 +75,12 @@ jQuery(function($){
     sendCartUpdate();
   });
 
+  function clearTimers(){
+    countdownTimers.forEach(clearInterval);
+    countdownTimers = [];
+  }
   function startTimers(){
+    clearTimers();
     $('.tta-cart-table tbody tr').each(function(){
       var $row = $(this);
       var remain = parseInt($row.data('expire'),10) || 0;
@@ -89,6 +97,7 @@ jQuery(function($){
         var s = remain % 60;
         $cd.text(m+':' + (s<10?'0':'')+s);
       },1000);
+      countdownTimers.push(intv);
     });
   }
 

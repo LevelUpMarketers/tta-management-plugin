@@ -14,6 +14,7 @@ This document summarizes the current logic around the cart and checkout process 
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
    - Each cart row now shows the linked event name above the ticket type along with a live five minute countdown.
    - Countdown timers remove items immediately when they expire.
+    - Timers restart after any AJAX update so they remain visible.
    - Quantities and discount codes are updated via the `tta_update_cart` AJAX endpoint. This calls `TTA_Cart::update_quantity()` and stores a discount code in the session.
 
 3. **Checkout**
