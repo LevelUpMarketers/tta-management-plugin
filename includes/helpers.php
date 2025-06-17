@@ -250,3 +250,45 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_code = '' ) {
     }
     return trim( ob_get_clean() );
 }
+
+/**
+ * Render an image preview for admin screens that works even when
+ * WordPress cannot generate intermediate sizes (e.g. unsupported
+ * MIME types).
+ *
+ * @param int   $attachment_id Attachment ID.
+ * @param array $size          [width, height] to display.
+ * @param array $attrs         Optional attributes for the img tag.
+ * @return string              HTML <img> markup or empty string.
+ */
+function tta_admin_preview_image( $attachment_id, array $size, array $attrs = [] ) {
+    $attachment_id = intval( $attachment_id );
+    if ( ! $attachment_id ) {
+        return '';
+    }
+
+    $url = wp_get_attachment_image_url( $attachment_id, $size );
+    if ( ! $url ) {
+        $url = wp_get_attachment_url( $attachment_id );
+    }
+
+    if ( ! $url ) {
+        return '';
+    }
+
+    $attr_str = '';
+    foreach ( $attrs as $key => $val ) {
+        $attr_str .= sprintf( ' %s="%s"', esc_attr( $key ), esc_attr( $val ) );
+    }
+
+    $width  = intval( $size[0] );
+    $height = intval( $size[1] );
+
+    return sprintf(
+        '<img src="%s" width="%d" height="%d"%s />',
+        esc_url( $url ),
+        $width,
+        $height,
+        $attr_str
+    );
+}

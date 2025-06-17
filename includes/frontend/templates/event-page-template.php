@@ -25,13 +25,15 @@ global $wpdb, $post;
 // ───────────────
 $page_id      = $post->ID;
 $events_table = $wpdb->prefix . 'tta_events';
-$event        = $wpdb->get_row(
-    $wpdb->prepare(
-        "SELECT * FROM {$events_table} WHERE page_id = %d",
-        $page_id
-    ),
-    ARRAY_A
-);
+$event        = TTA_Cache::remember( 'event_' . $page_id, function() use ( $wpdb, $events_table, $page_id ) {
+    return $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT * FROM {$events_table} WHERE page_id = %d",
+            $page_id
+        ),
+        ARRAY_A
+    );
+}, 600 );
 if ( ! $event ) {
     echo '<div class="wrap"><h1>' . esc_html__( 'Event not found.', 'tta' ) . '</h1>'
        . '<p>' . esc_html__( 'Sorry, this event does not exist.', 'tta' ) . '</p></div>';
@@ -43,16 +45,18 @@ if ( ! $event ) {
 // 3) Fetch this event’s ticket types
 // ───────────────
 $tickets_table = $wpdb->prefix . 'tta_tickets';
-$tickets       = $wpdb->get_results(
-    $wpdb->prepare(
-        "SELECT id, ticket_name, ticketlimit, baseeventcost, discountedmembercost, premiummembercost
-         FROM {$tickets_table}
-         WHERE event_ute_id = %s
-         ORDER BY id ASC",
-        $event['ute_id']
-    ),
-    ARRAY_A
-);
+$tickets       = TTA_Cache::remember( 'tickets_' . $event['ute_id'], function() use ( $wpdb, $tickets_table, $event ) {
+    return $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT id, ticket_name, ticketlimit, baseeventcost, discountedmembercost, premiummembercost
+             FROM {$tickets_table}
+             WHERE event_ute_id = %s
+             ORDER BY id ASC",
+            $event['ute_id']
+        ),
+        ARRAY_A
+    );
+}, 600 );
 $ticket_count = count( $tickets );
 
 // Build a map of quantities for this event from the cart
@@ -66,17 +70,19 @@ foreach ( $cart->get_items() as $it ) {
 // ───────────────
 // 4) Fetch “related” upcoming events
 // ───────────────
-$related = $wpdb->get_results(
-    $wpdb->prepare(
-        "SELECT * FROM {$events_table}
-         WHERE page_id != %d
-           AND date >= CURDATE()
-         ORDER BY date ASC
-         LIMIT 4",
-        $page_id
-    ),
-    ARRAY_A
-);
+$related = TTA_Cache::remember( 'related_' . $page_id, function() use ( $wpdb, $events_table, $page_id ) {
+    return $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT * FROM {$events_table}
+             WHERE page_id != %d
+               AND date >= CURDATE()
+             ORDER BY date ASC
+             LIMIT 4",
+            $page_id
+        ),
+        ARRAY_A
+    );
+}, 600 );
 
 // ───────────────
 // 5) Determine logged-in user context
@@ -566,8 +572,8 @@ if ( $ticket_count > 1 ) {
                   continue;
               }
 
-              $host = parse_url( $url, PHP_URL_HOST );
-              $service_key = 'external-link.svg'; // default icon
+              $host        = parse_url( $url, PHP_URL_HOST );
+              $service_key = '';
 
               if ( $host ) {
                   $host = strtolower( $host );
@@ -577,6 +583,11 @@ if ( $ticket_count > 1 ) {
                           break;
                       }
                   }
+              }
+
+              // Skip unknown services entirely
+              if ( empty( $service_key ) ) {
+                  continue;
               }
 
               $additional_links[] = [

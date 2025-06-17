@@ -531,7 +531,7 @@ if ( isset( $_GET['event_id'] ) ) {
                     </button>
                     <div id="mainimage-preview" style="margin-top:10px;">
                         <?php if ( ! empty( $event['mainimageid'] ) ) {
-                            echo wp_get_attachment_image( $event['mainimageid'], [150,150] );
+                            echo tta_admin_preview_image( $event['mainimageid'], [150,150] );
                         } ?>
                     </div>
                 </td>
@@ -558,10 +558,9 @@ if ( isset( $_GET['event_id'] ) ) {
                         <?php
                         if ( ! empty( $event['otherimageids'] ) ) {
                             foreach ( explode( ',', $event['otherimageids'] ) as $aid ) {
-                                echo wp_get_attachment_image(
+                                echo tta_admin_preview_image(
                                     intval( $aid ),
                                     [100,100],
-                                    false,
                                     [ 'style' => 'margin-right:5px;' ]
                                 );
                             }
