@@ -117,7 +117,7 @@ $events = $wpdb->get_results(
 
             // Check for main image or fallback
             if ( ! empty( $e['mainimageid'] ) ) {
-                $img_html = wp_get_attachment_image( intval( $e['mainimageid'] ), [50,50] );
+                $img_html = tta_admin_preview_image( intval( $e['mainimageid'] ), [50,50] );
             } else {
                 $default   = esc_url( TTA_PLUGIN_URL . 'assets/images/admin/default-event.png' );
                 $img_html  = '<img src="' . $default . '" width="50" height="50" alt="Default Event">';

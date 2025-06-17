@@ -203,14 +203,13 @@ $tickets = $wpdb->get_results(
                 : '';
               $phone = $m['phone'] ?? '';
               $thumb = ! empty( $m['profileimgid'] )
-                ? wp_get_attachment_image(
+                ? tta_admin_preview_image(
                     intval( $m['profileimgid'] ),
                     [50,50],
-                    false,
-                    [ 'class'=>'tta-wl-thumb-img','alt'=>esc_attr($name) ]
+                    [ 'class' => 'tta-wl-thumb-img', 'alt' => esc_attr( $name ) ]
                   )
-                : '<img src="' 
-                    . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' ) 
+                : '<img src="'
+                    . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' )
                     . '" class="tta-wl-thumb-img" alt="">';
           ?>
             <div class="tta-wl-entry" data-userid="<?php echo esc_attr( $uid ); ?>">
