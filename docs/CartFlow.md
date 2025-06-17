@@ -24,6 +24,7 @@ This document summarizes the current logic around the cart and checkout process 
 
 4. **Cleanup**
    - `TTA_Cart_Cleanup` schedules an hourly task and also runs on checkout completion to remove expired cart rows.
+   - A second cron task runs every ten minutes to purge expired cart items and free their ticket inventory.
 
 ## Branching Logic Highlights
 

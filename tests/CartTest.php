@@ -59,4 +59,24 @@ class CartTest extends TestCase {
         $this->assertStringContainsString('post/55',$html);
         $this->assertStringContainsString('data-expire', $html);
     }
+
+    public function test_item_cleanup_queries(){
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $queries = [];
+            public function get_results($q,$o=ARRAY_A){
+                $this->queries[] = $q;
+                return [['ticket_id'=>5,'quantity'=>2]];
+            }
+            public function query($q){ $this->queries[] = $q; }
+            public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%d/',$v,$q,1); $q=preg_replace('/%s/',$v,$q,1);} return $q; }
+        };
+        if(!function_exists('current_time')){ function current_time($t){ return 'now'; } }
+        require_once __DIR__ . '/../includes/cart/class-cart-cleanup.php';
+        TTA_Cart_Cleanup::clean_expired_items();
+        $sql = implode("\n", $wpdb->queries);
+        $this->assertStringContainsString('wp_tta_cart_items', $sql);
+        $this->assertStringContainsString('wp_tta_tickets', $sql);
+    }
 }
