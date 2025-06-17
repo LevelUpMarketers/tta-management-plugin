@@ -566,8 +566,8 @@ if ( $ticket_count > 1 ) {
                   continue;
               }
 
-              $host = parse_url( $url, PHP_URL_HOST );
-              $service_key = 'external-link.svg'; // default icon
+              $host        = parse_url( $url, PHP_URL_HOST );
+              $service_key = '';
 
               if ( $host ) {
                   $host = strtolower( $host );
@@ -577,6 +577,11 @@ if ( $ticket_count > 1 ) {
                           break;
                       }
                   }
+              }
+
+              // Skip unknown services entirely
+              if ( empty( $service_key ) ) {
+                  continue;
               }
 
               $additional_links[] = [
