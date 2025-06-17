@@ -8,7 +8,7 @@ This document summarizes the current logic around the cart and checkout process 
    - Visitors interact with the **Event Page** template. When the page loads a `TTA_Cart` instance is created so session data exists early.
    - Ticket details are fetched from the database. Prices vary depending on membership level (`free`, `basic`, or `premium`).
    - When a user adds tickets, the browser issues an AJAX request to `tta_add_to_cart`. The handler calculates the price, reserves inventory, and calls `TTA_Cart::add_item()`.
-   - Cart data is stored in the `tta_carts` and `tta_cart_items` tables keyed by a session ID. Ticket availability is decreased immediately on add.
+   - Cart data is stored in the `tta_carts` and `tta_cart_items` tables keyed by a session ID. Ticket availability is decreased immediately on add and the related event cache is cleared.
 
 2. **Viewing the Cart**
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
@@ -26,7 +26,7 @@ This document summarizes the current logic around the cart and checkout process 
 4. **Cleanup**
    - `TTA_Cart_Cleanup` schedules an hourly task and also runs on checkout completion to remove expired cart rows.
    - A second cron task runs every ten minutes to purge expired cart items and free their ticket inventory.
-   - Expired items are deleted from carts automatically and their reserved stock is released back to the ticket pool.
+   - Expired items are deleted from carts automatically and their reserved stock is released back to the ticket pool. When this occurs the event ticket cache is also cleared so front‑end counts stay in sync.
 
 ## Branching Logic Highlights
 

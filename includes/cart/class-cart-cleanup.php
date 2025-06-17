@@ -33,11 +33,12 @@ class TTA_Cart_Cleanup {
 
         $expired = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT ticket_id, quantity FROM {$items_table} WHERE expires_at < %s",
+                "SELECT i.ticket_id, i.quantity, t.event_ute_id FROM {$items_table} i JOIN {$tickets_table} t ON i.ticket_id = t.id WHERE i.expires_at < %s",
                 current_time( 'mysql' )
             ),
             ARRAY_A
         );
+        $touched_events = [];
 
         foreach ( $expired as $row ) {
             $wpdb->query(
@@ -47,6 +48,9 @@ class TTA_Cart_Cleanup {
                     intval( $row['ticket_id'] )
                 )
             );
+            if ( ! empty( $row['event_ute_id'] ) ) {
+                $touched_events[ $row['event_ute_id'] ] = true;
+            }
         }
 
         $wpdb->query(
@@ -55,6 +59,10 @@ class TTA_Cart_Cleanup {
                 current_time( 'mysql' )
             )
         );
+
+        foreach ( array_keys( $touched_events ) as $evt ) {
+            TTA_Cache::delete( 'tickets_' . $evt );
+        }
     }
 
     /**

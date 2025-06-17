@@ -89,6 +89,17 @@ class TTA_Cart {
         )
       );
     }
+
+    // Invalidate cached ticket data for this event.
+    $event_ute_id = $this->wpdb->get_var(
+      $this->wpdb->prepare(
+        "SELECT event_ute_id FROM {$this->wpdb->prefix}tta_tickets WHERE id = %d",
+        $ticket_id
+      )
+    );
+    if ( $event_ute_id ) {
+      TTA_Cache::delete( 'tickets_' . $event_ute_id );
+    }
   }
 
   public function add_item( $ticket_id, $qty, $price ) {

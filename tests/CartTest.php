@@ -116,4 +116,38 @@ class CartTest extends TestCase {
         $this->assertStringContainsString('ticketlimit = ticketlimit + -1', $sql);
         $this->assertStringContainsString('ticketlimit = ticketlimit + 1', $sql);
     }
+
+    public function test_inventory_updates_clear_cache(){
+        global $wpdb, $transients;
+        $transients = ['tta_cache_tickets_ev1' => ['foo']];
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $queries = [];
+            public $items = [];
+            public function get_var($q){
+                if (strpos($q,'event_ute_id')!==false) return 'ev1';
+                if(preg_match('/SELECT quantity FROM (\S+) WHERE cart_id = (\d+) AND ticket_id = (\d+)/',$q,$m)){
+                    return $this->items[$m[3]] ?? null;
+                }
+                return 5;
+            }
+            public function get_row($q,$o=ARRAY_A){ $this->queries[]=$q; return null; }
+            public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%d/',$v,$q,1); $q=preg_replace('/%s/',$v,$q,1);} return $q; }
+            public function query($q){ $this->queries[]=$q; return 1; }
+            public function insert($t,$d,$f){ $this->queries[]='INSERT'; if(isset($d['ticket_id'])){ $this->items[$d['ticket_id']]=$d['quantity']; } }
+            public function update($t,$d,$w,$f1=null,$f2=null){ $this->queries[]='UPDATE'; if(isset($w['ticket_id'])){ $this->items[$w['ticket_id']]=$d['quantity']; } }
+            public function delete($t,$w,$f){ $this->queries[]='DELETE'; unset($this->items[$w['ticket_id']]); }
+        };
+        if(!function_exists('get_transient')){ function get_transient($k){ global $transients; return $transients[$k] ?? false; } }
+        if(!function_exists('set_transient')){ function set_transient($k,$v,$t=0){ global $transients; $transients[$k]=$v; } }
+        if(!function_exists('delete_transient')){ function delete_transient($k){ global $transients; unset($transients[$k]); } }
+        if(!function_exists('wp_generate_uuid4')){ function wp_generate_uuid4(){ return 'x'; } }
+        if(!function_exists('current_time')){ function current_time($t='mysql'){ return 'now'; } }
+        if(!function_exists('get_current_user_id')){ function get_current_user_id(){ return 0; } }
+        require_once __DIR__ . '/../includes/classes/class-tta-cache.php';
+        require_once __DIR__ . '/../includes/cart/class-cart.php';
+        $cart = new TTA_Cart();
+        $cart->add_item(5,1,10);
+        $this->assertArrayNotHasKey('tta_cache_tickets_ev1', $transients);
+    }
 }
