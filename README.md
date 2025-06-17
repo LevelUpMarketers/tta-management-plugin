@@ -16,3 +16,8 @@ Without these values, checkout will fail and an admin notice will be displayed.
 - [Cart and Checkout Flow](docs/CartFlow.md)
 - [Object Caching](docs/ObjectCaching.md)
 - [Project TODOs](TODO.md)
+
+## Running Tests
+
+After installing PHP and Composer, execute `composer install` followed by
+`vendor/bin/phpunit` to run the plugin's unit tests.

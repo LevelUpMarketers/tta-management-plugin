@@ -10,6 +10,10 @@ class CacheTest extends TestCase {
             $tmp = sys_get_temp_dir() . '/wp/';
             define('ABSPATH', $tmp);
         }
+        @mkdir(ABSPATH . 'wp-admin/includes', 0777, true);
+        if (!file_exists(ABSPATH . 'wp-admin/includes/upgrade.php')) {
+            file_put_contents(ABSPATH . 'wp-admin/includes/upgrade.php', "<?php\n");
+        }
 
         // Set up stub transients array
         $GLOBALS['transients'] = [];
