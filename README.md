@@ -14,4 +14,5 @@ Without these values, checkout will fail and an admin notice will be displayed.
 ## Documentation
 
 - [Cart and Checkout Flow](docs/CartFlow.md)
+- [Object Caching](docs/ObjectCaching.md)
 - [Project TODOs](TODO.md)

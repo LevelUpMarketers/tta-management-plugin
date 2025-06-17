@@ -71,6 +71,7 @@ if ( isset( $_POST['tta_event_save'] ) && check_admin_referer(
         echo '<div class="updated"><p>Event created!</p></div>';
         $editing = true;
     }
+    TTA_Cache::flush();
 
     // Reload for further editing
     if ( $editing ) {

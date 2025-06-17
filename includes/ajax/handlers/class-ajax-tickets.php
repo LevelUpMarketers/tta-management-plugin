@@ -214,6 +214,7 @@ class TTA_Ajax_Tickets {
         }
 
         // 7) All done
+        TTA_Cache::flush();
         wp_send_json_success( [ 'message' => __( 'Tickets & waitlists saved.', 'tta' ) ] );
     }
 }
