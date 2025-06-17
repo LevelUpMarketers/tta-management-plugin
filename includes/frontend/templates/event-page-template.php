@@ -368,7 +368,15 @@ if ( $ticket_count > 1 ) {
         <h2><?php esc_html_e( 'Get Your Tickets Now', 'tta' ); ?></h2>
 
         <?php if ( $tickets ) : ?>
-          <?php foreach ( $tickets as $ticket ) :
+          <?php
+            $all_sold_out = true;
+            foreach ( $tickets as $ticket ) {
+                if ( intval( $ticket['ticketlimit'] ) > 0 ) {
+                    $all_sold_out = false;
+                    break;
+                }
+            }
+            foreach ( $tickets as $ticket ) :
             $limit      = intval( $ticket['ticketlimit'] );
             $available  = $limit > 0 ? $limit : 0;
             $avail_text = $available > 0
@@ -393,6 +401,7 @@ if ( $ticket_count > 1 ) {
                 $price_row = "<span class='tta-ticket-price tta-event-costmod-class'><strong>Cost: </strong>{$pb}</span>";
             }
         ?>
+            <?php $is_sold_out = $available < 1; ?>
             <div class="tta-top-indiv-wrapper">
               <div class="tta-ticket-item">
                 <?php echo $price_row . ' ' . $avail_text; ?>
@@ -400,16 +409,17 @@ if ( $ticket_count > 1 ) {
               <div class="tta-ticket-quantity">
                 <span class="tta-ticket-name"><?php echo esc_html( $ticket['ticket_name'] ); ?></span>
                 <div>
-                  <button type="button" class="tta-qty-decrease" aria-label="<?php esc_attr_e( 'Decrease quantity', 'tta' ); ?>">–</button>
+                  <button type="button" class="tta-qty-decrease<?php echo $is_sold_out ? ' tta-disabled' : ''; ?>" aria-label="<?php esc_attr_e( 'Decrease quantity', 'tta' ); ?>" <?php disabled( $is_sold_out ); ?>>–</button>
                   <input
                     type="number"
                     name="tta_ticket_qty[<?php echo esc_attr( $ticket['id'] ); ?>]"
-                    class="tta-qty-input"
+                    class="tta-qty-input<?php echo $is_sold_out ? ' tta-disabled' : ''; ?>"
                     value="<?php echo esc_attr( $cart_quantities[ $ticket['id'] ] ?? 0 ); ?>"
                     min="0"
                     <?php if ( $available ): ?>max="<?php echo esc_attr( $available ); ?>"<?php endif; ?>
+                    <?php disabled( $is_sold_out ); ?>
                   />
-                  <button type="button" class="tta-qty-increase" aria-label="<?php esc_attr_e( 'Increase quantity', 'tta' ); ?>">+</button>
+                  <button type="button" class="tta-qty-increase<?php echo $is_sold_out ? ' tta-disabled' : ''; ?>" aria-label="<?php esc_attr_e( 'Increase quantity', 'tta' ); ?>" <?php disabled( $is_sold_out ); ?>>+</button>
                 </div>
                 <div class="tta-ticket-notice" aria-live="polite"></div>
               </div>
@@ -423,8 +433,8 @@ if ( $ticket_count > 1 ) {
           <button
             type="button"
             id="tta-get-tickets"
-            class="tta-button tta-button-primary"
-            <?php disabled( empty( $tickets ) || intval( $tickets[0]['ticketlimit'] ) < 1 ); ?>
+            class="tta-button tta-button-primary<?php echo $all_sold_out ? ' tta-disabled' : ''; ?>"
+            <?php disabled( empty( $tickets ) || $all_sold_out ); ?>
           >
             <?php esc_html_e( 'Get Tickets', 'tta' ); ?>
           </button>

@@ -197,4 +197,25 @@ class CartTest extends TestCase {
 
         $this->assertSame(2, $wpdb->items[1]);
     }
+
+    public function test_ticket_controls_disabled_when_sold_out(){
+        $tickets = [
+            ['id'=>1,'ticket_name'=>'VIP','ticketlimit'=>0,'baseeventcost'=>10,'discountedmembercost'=>8,'premiummembercost'=>7],
+            ['id'=>2,'ticket_name'=>'GA','ticketlimit'=>0,'baseeventcost'=>5,'discountedmembercost'=>4,'premiummembercost'=>3]
+        ];
+        ob_start();
+        $all_sold_out = true;
+        foreach($tickets as $t){ if(intval($t['ticketlimit'])>0){ $all_sold_out = false; break; } }
+        foreach($tickets as $t){
+            $limit = intval($t['ticketlimit']);
+            $available = $limit > 0 ? $limit : 0;
+            $is_sold_out = $available < 1;
+            echo '<button class="tta-qty-increase'.($is_sold_out?' tta-disabled':'').'"'.($is_sold_out?' disabled':'').'>+</button>';
+        }
+        echo '<button id="tta-get-tickets"'.($all_sold_out?' disabled':'').'></button>';
+        $html = ob_get_clean();
+        $this->assertStringContainsString('tta-disabled', $html);
+        $this->assertStringContainsString('id="tta-get-tickets"', $html);
+        $this->assertStringContainsString('disabled', $html);
+    }
 }

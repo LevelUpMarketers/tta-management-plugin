@@ -7,7 +7,7 @@ This document summarizes the current logic around the cart and checkout process 
 1. **Adding Tickets**
    - Visitors interact with the **Event Page** template. When the page loads a `TTA_Cart` instance is created so session data exists early.
    - Ticket details are fetched from the database. Prices vary depending on membership level (`free`, `basic`, or `premium`).
-   - Quantity selectors on the event page prevent selecting more than two tickets in total. A notice appears when the limit would be exceeded.
+   - Quantity selectors on the event page prevent selecting more than two tickets in total. A notice appears when the limit would be exceeded. Sold out ticket rows have their quantity controls disabled and the **Get Tickets** button is disabled if no tickets remain.
    - When a user adds tickets, the browser issues an AJAX request to `tta_add_to_cart`. The handler calculates the price, reserves inventory, and calls `TTA_Cart::add_item()`.
    - Cart data is stored in the `tta_carts` and `tta_cart_items` tables keyed by a session ID. Ticket availability is decreased immediately on add and the related event cache is cleared.
 

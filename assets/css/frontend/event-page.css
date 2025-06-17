@@ -282,6 +282,18 @@
   display: none;
 }
 
+/* Disabled controls */
+.tta-disabled,
+button[disabled],
+input[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+#tta-get-tickets:disabled {
+  cursor: not-allowed;
+}
+
 /* Get Tickets button */
 #tta-get-tickets {
   display: inline-block;
