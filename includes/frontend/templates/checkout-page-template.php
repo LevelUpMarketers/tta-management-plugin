@@ -16,9 +16,11 @@ $checkout_error = '';
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] ) ) {
     check_admin_referer( 'tta_checkout_action', 'tta_checkout_nonce' );
 
-    $discount_code = $_SESSION['tta_discount_code'] ?? '';
-    $cart_changed  = $cart->sync_with_inventory();
-    $amount        = $cart->get_total( $discount_code );
+    $cart->lock_items();
+
+    $discount_codes = $_SESSION['tta_discount_codes'] ?? [];
+    $cart_changed   = $cart->sync_with_inventory();
+    $amount         = $cart->get_total( $discount_codes );
     if ( $cart_changed ) {
         tta_set_cart_notice( __( 'Some items became unavailable. Your cart was updated; please review and try again.', 'tta' ) );
         wp_safe_redirect( home_url( '/cart' ) );
@@ -71,11 +73,15 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
             $checkout_error = $result['error'];
         }
     }
+    // Display any payment error below
+    if ( $checkout_error ) {
+        // countdowns continue normally; no special handling needed
+    }
 }
 
+$discount_codes = $_SESSION['tta_discount_codes'] ?? [];
 get_header();
 
-$discount_code = $_SESSION['tta_discount_code'] ?? '';
 $items         = $cart->get_items();
 $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
 ?>
@@ -93,7 +99,7 @@ $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
     <?php else : ?>
         <form id="tta-checkout-form" method="post">
             <?php wp_nonce_field( 'tta_checkout_action', 'tta_checkout_nonce' ); ?>
-            <?php echo tta_render_checkout_summary( $cart, $discount_code ); ?>
+            <?php echo tta_render_checkout_summary( $cart, $discount_codes ); ?>
             <h3><?php esc_html_e( 'Billing Details', 'tta' ); ?></h3>
             <?php $user = wp_get_current_user(); ?>
             <p>

@@ -45,7 +45,7 @@ class CartTest extends TestCase {
         require_once __DIR__ . '/../includes/helpers.php';
         require_once __DIR__ . '/../includes/cart/class-cart.php';
         $cart = $this->createMock('TTA_Cart');
-        $cart->method('get_items')->willReturn([
+        $items = [
             [
                 'ticket_id'=>1,
                 'ticket_name'=>'VIP',
@@ -55,12 +55,15 @@ class CartTest extends TestCase {
                 'page_id'=>55,
                 'expires_at'=> date('Y-m-d H:i:s', time()+60)
             ]
-        ]);
+        ];
+        $cart->method('get_items')->willReturn($items);
+        $cart->method('get_items_with_discounts')->willReturn($items);
         $cart->method('get_total')->willReturn(10);
         function get_permalink($id){return 'post/'.$id;}
-        $html = tta_render_cart_contents($cart,'');
+        $html = tta_render_cart_contents($cart,[],[]);
         $this->assertStringContainsString('post/55',$html);
         $this->assertStringContainsString('data-expire-at', $html);
+        $this->assertStringContainsString('data-ticket="1"', $html);
     }
 
     public function test_item_cleanup_queries(){
@@ -275,4 +278,5 @@ class CartTest extends TestCase {
         $this->assertStringContainsString('id="tta-get-tickets"', $html);
         $this->assertStringContainsString('disabled', $html);
     }
+
 }
