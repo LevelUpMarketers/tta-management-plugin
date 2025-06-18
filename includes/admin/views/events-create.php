@@ -28,39 +28,39 @@ if ( isset( $_POST['tta_event_save'] ) && check_admin_referer(
     $address = implode(
         ' - ',
         array_filter( [
-            sanitize_text_field( $_POST['street_address'] ),
-            sanitize_text_field( $_POST['address_2'] ),
-            sanitize_text_field( $_POST['city'] ),
-            sanitize_text_field( $_POST['state'] ),
-            sanitize_text_field( $_POST['zip'] ),
+            tta_sanitize_text_field( $_POST['street_address'] ),
+            tta_sanitize_text_field( $_POST['address_2'] ),
+            tta_sanitize_text_field( $_POST['city'] ),
+            tta_sanitize_text_field( $_POST['state'] ),
+            tta_sanitize_text_field( $_POST['zip'] ),
         ] )
     );
 
     $data = [
-        'name'                  => sanitize_text_field( $_POST['name'] ),
-        'date'                  => sanitize_text_field( $_POST['date'] ),
-        'all_day_event'         => sanitize_text_field( $_POST['all_day_event'] ),
-        'start_time'            => sanitize_text_field( $_POST['start_time'] ),
-        'end_time'              => sanitize_text_field( $_POST['end_time'] ),
-        'virtual_event'         => sanitize_text_field( $_POST['virtual_event'] ),
+        'name'                  => tta_sanitize_text_field( $_POST['name'] ),
+        'date'                  => tta_sanitize_text_field( $_POST['date'] ),
+        'all_day_event'         => tta_sanitize_text_field( $_POST['all_day_event'] ),
+        'start_time'            => tta_sanitize_text_field( $_POST['start_time'] ),
+        'end_time'              => tta_sanitize_text_field( $_POST['end_time'] ),
+        'virtual_event'         => tta_sanitize_text_field( $_POST['virtual_event'] ),
         'address'               => $address,
-        'venueurl'              => esc_url_raw( $_POST['venueurl'] ),
-        'type'                  => sanitize_text_field( $_POST['type'] ),
+        'venueurl'              => tta_esc_url_raw( $_POST['venueurl'] ),
+        'type'                  => tta_sanitize_text_field( $_POST['type'] ),
         'baseeventcost'         => floatval( $_POST['baseeventcost'] ),
         'discountedmembercost'  => floatval( $_POST['discountedmembercost'] ),
         'attendancelimit'       => intval( $_POST['attendancelimit'] ),
-        'waitlistavailable'     => sanitize_text_field( $_POST['waitlistavailable'] ),
-        'refundsavailable'      => sanitize_text_field( $_POST['refundsavailable'] ),
+        'waitlistavailable'     => tta_sanitize_text_field( $_POST['waitlistavailable'] ),
+        'refundsavailable'      => tta_sanitize_text_field( $_POST['refundsavailable'] ),
         'discountcode'          => tta_build_discount_data(
             $_POST['discountcode'] ?? '',
             $_POST['discount_type'] ?? 'percent',
             $_POST['discount_amount'] ?? 0
         ),
-        'url2'                  => esc_url_raw( $_POST['url2'] ),
-        'url3'                  => esc_url_raw( $_POST['url3'] ),
-        'url4'                  => esc_url_raw( $_POST['url4'] ),
+        'url2'                  => tta_esc_url_raw( $_POST['url2'] ),
+        'url3'                  => tta_esc_url_raw( $_POST['url3'] ),
+        'url4'                  => tta_esc_url_raw( $_POST['url4'] ),
         'mainimageid'           => intval( $_POST['mainimageid'] ),
-        'otherimageids'         => sanitize_text_field( $_POST['otherimageids'] ),
+        'otherimageids'         => tta_sanitize_text_field( $_POST['otherimageids'] ),
     ];
 
     if ( $editing ) {

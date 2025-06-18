@@ -63,6 +63,59 @@ function tta_get_us_states() {
 }
 
 /**
+ * Recursively unslash incoming data.
+ *
+ * @param mixed $value
+ * @return mixed
+ */
+function tta_unslash( $value ) {
+    if ( is_array( $value ) ) {
+        return array_map( 'tta_unslash', $value );
+    }
+    return is_string( $value ) ? wp_unslash( $value ) : $value;
+}
+
+/**
+ * Sanitize a text field allowing apostrophes from user input.
+ *
+ * @param mixed $value
+ * @return string
+ */
+function tta_sanitize_text_field( $value ) {
+    return sanitize_text_field( tta_unslash( $value ) );
+}
+
+/**
+ * Sanitize textarea input preserving apostrophes.
+ *
+ * @param mixed $value
+ * @return string
+ */
+function tta_sanitize_textarea_field( $value ) {
+    return sanitize_textarea_field( tta_unslash( $value ) );
+}
+
+/**
+ * Sanitize email input preserving apostrophes.
+ *
+ * @param mixed $value
+ * @return string
+ */
+function tta_sanitize_email( $value ) {
+    return sanitize_email( tta_unslash( $value ) );
+}
+
+/**
+ * Sanitize a URL input preserving apostrophes.
+ *
+ * @param mixed $value
+ * @return string
+ */
+function tta_esc_url_raw( $value ) {
+    return esc_url_raw( tta_unslash( $value ) );
+}
+
+/**
  * Decode a discount string stored in the events table.
  *
  * @param string $raw

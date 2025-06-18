@@ -130,6 +130,7 @@ class EventTest extends TestCase {
         if (!function_exists('wp_kses_post')) {
             function wp_kses_post($v){ return $v; }
         }
+        if (!function_exists('wp_unslash')) { function wp_unslash($v){ return is_array($v)?array_map('wp_unslash',$v):str_replace('\\','',$v); } }
         if (!function_exists('is_wp_error')) {
             function is_wp_error($v){ return false; }
         }

@@ -15,6 +15,7 @@ Without these values, checkout will fail and an admin notice will be displayed.
 
 - [Cart and Checkout Flow](docs/CartFlow.md)
 - [Object Caching](docs/ObjectCaching.md)
+- [Input Sanitization Helpers](docs/InputSanitization.md)
 - [Project TODOs](TODO.md)
 
 ## Running Tests
