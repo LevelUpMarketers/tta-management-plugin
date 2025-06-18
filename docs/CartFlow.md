@@ -14,7 +14,9 @@ This document summarizes the current logic around the cart and checkout process 
 
 2. **Viewing the Cart**
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
-   - Each cart row now shows the linked event name above the ticket type along with a live five minute countdown.
+   - A dedicated **Ticket Reserved for…** column displays a live five minute countdown for each row.
+   - The Quantity column enforces a maximum of two tickets per event in total.
+   - Discount codes are applied via an **Apply Discount** button and feedback message.
    - Countdown timers remove items immediately when they expire.
     - Timers calculate remaining time from the expiration timestamp so they stay accurate when the tab is hidden.
     - Timers restart after any AJAX update or when the page regains focus.

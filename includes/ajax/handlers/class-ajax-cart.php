@@ -109,8 +109,21 @@ class TTA_Ajax_Cart {
 
         $_SESSION['tta_discount_code'] = tta_sanitize_text_field( $_POST['discount_code'] ?? '' );
 
+        $valid   = false;
+        $message = '';
+        if ( $_SESSION['tta_discount_code'] ) {
+            foreach ( $cart->get_items() as $it ) {
+                $info = tta_parse_discount_data( $it['discountcode'] );
+                if ( $info['code'] && strcasecmp( $info['code'], $_SESSION['tta_discount_code'] ) === 0 ) {
+                    $valid = true;
+                    break;
+                }
+            }
+            $message = $valid ? __( 'Discount applied!', 'tta' ) : __( 'Invalid discount code.', 'tta' );
+        }
+
         $html = tta_render_cart_contents( $cart, $_SESSION['tta_discount_code'] );
-        wp_send_json_success( [ 'html' => $html ] );
+        wp_send_json_success( [ 'html' => $html, 'message' => $message ] );
     }
 }
 

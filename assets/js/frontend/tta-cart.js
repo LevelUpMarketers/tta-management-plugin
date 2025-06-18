@@ -58,16 +58,27 @@ jQuery(function($){
         $('.tta-admin-progress-spinner-svg').fadeOut(200);
         if ( res.success ) {
           $('#tta-cart-container').html(res.data.html).fadeTo(200,1);
+          if(res.data.message){
+            $('.tta-discount-feedback').text(res.data.message).fadeIn(200).delay(4000).fadeOut(200);
+          }
         } else {
           alert(res.data.message || 'Error updating cart.');
           $('#tta-cart-container').fadeTo(200,1);
         }
         startTimers();
+        updateApplyBtn();
       }, 1000);
     }, 'json');
   }
 
-  $(document).on('change', '.tta-cart-qty, #tta-discount-code', sendCartUpdate);
+  $(document).on('change', '.tta-cart-qty', sendCartUpdate);
+
+  function updateApplyBtn(){
+    var hasCode = $.trim($('#tta-discount-code').val()) !== '';
+    $('#tta-apply-discount').prop('disabled', !hasCode);
+  }
+  $(document).on('input', '#tta-discount-code', updateApplyBtn);
+  $(document).on('click', '#tta-apply-discount', sendCartUpdate);
 
   $(document).on('click', '.tta-remove-item', function(){
     var id = $(this).data('ticket');
@@ -104,6 +115,7 @@ jQuery(function($){
   }
 
   startTimers();
+  updateApplyBtn();
   document.addEventListener('visibilitychange', function(){
     if(!document.hidden){
       startTimers();
