@@ -23,7 +23,7 @@ $offset    = ( $page - 1 ) * $per_page;
 
 // Build the WHERE clause for searching:
 $where_sql   = '';
-$search_term = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '';
+$search_term = isset( $_GET['s'] ) ? tta_sanitize_text_field( $_GET['s'] ) : '';
 if ( $search_term ) {
     $like = '%' . $wpdb->esc_like( $search_term ) . '%';
     $where_sql = $wpdb->prepare(

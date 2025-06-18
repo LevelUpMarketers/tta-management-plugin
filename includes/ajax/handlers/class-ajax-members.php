@@ -21,30 +21,30 @@ class TTA_Ajax_Members {
         global $wpdb;
         $members_table = $wpdb->prefix . 'tta_members';
 
-        $first_name   = sanitize_text_field( $_POST['first_name']   ?? '' );
-        $last_name    = sanitize_text_field( $_POST['last_name']    ?? '' );
-        $email        = sanitize_email(       $_POST['email']        ?? '' );
-        $email_verify = sanitize_email(       $_POST['email_verify'] ?? '' );
+        $first_name   = tta_sanitize_text_field( $_POST['first_name']   ?? '' );
+        $last_name    = tta_sanitize_text_field( $_POST['last_name']    ?? '' );
+        $email        = tta_sanitize_email(       $_POST['email']        ?? '' );
+        $email_verify = tta_sanitize_email(       $_POST['email_verify'] ?? '' );
 
         // Build address
         $address = implode( ' – ', [
-            sanitize_text_field( $_POST['street_address'] ?? '' ),
-            sanitize_text_field( $_POST['address_2']      ?? '' ),
-            sanitize_text_field( $_POST['city']           ?? '' ),
-            sanitize_text_field( $_POST['state']          ?? '' ),
-            sanitize_text_field( $_POST['zip']            ?? '' ),
+            tta_sanitize_text_field( $_POST['street_address'] ?? '' ),
+            tta_sanitize_text_field( $_POST['address_2']      ?? '' ),
+            tta_sanitize_text_field( $_POST['city']           ?? '' ),
+            tta_sanitize_text_field( $_POST['state']          ?? '' ),
+            tta_sanitize_text_field( $_POST['zip']            ?? '' ),
         ]);
 
-        $phone            = sanitize_text_field( $_POST['phone']            ?? '' );
-        $dob              = sanitize_text_field( $_POST['dob']              ?? '' );
-        $member_type      = sanitize_text_field( $_POST['member_type']      ?? 'member' );
-        $membership_level = sanitize_text_field( $_POST['membership_level'] ?? 'free' );
-        $facebook         = esc_url_raw( $_POST['facebook']  ?? '' );
-        $linkedin         = esc_url_raw( $_POST['linkedin']  ?? '' );
-        $instagram        = esc_url_raw( $_POST['instagram'] ?? '' );
-        $twitter          = esc_url_raw( $_POST['twitter']   ?? '' );
-        $biography        = sanitize_textarea_field( $_POST['biography'] ?? '' );
-        $notes            = sanitize_textarea_field( $_POST['notes']     ?? '' );
+        $phone            = tta_sanitize_text_field( $_POST['phone']            ?? '' );
+        $dob              = tta_sanitize_text_field( $_POST['dob']              ?? '' );
+        $member_type      = tta_sanitize_text_field( $_POST['member_type']      ?? 'member' );
+        $membership_level = tta_sanitize_text_field( $_POST['membership_level'] ?? 'free' );
+        $facebook         = tta_esc_url_raw( $_POST['facebook']  ?? '' );
+        $linkedin         = tta_esc_url_raw( $_POST['linkedin']  ?? '' );
+        $instagram        = tta_esc_url_raw( $_POST['instagram'] ?? '' );
+        $twitter          = tta_esc_url_raw( $_POST['twitter']   ?? '' );
+        $biography        = tta_sanitize_textarea_field( $_POST['biography'] ?? '' );
+        $notes            = tta_sanitize_textarea_field( $_POST['notes']     ?? '' );
 
         $interests_arr = array_filter( array_map( 'sanitize_text_field', $_POST['interests'] ?? [] ) );
         $interests     = $interests_arr ? implode( ',', $interests_arr ) : '';
@@ -225,22 +225,22 @@ class TTA_Ajax_Members {
         $id                = intval( $_POST['member_id'] );
 
         // Gather & sanitize all fields
-        $first_name        = sanitize_text_field( $_POST['first_name']   ?? '' );
-        $last_name         = sanitize_text_field( $_POST['last_name']    ?? '' );
-        $email             = sanitize_email(       $_POST['email']        ?? '' );
-        $phone             = sanitize_text_field( $_POST['phone']         ?? '' );
-        $dob               = sanitize_text_field( $_POST['dob']           ?? '' );
-        $facebook          = esc_url_raw(         $_POST['facebook']      ?? '' );
-        $linkedin          = esc_url_raw(         $_POST['linkedin']      ?? '' );
-        $instagram         = esc_url_raw(         $_POST['instagram']     ?? '' );
-        $twitter           = esc_url_raw(         $_POST['twitter']       ?? '' );
-        $biography         = sanitize_textarea_field( $_POST['biography'] ?? '' );
-        $notes             = sanitize_textarea_field( $_POST['notes']     ?? '' );
+        $first_name        = tta_sanitize_text_field( $_POST['first_name']   ?? '' );
+        $last_name         = tta_sanitize_text_field( $_POST['last_name']    ?? '' );
+        $email             = tta_sanitize_email(       $_POST['email']        ?? '' );
+        $phone             = tta_sanitize_text_field( $_POST['phone']         ?? '' );
+        $dob               = tta_sanitize_text_field( $_POST['dob']           ?? '' );
+        $facebook          = tta_esc_url_raw(         $_POST['facebook']      ?? '' );
+        $linkedin          = tta_esc_url_raw(         $_POST['linkedin']      ?? '' );
+        $instagram         = tta_esc_url_raw(         $_POST['instagram']     ?? '' );
+        $twitter           = tta_esc_url_raw(         $_POST['twitter']       ?? '' );
+        $biography         = tta_sanitize_textarea_field( $_POST['biography'] ?? '' );
+        $notes             = tta_sanitize_textarea_field( $_POST['notes']     ?? '' );
         $profileimgid      = intval(             $_POST['profileimgid'] ?? 0 );
 
         // New: member type & membership level
-        $member_type       = sanitize_text_field( $_POST['member_type']       ?? '' );
-        $membership_level  = sanitize_text_field( $_POST['membership_level']  ?? '' );
+        $member_type       = tta_sanitize_text_field( $_POST['member_type']       ?? '' );
+        $membership_level  = tta_sanitize_text_field( $_POST['membership_level']  ?? '' );
 
         // Interests array ⇒ CSV
         $interests_arr     = array_filter( array_map( 'sanitize_text_field', $_POST['interests'] ?? [] ) );
@@ -254,11 +254,11 @@ class TTA_Ajax_Members {
 
         // Rebuild address
         $address = implode( ' – ', [
-            sanitize_text_field( $_POST['street_address'] ?? '' ),
-            sanitize_text_field( $_POST['address_2']      ?? '' ),
-            sanitize_text_field( $_POST['city']           ?? '' ),
-            sanitize_text_field( $_POST['state']          ?? '' ),
-            sanitize_text_field( $_POST['zip']            ?? '' ),
+            tta_sanitize_text_field( $_POST['street_address'] ?? '' ),
+            tta_sanitize_text_field( $_POST['address_2']      ?? '' ),
+            tta_sanitize_text_field( $_POST['city']           ?? '' ),
+            tta_sanitize_text_field( $_POST['state']          ?? '' ),
+            tta_sanitize_text_field( $_POST['zip']            ?? '' ),
         ]);
 
         // Build update array

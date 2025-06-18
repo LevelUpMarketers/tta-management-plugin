@@ -47,7 +47,7 @@ if ( isset( $_GET['action'] ) && $_GET['action'] === 'delete' && isset( $_GET['e
 }
 
 // Search
-$search = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '';
+$search = isset( $_GET['s'] ) ? tta_sanitize_text_field( $_GET['s'] ) : '';
 $where  = '';
 if ( $search ) {
     $like  = '%' . $wpdb->esc_like( $search ) . '%';

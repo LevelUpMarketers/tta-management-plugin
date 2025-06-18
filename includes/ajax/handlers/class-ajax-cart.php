@@ -107,7 +107,7 @@ class TTA_Ajax_Cart {
             $cart->update_quantity( intval( $ticket_id ), intval( $qty ) );
         }
 
-        $_SESSION['tta_discount_code'] = sanitize_text_field( $_POST['discount_code'] ?? '' );
+        $_SESSION['tta_discount_code'] = tta_sanitize_text_field( $_POST['discount_code'] ?? '' );
 
         $html = tta_render_cart_contents( $cart, $_SESSION['tta_discount_code'] );
         wp_send_json_success( [ 'html' => $html ] );

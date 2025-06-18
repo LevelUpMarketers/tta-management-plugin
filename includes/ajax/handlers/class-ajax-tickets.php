@@ -18,7 +18,7 @@ class TTA_Ajax_Tickets {
     public static function get_ticket_form() {
         check_ajax_referer( 'tta_ticket_get_action', 'get_ticket_nonce' );
 
-        $ute = sanitize_text_field( $_POST['event_ute_id'] ?? '' );
+        $ute = tta_sanitize_text_field( $_POST['event_ute_id'] ?? '' );
         if ( ! $ute ) {
             wp_send_json_error( [ 'message' => 'Missing event ID.' ] );
         }
@@ -46,7 +46,7 @@ class TTA_Ajax_Tickets {
         $tickets_table   = $wpdb->prefix . 'tta_tickets';
         $waitlist_table  = $wpdb->prefix . 'tta_waitlist';
         $events_table    = $wpdb->prefix . 'tta_events';
-        $ute             = sanitize_text_field( $_POST['event_ute_id'] );
+        $ute             = tta_sanitize_text_field( $_POST['event_ute_id'] );
 
         // 1) Fetch event info (name + waitlist flag)
         $event_row       = $wpdb->get_row(
@@ -80,7 +80,7 @@ class TTA_Ajax_Tickets {
         // 4) Update existing tickets + waitlists
         foreach ( $names as $tid => $raw_name ) {
             $tid         = intval( $tid );
-            $ticket_name = sanitize_text_field( $raw_name );
+            $ticket_name = tta_sanitize_text_field( $raw_name );
 
             // a) Update ticket row
             $wpdb->update(
@@ -98,7 +98,7 @@ class TTA_Ajax_Tickets {
             );
 
             // b) Update or insert waitlist row (with ticket_name)
-            $csv    = sanitize_text_field( $waitlist_csv_by_tid[ $tid ] ?? '' );
+            $csv    = tta_sanitize_text_field( $waitlist_csv_by_tid[ $tid ] ?? '' );
             $exists = (bool) $wpdb->get_var(
                 $wpdb->prepare(
                     "SELECT COUNT(*) FROM {$waitlist_table} WHERE ticket_id = %d",
@@ -165,7 +165,7 @@ class TTA_Ajax_Tickets {
             $new_prem    = $_POST['new_premiummembercost']     ?? [];
 
             foreach ( $new_names as $i => $raw_name ) {
-                $ticket_name = sanitize_text_field( $raw_name );
+                $ticket_name = tta_sanitize_text_field( $raw_name );
                 if ( '' === $ticket_name ) {
                     continue;
                 }

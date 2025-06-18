@@ -25,44 +25,44 @@ class TTA_Ajax_Events {
         // 1) Gather & sanitize the incoming event data
         $ute_id             = uniqid( 'tte_', true );
         $address_parts = [
-            sanitize_text_field( $_POST['street_address'] ?? '' ),
-            sanitize_text_field( $_POST['address_2']      ?? '' ),
-            sanitize_text_field( $_POST['city']           ?? '' ),
-            sanitize_text_field( $_POST['state']          ?? '' ),
-            sanitize_text_field( $_POST['zip']            ?? '' ),
+            tta_sanitize_text_field( $_POST['street_address'] ?? '' ),
+            tta_sanitize_text_field( $_POST['address_2']      ?? '' ),
+            tta_sanitize_text_field( $_POST['city']           ?? '' ),
+            tta_sanitize_text_field( $_POST['state']          ?? '' ),
+            tta_sanitize_text_field( $_POST['zip']            ?? '' ),
         ];
         $address              = implode( ' - ', $address_parts );
-        $start                = sanitize_text_field( $_POST['start_time']   ?? '' );
-        $end                  = sanitize_text_field( $_POST['end_time']     ?? '' );
+        $start                = tta_sanitize_text_field( $_POST['start_time']   ?? '' );
+        $end                  = tta_sanitize_text_field( $_POST['end_time']     ?? '' );
         $time                 = $start . '|' . $end;
-        $waitlist_available   = sanitize_text_field( $_POST['waitlistavailable'] ?? '0' );
+        $waitlist_available   = tta_sanitize_text_field( $_POST['waitlistavailable'] ?? '0' );
 
         $event_data = [
             'ute_id'               => $ute_id,
-            'name'                 => sanitize_text_field( $_POST['name']                 ?? '' ),
-            'date'                 => sanitize_text_field( $_POST['date']                 ?? '' ),
-            'all_day_event'        => sanitize_text_field( $_POST['all_day_event']        ?? '0' ),
+            'name'                 => tta_sanitize_text_field( $_POST['name']                 ?? '' ),
+            'date'                 => tta_sanitize_text_field( $_POST['date']                 ?? '' ),
+            'all_day_event'        => tta_sanitize_text_field( $_POST['all_day_event']        ?? '0' ),
             'time'                 => $time,
-            'virtual_event'        => sanitize_text_field( $_POST['virtual_event']        ?? '0' ),
+            'virtual_event'        => tta_sanitize_text_field( $_POST['virtual_event']        ?? '0' ),
             'address'              => $address,
-            'venuename'            => sanitize_text_field( $_POST['venuename']            ?? '' ),
-            'venueurl'             => esc_url_raw( $_POST['venueurl']            ?? '' ),
-            'type'                 => sanitize_text_field( $_POST['type']                 ?? '' ),
+            'venuename'            => tta_sanitize_text_field( $_POST['venuename']            ?? '' ),
+            'venueurl'             => tta_esc_url_raw( $_POST['venueurl']            ?? '' ),
+            'type'                 => tta_sanitize_text_field( $_POST['type']                 ?? '' ),
             'baseeventcost'        => floatval( $_POST['baseeventcost']        ?? 0 ),
             'discountedmembercost' => floatval( $_POST['discountedmembercost'] ?? 0 ),
             'premiummembercost'    => floatval( $_POST['premiummembercost']   ?? 0 ),
             'waitlistavailable'    => $waitlist_available,
-            'refundsavailable'     => sanitize_text_field( $_POST['refundsavailable']    ?? '0' ),
+            'refundsavailable'     => tta_sanitize_text_field( $_POST['refundsavailable']    ?? '0' ),
             'discountcode'         => tta_build_discount_data(
                 $_POST['discountcode'] ?? '',
                 $_POST['discount_type'] ?? 'percent',
                 $_POST['discount_amount'] ?? 0
             ),
-            'url2'                 => esc_url_raw( $_POST['url2']                ?? '' ),
-            'url3'                 => esc_url_raw( $_POST['url3']                ?? '' ),
-            'url4'                 => esc_url_raw( $_POST['url4']                ?? '' ),
+            'url2'                 => tta_esc_url_raw( $_POST['url2']                ?? '' ),
+            'url3'                 => tta_esc_url_raw( $_POST['url3']                ?? '' ),
+            'url4'                 => tta_esc_url_raw( $_POST['url4']                ?? '' ),
             'mainimageid'          => intval( $_POST['mainimageid']         ?? 0 ),
-            'otherimageids'        => sanitize_text_field( $_POST['otherimageids']       ?? '' ),
+            'otherimageids'        => tta_sanitize_text_field( $_POST['otherimageids']       ?? '' ),
         ];
 
         // 2) Insert the event record
@@ -173,42 +173,42 @@ class TTA_Ajax_Events {
 
         $id = intval( $_POST['tta_event_id'] );
         $address_parts = [
-            sanitize_text_field( $_POST['street_address'] ?? '' ),
-            sanitize_text_field( $_POST['address_2']      ?? '' ),
-            sanitize_text_field( $_POST['city']           ?? '' ),
-            sanitize_text_field( $_POST['state']          ?? '' ),
-            sanitize_text_field( $_POST['zip']            ?? '' ),
+            tta_sanitize_text_field( $_POST['street_address'] ?? '' ),
+            tta_sanitize_text_field( $_POST['address_2']      ?? '' ),
+            tta_sanitize_text_field( $_POST['city']           ?? '' ),
+            tta_sanitize_text_field( $_POST['state']          ?? '' ),
+            tta_sanitize_text_field( $_POST['zip']            ?? '' ),
         ];
         $address   = implode( ' - ', $address_parts );
-        $start     = sanitize_text_field( $_POST['start_time'] ?? '' );
-        $end       = sanitize_text_field( $_POST['end_time']   ?? '' );
+        $start     = tta_sanitize_text_field( $_POST['start_time'] ?? '' );
+        $end       = tta_sanitize_text_field( $_POST['end_time']   ?? '' );
         $time      = $start . '|' . $end;
 
         $event_data = [
-            'name'                 => sanitize_text_field( $_POST['name']                 ?? '' ),
-            'date'                 => sanitize_text_field( $_POST['date']                 ?? '' ),
-            'all_day_event'        => sanitize_text_field( $_POST['all_day_event']        ?? '0' ),
+            'name'                 => tta_sanitize_text_field( $_POST['name']                 ?? '' ),
+            'date'                 => tta_sanitize_text_field( $_POST['date']                 ?? '' ),
+            'all_day_event'        => tta_sanitize_text_field( $_POST['all_day_event']        ?? '0' ),
             'time'                 => $time,
-            'virtual_event'        => sanitize_text_field( $_POST['virtual_event']        ?? '0' ),
+            'virtual_event'        => tta_sanitize_text_field( $_POST['virtual_event']        ?? '0' ),
             'address'              => $address,
-            'venuename'            => sanitize_text_field( $_POST['venuename']            ?? '' ),
-            'venueurl'             => esc_url_raw( $_POST['venueurl']            ?? '' ),
-            'type'                 => sanitize_text_field( $_POST['type']                 ?? '' ),
+            'venuename'            => tta_sanitize_text_field( $_POST['venuename']            ?? '' ),
+            'venueurl'             => tta_esc_url_raw( $_POST['venueurl']            ?? '' ),
+            'type'                 => tta_sanitize_text_field( $_POST['type']                 ?? '' ),
             'baseeventcost'        => floatval( $_POST['baseeventcost']        ?? 0 ),
             'discountedmembercost' => floatval( $_POST['discountedmembercost'] ?? 0 ),
             'premiummembercost'    => floatval( $_POST['premiummembercost']    ?? 0 ),
-            'waitlistavailable'    => sanitize_text_field( $_POST['waitlistavailable']   ?? '0' ),
-            'refundsavailable'     => sanitize_text_field( $_POST['refundsavailable']    ?? '0' ),
+            'waitlistavailable'    => tta_sanitize_text_field( $_POST['waitlistavailable']   ?? '0' ),
+            'refundsavailable'     => tta_sanitize_text_field( $_POST['refundsavailable']    ?? '0' ),
             'discountcode'         => tta_build_discount_data(
                 $_POST['discountcode'] ?? '',
                 $_POST['discount_type'] ?? 'percent',
                 $_POST['discount_amount'] ?? 0
             ),
-            'url2'                 => esc_url_raw( $_POST['url2']                ?? '' ),
-            'url3'                 => esc_url_raw( $_POST['url3']                ?? '' ),
-            'url4'                 => esc_url_raw( $_POST['url4']                ?? '' ),
+            'url2'                 => tta_esc_url_raw( $_POST['url2']                ?? '' ),
+            'url3'                 => tta_esc_url_raw( $_POST['url3']                ?? '' ),
+            'url4'                 => tta_esc_url_raw( $_POST['url4']                ?? '' ),
             'mainimageid'          => intval( $_POST['mainimageid']         ?? 0 ),
-            'otherimageids'        => sanitize_text_field( $_POST['otherimageids']       ?? '' ),
+            'otherimageids'        => tta_sanitize_text_field( $_POST['otherimageids']       ?? '' ),
         ];
 
         $updated = $wpdb->update( $events_table, $event_data, [ 'id' => $id ] );
@@ -262,8 +262,8 @@ class TTA_Ajax_Events {
                             [
                                 'ticket_id'     => $tid,
                                 'event_ute_id'  => $ute_id,
-                                'ticket_name'   => sanitize_text_field( $ticket['ticket_name'] ),
-                                'event_name'    => sanitize_text_field( $event_data['name'] ),
+                                'ticket_name'   => tta_sanitize_text_field( $ticket['ticket_name'] ),
+                                'event_name'    => tta_sanitize_text_field( $event_data['name'] ),
                                 'userids'       => '',
                             ],
                             [ '%d', '%s', '%s', '%s', '%s' ]

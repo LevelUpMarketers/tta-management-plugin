@@ -25,7 +25,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
         exit;
     }
 
-    $exp_input  = sanitize_text_field( $_POST['card_exp'] );
+    $exp_input  = tta_sanitize_text_field( $_POST['card_exp'] );
     $exp_digits = preg_replace( '/\D/', '', $exp_input );
     $exp_date   = '';
     if ( strlen( $exp_digits ) === 4 ) {
@@ -41,12 +41,12 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
     }
 
     $billing = [
-        'first_name' => sanitize_text_field( $_POST['billing_first_name'] ),
-        'last_name'  => sanitize_text_field( $_POST['billing_last_name'] ),
-        'address'    => sanitize_text_field( $_POST['billing_street'] ),
-        'city'       => sanitize_text_field( $_POST['billing_city'] ),
-        'state'      => sanitize_text_field( $_POST['billing_state'] ),
-        'zip'        => sanitize_text_field( $_POST['billing_zip'] ),
+        'first_name' => tta_sanitize_text_field( $_POST['billing_first_name'] ),
+        'last_name'  => tta_sanitize_text_field( $_POST['billing_last_name'] ),
+        'address'    => tta_sanitize_text_field( $_POST['billing_street'] ),
+        'city'       => tta_sanitize_text_field( $_POST['billing_city'] ),
+        'state'      => tta_sanitize_text_field( $_POST['billing_state'] ),
+        'zip'        => tta_sanitize_text_field( $_POST['billing_zip'] ),
     ];
 
     if ( empty( $checkout_error ) ) {
@@ -55,7 +55,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
             $amount,
             preg_replace( '/\D/', '', $_POST['card_number'] ),
             $exp_date,
-            sanitize_text_field( $_POST['card_cvc'] ),
+            tta_sanitize_text_field( $_POST['card_cvc'] ),
             $billing
         );
 

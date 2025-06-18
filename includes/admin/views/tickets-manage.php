@@ -6,7 +6,7 @@ $events_table  = $wpdb->prefix . 'tta_events';
 $tickets_table = $wpdb->prefix . 'tta_tickets';
 
 // 1) Search/filter events by name
-$search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
+$search = isset($_GET['s']) ? tta_sanitize_text_field($_GET['s']) : '';
 $where  = $search
     ? $wpdb->prepare( "WHERE e.name LIKE %s", '%' . $wpdb->esc_like($search) . '%' )
     : '';

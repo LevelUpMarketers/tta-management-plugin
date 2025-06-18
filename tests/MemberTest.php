@@ -76,6 +76,7 @@ class MemberTest extends TestCase {
         if (!function_exists('sanitize_email')) { function sanitize_email($v){ return trim($v); } }
         if (!function_exists('esc_url_raw')) { function esc_url_raw($v){ return $v; } }
         if (!function_exists('sanitize_user')) { function sanitize_user($v,$s=true){ return preg_replace('/[^A-Za-z0-9]/','',$v); } }
+        if (!function_exists('wp_unslash')) { function wp_unslash($v){ return is_array($v)?array_map('wp_unslash',$v):str_replace('\\','',$v); } }
         if (!function_exists('email_exists')) { function email_exists($e){ return isset($GLOBALS['wp_users'][$e]); } }
         if (!function_exists('get_user_by')) { function get_user_by($f,$v){ return isset($GLOBALS['wp_users'][$v]) ? (object)$GLOBALS['wp_users'][$v] : null; } }
         if (!function_exists('admin_url')) { function admin_url($p=''){ return 'admin/'.$p; } }
