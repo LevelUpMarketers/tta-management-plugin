@@ -16,11 +16,11 @@ This document summarizes the current logic around the cart and checkout process 
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
    - A dedicated **Ticket Reserved for…** column displays a live five minute countdown for each row.
    - The Quantity column enforces a maximum of two tickets per event in total.
-   - Discount codes are applied via an **Apply Discount** button and feedback message.
+   - Discount codes are applied via an **Apply Discount** button. Multiple codes can be active and are split across matching event tickets.
    - Countdown timers remove items immediately when they expire.
     - Timers calculate remaining time from the expiration timestamp so they stay accurate when the tab is hidden.
     - Timers restart after any AJAX update or when the page regains focus.
-   - Quantities and discount codes are updated via the `tta_update_cart` AJAX endpoint. This calls `TTA_Cart::update_quantity()` and stores a discount code in the session.
+   - Quantities and discount codes are updated via the `tta_update_cart` AJAX endpoint. This calls `TTA_Cart::update_quantity()` and stores applied codes in the session.
 
 3. **Checkout**
    - The **Checkout Page** template performs checkout when the form is submitted (`tta_do_checkout`).

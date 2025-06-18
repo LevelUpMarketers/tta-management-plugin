@@ -36,7 +36,7 @@ jQuery(function($){
   });
 
   function collectCartData(){
-    var data = { cart_qty: {}, discount_code: $('#tta-discount-code').val() || '' };
+    var data = { cart_qty: {} };
     $('.tta-cart-qty').each(function(){
       var id = $(this).attr('name').match(/\d+/)[0];
       data.cart_qty[id] = $(this).val();
@@ -44,8 +44,9 @@ jQuery(function($){
     return data;
   }
 
-  function sendCartUpdate(){
+  function sendCartUpdate(extra){
     var payload = collectCartData();
+    $.extend(payload, extra);
     clearTimers();
     payload.action = 'tta_update_cart';
     payload.nonce  = tta_ajax.nonce;
@@ -71,19 +72,29 @@ jQuery(function($){
     }, 'json');
   }
 
-  $(document).on('change', '.tta-cart-qty', sendCartUpdate);
+  $(document).on('change', '.tta-cart-qty', function(){ sendCartUpdate({}); });
 
   function updateApplyBtn(){
     var hasCode = $.trim($('#tta-discount-code').val()) !== '';
     $('#tta-apply-discount').prop('disabled', !hasCode);
   }
   $(document).on('input', '#tta-discount-code', updateApplyBtn);
-  $(document).on('click', '#tta-apply-discount', sendCartUpdate);
+  $(document).on('click', '#tta-apply-discount', function(){
+    var code = $('#tta-discount-code').val();
+    $('#tta-discount-code').val('');
+    updateApplyBtn();
+    sendCartUpdate({discount_code: code});
+  });
+
+  $(document).on('click', '.tta-remove-discount', function(){
+    var code = $(this).data('code');
+    sendCartUpdate({remove_code: code});
+  });
 
   $(document).on('click', '.tta-remove-item', function(){
     var id = $(this).data('ticket');
     $('input[name="cart_qty['+id+']"]').val(0);
-    sendCartUpdate();
+    sendCartUpdate({});
   });
 
   function clearTimers(){

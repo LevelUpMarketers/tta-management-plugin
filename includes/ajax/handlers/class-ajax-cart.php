@@ -107,22 +107,42 @@ class TTA_Ajax_Cart {
             $cart->update_quantity( intval( $ticket_id ), intval( $qty ) );
         }
 
-        $_SESSION['tta_discount_code'] = tta_sanitize_text_field( $_POST['discount_code'] ?? '' );
+        if ( ! isset( $_SESSION['tta_discount_codes'] ) ) {
+            $_SESSION['tta_discount_codes'] = [];
+        }
+
+        $code_to_add    = tta_sanitize_text_field( $_POST['discount_code'] ?? '' );
+        $code_to_remove = tta_sanitize_text_field( $_POST['remove_code'] ?? '' );
+
+        if ( $code_to_remove ) {
+            $_SESSION['tta_discount_codes'] = array_values( array_filter(
+                $_SESSION['tta_discount_codes'],
+                function ( $c ) use ( $code_to_remove ) {
+                    return strcasecmp( $c, $code_to_remove ) !== 0;
+                }
+            ) );
+            $message = __( 'Discount removed.', 'tta' );
+        }
 
         $valid   = false;
         $message = '';
-        if ( $_SESSION['tta_discount_code'] ) {
+        if ( $code_to_add ) {
             foreach ( $cart->get_items() as $it ) {
                 $info = tta_parse_discount_data( $it['discountcode'] );
-                if ( $info['code'] && strcasecmp( $info['code'], $_SESSION['tta_discount_code'] ) === 0 ) {
+                if ( $info['code'] && strcasecmp( $info['code'], $code_to_add ) === 0 ) {
                     $valid = true;
                     break;
                 }
             }
-            $message = $valid ? __( 'Discount applied!', 'tta' ) : __( 'Invalid discount code.', 'tta' );
+            if ( $valid ) {
+                $_SESSION['tta_discount_codes'][] = $code_to_add;
+                $_SESSION['tta_discount_codes']   = array_unique( $_SESSION['tta_discount_codes'] );
+                $message = __( 'Discount applied!', 'tta' );
+            } else {
+                $message = __( 'Invalid discount code.', 'tta' );
+            }
         }
-
-        $html = tta_render_cart_contents( $cart, $_SESSION['tta_discount_code'] );
+        $html = tta_render_cart_contents( $cart, $_SESSION['tta_discount_codes'] );
         wp_send_json_success( [ 'html' => $html, 'message' => $message ] );
     }
 }

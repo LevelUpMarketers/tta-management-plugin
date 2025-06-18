@@ -35,11 +35,9 @@
 .tta-remove-item {
   background: none;
   border: none;
-  color: #a00;
-  font-size: 20px;
-  line-height: 1;
   cursor: pointer;
 }
+.tta-remove-item img { width:16px; height:16px; }
 
 .tta-price-strike {
   text-decoration: line-through;
@@ -48,6 +46,10 @@
 }
 
 .tta-discount-feedback { display:none; margin-left:10px; }
+.tta-active-discounts { background:#f7f7f7; }
+.tta-discount-tag { display:inline-block; margin-right:8px; }
+.tta-discount-tag button { background:none; border:none; cursor:pointer; }
+.tta-discount-tag img { width:12px; height:12px; vertical-align:middle; }
 
 /* Tooltip */
 .tta-tooltip-icon {
@@ -78,6 +80,18 @@
   z-index: 9999;
 }
 .tta-tooltip-icon:hover::after { display:block; }
+.tta-tooltip-right::after {
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  margin-left: 6px;
+}
+.tta-tooltip-left::after {
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+  margin-right: 6px;
+}
 
 @media (max-width: 600px) {
   .tta-cart-table thead { display:none; }

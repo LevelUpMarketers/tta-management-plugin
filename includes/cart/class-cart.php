@@ -290,28 +290,49 @@ class TTA_Cart {
     );
   }
 
-  public function get_total( $discount_code = '' ) {
-    $total = 0;
-    $info  = null;
-    foreach ( $this->get_items() as $it ) {
-      $sub = $it['quantity'] * $it['price'];
-      $total += $sub;
-      if ( null === $info && $discount_code ) {
-        $d = tta_parse_discount_data( $it['discountcode'] );
-        if ( $d['code'] && strtolower( $discount_code ) === strtolower( $d['code'] ) ) {
-          $info = $d;
+  public function get_items_with_discounts( $discount_codes = [] ) {
+    $codes = array_map( 'strtolower', (array) $discount_codes );
+    $items = $this->get_items();
+    $groups = [];
+    foreach ( $items as &$it ) {
+      $id               = $it['event_ute_id'];
+      $groups[ $id ][]  =& $it;
+    }
+    unset( $it );
+
+    foreach ( $groups as $event_items ) {
+      $first  = $event_items[0];
+      $info   = tta_parse_discount_data( $first['discountcode'] );
+      $match  = $info['code'] && in_array( strtolower( $info['code'] ), $codes, true );
+      $qtytot = 0;
+      foreach ( $event_items as $it ) {
+        $qtytot += intval( $it['quantity'] );
+      }
+      foreach ( $event_items as &$it ) {
+        $price = floatval( $it['price'] );
+        $final = $price;
+        if ( $match ) {
+          if ( 'percent' === $info['type'] ) {
+            $final = $price * max( 0, 1 - ( $info['amount'] / 100 ) );
+          } elseif ( $qtytot > 0 ) {
+            $share = $info['amount'] / $qtytot;
+            $final = max( 0, $price - $share );
+          }
         }
+        $it['final_price']     = round( $final, 2 );
+        $it['discount_applied'] = $match;
       }
+      unset( $it );
     }
 
-    if ( $discount_code && $info ) {
-      if ( 'flat' === $info['type'] ) {
-        $total = max( 0, $total - $info['amount'] );
-      } else {
-        $total *= max( 0, 1 - ( $info['amount'] / 100 ) );
-      }
-    }
+    return $items;
+  }
 
+  public function get_total( $discount_codes = [] ) {
+    $total = 0;
+    foreach ( $this->get_items_with_discounts( $discount_codes ) as $it ) {
+      $total += $it['final_price'] * $it['quantity'];
+    }
     return $total;
   }
 
@@ -361,11 +382,11 @@ class TTA_Cart {
   public function finalize_purchase( $transaction_id = '', $amount = 0 ) {
     global $wpdb;
 
-    $discount_code = $_SESSION['tta_discount_code'] ?? '';
-    $items         = $this->get_items();
+    $discount_codes = $_SESSION['tta_discount_codes'] ?? [];
+    $items          = $this->get_items_with_discounts( $discount_codes );
     $discount_total = 0;
-    $discount_info  = null;
     $total_before   = 0;
+    $total_after    = 0;
 
     // Check availability before attempting updates
     foreach ( $items as $chk ) {
@@ -381,46 +402,27 @@ class TTA_Cart {
     }
 
     foreach ( $items as &$item ) {
-      $sub  = $item['quantity'] * $item['price'];
-      $total_before += $sub;
-
-      if ( null === $discount_info && $discount_code ) {
-        $info = tta_parse_discount_data( $item['discountcode'] );
-        if ( $info['code'] && strtolower( $discount_code ) === strtolower( $info['code'] ) ) {
-          $discount_info = $info;
-        }
-      }
+      $before       = $item['quantity'] * $item['price'];
+      $after        = $item['quantity'] * $item['final_price'];
+      $total_before += $before;
+      $total_after  += $after;
+      $item['discount_used']  = $item['discount_applied'] ? 1 : 0;
+      $item['discount_saved'] = round( $before - $after, 2 );
     }
     unset( $item );
 
-    if ( $discount_code && $discount_info ) {
-      if ( 'flat' === $discount_info['type'] ) {
-        $discount_total = min( $total_before, $discount_info['amount'] );
-      } else {
-        $discount_total = $total_before * ( $discount_info['amount'] / 100 );
-      }
-    }
-
-    // Distribute savings proportionally across items
-    foreach ( $items as &$item ) {
-      $sub = $item['quantity'] * $item['price'];
-      $share = $total_before > 0 ? ( $sub / $total_before ) : 0;
-      $item_saved = $discount_total * $share;
-      $item['discount_used']  = $discount_total > 0 ? 1 : 0;
-      $item['discount_saved'] = round( $item_saved, 2 );
-    }
-    unset( $item );
+    $discount_total = max( 0, $total_before - $total_after );
 
     // Log transaction details
     if ( $transaction_id ) {
-      TTA_Transaction_Logger::log( $transaction_id, $amount, $items, $discount_code, $discount_total );
+      TTA_Transaction_Logger::log( $transaction_id, $amount, $items, implode( ',', $discount_codes ), $discount_total );
     }
 
     $this->empty_cart();
     $wpdb->delete( $this->carts_table, [ 'id' => $this->cart_id ], [ '%d' ] );
 
     unset( $_SESSION['tta_cart_session'] );
-    unset( $_SESSION['tta_discount_code'] );
+    unset( $_SESSION['tta_discount_codes'] );
 
     do_action( 'tta_checkout_complete', $this->cart_id );
   }

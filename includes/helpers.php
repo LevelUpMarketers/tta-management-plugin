@@ -234,13 +234,13 @@ function tta_get_purchased_ticket_count( $user_id, $event_ute_id ) {
  * Render the cart table HTML for the given cart.
  *
  * @param TTA_Cart $cart
- * @param string   $discount_code
+ * @param array    $discount_codes
  * @return string HTML markup
  */
-function tta_render_cart_contents( TTA_Cart $cart, $discount_code = '' ) {
+function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [] ) {
     ob_start();
-    $items = $cart->get_items();
-    $total = $cart->get_total( $discount_code );
+    $items = $cart->get_items_with_discounts( $discount_codes );
+    $total = $cart->get_total( $discount_codes );
     if ( $items ) {
         ?>
         <table class="tta-cart-table">
@@ -265,13 +265,23 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_code = '' ) {
                         </span>
                         <?php esc_html_e( 'Price', 'tta' ); ?>
                     </th>
-                    <th><?php esc_html_e( 'Subtotal', 'tta' ); ?></th>
-                    <th>&nbsp;</th>
+                    <th>
+                        <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( 'Price for this row after all discounts.' ); ?>">
+                            <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
+                        </span>
+                        <?php esc_html_e( 'Subtotal', 'tta' ); ?>
+                    </th>
+                    <th>
+                        <span class="tta-tooltip-icon tta-tooltip-left" data-tooltip="<?php echo esc_attr( 'Remove this item from your cart.' ); ?>">
+                            <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
+                        </span>
+                        <?php esc_html_e( 'Remove Item', 'tta' ); ?>
+                    </th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ( $items as $it ) : ?>
-                    <?php $sub = $it['quantity'] * $it['price']; ?>
+                    <?php $sub = $it['quantity'] * $it['final_price']; ?>
                     <?php $expire_at = strtotime( $it['expires_at'] ); ?>
                     <tr data-expire-at="<?php echo esc_attr( $expire_at ); ?>">
                         <td data-label="<?php echo esc_attr( 'Event' ); ?>">
@@ -284,7 +294,7 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_code = '' ) {
                                 }
                             }
                             ?>
-                            <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( $desc ); ?>">
+                            <span class="tta-tooltip-icon tta-tooltip-right" data-tooltip="<?php echo esc_attr( $desc ); ?>">
                                 <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
                             </span>
                             <a href="<?php echo esc_url( get_permalink( $it['page_id'] ) ); ?>">
@@ -299,7 +309,7 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_code = '' ) {
                         <td data-label="<?php echo esc_attr( 'Price' ); ?>">
                             <?php
                             $base = number_format( $it['baseeventcost'], 2 );
-                            if ( floatval( $it['price'] ) !== floatval( $it['baseeventcost'] ) ) {
+                            if ( floatval( $it['final_price'] ) !== floatval( $it['baseeventcost'] ) ) {
                                 echo '<span class="tta-price-strike">' . esc_html( $base ) . '</span>';
                             } else {
                                 echo esc_html( $base );
@@ -307,10 +317,22 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_code = '' ) {
                             ?>
                         </td>
                         <td data-label="<?php echo esc_attr( 'Subtotal' ); ?>"><?php echo esc_html( number_format( $sub, 2 ) ); ?></td>
-                        <td><button type="button" data-ticket="<?php echo esc_attr( $it['ticket_id'] ); ?>" class="tta-remove-item">&times;</button></td>
+                        <td><button type="button" data-ticket="<?php echo esc_attr( $it['ticket_id'] ); ?>" class="tta-remove-item"><img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/public/bin.svg' ); ?>" alt=""></button></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
+            <?php if ( $discount_codes ) : ?>
+            <tbody class="tta-active-discounts">
+                <tr>
+                    <td colspan="6">
+                        <?php esc_html_e( 'Active Discount Codes:', 'tta' ); ?>
+                        <?php foreach ( $discount_codes as $code ) : ?>
+                            <span class="tta-discount-tag"><?php echo esc_html( $code ); ?> <button type="button" class="tta-remove-discount" data-code="<?php echo esc_attr( $code ); ?>"><img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/public/bin.svg' ); ?>" alt=""></button></span>
+                        <?php endforeach; ?>
+                    </td>
+                </tr>
+            </tbody>
+            <?php endif; ?>
             <tfoot>
                 <tr>
                     <th colspan="4"><?php esc_html_e( 'Total', 'tta' ); ?></th>
@@ -320,7 +342,7 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_code = '' ) {
         </table>
         <p class="tta-cart-discount">
             <label><?php esc_html_e( 'Discount Code', 'tta' ); ?>
-                <input type="text" id="tta-discount-code" name="discount_code" value="<?php echo esc_attr( $discount_code ); ?>">
+                <input type="text" id="tta-discount-code" name="discount_code">
             </label>
             <button type="button" id="tta-apply-discount" disabled><?php esc_html_e( 'Apply Discount', 'tta' ); ?></button>
             <span class="tta-discount-feedback"></span>
@@ -336,13 +358,13 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_code = '' ) {
  * Render a read-only summary of the cart for the checkout page.
  *
  * @param TTA_Cart $cart
- * @param string   $discount_code
+ * @param array    $discount_codes
  * @return string
  */
-function tta_render_checkout_summary( TTA_Cart $cart, $discount_code = '' ) {
+function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
     ob_start();
-    $items = $cart->get_items();
-    $total = $cart->get_total( $discount_code );
+    $items = $cart->get_items_with_discounts( $discount_codes );
+    $total = $cart->get_total( $discount_codes );
     if ( $items ) {
         ?>
         <table class="tta-checkout-summary">
@@ -356,11 +378,11 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_code = '' ) {
             </thead>
             <tbody>
                 <?php foreach ( $items as $it ) : ?>
-                    <?php $sub = $it['quantity'] * $it['price']; ?>
+                    <?php $sub = $it['quantity'] * $it['final_price']; ?>
                     <tr>
                         <td><?php echo esc_html( $it['ticket_name'] ); ?></td>
                         <td><?php echo intval( $it['quantity'] ); ?></td>
-                        <td><?php echo esc_html( number_format( $it['price'], 2 ) ); ?></td>
+                        <td><?php echo esc_html( number_format( $it['final_price'], 2 ) ); ?></td>
                         <td><?php echo esc_html( number_format( $sub, 2 ) ); ?></td>
                     </tr>
                 <?php endforeach; ?>
