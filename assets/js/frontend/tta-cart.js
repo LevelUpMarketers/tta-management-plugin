@@ -63,6 +63,7 @@ jQuery(function($){
       setTimeout(function(){
         $('.tta-admin-progress-spinner-svg').fadeOut(200);
         if ( res.success ) {
+
           if($cartWrap.length){
             $cartWrap.html(res.data.html).fadeTo(200,1);
           }
