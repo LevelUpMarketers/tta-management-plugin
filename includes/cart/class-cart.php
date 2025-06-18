@@ -259,6 +259,8 @@ class TTA_Cart {
       [ 'cart_id' => $this->cart_id, 'ticket_id' => $ticket_id ],
       [ '%d','%d' ]
     );
+
+    $this->prune_discount_codes();
   }
 
   /**
@@ -293,6 +295,25 @@ class TTA_Cart {
     );
     foreach ( $expired as $row ) {
       $this->remove_item( intval( $row['ticket_id'] ) );
+    }
+  }
+
+  protected function prune_discount_codes() {
+    if ( empty( $_SESSION['tta_discount_codes'] ) ) {
+      return;
+    }
+    $codes = array_map( 'strtolower', (array) $_SESSION['tta_discount_codes'] );
+    $active = [];
+    foreach ( $this->get_raw_items() as $row ) {
+      $info = tta_parse_discount_data( $row['discountcode'] );
+      if ( $info['code'] ) {
+        $active[] = strtolower( $info['code'] );
+      }
+    }
+    $active = array_unique( $active );
+    $_SESSION['tta_discount_codes'] = array_values( array_intersect( $codes, $active ) );
+    if ( empty( $_SESSION['tta_discount_codes'] ) ) {
+      unset( $_SESSION['tta_discount_codes'] );
     }
   }
 
@@ -394,6 +415,7 @@ class TTA_Cart {
       [ 'cart_id' => $this->cart_id ],
       [ '%d' ]
     );
+    $this->prune_discount_codes();
   }
 
   /**

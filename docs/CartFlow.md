@@ -23,6 +23,7 @@ This document summarizes the current logic around the cart and checkout process 
     - Timers calculate remaining time from the expiration timestamp so they stay accurate when the tab is hidden.
     - Timers restart after any AJAX update or when the page regains focus.
    - Quantities and discount codes are updated via the `tta_update_cart` AJAX endpoint. This calls `TTA_Cart::update_quantity()` and stores applied codes in the session.
+   - When all tickets for an event are removed, any related discount codes are automatically cleared from the session.
 
 3. **Checkout**
    - The **Checkout Page** template performs checkout when the form is submitted (`tta_do_checkout`).
@@ -30,7 +31,7 @@ This document summarizes the current logic around the cart and checkout process 
    - Checkout displays a read-only summary table that mirrors the cart layout with tooltips, countdown timers, and a list of active discount codes below the total.
    - Countdown timers run just like on the cart page. If a timer reaches zero the item is removed and totals update automatically.
    - A total is calculated with any discount code applied. Payment details are sent to `TTA_AuthorizeNet_API::charge()`.
-   - On success, `TTA_Cart::finalize_purchase()` logs the transaction, clears the cart tables, and triggers the `tta_checkout_complete` action. Inventory has already been reserved when items were added.
+   - On success, `TTA_Cart::finalize_purchase()` logs the transaction, clears the cart tables, removes all discount codes, and triggers the `tta_checkout_complete` action. Inventory has already been reserved when items were added.
 
 4. **Cleanup**
    - `TTA_Cart_Cleanup` schedules an hourly task and also runs on checkout completion to remove expired cart rows.

@@ -55,8 +55,6 @@
 .tta-discount-feedback { display:none; margin-left:10px; }
 .tta-active-discounts { background:#f7f7f7; }
 .tta-discount-tag { display:inline-block; margin-right:8px; }
-.tta-discount-tag button { background:none; border:none; cursor:pointer; }
-.tta-discount-tag img { width:12px; height:12px; vertical-align:middle; }
 
 .tta-ticket-notice {
   color: #b00;
