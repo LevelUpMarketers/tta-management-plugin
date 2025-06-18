@@ -423,12 +423,29 @@ class TTA_Cart {
    *
    * This basic implementation simply empties the cart.
    * Hooked listeners can handle ticket delivery or payment processing.
+   *
+   * @param string $transaction_id Authorize.Net transaction ID.
+   * @param float  $amount         Charged amount.
+   * @param array  $attendees      Optional attendee info keyed by ticket ID.
    */
-  public function finalize_purchase( $transaction_id = '', $amount = 0 ) {
+  public function finalize_purchase( $transaction_id = '', $amount = 0, array $attendees = [] ) {
     global $wpdb;
 
     $discount_codes = $_SESSION['tta_discount_codes'] ?? [];
     $items          = $this->get_items_with_discounts( $discount_codes );
+
+    $att_map        = [];
+    foreach ( $attendees as $tid => $rows ) {
+      $tid = intval( $tid );
+      foreach ( (array) $rows as $row ) {
+        $att_map[ $tid ][] = [
+          'first_name' => tta_sanitize_text_field( $row['first_name'] ?? '' ),
+          'last_name'  => tta_sanitize_text_field( $row['last_name'] ?? '' ),
+          'email'      => tta_sanitize_email( $row['email'] ?? '' ),
+        ];
+      }
+    }
+
     $discount_total = 0;
     $total_before   = 0;
     $total_after    = 0;
@@ -453,6 +470,7 @@ class TTA_Cart {
       $total_after  += $after;
       $item['discount_used']  = $item['discount_applied'] ? 1 : 0;
       $item['discount_saved'] = round( $before - $after, 2 );
+      $item['attendees']      = $att_map[ intval( $item['ticket_id'] ) ] ?? [];
     }
     unset( $item );
 

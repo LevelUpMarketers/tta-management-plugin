@@ -51,14 +51,26 @@ jQuery(function($){
     payload.action = 'tta_update_cart';
     payload.nonce  = tta_ajax.nonce;
 
-    $('#tta-cart-container').fadeTo(200, 0.3);
+    var $cartWrap    = $('#tta-cart-container');
+    var $summaryWrap = $('#tta-checkout-container');
+    var $target      = $cartWrap.length ? $cartWrap : $summaryWrap;
+    if($target.length){
+      $target.fadeTo(200, 0.3);
+    }
     $('.tta-admin-progress-spinner-svg').css({opacity:1,display:'inline-block'});
 
     $.post( tta_ajax.ajax_url, payload, function(res){
       setTimeout(function(){
         $('.tta-admin-progress-spinner-svg').fadeOut(200);
         if ( res.success ) {
-          $('#tta-cart-container').html(res.data.html).fadeTo(200,1);
+
+          if($cartWrap.length){
+            $cartWrap.html(res.data.html).fadeTo(200,1);
+          }
+          if($summaryWrap.length){
+            $summaryWrap.html(res.data.summary).fadeTo(200,1);
+          }
+
           if(res.data.message){
             $('.tta-discount-feedback').text(res.data.message).fadeIn(200).delay(4000).fadeOut(200);
           }
@@ -68,7 +80,7 @@ jQuery(function($){
           });
         } else {
           alert(res.data.message || 'Error updating cart.');
-          $('#tta-cart-container').fadeTo(200,1);
+          if($target.length){ $target.fadeTo(200,1); }
         }
         startTimers();
         updateApplyBtn();

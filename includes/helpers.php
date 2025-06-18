@@ -399,6 +399,7 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
     }
     if ( $items ) {
         ?>
+        <div id="tta-checkout-container">
         <table class="tta-checkout-summary">
             <thead>
                 <tr>
@@ -500,10 +501,62 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                 <?php endif; ?>
             </tfoot>
         </table>
+        </div>
         <?php
     } else {
         echo '<p>' . esc_html__( 'Your cart is empty.', 'tta' ) . '</p>';
     }
+    return trim( ob_get_clean() );
+}
+
+/**
+ * Render attendee input fields grouped by event for checkout.
+ *
+ * @param TTA_Cart $cart Cart instance.
+ * @return string        HTML markup with attendee fields.
+ */
+function tta_render_attendee_fields( TTA_Cart $cart ) {
+    $items = $cart->get_items();
+    if ( ! $items ) {
+        return '';
+    }
+
+    $groups = [];
+    foreach ( $items as $row ) {
+        $eid = $row['event_ute_id'];
+        if ( ! isset( $groups[ $eid ] ) ) {
+            $groups[ $eid ] = [
+                'event_name' => $row['event_name'],
+                'page_id'    => $row['page_id'],
+                'tickets'    => [],
+            ];
+        }
+        $groups[ $eid ]['tickets'][] = $row;
+    }
+
+    ob_start();
+    echo '<div class="tta-attendee-fields">';
+    foreach ( $groups as $grp ) {
+        echo '<div class="tta-event-group">';
+        echo '<h4><a href="' . esc_url( get_permalink( $grp['page_id'] ) ) . '">' . esc_html( $grp['event_name'] ) . '</a></h4>';
+        foreach ( $grp['tickets'] as $t ) {
+            $qty = intval( $t['quantity'] );
+            for ( $i = 0; $i < $qty; $i++ ) {
+                echo '<div class="tta-attendee-row">';
+                echo '<strong>' . esc_html( $t['ticket_name'] ) . ' #' . ( $i + 1 ) . '</strong><br />';
+                $base = 'attendees[' . intval( $t['ticket_id'] ) . '][' . $i . ']';
+                echo '<label>' . esc_html__( 'First Name', 'tta' ) . '<br />';
+                echo '<input type="text" name="' . esc_attr( $base . '[first_name]' ) . '" required></label> ';
+                echo '<label>' . esc_html__( 'Last Name', 'tta' ) . '<br />';
+                echo '<input type="text" name="' . esc_attr( $base . '[last_name]' ) . '" required></label> ';
+                echo '<label>' . esc_html__( 'Email', 'tta' ) . '<br />';
+                echo '<input type="email" name="' . esc_attr( $base . '[email]' ) . '" required></label>';
+                echo '</div>';
+            }
+        }
+        echo '</div>';
+    }
+    echo '</div>';
     return trim( ob_get_clean() );
 }
 
