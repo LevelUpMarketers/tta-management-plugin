@@ -16,8 +16,6 @@ $checkout_error = '';
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] ) ) {
     check_admin_referer( 'tta_checkout_action', 'tta_checkout_nonce' );
 
-    $cart->lock_items();
-
     $discount_codes = $_SESSION['tta_discount_codes'] ?? [];
     $cart_changed   = $cart->sync_with_inventory();
     $amount         = $cart->get_total( $discount_codes );
