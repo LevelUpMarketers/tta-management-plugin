@@ -198,6 +198,63 @@ class CartTest extends TestCase {
         $this->assertSame(2, $wpdb->items[1]);
     }
 
+    public function test_ajax_add_to_cart_merges_items(){
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $items = [1 => 1];
+            public $insert_id = 1;
+            public function get_row($q,$o=ARRAY_A){
+                return [
+                    'event_ute_id'=>'ev1',
+                    'baseeventcost'=>10,
+                    'discountedmembercost'=>8,
+                    'premiummembercost'=>7
+                ];
+            }
+            public function get_var($q){
+                if (strpos($q,'ticketlimit')!==false) return 5;
+                if (strpos($q,'event_ute_id')!==false) return 'ev1';
+                return null;
+            }
+            public function get_results($q,$o=ARRAY_A){
+                if(strpos($q,'tta_cart_items')!==false){
+                    $out=[]; foreach($this->items as $id=>$qty){ $out[]=['ticket_id'=>$id,'quantity'=>$qty,'event_ute_id'=>'ev1']; }
+                    return $out;
+                }
+                return [];
+            }
+            public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%d/',$v,$q,1); $q=preg_replace('/%s/',$v,$q,1);} return $q; }
+            public function query($q){ return 1; }
+            public function insert($t,$d,$f){ if(isset($d['ticket_id'])){ $this->items[$d['ticket_id']]=$d['quantity']; } }
+            public function update($t,$d,$w,$f1=null,$f2=null){ if(isset($w['ticket_id'])){ $this->items[$w['ticket_id']]=$d['quantity']; } }
+            public function delete($t,$w,$f){ unset($this->items[$w['ticket_id']]); }
+        };
+        if(!function_exists('check_ajax_referer')){ function check_ajax_referer($a,$b){} }
+        if(!function_exists('wp_send_json_success')){ function wp_send_json_success($d){ $GLOBALS['_last_json']=['success'=>true,'data'=>$d]; return $GLOBALS['_last_json']; } }
+        if(!function_exists('wp_send_json_error')){ function wp_send_json_error($d){ $GLOBALS['_last_json']=['success'=>false,'data'=>$d]; return $GLOBALS['_last_json']; } }
+        if(!function_exists('add_action')){ function add_action($t,$c){} }
+        if(!function_exists('is_user_logged_in')){ function is_user_logged_in(){ return false; } }
+        if(!function_exists('wp_generate_uuid4')){ function wp_generate_uuid4(){ return 'x'; } }
+        if(!function_exists('current_time')){ function current_time($t='mysql'){ return 'now'; } }
+        if(!function_exists('get_current_user_id')){ function get_current_user_id(){ return 0; } }
+
+        require_once __DIR__ . '/../includes/helpers.php';
+        require_once __DIR__ . '/../includes/cart/class-cart.php';
+        require_once __DIR__ . '/../includes/ajax/handlers/class-ajax-cart.php';
+
+        $_POST['items'] = json_encode([
+            ['ticket_id'=>1,'quantity'=>1],
+            ['ticket_id'=>2,'quantity'=>1]
+        ]);
+        $_POST['nonce'] = 'n';
+
+        TTA_Ajax_Cart::ajax_add_to_cart();
+
+        $this->assertSame(1, $wpdb->items[1]);
+        $this->assertSame(1, $wpdb->items[2]);
+    }
+
     public function test_ticket_controls_disabled_when_sold_out(){
         $tickets = [
             ['id'=>1,'ticket_name'=>'VIP','ticketlimit'=>0,'baseeventcost'=>10,'discountedmembercost'=>8,'premiummembercost'=>7],

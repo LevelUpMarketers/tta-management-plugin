@@ -39,10 +39,12 @@ class TTA_Ajax_Cart {
 
         $cart = new TTA_Cart();
 
-        $existing = [];
+        $existing_events  = [];
+        $existing_tickets = [];
         foreach ( $cart->get_items() as $row ) {
             $e = $row['event_ute_id'];
-            $existing[ $e ] = ( $existing[ $e ] ?? 0 ) + intval( $row['quantity'] );
+            $existing_events[ $e ] = ( $existing_events[ $e ] ?? 0 ) + intval( $row['quantity'] );
+            $existing_tickets[ intval( $row['ticket_id'] ) ] = intval( $row['quantity'] );
         }
 
         foreach ( $items as $it ) {
@@ -62,11 +64,15 @@ class TTA_Ajax_Cart {
                 continue;
             }
 
-            $event_ute = $ticket['event_ute_id'];
-            $purchased = is_user_logged_in() ? tta_get_purchased_ticket_count( get_current_user_id(), $event_ute ) : 0;
-            $allowed   = max( 0, 2 - $purchased - ( $existing[ $event_ute ] ?? 0 ) );
-            if ( $qty > $allowed ) {
-                $qty = $allowed;
+            $event_ute     = $ticket['event_ute_id'];
+            $existing_qty  = $existing_tickets[ $ticket_id ] ?? 0;
+            $event_total   = $existing_events[ $event_ute ] ?? 0;
+            $purchased     = is_user_logged_in() ? tta_get_purchased_ticket_count( get_current_user_id(), $event_ute ) : 0;
+            $allowed_total = max( 0, 2 - $purchased - $event_total );
+            $diff          = $qty - $existing_qty;
+            if ( $diff > 0 && $diff > $allowed_total ) {
+                $qty  = $existing_qty + $allowed_total;
+                $diff = $allowed_total;
             }
 
             if ( 'basic' === $membership_level ) {
@@ -81,7 +87,8 @@ class TTA_Ajax_Cart {
                 $cart->remove_item( $ticket_id );
             } else {
                 $cart->add_item( $ticket_id, $qty, $price );
-                $existing[ $event_ute ] = ( $existing[ $event_ute ] ?? 0 ) + $qty;
+                $existing_events[ $event_ute ] = ( $existing_events[ $event_ute ] ?? 0 ) + max( 0, $diff );
+                $existing_tickets[ $ticket_id ] = $qty;
             }
         }
 
