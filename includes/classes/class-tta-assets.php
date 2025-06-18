@@ -182,6 +182,30 @@ class TTA_Assets {
 
         // 4) Checkout Page template assets
         if ( function_exists( 'is_page_template' ) && is_page_template( 'checkout-page-template.php' ) ) {
+            wp_enqueue_style(
+                'tta-cartpage-css',
+                TTA_PLUGIN_URL . 'assets/css/frontend/cart-page.css',
+                [ 'tta-frontend-css' ],
+                TTA_PLUGIN_VERSION
+            );
+
+            wp_enqueue_script(
+                'tta-cart-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/tta-cart.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+
+            wp_localize_script(
+                'tta-cart-js',
+                'tta_ajax',
+                [
+                    'ajax_url' => admin_url( 'admin-ajax.php' ),
+                    'nonce'    => wp_create_nonce( 'tta_frontend_nonce' ),
+                ]
+            );
+
             wp_enqueue_script(
                 'tta-checkout-js',
                 TTA_PLUGIN_URL . 'assets/js/frontend/checkout-expiration-mask.js',
