@@ -44,7 +44,7 @@ jQuery(function($){
     return data;
   }
 
-  function sendCartUpdate(extra){
+  function sendCartUpdate(extra, done){
     var payload = collectCartData();
     $.extend(true, payload, extra);
     clearTimers();
@@ -72,6 +72,7 @@ jQuery(function($){
         }
         startTimers();
         updateApplyBtn();
+        if (typeof done === 'function') { done(res); }
       }, 1000);
     }, 'json');
   }
@@ -107,6 +108,17 @@ jQuery(function($){
   }
   function startTimers(){
     clearTimers();
+    var pendingRemove = {};
+    var processing = false;
+    function processPending(){
+      if(processing || $.isEmptyObject(pendingRemove)) return;
+      processing = true;
+      sendCartUpdate({cart_qty: pendingRemove}, function(){
+        processing = false;
+        pendingRemove = {};
+        processPending();
+      });
+    }
     $('.tta-cart-table tbody tr, .tta-checkout-summary tbody tr').each(function(){
       var $row = $(this);
       var expireAt = parseInt($row.data('expire-at'),10) * 1000;
@@ -116,16 +128,10 @@ jQuery(function($){
         var remain = Math.floor((expireAt - Date.now())/1000);
         if(remain <= 0){
           clearInterval(intv);
-          var btn = $row.find('.tta-remove-item');
-          if(btn.length){
-            btn.click();
-          }else{
-            var id = $row.data('ticket');
-            if(id){
-              var data = { cart_qty: {} };
-              data.cart_qty[id] = 0;
-              sendCartUpdate(data);
-            }
+          var id = $row.data('ticket');
+          if(id){
+            pendingRemove[id] = 0;
+            processPending();
           }
           return;
         }

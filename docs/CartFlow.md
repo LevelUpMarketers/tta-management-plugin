@@ -20,6 +20,7 @@ This document summarizes the current logic around the cart and checkout process 
    - The Price column always shows the base cost (e.g. `$20 x 2` when quantity is two). Subtotals strike through the original amount when discounts are applied.
    - Quantity updates that exceed the two ticket limit display an inline notice beside the input.
    - Countdown timers remove items immediately when they expire.
+    - Expired items are batched into a single AJAX request so multiple events expiring at once do not overload the database.
     - Timers calculate remaining time from the expiration timestamp so they stay accurate when the tab is hidden.
     - Timers restart after any AJAX update or when the page regains focus.
    - Quantities and discount codes are updated via the `tta_update_cart` AJAX endpoint. This calls `TTA_Cart::update_quantity()` and stores applied codes in the session.
