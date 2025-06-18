@@ -73,8 +73,9 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
             $checkout_error = $result['error'];
         }
     }
+    // Display any payment error below
     if ( $checkout_error ) {
-        $cart->resume_items();
+        // countdowns continue normally; no special handling needed
     }
 }
 

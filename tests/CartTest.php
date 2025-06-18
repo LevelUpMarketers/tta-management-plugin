@@ -279,39 +279,4 @@ class CartTest extends TestCase {
         $this->assertStringContainsString('disabled', $html);
     }
 
-    public function test_lock_and_resume_preserves_time(){
-        global $wpdb, $testNow;
-        $testNow = time();
-        $wpdb = new class($testNow) {
-            public $prefix = 'wp_';
-            public $updates = [];
-            private $now;
-            public function __construct($n){ $this->now=$n; }
-            public function get_row($q,$o=ARRAY_A){ return null; }
-            public function get_results($q,$o=ARRAY_A){
-                if(strpos($q,'tta_cart_items')!==false){
-                    return [['ticket_id'=>1,'expires_at'=>date('Y-m-d H:i:s',$this->now+100)]];
-                }
-                return [];
-            }
-            public function get_var($q){ return 0; }
-            public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%d/',$v,$q,1); $q=preg_replace('/%s/',$v,$q,1);} return $q; }
-            public function update($t,$d,$w,$f1=null,$f2=null){ $this->updates[]=['table'=>$t,'data'=>$d,'where'=>$w]; }
-        };
-        if(!function_exists('current_time')){ function current_time($t='mysql'){ global $testNow; return date('Y-m-d H:i:s',$testNow); } }
-        if(!function_exists('wp_generate_uuid4')){ function wp_generate_uuid4(){ return 'x'; } }
-        if(!function_exists('get_current_user_id')){ function get_current_user_id(){ return 0; } }
-
-        require_once __DIR__.'/../includes/cart/class-cart.php';
-
-        $_SESSION = [];
-        $cart = new TTA_Cart();
-        $cart->lock_items();
-        $this->assertNotEmpty($_SESSION['tta_lock_remaining']);
-        $testNow += 20;
-        $cart->resume_items();
-        $this->assertNotEmpty($wpdb->updates);
-        $expire = $wpdb->updates[count($wpdb->updates)-1]['data']['expires_at'];
-        $this->assertEquals(date('Y-m-d H:i:s',$testNow + 80), $expire);
-    }
 }

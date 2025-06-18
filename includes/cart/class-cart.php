@@ -283,9 +283,6 @@ class TTA_Cart {
 
   protected function expire_items() {
     $this->ensure_cart( false );
-    if ( ! empty( $_SESSION['tta_cart_locked'] ) ) {
-      return;
-    }
     $expired = $this->wpdb->get_results(
       $this->wpdb->prepare(
         "SELECT ticket_id FROM {$this->items_table} WHERE cart_id = %d AND expires_at <= %s",
@@ -361,99 +358,6 @@ class TTA_Cart {
     return $total;
   }
 
-  /**
-   * Extend expiration time for all items in the cart.
-   *
-   * @param int $seconds Seconds from now to set new expiration.
-   */
-  public function extend_expiration( $seconds ) {
-    $this->ensure_cart( false );
-    $expire = date( 'Y-m-d H:i:s', time() + absint( $seconds ) );
-    $this->wpdb->update(
-      $this->items_table,
-      [ 'expires_at' => $expire ],
-      [ 'cart_id' => $this->cart_id ],
-      [ '%s' ],
-      [ '%d' ]
-    );
-    $this->wpdb->update(
-      $this->carts_table,
-      [ 'expires_at' => $expire ],
-      [ 'id' => $this->cart_id ],
-      [ '%s' ],
-      [ '%d' ]
-    );
-  }
-
-  /**
-   * Freeze countdowns when the user begins checkout.
-   */
-  public function lock_items() {
-    $this->ensure_cart( false );
-    if ( empty( $this->cart_id ) ) {
-      return;
-    }
-
-    $_SESSION['tta_cart_locked'] = true;
-    $_SESSION['tta_lock_remaining'] = [];
-
-    $items = $this->get_raw_items();
-    $future = date( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
-    foreach ( $items as $row ) {
-      $remain = max( 0, strtotime( $row['expires_at'] ) - time() );
-      $_SESSION['tta_lock_remaining'][ intval( $row['ticket_id'] ) ] = $remain;
-    }
-
-    $this->wpdb->update(
-      $this->items_table,
-      [ 'expires_at' => $future ],
-      [ 'cart_id' => $this->cart_id ],
-      [ '%s' ],
-      [ '%d' ]
-    );
-    $this->wpdb->update(
-      $this->carts_table,
-      [ 'expires_at' => $future ],
-      [ 'id' => $this->cart_id ],
-      [ '%s' ],
-      [ '%d' ]
-    );
-  }
-
-  /**
-   * Resume countdowns after a failed checkout.
-   */
-  public function resume_items() {
-    $this->ensure_cart( false );
-    if ( empty( $this->cart_id ) ) {
-      return;
-    }
-
-    $remain = $_SESSION['tta_lock_remaining'] ?? [];
-    if ( $remain ) {
-      foreach ( $remain as $ticket => $sec ) {
-        $expire = date( 'Y-m-d H:i:s', time() + absint( $sec ) );
-        $this->wpdb->update(
-          $this->items_table,
-          [ 'expires_at' => $expire ],
-          [ 'cart_id' => $this->cart_id, 'ticket_id' => intval( $ticket ) ],
-          [ '%s' ],
-          [ '%d','%d' ]
-        );
-      }
-      $max = max( $remain );
-      $this->wpdb->update(
-        $this->carts_table,
-        [ 'expires_at' => date( 'Y-m-d H:i:s', time() + absint( $max ) ) ],
-        [ 'id' => $this->cart_id ],
-        [ '%s' ],
-        [ '%d' ]
-      );
-    } else {
-      $this->extend_expiration( 300 );
-    }
-    unset( $_SESSION['tta_cart_locked'], $_SESSION['tta_lock_remaining'] );
-  }
 
   /**
    * Ensure cart quantities reflect remaining ticket inventory.
@@ -542,7 +446,6 @@ class TTA_Cart {
 
     unset( $_SESSION['tta_cart_session'] );
     unset( $_SESSION['tta_discount_codes'] );
-    unset( $_SESSION['tta_cart_locked'], $_SESSION['tta_lock_remaining'] );
 
     do_action( 'tta_checkout_complete', $this->cart_id );
   }
