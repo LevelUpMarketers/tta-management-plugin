@@ -14,17 +14,27 @@ This document summarizes the current logic around the cart and checkout process 
 
 2. **Viewing the Cart**
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
-   - Each cart row now shows the linked event name above the ticket type along with a live five minute countdown.
+   - A dedicated **Ticket Reserved for…** column displays a live five minute countdown for each row.
+   - The Quantity column enforces a maximum of two tickets per event in total.
+   - Discount codes are applied via an **Apply Discount** button. Multiple codes can be active and are split across matching event tickets. Active codes list the related event name in parentheses and appear beneath the cart total for easy removal.
+   - The Price column always shows the base cost (e.g. `$20 x 2` when quantity is two). Subtotals strike through the original amount when discounts are applied.
+   - Quantity updates that exceed the two ticket limit display an inline notice beside the input.
    - Countdown timers remove items immediately when they expire.
+    - Expired items are batched into a single AJAX request so multiple events expiring at once do not overload the database.
     - Timers calculate remaining time from the expiration timestamp so they stay accurate when the tab is hidden.
     - Timers restart after any AJAX update or when the page regains focus.
-   - Quantities and discount codes are updated via the `tta_update_cart` AJAX endpoint. This calls `TTA_Cart::update_quantity()` and stores a discount code in the session.
+   - Quantities and discount codes are updated via the `tta_update_cart` AJAX endpoint. This calls `TTA_Cart::update_quantity()` and stores applied codes in the session.
+   - When all tickets for an event are removed, any related discount codes are automatically cleared from the session.
 
 3. **Checkout**
    - The **Checkout Page** template performs checkout when the form is submitted (`tta_do_checkout`).
    - `TTA_Cart::sync_with_inventory()` ensures requested quantities are still available. If inventory changed, a notice is stored and the user is redirected back to the cart.
+   - Checkout displays a read-only summary table that mirrors the cart layout with tooltips, countdown timers, and a list of active discount codes below the total.
+   - Attendee fields collect a first name, last name, and email for each ticket. Inputs are grouped by event beside the billing form.
+   - Countdown timers run just like on the cart page. If a timer reaches zero the item is removed and totals update automatically.
+   - The `tta_update_cart` AJAX endpoint returns updated markup for both the cart table and checkout summary so timers can refresh either view.
    - A total is calculated with any discount code applied. Payment details are sent to `TTA_AuthorizeNet_API::charge()`.
-   - On success, `TTA_Cart::finalize_purchase()` logs the transaction, clears the cart tables, and triggers the `tta_checkout_complete` action. Inventory has already been reserved when items were added.
+   - On success, `TTA_Cart::finalize_purchase()` logs the transaction, clears the cart tables, removes all discount codes, and triggers the `tta_checkout_complete` action. Inventory has already been reserved when items were added.
 
 4. **Cleanup**
    - `TTA_Cart_Cleanup` schedules an hourly task and also runs on checkout completion to remove expired cart rows.

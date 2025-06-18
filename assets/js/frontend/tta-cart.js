@@ -36,7 +36,7 @@ jQuery(function($){
   });
 
   function collectCartData(){
-    var data = { cart_qty: {}, discount_code: $('#tta-discount-code').val() || '' };
+    var data = { cart_qty: {} };
     $('.tta-cart-qty').each(function(){
       var id = $(this).attr('name').match(/\d+/)[0];
       data.cart_qty[id] = $(this).val();
@@ -44,35 +44,72 @@ jQuery(function($){
     return data;
   }
 
-  function sendCartUpdate(){
+  function sendCartUpdate(extra, done){
     var payload = collectCartData();
+    $.extend(true, payload, extra);
     clearTimers();
     payload.action = 'tta_update_cart';
     payload.nonce  = tta_ajax.nonce;
 
-    $('#tta-cart-container').fadeTo(200, 0.3);
+    var $cartWrap    = $('#tta-cart-container');
+    var $summaryWrap = $('#tta-checkout-container');
+    var $target      = $cartWrap.length ? $cartWrap : $summaryWrap;
+    if($target.length){
+      $target.fadeTo(200, 0.3);
+    }
     $('.tta-admin-progress-spinner-svg').css({opacity:1,display:'inline-block'});
 
     $.post( tta_ajax.ajax_url, payload, function(res){
       setTimeout(function(){
         $('.tta-admin-progress-spinner-svg').fadeOut(200);
         if ( res.success ) {
-          $('#tta-cart-container').html(res.data.html).fadeTo(200,1);
+          if($cartWrap.length){
+            $cartWrap.html(res.data.html).fadeTo(200,1);
+          }
+          if($summaryWrap.length){
+            $summaryWrap.html(res.data.summary).fadeTo(200,1);
+          }
+          if(res.data.message){
+            $('.tta-discount-feedback').text(res.data.message).fadeIn(200).delay(4000).fadeOut(200);
+          }
+          $('.tta-ticket-notice.tt-show').each(function(){
+            var $n = $(this);
+            setTimeout(function(){ $n.fadeOut(200); }, 4000);
+          });
         } else {
           alert(res.data.message || 'Error updating cart.');
-          $('#tta-cart-container').fadeTo(200,1);
+          if($target.length){ $target.fadeTo(200,1); }
         }
         startTimers();
+        updateApplyBtn();
+        if (typeof done === 'function') { done(res); }
       }, 1000);
     }, 'json');
   }
 
-  $(document).on('change', '.tta-cart-qty, #tta-discount-code', sendCartUpdate);
+  $(document).on('change', '.tta-cart-qty', function(){ sendCartUpdate({}); });
+
+  function updateApplyBtn(){
+    var hasCode = $.trim($('#tta-discount-code').val()) !== '';
+    $('#tta-apply-discount').prop('disabled', !hasCode);
+  }
+  $(document).on('input', '#tta-discount-code', updateApplyBtn);
+  $(document).on('click', '#tta-apply-discount', function(){
+    var code = $('#tta-discount-code').val();
+    $('#tta-discount-code').val('');
+    updateApplyBtn();
+    sendCartUpdate({discount_code: code});
+  });
+
+  $(document).on('click', '.tta-remove-discount', function(){
+    var code = $(this).data('code');
+    sendCartUpdate({remove_code: code});
+  });
 
   $(document).on('click', '.tta-remove-item', function(){
     var id = $(this).data('ticket');
     $('input[name="cart_qty['+id+']"]').val(0);
-    sendCartUpdate();
+    sendCartUpdate({});
   });
 
   function clearTimers(){
@@ -81,7 +118,18 @@ jQuery(function($){
   }
   function startTimers(){
     clearTimers();
-    $('.tta-cart-table tbody tr').each(function(){
+    var pendingRemove = {};
+    var processing = false;
+    function processPending(){
+      if(processing || $.isEmptyObject(pendingRemove)) return;
+      processing = true;
+      sendCartUpdate({cart_qty: pendingRemove}, function(){
+        processing = false;
+        pendingRemove = {};
+        processPending();
+      });
+    }
+    $('.tta-cart-table tbody tr, .tta-checkout-summary tbody tr').each(function(){
       var $row = $(this);
       var expireAt = parseInt($row.data('expire-at'),10) * 1000;
       var $cd = $row.find('.tta-countdown');
@@ -90,7 +138,11 @@ jQuery(function($){
         var remain = Math.floor((expireAt - Date.now())/1000);
         if(remain <= 0){
           clearInterval(intv);
-          $row.find('.tta-remove-item').click();
+          var id = $row.data('ticket');
+          if(id){
+            pendingRemove[id] = 0;
+            processPending();
+          }
           return;
         }
         var m = Math.floor(remain/60);
@@ -104,9 +156,11 @@ jQuery(function($){
   }
 
   startTimers();
+  updateApplyBtn();
   document.addEventListener('visibilitychange', function(){
     if(!document.hidden){
       startTimers();
     }
   });
+
 });

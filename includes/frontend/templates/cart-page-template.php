@@ -14,7 +14,7 @@ $cart = new TTA_Cart();
 
 get_header();
 
-$discount_code = $_SESSION['tta_discount_code'] ?? '';
+$discount_codes = $_SESSION['tta_discount_codes'] ?? [];
 $notice        = tta_get_cart_notice();
 
 $items = $cart->get_items();
@@ -25,7 +25,7 @@ $items = $cart->get_items();
     <?php endif; ?>
     <form id="tta-cart-form">
         <div id="tta-cart-container">
-            <?php echo tta_render_cart_contents( $cart, $discount_code ); ?>
+            <?php echo tta_render_cart_contents( $cart, $discount_codes, [] ); ?>
         </div>
     </form>
     <p>
