@@ -16,7 +16,7 @@ This document summarizes the current logic around the cart and checkout process 
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
    - A dedicated **Ticket Reserved for…** column displays a live five minute countdown for each row.
    - The Quantity column enforces a maximum of two tickets per event in total.
-   - Discount codes are applied via an **Apply Discount** button. Multiple codes can be active and are split across matching event tickets. Active codes list the related event name in parentheses.
+   - Discount codes are applied via an **Apply Discount** button. Multiple codes can be active and are split across matching event tickets. Active codes list the related event name in parentheses and appear beneath the cart total for easy removal.
    - The Price column always shows the base cost (e.g. `$20 x 2` when quantity is two). Subtotals strike through the original amount when discounts are applied.
    - Quantity updates that exceed the two ticket limit display an inline notice beside the input.
    - Countdown timers remove items immediately when they expire.
@@ -27,6 +27,7 @@ This document summarizes the current logic around the cart and checkout process 
 3. **Checkout**
    - The **Checkout Page** template performs checkout when the form is submitted (`tta_do_checkout`).
    - `TTA_Cart::sync_with_inventory()` ensures requested quantities are still available. If inventory changed, a notice is stored and the user is redirected back to the cart.
+   - Checkout displays a read-only summary table that mirrors the cart layout with tooltips, countdown timers, and a list of active discount codes below the total.
    - A total is calculated with any discount code applied. Payment details are sent to `TTA_AuthorizeNet_API::charge()`.
    - On success, `TTA_Cart::finalize_purchase()` logs the transaction, clears the cart tables, and triggers the `tta_checkout_complete` action. Inventory has already been reserved when items were added.
 

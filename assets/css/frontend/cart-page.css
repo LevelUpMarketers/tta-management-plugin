@@ -32,12 +32,19 @@
   margin-left: 10px;
 }
 
-.tta-remove-item {
-  background: none;
+.tta-remove-item,
+.tta-discount-tag button {
+  background: url("../../images/public/bin.svg") no-repeat center/16px 16px;
+  width: 24px;
+  height: 24px;
   border: none;
   cursor: pointer;
 }
-.tta-remove-item img { width:16px; height:16px; }
+.tta-remove-item:hover,
+.tta-discount-tag button:hover {
+  background-image: url("../../images/public/bin-white.svg");
+  background-color: #0073aa;
+}
 
 .tta-price-strike {
   text-decoration: line-through;
