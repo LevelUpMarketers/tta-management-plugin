@@ -46,7 +46,7 @@ jQuery(function($){
 
   function sendCartUpdate(extra){
     var payload = collectCartData();
-    $.extend(payload, extra);
+    $.extend(true, payload, extra);
     clearTimers();
     payload.action = 'tta_update_cart';
     payload.nonce  = tta_ajax.nonce;
@@ -116,7 +116,17 @@ jQuery(function($){
         var remain = Math.floor((expireAt - Date.now())/1000);
         if(remain <= 0){
           clearInterval(intv);
-          $row.find('.tta-remove-item').click();
+          var btn = $row.find('.tta-remove-item');
+          if(btn.length){
+            btn.click();
+          }else{
+            var id = $row.data('ticket');
+            if(id){
+              var data = { cart_qty: {} };
+              data.cart_qty[id] = 0;
+              sendCartUpdate(data);
+            }
+          }
           return;
         }
         var m = Math.floor(remain/60);
@@ -135,5 +145,9 @@ jQuery(function($){
     if(!document.hidden){
       startTimers();
     }
+  });
+
+  $(document).on('submit', '#tta-checkout-form', function(){
+    clearTimers();
   });
 });

@@ -16,6 +16,9 @@ $checkout_error = '';
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] ) ) {
     check_admin_referer( 'tta_checkout_action', 'tta_checkout_nonce' );
 
+    $cart->lock_items();
+    $_SESSION['tta_cart_locked'] = true;
+
     $discount_codes = $_SESSION['tta_discount_codes'] ?? [];
     $cart_changed   = $cart->sync_with_inventory();
     $amount         = $cart->get_total( $discount_codes );
@@ -70,6 +73,10 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
         } else {
             $checkout_error = $result['error'];
         }
+    }
+    if ( $checkout_error ) {
+        $cart->resume_items();
+        unset( $_SESSION['tta_cart_locked'] );
     }
 }
 

@@ -339,6 +339,44 @@ class TTA_Cart {
   }
 
   /**
+   * Extend expiration time for all items in the cart.
+   *
+   * @param int $seconds Seconds from now to set new expiration.
+   */
+  public function extend_expiration( $seconds ) {
+    $this->ensure_cart( false );
+    $expire = date( 'Y-m-d H:i:s', time() + absint( $seconds ) );
+    $this->wpdb->update(
+      $this->items_table,
+      [ 'expires_at' => $expire ],
+      [ 'cart_id' => $this->cart_id ],
+      [ '%s' ],
+      [ '%d' ]
+    );
+    $this->wpdb->update(
+      $this->carts_table,
+      [ 'expires_at' => $expire ],
+      [ 'id' => $this->cart_id ],
+      [ '%s' ],
+      [ '%d' ]
+    );
+  }
+
+  /**
+   * Lock the cart during checkout by extending expirations.
+   */
+  public function lock_items() {
+    $this->extend_expiration( 900 );
+  }
+
+  /**
+   * Resume countdowns after a failed checkout.
+   */
+  public function resume_items() {
+    $this->extend_expiration( 300 );
+  }
+
+  /**
    * Ensure cart quantities reflect remaining ticket inventory.
    *
    * Items with no stock are removed and quantities are reduced when
@@ -425,6 +463,7 @@ class TTA_Cart {
 
     unset( $_SESSION['tta_cart_session'] );
     unset( $_SESSION['tta_discount_codes'] );
+    unset( $_SESSION['tta_cart_locked'] );
 
     do_action( 'tta_checkout_complete', $this->cart_id );
   }

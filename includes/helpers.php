@@ -297,7 +297,7 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                 <?php foreach ( $items as $it ) : ?>
                     <?php $sub = $it['quantity'] * $it['final_price']; ?>
                     <?php $expire_at = strtotime( $it['expires_at'] ); ?>
-                    <tr data-expire-at="<?php echo esc_attr( $expire_at ); ?>">
+                    <tr data-expire-at="<?php echo esc_attr( $expire_at ); ?>" data-ticket="<?php echo esc_attr( $it['ticket_id'] ); ?>">
                         <td data-label="<?php echo esc_attr( 'Event' ); ?>">
                             <?php
                             $desc = '';
@@ -438,7 +438,7 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                 <?php foreach ( $items as $it ) : ?>
                     <?php $sub = $it['quantity'] * $it['final_price']; ?>
                     <?php $expire_at = strtotime( $it['expires_at'] ); ?>
-                    <tr data-expire-at="<?php echo esc_attr( $expire_at ); ?>">
+                    <tr data-expire-at="<?php echo esc_attr( $expire_at ); ?>" data-ticket="<?php echo esc_attr( $it['ticket_id'] ); ?>">
                         <td data-label="<?php echo esc_attr( 'Event' ); ?>">
                             <?php
                             $desc = '';

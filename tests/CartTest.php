@@ -63,6 +63,7 @@ class CartTest extends TestCase {
         $html = tta_render_cart_contents($cart,[],[]);
         $this->assertStringContainsString('post/55',$html);
         $this->assertStringContainsString('data-expire-at', $html);
+        $this->assertStringContainsString('data-ticket="1"', $html);
     }
 
     public function test_item_cleanup_queries(){
