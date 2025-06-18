@@ -12,6 +12,8 @@ class TTA_Ajax_Cart {
         add_action( 'wp_ajax_nopriv_tta_add_to_cart',[ __CLASS__, 'ajax_add_to_cart' ] );
         add_action( 'wp_ajax_tta_update_cart',      [ __CLASS__, 'ajax_update_cart' ] );
         add_action( 'wp_ajax_nopriv_tta_update_cart',[ __CLASS__, 'ajax_update_cart' ] );
+        add_action( 'wp_ajax_tta_lock_cart',        [ __CLASS__, 'ajax_lock_cart' ] );
+        add_action( 'wp_ajax_nopriv_tta_lock_cart', [ __CLASS__, 'ajax_lock_cart' ] );
     }
 
     public static function ajax_add_to_cart() {
@@ -149,6 +151,13 @@ class TTA_Ajax_Cart {
         }
         $html = tta_render_cart_contents( $cart, $_SESSION['tta_discount_codes'], $notices );
         wp_send_json_success( [ 'html' => $html, 'message' => $message ] );
+    }
+
+    public static function ajax_lock_cart() {
+        check_ajax_referer( 'tta_frontend_nonce', 'nonce' );
+        $cart = new TTA_Cart();
+        $cart->lock_items();
+        wp_send_json_success();
     }
 }
 
