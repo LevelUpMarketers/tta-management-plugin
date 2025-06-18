@@ -16,7 +16,9 @@ This document summarizes the current logic around the cart and checkout process 
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
    - A dedicated **Ticket Reserved for…** column displays a live five minute countdown for each row.
    - The Quantity column enforces a maximum of two tickets per event in total.
-   - Discount codes are applied via an **Apply Discount** button. Multiple codes can be active and are split across matching event tickets.
+   - Discount codes are applied via an **Apply Discount** button. Multiple codes can be active and are split across matching event tickets. Active codes list the related event name in parentheses.
+   - The Price column always shows the base cost (e.g. `$20 x 2` when quantity is two). Subtotals strike through the original amount when discounts are applied.
+   - Quantity updates that exceed the two ticket limit display an inline notice beside the input.
    - Countdown timers remove items immediately when they expire.
     - Timers calculate remaining time from the expiration timestamp so they stay accurate when the tab is hidden.
     - Timers restart after any AJAX update or when the page regains focus.

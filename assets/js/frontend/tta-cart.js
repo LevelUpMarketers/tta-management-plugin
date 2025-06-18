@@ -62,6 +62,10 @@ jQuery(function($){
           if(res.data.message){
             $('.tta-discount-feedback').text(res.data.message).fadeIn(200).delay(4000).fadeOut(200);
           }
+          $('.tta-ticket-notice.tt-show').each(function(){
+            var $n = $(this);
+            setTimeout(function(){ $n.fadeOut(200); }, 4000);
+          });
         } else {
           alert(res.data.message || 'Error updating cart.');
           $('#tta-cart-container').fadeTo(200,1);

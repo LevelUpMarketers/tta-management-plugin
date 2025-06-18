@@ -25,7 +25,7 @@ $items = $cart->get_items();
     <?php endif; ?>
     <form id="tta-cart-form">
         <div id="tta-cart-container">
-            <?php echo tta_render_cart_contents( $cart, $discount_codes ); ?>
+            <?php echo tta_render_cart_contents( $cart, $discount_codes, [] ); ?>
         </div>
     </form>
     <p>

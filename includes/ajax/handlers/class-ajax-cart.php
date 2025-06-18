@@ -103,8 +103,13 @@ class TTA_Ajax_Cart {
 
         $cart = new TTA_Cart();
 
+        $notices = [];
         foreach ( (array) ( $_POST['cart_qty'] ?? [] ) as $ticket_id => $qty ) {
-            $cart->update_quantity( intval( $ticket_id ), intval( $qty ) );
+            $posted = intval( $qty );
+            $final  = $cart->update_quantity( intval( $ticket_id ), $posted );
+            if ( $final < $posted ) {
+                $notices[ intval( $ticket_id ) ] = __( "We're sorry, there's a limit of two tickets total per event.", 'tta' );
+            }
         }
 
         if ( ! isset( $_SESSION['tta_discount_codes'] ) ) {
@@ -142,7 +147,7 @@ class TTA_Ajax_Cart {
                 $message = __( 'Invalid discount code.', 'tta' );
             }
         }
-        $html = tta_render_cart_contents( $cart, $_SESSION['tta_discount_codes'] );
+        $html = tta_render_cart_contents( $cart, $_SESSION['tta_discount_codes'], $notices );
         wp_send_json_success( [ 'html' => $html, 'message' => $message ] );
     }
 }

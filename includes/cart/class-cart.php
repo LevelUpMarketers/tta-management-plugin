@@ -195,7 +195,7 @@ class TTA_Cart {
 
     if ( $qty <= 0 ) {
       $this->remove_item( $ticket_id );
-      return;
+      return 0;
     }
 
     $diff = $qty - $existing_qty;
@@ -237,6 +237,8 @@ class TTA_Cart {
         ['%d','%d','%d','%f','%s']
       );
     }
+
+    return $qty;
   }
 
   public function remove_item( $ticket_id ) {
