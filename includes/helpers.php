@@ -399,6 +399,7 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
     }
     if ( $items ) {
         ?>
+        <div id="tta-checkout-container">
         <table class="tta-checkout-summary">
             <thead>
                 <tr>
@@ -500,6 +501,7 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                 <?php endif; ?>
             </tfoot>
         </table>
+        </div>
         <?php
     } else {
         echo '<p>' . esc_html__( 'Your cart is empty.', 'tta' ) . '</p>';
