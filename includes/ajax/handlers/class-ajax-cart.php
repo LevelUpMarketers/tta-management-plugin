@@ -38,6 +38,8 @@ class TTA_Ajax_Cart {
         }
 
         $cart = new TTA_Cart();
+        // Ensure a cart row exists before calculating existing quantities
+        $cart->ensure_cart_exists();
 
         $existing_events  = [];
         $existing_tickets = [];
