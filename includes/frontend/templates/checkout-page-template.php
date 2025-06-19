@@ -20,7 +20,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
     $cart_changed   = $cart->sync_with_inventory();
     $amount         = $cart->get_total( $discount_codes );
     if ( $cart_changed ) {
-        tta_set_cart_notice( __( 'Some items became unavailable. Your cart was updated; please review and try again.', 'tta' ) );
+        tta_set_cart_notice( __( 'Some tickets in your cart were no longer available and have been removed. Please review the updated cart and try again.', 'tta' ) );
         wp_safe_redirect( home_url( '/cart' ) );
         exit;
     }
