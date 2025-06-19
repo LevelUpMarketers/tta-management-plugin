@@ -57,6 +57,16 @@ class TTA_Cart {
   }
 
   /**
+   * Ensure a cart row exists for the current session.
+   *
+   * Public wrapper used by AJAX handlers to guarantee the cart
+   * table has an entry before manipulating items.
+   */
+  public function ensure_cart_exists() {
+    $this->ensure_cart( true );
+  }
+
+  /**
    * Adjust ticket inventory when reserving or releasing items.
    *
    * @param int $ticket_id Ticket ID.
