@@ -32,6 +32,7 @@ This document summarizes the current logic around the cart and checkout process 
 3. **Checkout**
    - The **Checkout Page** template performs checkout when the form is submitted (`tta_do_checkout`).
    - `TTA_Cart::sync_with_inventory()` ensures requested quantities are still available. If inventory changed, a notice is stored and the user is redirected back to the cart.
+   - The notice reads, "Some tickets in your cart were no longer available and have been removed. Please review the updated cart and try again."
    - Checkout displays a read-only summary table that mirrors the cart layout with tooltips, countdown timers, and a list of active discount codes below the total.
    - Attendee fields collect a first name, last name, and email for each ticket. Inputs are grouped by event beside the billing form.
    - Countdown timers run just like on the cart page. If a timer reaches zero the item is removed and totals update automatically.
