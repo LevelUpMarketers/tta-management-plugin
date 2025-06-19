@@ -296,7 +296,7 @@ if ( isset( $_GET['event_id'] ) ) {
                 <th>
                     <label for="type">Event Type</label>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Select Free, Paid, or Member Only."
+                          data-tooltip="Select the membership requirement for this event. Open Events are public. Basic Membership Required means attendees must be logged in with at least a Basic membership. Premium Membership Required limits access to Premium members only."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -306,9 +306,9 @@ if ( isset( $_GET['event_id'] ) ) {
                     <select name="type" id="type">
                         <?php
                         $types = [
-                            'free'       => 'Free',
-                            'paid'       => 'Paid',
-                            'memberonly' => 'Member Only',
+                            'free'       => 'Open Event',
+                            'paid'       => 'Basic Membership Required',
+                            'memberonly' => 'Premium Membership Required',
                         ];
                         foreach ( $types as $val => $lbl ) {
                             printf(
@@ -341,12 +341,12 @@ if ( isset( $_GET['event_id'] ) ) {
                 </td>
             </tr>
 
-            <!-- Discounted Cost -->
+            <!-- Basic Member Cost -->
             <tr>
                 <th>
-                    <label for="discountedmembercost">Discounted Cost</label>
+                    <label for="discountedmembercost">Basic Member Cost</label>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Member discounted price in USD."
+                          data-tooltip="Enter the basic member discounted price in USD, with cents."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">

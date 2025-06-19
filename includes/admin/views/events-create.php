@@ -310,14 +310,18 @@ if ( isset( $_POST['tta_event_save'] ) && check_admin_referer(
         <tr>
             <th>
                 <label for="type">Event Type</label>
-                <span class="tta-tooltip-icon" data-tooltip="Select whether this event is Free, Paid, or Member Only.">
+                <span class="tta-tooltip-icon" data-tooltip="Select the membership requirement for this event. Open Events are public. Basic Membership Required means attendees must be logged in with at least a Basic membership. Premium Membership Required limits access to Premium members only.">
                     <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                 </span>
             </th>
             <td>
                 <select name="type" id="type">
                     <?php
-                    $types = ['free'=>'Free','paid'=>'Paid','memberonly'=>'Member Only'];
+                    $types = [
+                        'free'       => 'Open Event',
+                        'paid'       => 'Basic Membership Required',
+                        'memberonly' => 'Premium Membership Required',
+                    ];
                     foreach($types as $val=>$lbl){
                         printf('<option value="%s"%s>%s</option>',
                             esc_attr($val),
@@ -344,11 +348,11 @@ if ( isset( $_POST['tta_event_save'] ) && check_admin_referer(
             </td>
         </tr>
 
-        <!-- Member Cost -->
+        <!-- Basic Member Cost -->
         <tr>
             <th>
-                <label for="discountedmembercost">Member Cost</label>
-                <span class="tta-tooltip-icon" data-tooltip="Enter the member discounted price in USD, with cents.">
+                <label for="discountedmembercost">Basic Member Cost</label>
+                <span class="tta-tooltip-icon" data-tooltip="Enter the basic member discounted price in USD, with cents.">
                     <img src="<?php echo esc_url(TTA_PLUGIN_URL.'assets/images/admin/question.svg');?>" alt="Help">
                 </span>
             </th>
