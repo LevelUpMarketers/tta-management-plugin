@@ -8,8 +8,11 @@ This document summarizes the current logic around the cart and checkout process 
    - Visitors interact with the **Event Page** template. When the page loads a `TTA_Cart` instance is created so session data exists early.
    - Ticket details are fetched from the database. Prices vary depending on membership level (`free`, `basic`, or `premium`).
    - Expired cart items are cleared before ticket data loads so availability displays correctly.
+   - Whenever a new item is added or a quantity increases, expired reservations are purged to free any leftover stock.
+   - Expiration timestamps use WordPress local time so cleanup works consistently across servers.
    - Quantity selectors on the event page prevent selecting more than two tickets in total. A notice appears when the limit would be exceeded. Sold out ticket rows have their quantity controls disabled and the **Get Tickets** button is disabled if no tickets remain.
    - When a user adds tickets, the browser issues an AJAX request to `tta_add_to_cart`. The handler calculates the price, reserves inventory, and calls `TTA_Cart::add_item()`.
+   - The AJAX handler now explicitly creates a cart row first via `ensure_cart_exists()` so empty databases start tracking sessions immediately.
    - Cart data is stored in the `tta_carts` and `tta_cart_items` tables keyed by a session ID. Ticket availability is decreased immediately on add and the related event cache is cleared.
 
 2. **Viewing the Cart**
@@ -29,11 +32,13 @@ This document summarizes the current logic around the cart and checkout process 
 3. **Checkout**
    - The **Checkout Page** template performs checkout when the form is submitted (`tta_do_checkout`).
    - `TTA_Cart::sync_with_inventory()` ensures requested quantities are still available. If inventory changed, a notice is stored and the user is redirected back to the cart.
+   - The notice reads, "Some tickets in your cart were no longer available and have been removed. Please review the updated cart and try again."
    - Checkout displays a read-only summary table that mirrors the cart layout with tooltips, countdown timers, and a list of active discount codes below the total.
+   - Attendee fields collect a first name, last name, and email for each ticket. Inputs are grouped by event beside the billing form.
    - Countdown timers run just like on the cart page. If a timer reaches zero the item is removed and totals update automatically.
    - The `tta_update_cart` AJAX endpoint returns updated markup for both the cart table and checkout summary so timers can refresh either view.
    - A total is calculated with any discount code applied. Payment details are sent to `TTA_AuthorizeNet_API::charge()`.
-   - On success, `TTA_Cart::finalize_purchase()` logs the transaction, clears the cart tables, removes all discount codes, and triggers the `tta_checkout_complete` action. Inventory has already been reserved when items were added.
+   - On success, `TTA_Cart::finalize_purchase()` logs the transaction, stores each ticket's attendee info in the `tta_attendees` table, clears the cart tables, removes all discount codes, and triggers the `tta_checkout_complete` action. Inventory has already been reserved when items were added.
 
 4. **Cleanup**
    - `TTA_Cart_Cleanup` schedules an hourly task and also runs on checkout completion to remove expired cart rows.

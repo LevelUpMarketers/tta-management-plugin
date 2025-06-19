@@ -41,7 +41,7 @@ class TTA_Cart {
       $this->cart_id = (int)$row['id'];
     } elseif ( $create ) {
       $now = current_time('mysql');
-      $expires = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+      $expires = date( 'Y-m-d H:i:s', (int) current_time( 'timestamp' ) + 1800 );
       $this->wpdb->insert(
         $this->carts_table,
         [
@@ -54,6 +54,16 @@ class TTA_Cart {
       );
       $this->cart_id = (int)$this->wpdb->insert_id;
     }
+  }
+
+  /**
+   * Ensure a cart row exists for the current session.
+   *
+   * Public wrapper used by AJAX handlers to guarantee the cart
+   * table has an entry before manipulating items.
+   */
+  public function ensure_cart_exists() {
+    $this->ensure_cart( true );
   }
 
   /**
@@ -121,6 +131,10 @@ class TTA_Cart {
     $diff = $qty - $existing_qty;
 
     if ( $diff > 0 ) {
+      // Release expired reservations so stock reflects reality
+      if ( class_exists( 'TTA_Cart_Cleanup' ) ) {
+        TTA_Cart_Cleanup::clean_expired_items();
+      }
       $available = (int) $this->wpdb->get_var(
         $this->wpdb->prepare(
           "SELECT ticketlimit FROM {$this->wpdb->prefix}tta_tickets WHERE id = %d",
@@ -145,7 +159,7 @@ class TTA_Cart {
         ['%d','%f'],['%d','%d']
       );
     } else {
-      $expire = date( 'Y-m-d H:i:s', time() + 300 );
+      $expire = date( 'Y-m-d H:i:s', (int) current_time( 'timestamp' ) + 300 );
       $this->wpdb->insert(
         $this->items_table,
         [
@@ -200,6 +214,10 @@ class TTA_Cart {
 
     $diff = $qty - $existing_qty;
     if ( $diff > 0 ) {
+      // Expired items may hold inventory that should be freed
+      if ( class_exists( 'TTA_Cart_Cleanup' ) ) {
+        TTA_Cart_Cleanup::clean_expired_items();
+      }
       $available = (int) $this->wpdb->get_var(
         $this->wpdb->prepare(
           "SELECT ticketlimit FROM {$this->wpdb->prefix}tta_tickets WHERE id = %d",
@@ -224,7 +242,7 @@ class TTA_Cart {
         ['%d'],['%d','%d']
       );
     } else {
-      $expire = date( 'Y-m-d H:i:s', time() + 300 );
+      $expire = date( 'Y-m-d H:i:s', (int) current_time( 'timestamp' ) + 300 );
       $this->wpdb->insert(
         $this->items_table,
         [
@@ -423,12 +441,29 @@ class TTA_Cart {
    *
    * This basic implementation simply empties the cart.
    * Hooked listeners can handle ticket delivery or payment processing.
+   *
+   * @param string $transaction_id Authorize.Net transaction ID.
+   * @param float  $amount         Charged amount.
+   * @param array  $attendees      Optional attendee info keyed by ticket ID.
    */
-  public function finalize_purchase( $transaction_id = '', $amount = 0 ) {
+  public function finalize_purchase( $transaction_id = '', $amount = 0, array $attendees = [] ) {
     global $wpdb;
 
     $discount_codes = $_SESSION['tta_discount_codes'] ?? [];
     $items          = $this->get_items_with_discounts( $discount_codes );
+
+    $att_map        = [];
+    foreach ( $attendees as $tid => $rows ) {
+      $tid = intval( $tid );
+      foreach ( (array) $rows as $row ) {
+        $att_map[ $tid ][] = [
+          'first_name' => tta_sanitize_text_field( $row['first_name'] ?? '' ),
+          'last_name'  => tta_sanitize_text_field( $row['last_name'] ?? '' ),
+          'email'      => tta_sanitize_email( $row['email'] ?? '' ),
+        ];
+      }
+    }
+
     $discount_total = 0;
     $total_before   = 0;
     $total_after    = 0;
@@ -453,6 +488,7 @@ class TTA_Cart {
       $total_after  += $after;
       $item['discount_used']  = $item['discount_applied'] ? 1 : 0;
       $item['discount_saved'] = round( $before - $after, 2 );
+      $item['attendees']      = $att_map[ intval( $item['ticket_id'] ) ] ?? [];
     }
     unset( $item );
 

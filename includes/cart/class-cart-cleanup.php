@@ -28,6 +28,10 @@ class TTA_Cart_Cleanup {
     public static function clean_expired_items() {
         global $wpdb;
 
+        if ( ! method_exists( $wpdb, 'get_results' ) ) {
+            return;
+        }
+
         $items_table  = $wpdb->prefix . 'tta_cart_items';
         $tickets_table = $wpdb->prefix . 'tta_tickets';
 

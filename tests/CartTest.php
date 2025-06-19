@@ -25,6 +25,7 @@ class CartTest extends TestCase {
         }
         if (!function_exists('esc_html')) { function esc_html($v){ return $v; } }
         if (!function_exists('esc_html_e')) { function esc_html_e($s,$d=null){ echo $s; } }
+        if (!function_exists('esc_html__')) { function esc_html__($s,$d=null){ return $s; } }
         if (!function_exists('esc_attr')) { function esc_attr($v){ return $v; } }
         if (!function_exists('esc_url')) { function esc_url($v){ return $v; } }
     }
@@ -64,6 +65,45 @@ class CartTest extends TestCase {
         $this->assertStringContainsString('post/55',$html);
         $this->assertStringContainsString('data-expire-at', $html);
         $this->assertStringContainsString('data-ticket="1"', $html);
+    }
+
+    public function test_render_attendee_fields_outputs_inputs(){
+        require_once __DIR__ . '/../includes/helpers.php';
+        require_once __DIR__ . '/../includes/cart/class-cart.php';
+        $cart = $this->createMock('TTA_Cart');
+        $items = [
+            [
+                'ticket_id'=>1,
+                'ticket_name'=>'VIP',
+                'quantity'=>2,
+                'price'=>10,
+                'event_name'=>'Party',
+                'page_id'=>55,
+                'event_ute_id'=>'ev1',
+                'expires_at'=> date('Y-m-d H:i:s', time()+60)
+            ]
+        ];
+        $cart->method('get_items')->willReturn($items);
+        $html = tta_render_attendee_fields($cart);
+        $this->assertStringContainsString('attendees[1][0][first_name]', $html);
+        $this->assertStringContainsString('VIP #2', $html);
+    }
+
+    public function test_get_event_attendees_queries_table(){
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $last_query = '';
+            public function get_results($q,$o=ARRAY_A){
+                $this->last_query = $q;
+                return [ ['first_name'=>'John','last_name'=>'Doe','email'=>'j@example.com','ticket_id'=>1] ];
+            }
+            public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%s/',$v,$q,1); $q=preg_replace('/%d/',$v,$q,1);} return $q; }
+        };
+        require_once __DIR__ . '/../includes/helpers.php';
+        $rows = tta_get_event_attendees('ev1');
+        $this->assertSame('John', $rows[0]['first_name']);
+        $this->assertStringContainsString('wp_tta_attendees', $wpdb->last_query);
     }
 
     public function test_item_cleanup_queries(){

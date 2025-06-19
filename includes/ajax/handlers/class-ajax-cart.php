@@ -38,6 +38,8 @@ class TTA_Ajax_Cart {
         }
 
         $cart = new TTA_Cart();
+        // Ensure a cart row exists before calculating existing quantities
+        $cart->ensure_cart_exists();
 
         $existing_events  = [];
         $existing_tickets = [];
@@ -147,7 +149,7 @@ class TTA_Ajax_Cart {
                 $message = __( 'Invalid discount code.', 'tta' );
             }
         }
-      
+
         $html     = tta_render_cart_contents( $cart, $_SESSION['tta_discount_codes'], $notices );
         $summary  = tta_render_checkout_summary( $cart, $_SESSION['tta_discount_codes'] );
         wp_send_json_success( [

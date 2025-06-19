@@ -209,6 +209,28 @@ class TTA_DB_Setup {
             KEY transaction_id_idx (transaction_id)
         ) $charset_collate";
 
+        // ─────────────────────────────────────────────────────────────────
+        // Attendees table
+        // ─────────────────────────────────────────────────────────────────
+        $sql_statements[] = "
+        CREATE TABLE {$prefix}attendees (
+            id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            transaction_id  BIGINT UNSIGNED NOT NULL,
+            ticket_id       BIGINT UNSIGNED NOT NULL,
+            first_name      VARCHAR(255)   NOT NULL,
+            last_name       VARCHAR(255)   NOT NULL,
+            email           VARCHAR(255)   NOT NULL,
+            PRIMARY KEY     (id),
+            KEY transaction_idx (transaction_id),
+            KEY ticket_idx      (ticket_id),
+            CONSTRAINT fk_attendee_txn FOREIGN KEY (transaction_id)
+                REFERENCES {$prefix}transactions(id)
+                ON DELETE CASCADE,
+            CONSTRAINT fk_attendee_ticket FOREIGN KEY (ticket_id)
+                REFERENCES {$wpdb->prefix}tta_tickets(id)
+                ON DELETE CASCADE
+        ) $charset_collate";
+
         // Run dbDelta on each statement
         foreach ( $sql_statements as $sql ) {
             dbDelta( $sql );

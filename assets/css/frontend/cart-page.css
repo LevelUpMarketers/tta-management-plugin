@@ -27,6 +27,13 @@
   cursor: pointer;
 }
 
+/* Notice displayed when cart contents change unexpectedly */
+.tta-cart-notice {
+  color: #b00;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
 .tta-cart-update-button {
   padding: 6px 12px;
   margin-left: 10px;
@@ -128,4 +135,20 @@
 @keyframes tta-spinner-rotate {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+/* Checkout grid */
+.tta-checkout-grid {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+.tta-checkout-left,
+.tta-checkout-right {
+  flex: 1;
+}
+.tta-attendee-row { margin-bottom: 10px; }
+.tta-attendee-row label { display: block; margin-bottom: 4px; }
+@media (max-width: 600px) {
+  .tta-checkout-grid { flex-direction: column; }
 }

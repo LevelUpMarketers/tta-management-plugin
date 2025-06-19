@@ -70,6 +70,7 @@ jQuery(function($){
           if($summaryWrap.length){
             $summaryWrap.html(res.data.summary).fadeTo(200,1);
           }
+
           if(res.data.message){
             $('.tta-discount-feedback').text(res.data.message).fadeIn(200).delay(4000).fadeOut(200);
           }
