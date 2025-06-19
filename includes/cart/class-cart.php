@@ -41,7 +41,7 @@ class TTA_Cart {
       $this->cart_id = (int)$row['id'];
     } elseif ( $create ) {
       $now = current_time('mysql');
-      $expires = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+      $expires = date( 'Y-m-d H:i:s', (int) current_time( 'timestamp' ) + 1800 );
       $this->wpdb->insert(
         $this->carts_table,
         [
@@ -159,7 +159,7 @@ class TTA_Cart {
         ['%d','%f'],['%d','%d']
       );
     } else {
-      $expire = date( 'Y-m-d H:i:s', time() + 300 );
+      $expire = date( 'Y-m-d H:i:s', (int) current_time( 'timestamp' ) + 300 );
       $this->wpdb->insert(
         $this->items_table,
         [
@@ -242,7 +242,7 @@ class TTA_Cart {
         ['%d'],['%d','%d']
       );
     } else {
-      $expire = date( 'Y-m-d H:i:s', time() + 300 );
+      $expire = date( 'Y-m-d H:i:s', (int) current_time( 'timestamp' ) + 300 );
       $this->wpdb->insert(
         $this->items_table,
         [

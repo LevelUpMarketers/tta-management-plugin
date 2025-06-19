@@ -9,6 +9,7 @@ This document summarizes the current logic around the cart and checkout process 
    - Ticket details are fetched from the database. Prices vary depending on membership level (`free`, `basic`, or `premium`).
    - Expired cart items are cleared before ticket data loads so availability displays correctly.
    - Whenever a new item is added or a quantity increases, expired reservations are purged to free any leftover stock.
+   - Expiration timestamps use WordPress local time so cleanup works consistently across servers.
    - Quantity selectors on the event page prevent selecting more than two tickets in total. A notice appears when the limit would be exceeded. Sold out ticket rows have their quantity controls disabled and the **Get Tickets** button is disabled if no tickets remain.
    - When a user adds tickets, the browser issues an AJAX request to `tta_add_to_cart`. The handler calculates the price, reserves inventory, and calls `TTA_Cart::add_item()`.
    - The AJAX handler now explicitly creates a cart row first via `ensure_cart_exists()` so empty databases start tracking sessions immediately.
