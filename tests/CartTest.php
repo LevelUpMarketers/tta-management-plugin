@@ -89,6 +89,23 @@ class CartTest extends TestCase {
         $this->assertStringContainsString('VIP #2', $html);
     }
 
+    public function test_get_event_attendees_queries_table(){
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $last_query = '';
+            public function get_results($q,$o=ARRAY_A){
+                $this->last_query = $q;
+                return [ ['first_name'=>'John','last_name'=>'Doe','email'=>'j@example.com','ticket_id'=>1] ];
+            }
+            public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%s/',$v,$q,1); $q=preg_replace('/%d/',$v,$q,1);} return $q; }
+        };
+        require_once __DIR__ . '/../includes/helpers.php';
+        $rows = tta_get_event_attendees('ev1');
+        $this->assertSame('John', $rows[0]['first_name']);
+        $this->assertStringContainsString('wp_tta_attendees', $wpdb->last_query);
+    }
+
     public function test_item_cleanup_queries(){
         global $wpdb;
         $wpdb = new class {
