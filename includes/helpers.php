@@ -255,6 +255,65 @@ function tta_get_event_attendees( $event_ute_id ) {
 }
 
 /**
+ * Retrieve information about the current visitor and any associated member
+ * record.
+ *
+ * @return array{
+ *     is_logged_in:bool,
+ *     wp_user_id:int,
+ *     user_email:string,
+ *     user_login:string,
+ *     first_name:string,
+ *     last_name:string,
+ *     member:?array,
+ *     membership_level:string
+ * }
+ */
+function tta_get_current_user_context() {
+    $context = [
+        'is_logged_in'     => is_user_logged_in(),
+        'wp_user_id'       => 0,
+        'user_email'       => '',
+        'user_login'       => '',
+        'first_name'       => '',
+        'last_name'        => '',
+        'member'           => null,
+        'membership_level' => 'free',
+    ];
+
+    if ( ! $context['is_logged_in'] ) {
+        return $context;
+    }
+
+    $user = wp_get_current_user();
+    $context['wp_user_id'] = intval( $user->ID );
+    $context['user_email'] = sanitize_email( $user->user_email );
+    $context['user_login'] = sanitize_user( $user->user_login );
+    $context['first_name'] = sanitize_text_field( $user->first_name );
+    $context['last_name']  = sanitize_text_field( $user->last_name );
+
+    $cache_key = 'member_row_' . $context['wp_user_id'];
+    $member    = TTA_Cache::remember( $cache_key, function() use ( $context ) {
+        global $wpdb;
+        $members_table = $wpdb->prefix . 'tta_members';
+        return $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$members_table} WHERE wpuserid = %d",
+                $context['wp_user_id']
+            ),
+            ARRAY_A
+        );
+    }, 300 );
+
+    if ( is_array( $member ) ) {
+        $context['member']           = $member;
+        $context['membership_level'] = $member['membership_level'] ?? 'free';
+    }
+
+    return $context;
+}
+
+/**
  * Render the cart table HTML for the given cart.
  *
  * @param TTA_Cart $cart

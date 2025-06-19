@@ -88,23 +88,15 @@ $related = TTA_Cache::remember( 'related_' . $page_id, function() use ( $wpdb, $
 // ───────────────
 // 5) Determine logged-in user context
 // ───────────────
-$is_logged_in     = is_user_logged_in();
-$current_user_id  = $is_logged_in ? get_current_user_id() : 0;
-$member_row       = [];
-$membership_level = 'free';
+$context          = tta_get_current_user_context();
+$is_logged_in     = $context['is_logged_in'];
+$current_user_id  = $context['wp_user_id'];
+$member_row       = $context['member'] ?? [];
+$membership_level = $context['membership_level'];
 $is_on_waitlist   = false;
 $member_history   = [];
 
 if ( $is_logged_in ) {
-    // a) Fetch member info
-    $member_row = $wpdb->get_row(
-        $wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}tta_members WHERE wpuserid = %d",
-            $current_user_id
-        ),
-        ARRAY_A
-    ) ?: [];
-    $membership_level = $member_row['membership_level'] ?? 'free';
 
     // b) Check waitlist membership for this event
     $waitlists = $wpdb->get_results(
@@ -363,7 +355,22 @@ if ( $ticket_count > 1 ) {
         </section>
       <?php endif; ?>
 
-      
+      <?php if ( ! $is_logged_in ) : ?>
+        <section class="tta-message-center">
+          <p>
+            <?php
+            printf(
+                esc_html__( 'Ticket discounts may be available! %1$sLog in here%2$s to check. Don\'t have an account? %3$sCreate one here%4$s.', 'tta' ),
+                '<a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">',
+                '</a>',
+                '<a href="' . esc_url( wp_registration_url() ) . '">',
+                '</a>'
+            );
+            ?>
+          </p>
+        </section>
+      <?php endif; ?>
+
 
       <section id="tta-event-buy" class="tta-event-buy">
         <h2><?php esc_html_e( 'Get Your Tickets Now', 'tta' ); ?></h2>
