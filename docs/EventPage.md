@@ -28,3 +28,8 @@ Ticket discounts may be available! Log in here to check. Don't have an account? 
 
 Links direct to the standard WordPress login and registration pages. The block is hidden entirely for logged-in users or when no messages apply.
 
+## Event Type and Ticket Context
+
+The **Event Details** sidebar now lists the event type (Open Event, Basic Membership Required, or Premium Membership Required). A short message under the “Get Your Tickets Now” heading communicates the membership requirement and offers login or upgrade links depending on the visitor’s status.
+
+

@@ -198,6 +198,13 @@
   margin: 20px 0;
 }
 
+/* Ticket context text */
+.tta-ticket-context {
+  margin: 0 0 15px;
+  font-size: 0.9em;
+  color: #555;
+}
+
 
 /* ──────────────────────────────────────────────────────────────────────────
    Tickets Section

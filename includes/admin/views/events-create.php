@@ -348,11 +348,11 @@ if ( isset( $_POST['tta_event_save'] ) && check_admin_referer(
             </td>
         </tr>
 
-        <!-- Member Cost -->
+        <!-- Basic Member Cost -->
         <tr>
             <th>
-                <label for="discountedmembercost">Member Cost</label>
-                <span class="tta-tooltip-icon" data-tooltip="Enter the member discounted price in USD, with cents.">
+                <label for="discountedmembercost">Basic Member Cost</label>
+                <span class="tta-tooltip-icon" data-tooltip="Enter the basic member discounted price in USD, with cents.">
                     <img src="<?php echo esc_url(TTA_PLUGIN_URL.'assets/images/admin/question.svg');?>" alt="Help">
                 </span>
             </th>

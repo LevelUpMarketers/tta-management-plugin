@@ -96,6 +96,69 @@ $membership_level = $context['membership_level'];
 $is_on_waitlist   = false;
 $member_history   = [];
 
+// Map event type to display label and required level
+$type_labels = [
+    'free'       => __( 'Open Event', 'tta' ),
+    'paid'       => __( 'Basic Membership Required', 'tta' ),
+    'memberonly' => __( 'Premium Membership Required', 'tta' ),
+];
+$event_type_label = $type_labels[ $event['type'] ] ?? '';
+$event_required   = 'free';
+if ( 'paid' === $event['type'] ) {
+    $event_required = 'basic';
+} elseif ( 'memberonly' === $event['type'] ) {
+    $event_required = 'premium';
+}
+
+// Build the tickets section message
+$tickets_message = $event_type_label;
+if ( ! $is_logged_in ) {
+    if ( 'free' !== $event['type'] ) {
+        $tickets_message .= ' ' . sprintf(
+            /* translators: 1: opening login link, 2: closing login link, 3: opening registration link, 4: closing registration link */
+            esc_html__( 'Log in to purchase tickets. Not a member? %3$sJoin here%4$s.', 'tta' ),
+            '<a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">',
+            '</a>',
+            '<a href="' . esc_url( wp_registration_url() ) . '">',
+            '</a>'
+        );
+    }
+} else {
+    $qualifies = (
+        'free' === $event_required ||
+        ('basic' === $event_required && in_array( $membership_level, [ 'basic', 'premium' ], true )) ||
+        ('premium' === $event_required && 'premium' === $membership_level)
+    );
+
+    if ( $qualifies ) {
+        $tickets_message .= ' ' . esc_html__( 'Thanks for being a member!', 'tta' );
+        if ( 'basic' === $membership_level ) {
+            $tickets_message .= ' ' . sprintf(
+                /* translators: 1: opening upgrade link, 2: closing upgrade link */
+                esc_html__( 'Upgrade to %1$sPremium%2$s for even more perks.', 'tta' ),
+                '<a href="' . esc_url( home_url( '/join/' ) ) . '">',
+                '</a>'
+            );
+        }
+    } else {
+        if ( 'basic' === $event_required ) {
+            $tickets_message .= ' ' . sprintf(
+                /* translators: 1: opening upgrade link, 2: closing upgrade link */
+                esc_html__( 'Upgrade to at least %1$sBasic%2$s to purchase tickets.', 'tta' ),
+                '<a href="' . esc_url( home_url( '/join/' ) ) . '">',
+                '</a>'
+            );
+        } else {
+            $tickets_message .= ' ' . sprintf(
+                /* translators: 1: opening upgrade link, 2: closing upgrade link */
+                esc_html__( 'Upgrade to %1$sPremium%2$s to purchase tickets.', 'tta' ),
+                '<a href="' . esc_url( home_url( '/join/' ) ) . '">',
+                '</a>'
+            );
+        }
+    }
+}
+
 if ( $is_logged_in ) {
 
     // b) Check waitlist membership for this event
@@ -374,6 +437,9 @@ if ( $ticket_count > 1 ) {
 
       <section id="tta-event-buy" class="tta-event-buy">
         <h2><?php esc_html_e( 'Get Your Tickets Now', 'tta' ); ?></h2>
+        <p class="tta-ticket-context">
+          <?php echo wp_kses_post( $tickets_message ); ?>
+        </p>
 
         <?php if ( $tickets ) : ?>
           <?php
@@ -530,6 +596,12 @@ if ( $ticket_count > 1 ) {
             </div>
           </li>
           <?php echo $cost_sidebar_row; ?>
+          <li>
+            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/memberlevel.svg' ); ?>" alt="Help">
+            <div class="tta-event-details-icon-after">
+              <strong><?php esc_html_e( 'Event Type', 'tta' ); ?>:</strong> <?php echo esc_html( $event_type_label ); ?>
+            </div>
+          </li>
           <li>
             <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/store.svg' ); ?>" alt="Help">
             <div class="tta-event-details-icon-after">
