@@ -121,6 +121,10 @@ class TTA_Cart {
     $diff = $qty - $existing_qty;
 
     if ( $diff > 0 ) {
+      // Release expired reservations so stock reflects reality
+      if ( class_exists( 'TTA_Cart_Cleanup' ) ) {
+        TTA_Cart_Cleanup::clean_expired_items();
+      }
       $available = (int) $this->wpdb->get_var(
         $this->wpdb->prepare(
           "SELECT ticketlimit FROM {$this->wpdb->prefix}tta_tickets WHERE id = %d",
@@ -200,6 +204,10 @@ class TTA_Cart {
 
     $diff = $qty - $existing_qty;
     if ( $diff > 0 ) {
+      // Expired items may hold inventory that should be freed
+      if ( class_exists( 'TTA_Cart_Cleanup' ) ) {
+        TTA_Cart_Cleanup::clean_expired_items();
+      }
       $available = (int) $this->wpdb->get_var(
         $this->wpdb->prepare(
           "SELECT ticketlimit FROM {$this->wpdb->prefix}tta_tickets WHERE id = %d",
