@@ -49,6 +49,24 @@ class TTA_Transaction_Logger {
             [ '%d', '%d', '%s', '%f', '%s', '%f', '%s' ]
         );
 
+        $txn_id   = $wpdb->insert_id;
+        $att_table = $wpdb->prefix . 'tta_attendees';
+        foreach ( $items as $it ) {
+            foreach ( (array) ( $it['attendees'] ?? [] ) as $att ) {
+                $wpdb->insert(
+                    $att_table,
+                    [
+                        'transaction_id' => $txn_id,
+                        'ticket_id'      => intval( $it['ticket_id'] ),
+                        'first_name'     => sanitize_text_field( $att['first_name'] ?? '' ),
+                        'last_name'      => sanitize_text_field( $att['last_name'] ?? '' ),
+                        'email'          => sanitize_email( $att['email'] ?? '' ),
+                    ],
+                    [ '%d', '%d', '%s', '%s', '%s' ]
+                );
+            }
+        }
+
         // Record a single history row for this transaction
         $event_id = 0;
         if ( ! empty( $items[0]['event_ute_id'] ) ) {

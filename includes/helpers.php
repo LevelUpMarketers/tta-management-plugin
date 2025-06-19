@@ -231,6 +231,30 @@ function tta_get_purchased_ticket_count( $user_id, $event_ute_id ) {
 }
 
 /**
+ * Retrieve attendee records for a given event.
+ *
+ * @param string $event_ute_id Event ute_id.
+ * @return array[] Array of attendees.
+ */
+function tta_get_event_attendees( $event_ute_id ) {
+    global $wpdb;
+    $att_table    = $wpdb->prefix . 'tta_attendees';
+    $tickets_table = $wpdb->prefix . 'tta_tickets';
+
+    return $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT a.first_name, a.last_name, a.email, a.ticket_id
+             FROM {$att_table} a
+             JOIN {$tickets_table} t ON a.ticket_id = t.id
+             WHERE t.event_ute_id = %s
+             ORDER BY a.last_name, a.first_name",
+            $event_ute_id
+        ),
+        ARRAY_A
+    );
+}
+
+/**
  * Render the cart table HTML for the given cart.
  *
  * @param TTA_Cart $cart
