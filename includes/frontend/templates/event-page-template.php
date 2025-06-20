@@ -535,6 +535,8 @@ if ( $ticket_count > 1 ) {
           ? array_filter( array_map( 'intval', explode( ',', $event['otherimageids'] ) ) )
           : [];
 
+      $attendee_img_ids = tta_get_event_attendee_image_ids( $event['id'] );
+
       if ( ! empty( $other_ids ) ) : ?>
         <section class="tta-event-section tta-event-image-gallery-accordion">
           <div class="tta-accordion">
@@ -558,27 +560,17 @@ if ( $ticket_count > 1 ) {
           </div>
         </section>
 
+      <?php endif; ?>
+
+      <?php if ( ! empty( $attendee_img_ids ) ) : ?>
         <section class="tta-event-section tta-event-image-gallery-accordion tta-event-attendees-section">
           <div class="tta-accordion">
             <div class="tta-accordion-content">
               <h2><?php esc_html_e( 'Attendees', 'tta' ); ?></h2>
               <div class="tta-gallery-grid">
-                <?php foreach ( $other_ids as $img_id ) : ?>
+                <?php foreach ( $attendee_img_ids as $img_id ) : ?>
                   <div class="tta-gallery-item">
-                    <?php
-                      // use a medium-large size for good resolution;
-                      // WP will crop/scale as needed
-                      echo wp_get_attachment_image( $img_id, 'medium_large' );
-                    ?>
-                  </div>
-                <?php endforeach; ?>
-                <?php foreach ( $other_ids as $img_id ) : ?>
-                  <div class="tta-gallery-item">
-                    <?php
-                      // use a medium-large size for good resolution;
-                      // WP will crop/scale as needed
-                      echo wp_get_attachment_image( $img_id, 'medium_large' );
-                    ?>
+                    <?php echo wp_get_attachment_image( $img_id, 'medium_large' ); ?>
                   </div>
                 <?php endforeach; ?>
               </div>

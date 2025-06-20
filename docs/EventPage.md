@@ -35,4 +35,8 @@ Scrolling accounts for any fixed header on the site. Adjust the selector in `eve
 
 Logged-in members instead see links to profile info, upcoming events, past events, and membership/billing details. Each link loads the Member Dashboard with the matching tab active. A log out link is also provided which returns the user to the same event page after signing out.
 
+## Attendee Gallery
+
+Below the image gallery, a second accordion displays profile pictures of confirmed attendees. The list is built from the `tta_memberhistory` table using records where `action_type` is `purchase` for the current event. Each attendee's profile image ID is pulled from the `tta_members` table. Results are cached for ten minutes via `TTA_Cache`.
+
 

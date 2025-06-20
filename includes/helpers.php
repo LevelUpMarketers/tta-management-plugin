@@ -255,6 +255,37 @@ function tta_get_event_attendees( $event_ute_id ) {
 }
 
 /**
+ * Retrieve profile image IDs for attendees of a given event.
+ *
+ * @param int $event_id Event ID.
+ * @return int[] Array of attachment IDs.
+ */
+function tta_get_event_attendee_image_ids( $event_id ) {
+    $event_id = intval( $event_id );
+    if ( ! $event_id ) {
+        return [];
+    }
+
+    return TTA_Cache::remember( 'event_attendee_imgs_' . $event_id, function() use ( $event_id ) {
+        global $wpdb;
+        $hist_table    = $wpdb->prefix . 'tta_memberhistory';
+        $members_table = $wpdb->prefix . 'tta_members';
+
+        $ids = $wpdb->get_col( $wpdb->prepare(
+            "SELECT DISTINCT m.profileimgid
+               FROM {$hist_table} h
+               JOIN {$members_table} m ON h.member_id = m.id
+              WHERE h.event_id = %d
+                AND h.action_type = 'purchase'
+                AND m.profileimgid > 0",
+            $event_id
+        ) );
+
+        return array_map( 'intval', array_filter( $ids ) );
+    }, 600 );
+}
+
+/**
  * Retrieve information about the current visitor and any associated member
  * record.
  *
