@@ -266,23 +266,31 @@ function tta_get_event_attendee_image_ids( $event_id ) {
         return [];
     }
 
-    return TTA_Cache::remember( 'event_attendee_imgs_' . $event_id, function() use ( $event_id ) {
-        global $wpdb;
-        $hist_table    = $wpdb->prefix . 'tta_memberhistory';
-        $members_table = $wpdb->prefix . 'tta_members';
+    $cache_key = 'event_attendee_imgs_' . $event_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
 
-        $ids = $wpdb->get_col( $wpdb->prepare(
-            "SELECT DISTINCT m.profileimgid
-               FROM {$hist_table} h
-               JOIN {$members_table} m ON h.member_id = m.id
-              WHERE h.event_id = %d
-                AND h.action_type = 'purchase'
-                AND m.profileimgid > 0",
-            $event_id
-        ) );
+    global $wpdb;
+    $hist_table    = $wpdb->prefix . 'tta_memberhistory';
+    $members_table = $wpdb->prefix . 'tta_members';
 
-        return array_map( 'intval', array_filter( $ids ) );
-    }, 600 );
+    $ids = $wpdb->get_col( $wpdb->prepare(
+        "SELECT DISTINCT m.profileimgid
+           FROM {$hist_table} h
+           JOIN {$members_table} m ON h.member_id = m.id
+          WHERE h.event_id = %d
+            AND h.action_type = 'purchase'
+            AND m.profileimgid > 0",
+        $event_id
+    ) );
+
+    $ids = array_map( 'intval', array_filter( $ids ) );
+    $ttl = empty( $ids ) ? 60 : 600;
+    TTA_Cache::set( $cache_key, $ids, $ttl );
+
+    return $ids;
 }
 
 /**
