@@ -55,12 +55,11 @@ jQuery(function($){
     $('.tta-scroll-login').on('click', function(e){
       e.preventDefault();
       var target = $('#tta-login-message');
+      $('.tta-message-center .tta-accordion-content').addClass('expanded');
       if ( target.length ) {
         $('html, body').animate({
           scrollTop: target.offset().top - getHeaderHeight() - extraOffset
-        }, 600, function(){
-          $('.tta-message-center .tta-button-link').trigger('click');
-        });
+        }, 600);
       }
     });
   });
