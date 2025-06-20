@@ -12,7 +12,7 @@ This document summarizes test accounts and card numbers used for local developme
 | Premium          | Super Admin | Julie Marsh     | eippih@gmail.com         | Fa!@p5RJsnPUfhN*A@KHgZ4* |
 | Premium          | Admin       | Adam Peoples    | foreunner1618@gmail.com  | 3grQTvBOODPRtOOQESmS0TXD |
 | Premium          | Admin       | Mariah Payne    | mariah.payne831@gmail.com | 3grQTvBOODPRtOOQESmS0TXD |
-| Premium          | Volunteer   | Cassidy Unknown | claineryan13@gmail.com   | ^yDYADcss&kcH29yxhdvnJXO |
+| Premium          | Volunteer   | Cassidy Ryan | claineryan13@gmail.com   | ^yDYADcss&kcH29yxhdvnJXO |
 | Premium          | Volunteer   | Dana Harrell    | dana.p.harrell@gmail.com | b0niD@oMxf9wax@n8*@DIYGH |
 
 ## Authorize.Net Test Credit Card Numbers
