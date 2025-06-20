@@ -89,6 +89,7 @@ class TTA_DB_Setup {
             opt_in_marketing_sms            TINYINT(1) DEFAULT 0,
             opt_in_event_update_email       TINYINT(1) DEFAULT 0,
             opt_in_event_update_sms         TINYINT(1) DEFAULT 0,
+            hide_event_attendance           TINYINT(1) DEFAULT 0,
             PRIMARY KEY  (id),
             KEY wpuserid_idx (wpuserid),
             KEY name_idx (last_name, first_name),

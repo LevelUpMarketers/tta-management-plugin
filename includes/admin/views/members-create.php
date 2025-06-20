@@ -462,6 +462,27 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </td>
                 </tr>
 
+                <!-- Privacy Options -->
+                <tr>
+                    <th>
+                        <label>Privacy Options</label>
+                        <span class="tta-tooltip-icon"
+                              data-tooltip="Control what information is shown publicly."
+                              style="margin-left:4px;">
+                            <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
+                                 alt="Help">
+                        </span>
+                    </th>
+                    <td>
+                        <fieldset>
+                            <label>
+                                <input type="checkbox" name="hide_event_attendance" value="1">
+                                Hide Event Attendance
+                            </label>
+                        </fieldset>
+                    </td>
+                </tr>
+
             </tbody>
         </table>
 

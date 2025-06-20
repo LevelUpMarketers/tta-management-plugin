@@ -39,4 +39,6 @@ Logged-in members instead see links to profile info, upcoming events, past event
 
 Below the image gallery, a second accordion displays profile pictures of confirmed attendees. The list is built from the `tta_attendees` table joined to `tta_members` via email so member profile images can be shown. Results are cached via `TTA_Cache` for ten minutes (one minute when empty). Attendees without a profile image or known name appear with a placeholder icon and the label "hidden." Names are sorted alphabetically before the placeholders.
 
+Members may opt to hide their attendance in their profile's *Privacy Options*. Hidden attendees always show the placeholder image and the name "hidden".
+
 

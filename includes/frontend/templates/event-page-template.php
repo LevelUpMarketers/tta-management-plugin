@@ -539,7 +539,7 @@ if ( $ticket_count > 1 ) {
       $named = [];
       $hidden = [];
       foreach ( $attendees as $att ) {
-        if ( ! empty( $att['first_name'] ) ) {
+        if ( ! empty( $att['first_name'] ) && empty( $att['hide'] ) ) {
           $named[] = $att;
         } else {
           $hidden[] = $att;
@@ -585,13 +585,14 @@ if ( $ticket_count > 1 ) {
                 <?php foreach ( $attendees as $att ) : ?>
                   <div class="tta-gallery-item">
                     <?php
-                      if ( $att['img_id'] ) {
+                      if ( ! empty( $att['img_id'] ) && empty( $att['hide'] ) ) {
                         echo wp_get_attachment_image( $att['img_id'], 'medium_large' );
                       } else {
                         echo '<img src="' . esc_url( $placeholder ) . '" alt="">';
                       }
+                      $name = empty( $att['hide'] ) ? ( $att['first_name'] ?: 'hidden' ) : 'hidden';
                     ?>
-                    <span class="tta-attendee-name"><?php echo esc_html( $att['first_name'] ?: 'hidden' ); ?></span>
+                    <span class="tta-attendee-name"><?php echo esc_html( $name ); ?></span>
                   </div>
                 <?php endforeach; ?>
               </div>

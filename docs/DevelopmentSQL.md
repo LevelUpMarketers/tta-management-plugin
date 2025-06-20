@@ -111,3 +111,13 @@ VALUES
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;
 ```
+
+## Add `hide_event_attendance` Column
+
+Run this SQL after updating the plugin to add the new privacy option on existing installs:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_members`
+  ADD COLUMN `hide_event_attendance` TINYINT(1) DEFAULT 0
+  AFTER `opt_in_event_update_sms`;
+```

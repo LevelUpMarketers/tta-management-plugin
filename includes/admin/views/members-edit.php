@@ -17,6 +17,7 @@ if ( ! $member ) {
 // For user meta (profileimgid), if needed:
 $wp_user_id   = intval( $member['wpuserid'] );
 $profileimgid = $member['profileimgid'];
+$hide_attendance = intval( $member['hide_event_attendance'] );
 
 // Parse address into components using “ – ” (en-dash) as delimiter
 $street_address = '';
@@ -501,6 +502,24 @@ wp_enqueue_media();
                             <span class="tta-tooltip-icon" data-tooltip="Send event announcements via text message.">
                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                             </span>
+                        </label>
+                    </fieldset>
+                </td>
+            </tr>
+
+            <!-- Privacy Options -->
+            <tr>
+                <th>
+                    <label>Privacy Options</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Control what information is shown publicly.">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <fieldset>
+                        <label>
+                            <input type="checkbox" name="hide_event_attendance" value="1" <?php checked( $hide_attendance, 1 ); ?>>
+                            Hide Event Attendance
                         </label>
                     </fieldset>
                 </td>
