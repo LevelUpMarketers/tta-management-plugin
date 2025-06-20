@@ -419,18 +419,32 @@ if ( $ticket_count > 1 ) {
       <?php endif; ?>
 
       <?php if ( ! $is_logged_in ) : ?>
-        <section class="tta-message-center">
-          <p>
-            <?php
-            printf(
-                esc_html__( 'Ticket discounts may be available! %1$sLog in here%2$s to check. Don\'t have an account? %3$sCreate one here%4$s.', 'tta' ),
-                '<a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">',
-                '</a>',
+        <section id="tta-login-message" class="tta-message-center tta-login-accordion">
+          <div class="tta-accordion">
+            <p>
+              <?php
+              printf(
+                /* translators: 1: opening login button, 2: closing login button, 3: opening registration link, 4: closing registration link */
+                esc_html__( 'Ticket discounts may be available! %1$s to check. Don\'t have an account? %3$sCreate one here%4$s.', 'tta' ),
+                '<button type="button" class="tta-button-link tta-accordion-toggle-login">' . esc_html__( 'Log in here', 'tta' ) . '</button>',
+                '',
                 '<a href="' . esc_url( wp_registration_url() ) . '">',
                 '</a>'
-            );
-            ?>
-          </p>
+              );
+              ?>
+            </p>
+            <div class="tta-accordion-content">
+              <?php
+              wp_login_form(
+                [
+                  'echo'     => true,
+                  'redirect' => get_permalink(),
+                  'remember' => true,
+                ]
+              );
+              ?>
+            </div>
+          </div>
         </section>
       <?php endif; ?>
 
@@ -704,9 +718,46 @@ if ( $ticket_count > 1 ) {
                     </a>
                   <?php endforeach; ?>
                 </div>
-              </section>
-            </li>
-          <?php endif; ?>
+          </section>
+        </li>
+      <?php endif; ?>
+
+          <li>
+            <section class="tta-event-section tta-your-events">
+              <h2 class="tta-eventpage-sidebar-heading"><?php esc_html_e( 'Your Events', 'tta' ); ?></h2>
+              <ul class="tta-your-events-list">
+              <?php if ( ! $is_logged_in ) : ?>
+                <li>
+                  <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/login.svg' ); ?>" alt="<?php esc_attr_e( 'Login', 'tta' ); ?>">
+                  <div class="tta-event-details-icon-after">
+                    <a href="#tta-login-message" class="tta-scroll-login"><?php esc_html_e( 'Login to see info about your events', 'tta' ); ?></a>
+                  </div>
+                </li>
+              <?php else : ?>
+                <li>
+                  <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/profile.svg' ); ?>" alt="<?php esc_attr_e( 'Profile', 'tta' ); ?>">
+                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard#tab-profile' ) ); ?>" class="tta-dashboard-link" data-tab="profile"><?php esc_html_e( 'Your Profile Info', 'tta' ); ?></a></div>
+                </li>
+                <li>
+                  <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/upcoming.svg' ); ?>" alt="<?php esc_attr_e( 'Upcoming', 'tta' ); ?>">
+                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard#tab-upcoming' ) ); ?>" class="tta-dashboard-link" data-tab="upcoming"><?php esc_html_e( 'Your Upcoming Events', 'tta' ); ?></a></div>
+                </li>
+                <li>
+                  <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/past.svg' ); ?>" alt="<?php esc_attr_e( 'Past', 'tta' ); ?>">
+                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard#tab-past' ) ); ?>" class="tta-dashboard-link" data-tab="past"><?php esc_html_e( 'Your Past Events', 'tta' ); ?></a></div>
+                </li>
+                <li>
+                  <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/billing.svg' ); ?>" alt="<?php esc_attr_e( 'Billing', 'tta' ); ?>">
+                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard#tab-billing' ) ); ?>" class="tta-dashboard-link" data-tab="billing"><?php esc_html_e( 'Membership Details', 'tta' ); ?></a></div>
+                </li>
+                <li>
+                  <img class="tta-event-details-icon logout-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/login.svg' ); ?>" alt="<?php esc_attr_e( 'Log out', 'tta' ); ?>">
+                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( wp_logout_url( get_permalink() ) ); ?>"><?php esc_html_e( 'Log out', 'tta' ); ?></a></div>
+                </li>
+              <?php endif; ?>
+              </ul>
+            </section>
+          </li>
 
 
 

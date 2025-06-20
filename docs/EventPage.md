@@ -20,16 +20,16 @@ Returned array keys:
 
 ## Message Center
 
-The Event Page template now includes a **Message Center** block under the “About This Event” section. When the visitor is not logged in the following notice appears:
-
-```
-Ticket discounts may be available! Log in here to check. Don't have an account? Create one here.
-```
-
-Links direct to the standard WordPress login and registration pages. The block is hidden entirely for logged-in users or when no messages apply.
+The Event Page template includes a **Message Center** block under the “About This Event” section. When a visitor is not logged in a small callout invites them to authenticate. Clicking **Log in here** expands an embedded login form with the same accordion animation used elsewhere on the page. The form submits via `wp_login_form()` and redirects back to the event page on success. A link to the standard registration page is also provided.
 
 ## Event Type and Ticket Context
 
 The **Event Details** sidebar now lists the event type (Open Event, Basic Membership Required, or Premium Membership Required). A short message under the “Get Your Tickets Now” heading communicates the membership requirement and offers login or upgrade links depending on the visitor’s status.
+
+## Your Events Sidebar Section
+
+Between the Venue Links and Refund Policy sections a new **Your Events** block appears. When not logged in it shows a single link prompting visitors to log in. Clicking the link scrolls to the Message Center and automatically expands the login form.
+
+Logged-in members instead see links to profile info, upcoming events, past events, and membership/billing details. Each link loads the Member Dashboard with the matching tab active. A log out link is also provided which returns the user to the same event page after signing out.
 
 
