@@ -29,6 +29,7 @@ The **Event Details** sidebar now lists the event type (Open Event, Basic Member
 ## Your Events Sidebar Section
 
 Between the Venue Links and Refund Policy sections a new **Your Events** block appears. When not logged in it shows a single link prompting visitors to log in. Clicking the link scrolls to the Message Center and automatically expands the login form.
+The scroll handler triggers the same click event used by the login button to ensure the form is revealed.
 The toggle button text remains **Log in here** even after the form expands so the call to action stays consistent.
 Scrolling accounts for any fixed header on the site. Adjust the selector in `event-page.js` if your theme uses a different header structure.
 

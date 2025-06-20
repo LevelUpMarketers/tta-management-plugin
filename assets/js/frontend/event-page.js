@@ -59,7 +59,7 @@ jQuery(function($){
         $('html, body').animate({
           scrollTop: target.offset().top - getHeaderHeight() - extraOffset
         }, 600, function(){
-          target.find('.tta-accordion-toggle-login').trigger('click');
+          $('.tta-message-center .tta-button-link').trigger('click');
         });
       }
     });
