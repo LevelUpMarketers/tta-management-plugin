@@ -419,18 +419,32 @@ if ( $ticket_count > 1 ) {
       <?php endif; ?>
 
       <?php if ( ! $is_logged_in ) : ?>
-        <section class="tta-message-center">
-          <p>
-            <?php
-            printf(
-                esc_html__( 'Ticket discounts may be available! %1$sLog in here%2$s to check. Don\'t have an account? %3$sCreate one here%4$s.', 'tta' ),
-                '<a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">',
-                '</a>',
+        <section class="tta-message-center tta-login-accordion">
+          <div class="tta-accordion">
+            <p>
+              <?php
+              printf(
+                /* translators: 1: opening login button, 2: closing login button, 3: opening registration link, 4: closing registration link */
+                esc_html__( 'Ticket discounts may be available! %1$s to check. Don\'t have an account? %3$sCreate one here%4$s.', 'tta' ),
+                '<button type="button" class="tta-button-link tta-accordion-toggle-login">' . esc_html__( 'Log in here', 'tta' ) . '</button>',
+                '',
                 '<a href="' . esc_url( wp_registration_url() ) . '">',
                 '</a>'
-            );
-            ?>
-          </p>
+              );
+              ?>
+            </p>
+            <div class="tta-accordion-content">
+              <?php
+              wp_login_form(
+                [
+                  'echo'     => true,
+                  'redirect' => get_permalink(),
+                  'remember' => true,
+                ]
+              );
+              ?>
+            </div>
+          </div>
         </section>
       <?php endif; ?>
 

@@ -198,6 +198,27 @@
   margin: 20px 0;
 }
 
+.tta-login-accordion .tta-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0;
+  transition: max-height 0.4s ease, padding 0.4s ease;
+}
+
+.tta-login-accordion .tta-accordion-content.expanded {
+  max-height: 400px;
+  padding: 20px 0 0;
+}
+
+.tta-button-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #0073aa;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* Ticket context text */
 .tta-ticket-context {
   margin: 0 0 15px;

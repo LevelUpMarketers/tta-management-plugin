@@ -18,6 +18,8 @@ Without these values, checkout will fail and an admin notice will be displayed.
 - [Input Sanitization Helpers](docs/InputSanitization.md)
 - [Event Page Context](docs/EventPage.md)
 - [Event Type Options](docs/EventTypes.md)
+- [Testing Information](docs/TestingInformation.md) (includes sandbox credit card numbers)
+- [Development SQL Assets](docs/DevelopmentSQL.md)
 - [Project TODOs](TODO.md)
 
 ## Running Tests

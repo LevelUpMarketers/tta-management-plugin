@@ -75,5 +75,22 @@ jQuery(function($){
     }
   }
 
-  $(document).on('change', '.tta-qty-input', enforceLimit);
+$(document).on('change', '.tta-qty-input', enforceLimit);
+});
+
+jQuery(function($){
+  $('.tta-accordion-toggle-login').on('click', function(){
+    var $btn  = $(this),
+        $cont = $btn.closest('.tta-accordion').find('.tta-accordion-content'),
+        loginText = 'Log in here',
+        hideText  = 'Hide login';
+
+    if ( $cont.hasClass('expanded') ) {
+      $cont.removeClass('expanded');
+      $btn.text( loginText );
+    } else {
+      $cont.addClass('expanded');
+      $btn.text( hideText );
+    }
+  });
 });
