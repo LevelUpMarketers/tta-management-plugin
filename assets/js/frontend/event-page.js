@@ -51,18 +51,18 @@ jQuery(function($){
         }, 600);
       }
     });
-  });
 
-  $('.tta-scroll-login').on('click', function(e){
-    e.preventDefault();
-    var target = $('#tta-login-message');
-    if ( target.length ) {
-      $('html, body').animate({
-        scrollTop: target.offset().top - getHeaderHeight() - extraOffset
-      }, 600, function(){
-        target.find('.tta-accordion-toggle-login').trigger('click');
-      });
-    }
+    $('.tta-scroll-login').on('click', function(e){
+      e.preventDefault();
+      var target = $('#tta-login-message');
+      if ( target.length ) {
+        $('html, body').animate({
+          scrollTop: target.offset().top - getHeaderHeight() - extraOffset
+        }, 600, function(){
+          target.find('.tta-accordion-toggle-login').trigger('click');
+        });
+      }
+    });
   });
 })(jQuery);
 
