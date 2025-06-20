@@ -63,6 +63,8 @@ class TTA_Ajax_Events {
             'url4'                 => tta_esc_url_raw( $_POST['url4']                ?? '' ),
             'mainimageid'          => intval( $_POST['mainimageid']         ?? 0 ),
             'otherimageids'        => tta_sanitize_text_field( $_POST['otherimageids']       ?? '' ),
+            'hosts'                => implode( ',', array_filter( array_map( 'sanitize_text_field', $_POST['hosts'] ?? [] ) ) ),
+            'volunteers'           => implode( ',', array_filter( array_map( 'sanitize_text_field', $_POST['volunteers'] ?? [] ) ) ),
         ];
 
         // 2) Insert the event record
@@ -209,6 +211,8 @@ class TTA_Ajax_Events {
             'url4'                 => tta_esc_url_raw( $_POST['url4']                ?? '' ),
             'mainimageid'          => intval( $_POST['mainimageid']         ?? 0 ),
             'otherimageids'        => tta_sanitize_text_field( $_POST['otherimageids']       ?? '' ),
+            'hosts'                => implode( ',', array_filter( array_map( 'sanitize_text_field', $_POST['hosts'] ?? [] ) ) ),
+            'volunteers'           => implode( ',', array_filter( array_map( 'sanitize_text_field', $_POST['volunteers'] ?? [] ) ) ),
         ];
 
         $updated = $wpdb->update( $events_table, $event_data, [ 'id' => $id ] );

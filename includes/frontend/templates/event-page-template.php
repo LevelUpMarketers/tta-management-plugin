@@ -535,6 +535,26 @@ if ( $ticket_count > 1 ) {
           ? array_filter( array_map( 'intval', explode( ',', $event['otherimageids'] ) ) )
           : [];
 
+      $attendees = tta_get_event_attendee_profiles( $event['id'] );
+      $named = [];
+      $hidden = [];
+      foreach ( $attendees as $att ) {
+        if ( ! empty( $att['first_name'] ) && empty( $att['hide'] ) ) {
+          $named[] = $att;
+        } else {
+          $hidden[] = $att;
+        }
+      }
+      usort( $named, function( $a, $b ) {
+        $cmp = strcasecmp( $a['first_name'], $b['first_name'] );
+        if ( 0 === $cmp ) {
+          $cmp = strcasecmp( $a['last_name'], $b['last_name'] );
+        }
+        return $cmp;
+      } );
+      $attendees   = array_merge( $named, $hidden );
+      $placeholder = TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/placeholder-profile.svg';
+
       if ( ! empty( $other_ids ) ) : ?>
         <section class="tta-event-section tta-event-image-gallery-accordion">
           <div class="tta-accordion">
@@ -558,27 +578,30 @@ if ( $ticket_count > 1 ) {
           </div>
         </section>
 
+      <?php endif; ?>
+
+      <?php if ( ! empty( $attendees ) ) : ?>
         <section class="tta-event-section tta-event-image-gallery-accordion tta-event-attendees-section">
           <div class="tta-accordion">
             <div class="tta-accordion-content">
               <h2><?php esc_html_e( 'Attendees', 'tta' ); ?></h2>
               <div class="tta-gallery-grid">
-                <?php foreach ( $other_ids as $img_id ) : ?>
+                <?php $hidden_i = 1; foreach ( $attendees as $att ) : ?>
                   <div class="tta-gallery-item">
                     <?php
-                      // use a medium-large size for good resolution;
-                      // WP will crop/scale as needed
-                      echo wp_get_attachment_image( $img_id, 'medium_large' );
+                      if ( ! empty( $att['img_id'] ) && empty( $att['hide'] ) ) {
+                        echo wp_get_attachment_image( $att['img_id'], 'medium_large' );
+                      } else {
+                        echo '<img src="' . esc_url( $placeholder ) . '" alt="">';
+                      }
+                      if ( empty( $att['hide'] ) && ! empty( $att['first_name'] ) ) {
+                        $name = trim( $att['first_name'] . ' ' . $att['last_name'] );
+                      } else {
+                        $name = sprintf( __( 'Attendee #%d', 'tta' ), $hidden_i );
+                        $hidden_i++;
+                      }
                     ?>
-                  </div>
-                <?php endforeach; ?>
-                <?php foreach ( $other_ids as $img_id ) : ?>
-                  <div class="tta-gallery-item">
-                    <?php
-                      // use a medium-large size for good resolution;
-                      // WP will crop/scale as needed
-                      echo wp_get_attachment_image( $img_id, 'medium_large' );
-                    ?>
+                    <span class="tta-attendee-name"><?php echo esc_html( $name ); ?></span>
                   </div>
                 <?php endforeach; ?>
               </div>

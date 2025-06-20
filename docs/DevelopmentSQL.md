@@ -2,7 +2,11 @@
 
 This document collects helpful SQL snippets for testing and development. They are designed for a local sandbox WordPress environment.
 
-## Import WordPress users into `tta_members`
+## Import WordPress users into `tta_members` & assign hosts & volunteers
+
+Use the following SQL to copy existing WordPress users into the `tta_members`
+table. It also sets specific member levels and types so you have ready-made test
+accounts for different scenarios. Run this in a local development environment.
 
 ```sql
 INSERT INTO `wp_j9bzlz98u3_tta_members` (
@@ -30,6 +34,41 @@ SELECT
   user_registered AS joined_at
 FROM
   `wp_j9bzlz98u3_users`;
+
+UPDATE `wp_j9bzlz98u3_tta_members`
+SET
+  membership_level = CASE email
+    WHEN 'tilypoquh@mailinator.com'       THEN 'basic'
+    WHEN 'sicuzymyt@mailinator.com'        THEN 'premium'
+    WHEN 'tryingtoadultrva@gmail.com'      THEN 'premium'
+    WHEN 'eippih@gmail.com'                THEN 'premium'
+    WHEN 'foreunner1618@gmail.com'         THEN 'premium'
+    WHEN 'mariah.payne831@gmail.com'       THEN 'premium'
+    WHEN 'claineryan13@gmail.com'          THEN 'premium'
+    WHEN 'dana.p.harrell@gmail.com'        THEN 'premium'
+    ELSE membership_level
+  END,
+  member_type = CASE email
+    WHEN 'tilypoquh@mailinator.com'       THEN 'member'
+    WHEN 'sicuzymyt@mailinator.com'        THEN 'member'
+    WHEN 'tryingtoadultrva@gmail.com'      THEN 'super_admin'
+    WHEN 'eippih@gmail.com'                THEN 'super_admin'
+    WHEN 'foreunner1618@gmail.com'         THEN 'admin'
+    WHEN 'mariah.payne831@gmail.com'       THEN 'admin'
+    WHEN 'claineryan13@gmail.com'          THEN 'volunteer'
+    WHEN 'dana.p.harrell@gmail.com'        THEN 'volunteer'
+    ELSE member_type
+  END
+WHERE email IN (
+  'tilypoquh@mailinator.com',
+  'sicuzymyt@mailinator.com',
+  'tryingtoadultrva@gmail.com',
+  'eippih@gmail.com',
+  'foreunner1618@gmail.com',
+  'mariah.payne831@gmail.com',
+  'claineryan13@gmail.com',
+  'dana.p.harrell@gmail.com'
+);
 ```
 
 ## Re-create and populate `tta_events` and `tta_tickets`
@@ -110,4 +149,24 @@ VALUES
 
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;
+```
+
+## Add `hide_event_attendance` Column
+
+Run this SQL after updating the plugin to add the new privacy option on existing installs:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_members`
+  ADD COLUMN `hide_event_attendance` TINYINT(1) DEFAULT 0
+  AFTER `opt_in_event_update_sms`;
+```
+
+## Add `hosts` and `volunteers` Columns
+
+Run this after updating the plugin to store event host and volunteer names:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_events`
+  ADD COLUMN `hosts` TEXT AFTER `refundsavailable`,
+  ADD COLUMN `volunteers` TEXT AFTER `hosts`;
 ```

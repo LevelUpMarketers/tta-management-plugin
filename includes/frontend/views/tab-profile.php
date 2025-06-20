@@ -4,6 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $bio = stripslashes( $member['biography'] );
+$hide_attendance = intval( $member['hide_event_attendance'] );
 
 // Assume $member, $street_address, $address_2, $city, $state, $zip are already defined above
 ?>
@@ -394,6 +395,22 @@ $bio = stripslashes( $member['biography'] );
               <label><input type="checkbox" name="opt_in_marketing_sms"      value="1" <?php checked( $opt_sms, 1 ); ?> /> <?php esc_html_e( 'Marketing SMS', 'tta' ); ?></label>
               <label><input type="checkbox" name="opt_in_event_update_email" value="1" <?php checked( $opt_update_email, 1 ); ?> /> <?php esc_html_e( 'Event Update Emails', 'tta' ); ?></label>
               <label><input type="checkbox" name="opt_in_event_update_sms"   value="1" <?php checked( $opt_update_sms, 1 ); ?> /> <?php esc_html_e( 'Event Update SMS', 'tta' ); ?></label>
+            </fieldset>
+          </td>
+        </tr>
+
+        <!-- Privacy Options -->
+        <tr class="profile-row tta-wider-and-bigger-rows">
+          <th>
+            <span class="tta-fake-label"><?php esc_html_e( 'Privacy Options', 'tta' ); ?></span>
+            <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Control what information is shown publicly.', 'tta' ); ?>">
+              <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
+            </span>
+          </th>
+          <td>
+            <p class="view-value"><?php echo $hide_attendance ? esc_html__( 'Event attendance hidden', 'tta' ) : '—'; ?></p>
+            <fieldset class="edit-input">
+              <label><input type="checkbox" name="hide_event_attendance" value="1" <?php checked( $hide_attendance, 1 ); ?> /> <?php esc_html_e( 'Hide Event Attendance', 'tta' ); ?></label>
             </fieldset>
           </td>
         </tr>

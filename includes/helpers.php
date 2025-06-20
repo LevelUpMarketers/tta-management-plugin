@@ -255,6 +255,85 @@ function tta_get_event_attendees( $event_ute_id ) {
 }
 
 /**
+ * Retrieve profile image IDs for attendees of a given event.
+ *
+ * @param int $event_id Event ID.
+ * @return int[] Array of attachment IDs.
+ */
+function tta_get_event_attendee_profiles( $event_id ) {
+    $event_id = intval( $event_id );
+    if ( ! $event_id ) {
+        return [];
+    }
+
+    $cache_key = 'event_attendee_profiles_' . $event_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $events_table  = $wpdb->prefix . 'tta_events';
+    $att_table     = $wpdb->prefix . 'tta_attendees';
+    $tickets_table = $wpdb->prefix . 'tta_tickets';
+    $members_table = $wpdb->prefix . 'tta_members';
+
+    $ute_id = $wpdb->get_var( $wpdb->prepare(
+        "SELECT ute_id FROM {$events_table} WHERE id = %d",
+        $event_id
+    ) );
+
+    if ( ! $ute_id ) {
+        TTA_Cache::set( $cache_key, [], 60 );
+        return [];
+    }
+
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT a.email,
+                    COALESCE(m.first_name, a.first_name) AS first_name,
+                    COALESCE(m.last_name,  a.last_name)  AS last_name,
+                    m.profileimgid,
+                    m.hide_event_attendance
+               FROM {$att_table} a
+               JOIN {$tickets_table} t ON a.ticket_id = t.id
+               LEFT JOIN {$members_table} m ON a.email = m.email
+              WHERE t.event_ute_id = %s",
+            $ute_id
+        ),
+        ARRAY_A
+    );
+
+    $profiles = [];
+    foreach ( $rows as $row ) {
+        $email = sanitize_email( $row['email'] );
+        if ( isset( $profiles[ $email ] ) ) {
+            continue;
+        }
+        $hide    = ! empty( $row['hide_event_attendance'] );
+        $profiles[ $email ] = [
+            'first_name' => $hide ? '' : sanitize_text_field( $row['first_name'] ?? '' ),
+            'last_name'  => $hide ? '' : sanitize_text_field( $row['last_name']  ?? '' ),
+            'img_id'     => $hide ? 0 : intval( $row['profileimgid'] ),
+            'hide'       => $hide,
+        ];
+    }
+
+    $profiles = array_values( $profiles );
+
+    $ttl = empty( $profiles ) ? 60 : 600;
+    TTA_Cache::set( $cache_key, $profiles, $ttl );
+
+    return $profiles;
+}
+
+function tta_get_event_attendee_image_ids( $event_id ) {
+    $profiles = tta_get_event_attendee_profiles( $event_id );
+    $ids = array_map( function( $p ) { return intval( $p['img_id'] ); }, $profiles );
+    return array_values( array_filter( $ids ) );
+}
+
+/**
  * Retrieve information about the current visitor and any associated member
  * record.
  *

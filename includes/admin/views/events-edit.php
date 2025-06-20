@@ -29,6 +29,14 @@ if ( isset( $_GET['event_id'] ) ) {
 }
 ?>
 
+<?php
+$member_choices = $wpdb->get_col(
+    "SELECT CONCAT(first_name,' ',last_name) FROM {$wpdb->prefix}tta_members WHERE member_type IN ('volunteer','admin','super_admin') ORDER BY first_name, last_name"
+);
+$hosts      = ! empty( $event['hosts'] ) ? array_map( 'trim', explode( ',', $event['hosts'] ) ) : [''];
+$volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',', $event['volunteers'] ) ) : [''];
+?>
+
 <form method="post" id="tta-event-edit-form">
     <?php wp_nonce_field( 'tta_event_save_action', 'tta_event_save_nonce' ); ?>
     <?php if ( $editing ) : ?>
@@ -55,6 +63,52 @@ if ( isset( $_GET['event_id'] ) ) {
                 <td>
                     <input type="text" name="name" id="name" class="regular-text"
                            value="<?php echo esc_attr( $event['name'] ?? '' ); ?>">
+                </td>
+            </tr>
+
+            <!-- Event Hosts -->
+            <tr>
+                <th>
+                    <label for="hosts">Event Hosts</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Add one or more hosts." style="margin-left:4px;">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <div id="hosts-container">
+                        <?php foreach ( $hosts as $i => $h ) : ?>
+                            <div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;">
+                                <input type="text" name="hosts[]" class="regular-text host-field" list="tta-member-options" placeholder="Host #<?php echo $i+1; ?>" value="<?php echo esc_attr( $h ); ?>" />
+                                <button type="button" class="delete-interest" aria-label="Remove" style="background:none;border:none;cursor:pointer;margin-left:8px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>" alt="×" style="width:16px;height:16px;" />
+                                </button>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <button type="button" class="button" id="add-host-edit" style="margin-top:8px;">+ Add Another Host</button>
+                </td>
+            </tr>
+
+            <!-- Event Volunteers -->
+            <tr>
+                <th>
+                    <label for="volunteers">Event Volunteers</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Add volunteers assisting with this event." style="margin-left:4px;">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <div id="volunteers-container">
+                        <?php foreach ( $volunteers as $i => $v ) : ?>
+                            <div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;">
+                                <input type="text" name="volunteers[]" class="regular-text volunteer-field" list="tta-member-options" placeholder="Volunteer #<?php echo $i+1; ?>" value="<?php echo esc_attr( $v ); ?>" />
+                                <button type="button" class="delete-interest" aria-label="Remove" style="background:none;border:none;cursor:pointer;margin-left:8px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>" alt="×" style="width:16px;height:16px;" />
+                                </button>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <button type="button" class="button" id="add-volunteer-edit" style="margin-top:8px;">+ Add Another Volunteer</button>
                 </td>
             </tr>
 
@@ -469,6 +523,11 @@ if ( isset( $_GET['event_id'] ) ) {
 
         </tbody>
 
+        <datalist id="tta-member-options">
+            <?php foreach ( $member_choices as $name ) : ?>
+                <option value="<?php echo esc_attr( $name ); ?>"></option>
+            <?php endforeach; ?>
+        </datalist>
 
         <!-- Event Description (TinyMCE) -->
         <tr style="width:100%;">

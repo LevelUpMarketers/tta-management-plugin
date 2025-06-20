@@ -49,6 +49,8 @@ class TTA_Ajax_Members {
         $interests_arr = array_filter( array_map( 'sanitize_text_field', $_POST['interests'] ?? [] ) );
         $interests     = $interests_arr ? implode( ',', $interests_arr ) : '';
 
+        $hide_att      = ! empty( $_POST['hide_event_attendance'] ) ? 1 : 0;
+
         $opt_email = ! empty( $_POST['opt_in_marketing_email'] )    ? 1 : 0;
         $opt_sms   = ! empty( $_POST['opt_in_marketing_sms'] )      ? 1 : 0;
         $opt_upd_email = ! empty( $_POST['opt_in_event_update_email'] ) ? 1 : 0;
@@ -120,6 +122,7 @@ class TTA_Ajax_Members {
                 'opt_in_marketing_sms'      => $opt_sms,
                 'opt_in_event_update_email' => $opt_upd_email,
                 'opt_in_event_update_sms'   => $opt_upd_sms,
+                'hide_event_attendance'     => $hide_att,
             ],
             [
                 '%d',    // wpuserid
@@ -144,6 +147,7 @@ class TTA_Ajax_Members {
                 '%d',    // opt_in_marketing_sms
                 '%d',    // opt_in_event_update_email
                 '%d',    // opt_in_event_update_sms
+                '%d',    // hide_event_attendance
             ]
         );
         $member_id = $wpdb->insert_id;
@@ -171,6 +175,9 @@ class TTA_Ajax_Members {
             );
             update_user_meta( $wp_user_id, 'profileimgid', $aid );
         }
+
+        // Clear caches so attendee lists stay fresh
+        TTA_Cache::flush();
 
         wp_send_json_success([
             'message'   => 'Member created successfully!',
@@ -246,6 +253,8 @@ class TTA_Ajax_Members {
         $interests_arr     = array_filter( array_map( 'sanitize_text_field', $_POST['interests'] ?? [] ) );
         $interests         = ! empty( $interests_arr ) ? implode( ',', $interests_arr ) : '';
 
+        $hide_att         = ! empty( $_POST['hide_event_attendance'] ) ? 1 : 0;
+
         // Opt-ins
         $opt_email         = ! empty( $_POST['opt_in_marketing_email'] )    ? 1 : 0;
         $opt_sms           = ! empty( $_POST['opt_in_marketing_sms'] )      ? 1 : 0;
@@ -281,6 +290,7 @@ class TTA_Ajax_Members {
             'opt_in_marketing_sms'      => $opt_sms,
             'opt_in_event_update_email' => $opt_upd_email,
             'opt_in_event_update_sms'   => $opt_upd_sms,
+            'hide_event_attendance'     => $hide_att,
             'member_type'               => $member_type,
             'membership_level'          => $membership_level,
         ];
@@ -290,7 +300,8 @@ class TTA_Ajax_Members {
             '%s','%s','%s','%s','%s',
             '%s','%s','%s','%s','%s',
             '%s','%s','%s','%d','%d',
-            '%d','%d','%d','%s','%s'
+            '%d','%d','%d','%d','%s',
+            '%s'
         ];
 
         // Run the update
@@ -319,6 +330,9 @@ class TTA_Ajax_Members {
                 ]);
             }
         }
+
+        // Flush caches so attendee data updates immediately
+        TTA_Cache::flush();
 
         wp_send_json_success([ 'message' => 'Member updated successfully!' ]);
     }
