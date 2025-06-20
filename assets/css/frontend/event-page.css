@@ -396,6 +396,19 @@ input[disabled] {
   margin-right: 5px;
 }
 
+/* Your Events section */
+.tta-your-events-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tta-your-events-list li {
+  margin-bottom: .5em;
+}
+.tta-your-events-list .logout-icon {
+  transform: rotate(180deg);
+}
+
 .tta-accordion-content.expanded::after {
   opacity: 0;                      /* hide the fade */
 }

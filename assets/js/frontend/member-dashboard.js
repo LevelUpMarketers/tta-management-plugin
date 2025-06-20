@@ -26,6 +26,15 @@ jQuery(function($){
     $('#tab-' + tab).show();
   });
 
+  // Activate tab based on URL hash
+  var hashTab = window.location.hash.replace('#tab-', '');
+  if ( hashTab ) {
+    var $trigger = $('.tta-dashboard-tabs li[data-tab="' + hashTab + '"]');
+    if ( $trigger.length ) {
+      $trigger.trigger('click');
+    }
+  }
+
   // 3) Add/remove interests
   $('#add-interest-edit').on('click', function(e){
     e.preventDefault();

@@ -40,7 +40,7 @@ jQuery(function($){
     var headerHeight   = $(headerSelector).first().outerHeight() || 0;
     var extraOffset    = 200; // extra space below header
 
-    $('a[href="#tta-event-buy"]').on('click', function(e){
+  $('a[href="#tta-event-buy"]').on('click', function(e){
       e.preventDefault();
       var target = $('#tta-event-buy');
       if ( target.length ) {
@@ -49,6 +49,18 @@ jQuery(function($){
         }, 600);
       }
     });
+  });
+
+  $('.tta-scroll-login').on('click', function(e){
+    e.preventDefault();
+    var target = $('#tta-login-message');
+    if ( target.length ) {
+      $('html, body').animate({
+        scrollTop: target.offset().top - headerHeight - extraOffset
+      }, 600, function(){
+        target.find('.tta-accordion-toggle-login').trigger('click');
+      });
+    }
   });
 })(jQuery);
 
