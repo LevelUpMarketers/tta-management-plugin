@@ -548,7 +548,7 @@ if ( $ticket_count > 1 ) {
       usort( $named, function( $a, $b ) {
         return strcasecmp( $a['first_name'], $b['first_name'] );
       } );
-      $attendees = array_merge( $named, $hidden );
+      $attendees   = array_merge( $named, $hidden );
       $placeholder = TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/placeholder-profile.svg';
 
       if ( ! empty( $other_ids ) ) : ?>
@@ -582,7 +582,7 @@ if ( $ticket_count > 1 ) {
             <div class="tta-accordion-content">
               <h2><?php esc_html_e( 'Attendees', 'tta' ); ?></h2>
               <div class="tta-gallery-grid">
-                <?php foreach ( $attendees as $att ) : ?>
+                <?php $hidden_i = 1; foreach ( $attendees as $att ) : ?>
                   <div class="tta-gallery-item">
                     <?php
                       if ( ! empty( $att['img_id'] ) && empty( $att['hide'] ) ) {
@@ -590,7 +590,12 @@ if ( $ticket_count > 1 ) {
                       } else {
                         echo '<img src="' . esc_url( $placeholder ) . '" alt="">';
                       }
-                      $name = empty( $att['hide'] ) ? ( $att['first_name'] ?: 'hidden' ) : 'hidden';
+                      if ( empty( $att['hide'] ) && ! empty( $att['first_name'] ) ) {
+                        $name = $att['first_name'];
+                      } else {
+                        $name = sprintf( __( 'Attendee #%d', 'tta' ), $hidden_i );
+                        $hidden_i++;
+                      }
                     ?>
                     <span class="tta-attendee-name"><?php echo esc_html( $name ); ?></span>
                   </div>

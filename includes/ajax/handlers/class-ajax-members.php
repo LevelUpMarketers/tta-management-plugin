@@ -176,6 +176,9 @@ class TTA_Ajax_Members {
             update_user_meta( $wp_user_id, 'profileimgid', $aid );
         }
 
+        // Clear caches so attendee lists stay fresh
+        TTA_Cache::flush();
+
         wp_send_json_success([
             'message'   => 'Member created successfully!',
             'member_id' => $member_id,
@@ -327,6 +330,9 @@ class TTA_Ajax_Members {
                 ]);
             }
         }
+
+        // Flush caches so attendee data updates immediately
+        TTA_Cache::flush();
 
         wp_send_json_success([ 'message' => 'Member updated successfully!' ]);
     }

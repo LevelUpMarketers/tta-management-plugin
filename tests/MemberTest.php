@@ -6,6 +6,15 @@ class DummyWpdbMembers {
     public $prefix = 'wp_';
     public $insert_id = 0;
     public $data = [];
+    public $queries = [];
+
+    public function esc_like($str) {
+        return $str;
+    }
+
+    public function query($sql) {
+        $this->queries[] = $sql;
+    }
 
     public function insert($table, $data) {
         $this->insert_id++;

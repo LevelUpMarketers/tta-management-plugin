@@ -15,6 +15,7 @@ This document outlines the object caching layer used by the Trying To Adult Mana
 ## Automatic Invalidations
 
 - Whenever an event or its tickets are created or updated (via the admin pages or AJAX), `TTA_Cache::flush()` runs to clear all plugin caches.
+- Member records created or edited by admins also trigger a flush so attendee lists update immediately.
 - This helps prevent confusing situations where an admin edits content but the front‑end still shows old data.
 - Ticket availability changes from cart activity or cleanup delete the affected event's ticket cache so numbers stay current.
 
