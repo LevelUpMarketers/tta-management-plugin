@@ -17,6 +17,7 @@ Without these values, checkout will fail and an admin notice will be displayed.
 - [Object Caching](docs/ObjectCaching.md)
 - [Input Sanitization Helpers](docs/InputSanitization.md)
 - [Event Page Context](docs/EventPage.md)
+- [Event Hosts & Volunteers](docs/EventPage.md#event-hosts-and-volunteers)
 - [Event Type Options](docs/EventTypes.md)
 - [Testing Information](docs/TestingInformation.md) (includes sandbox credit card numbers)
 - [Member Privacy Options](docs/MemberPrivacy.md)

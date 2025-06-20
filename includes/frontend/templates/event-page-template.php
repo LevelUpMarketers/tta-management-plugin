@@ -546,7 +546,11 @@ if ( $ticket_count > 1 ) {
         }
       }
       usort( $named, function( $a, $b ) {
-        return strcasecmp( $a['first_name'], $b['first_name'] );
+        $cmp = strcasecmp( $a['first_name'], $b['first_name'] );
+        if ( 0 === $cmp ) {
+          $cmp = strcasecmp( $a['last_name'], $b['last_name'] );
+        }
+        return $cmp;
       } );
       $attendees   = array_merge( $named, $hidden );
       $placeholder = TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/placeholder-profile.svg';
@@ -591,7 +595,7 @@ if ( $ticket_count > 1 ) {
                         echo '<img src="' . esc_url( $placeholder ) . '" alt="">';
                       }
                       if ( empty( $att['hide'] ) && ! empty( $att['first_name'] ) ) {
-                        $name = $att['first_name'];
+                        $name = trim( $att['first_name'] . ' ' . $att['last_name'] );
                       } else {
                         $name = sprintf( __( 'Attendee #%d', 'tta' ), $hidden_i );
                         $hidden_i++;

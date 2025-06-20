@@ -544,6 +544,30 @@ jQuery(function($){
     $container.append($entry);
   });
 
+  // Add new "Hosts" field in edit form
+  $(document).on('click', '#add-host-edit', function(e){
+    e.preventDefault();
+    var $container = $('#hosts-container');
+    var count = $container.find('input.host-field').length + 1;
+    var $input = $('<input>', {type:'text', name:'hosts[]', class:'regular-text host-field', list:'tta-member-options', placeholder:'Host #' + count});
+    var $btn = $('<button>', {type:'button', class:'delete-interest', 'aria-label':'Remove', style:'background:none;border:none;cursor:pointer;margin-left:8px;'}).append(
+      $('<img>', {src:'http://trying-to-adult-rva-2025.local/wp-content/plugins/tta-management-plugin/assets/images/admin/bin.svg', alt:'×', style:'width:16px;height:16px;'}));
+    var $entry = $('<div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;"></div>').append($input).append($btn);
+    $container.append($entry);
+  });
+
+  // Add new "Volunteers" field in edit form
+  $(document).on('click', '#add-volunteer-edit', function(e){
+    e.preventDefault();
+    var $container = $('#volunteers-container');
+    var count = $container.find('input.volunteer-field').length + 1;
+    var $input = $('<input>', {type:'text', name:'volunteers[]', class:'regular-text volunteer-field', list:'tta-member-options', placeholder:'Volunteer #' + count});
+    var $btn = $('<button>', {type:'button', class:'delete-interest', 'aria-label':'Remove', style:'background:none;border:none;cursor:pointer;margin-left:8px;'}).append(
+      $('<img>', {src:'http://trying-to-adult-rva-2025.local/wp-content/plugins/tta-management-plugin/assets/images/admin/bin.svg', alt:'×', style:'width:16px;height:16px;'}));
+    var $entry = $('<div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;"></div>').append($input).append($btn);
+    $container.append($entry);
+  });
+
 
 
 
@@ -585,6 +609,30 @@ jQuery(function($){
 
     // Append a line break for spacing, then our entry
     $container.append($entry);
+  });
+
+  // Add host field on create form
+  $(document).on('click', '#add-host', function(e){
+    e.preventDefault();
+    var $c = $('#hosts-container');
+    var count = $c.find('input.host-field').length + 1;
+    var $input = $('<input>', {type:'text', name:'hosts[]', class:'regular-text host-field', list:'tta-member-options', placeholder:'Host #' + count});
+    var $btn = $('<button>', {type:'button', class:'delete-interest', 'aria-label':'Remove', style:'background:none;border:none;cursor:pointer;margin-left:8px;'}).append(
+      $('<img>', {src:'http://trying-to-adult-rva-2025.local/wp-content/plugins/tta-management-plugin/assets/images/admin/bin.svg', alt:'×', style:'width:16px;height:16px;'}));
+    var $entry = $('<div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;"></div>').append($input).append($btn);
+    $c.append($entry);
+  });
+
+  // Add volunteer field on create form
+  $(document).on('click', '#add-volunteer', function(e){
+    e.preventDefault();
+    var $c = $('#volunteers-container');
+    var count = $c.find('input.volunteer-field').length + 1;
+    var $input = $('<input>', {type:'text', name:'volunteers[]', class:'regular-text volunteer-field', list:'tta-member-options', placeholder:'Volunteer #' + count});
+    var $btn = $('<button>', {type:'button', class:'delete-interest', 'aria-label':'Remove', style:'background:none;border:none;cursor:pointer;margin-left:8px;'}).append(
+      $('<img>', {src:'http://trying-to-adult-rva-2025.local/wp-content/plugins/tta-management-plugin/assets/images/admin/bin.svg', alt:'×', style:'width:16px;height:16px;'}));
+    var $entry = $('<div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;"></div>').append($input).append($btn);
+    $c.append($entry);
   });
 
 

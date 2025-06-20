@@ -292,6 +292,7 @@ function tta_get_event_attendee_profiles( $event_id ) {
         $wpdb->prepare(
             "SELECT a.email,
                     COALESCE(m.first_name, a.first_name) AS first_name,
+                    COALESCE(m.last_name,  a.last_name)  AS last_name,
                     m.profileimgid,
                     m.hide_event_attendance
                FROM {$att_table} a
@@ -312,6 +313,7 @@ function tta_get_event_attendee_profiles( $event_id ) {
         $hide    = ! empty( $row['hide_event_attendance'] );
         $profiles[ $email ] = [
             'first_name' => $hide ? '' : sanitize_text_field( $row['first_name'] ?? '' ),
+            'last_name'  => $hide ? '' : sanitize_text_field( $row['last_name']  ?? '' ),
             'img_id'     => $hide ? 0 : intval( $row['profileimgid'] ),
             'hide'       => $hide,
         ];

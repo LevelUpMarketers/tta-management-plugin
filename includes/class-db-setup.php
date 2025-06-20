@@ -53,6 +53,8 @@ class TTA_DB_Setup {
             all_day_event TINYINT(1) DEFAULT 0,
             virtual_event TINYINT(1) DEFAULT 0,
             refundsavailable TINYINT(1) DEFAULT 0,
+            hosts TEXT,
+            volunteers TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY  (id),

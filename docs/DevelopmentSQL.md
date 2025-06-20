@@ -121,3 +121,13 @@ ALTER TABLE `wp_j9bzlz98u3_tta_members`
   ADD COLUMN `hide_event_attendance` TINYINT(1) DEFAULT 0
   AFTER `opt_in_event_update_sms`;
 ```
+
+## Add `hosts` and `volunteers` Columns
+
+Run this after updating the plugin to store event host and volunteer names:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_events`
+  ADD COLUMN `hosts` TEXT AFTER `refundsavailable`,
+  ADD COLUMN `volunteers` TEXT AFTER `hosts`;
+```
