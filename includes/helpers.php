@@ -260,37 +260,72 @@ function tta_get_event_attendees( $event_ute_id ) {
  * @param int $event_id Event ID.
  * @return int[] Array of attachment IDs.
  */
-function tta_get_event_attendee_image_ids( $event_id ) {
+function tta_get_event_attendee_profiles( $event_id ) {
     $event_id = intval( $event_id );
     if ( ! $event_id ) {
         return [];
     }
 
-    $cache_key = 'event_attendee_imgs_' . $event_id;
+    $cache_key = 'event_attendee_profiles_' . $event_id;
     $cached    = TTA_Cache::get( $cache_key );
     if ( false !== $cached ) {
         return $cached;
     }
 
     global $wpdb;
-    $hist_table    = $wpdb->prefix . 'tta_memberhistory';
+    $events_table  = $wpdb->prefix . 'tta_events';
+    $att_table     = $wpdb->prefix . 'tta_attendees';
+    $tickets_table = $wpdb->prefix . 'tta_tickets';
     $members_table = $wpdb->prefix . 'tta_members';
 
-    $ids = $wpdb->get_col( $wpdb->prepare(
-        "SELECT DISTINCT m.profileimgid
-           FROM {$hist_table} h
-           JOIN {$members_table} m ON h.member_id = m.id
-          WHERE h.event_id = %d
-            AND h.action_type = 'purchase'
-            AND m.profileimgid > 0",
+    $ute_id = $wpdb->get_var( $wpdb->prepare(
+        "SELECT ute_id FROM {$events_table} WHERE id = %d",
         $event_id
     ) );
 
-    $ids = array_map( 'intval', array_filter( $ids ) );
-    $ttl = empty( $ids ) ? 60 : 600;
-    TTA_Cache::set( $cache_key, $ids, $ttl );
+    if ( ! $ute_id ) {
+        TTA_Cache::set( $cache_key, [], 60 );
+        return [];
+    }
 
-    return $ids;
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT a.email,
+                    COALESCE(m.first_name, a.first_name) AS first_name,
+                    m.profileimgid
+               FROM {$att_table} a
+               JOIN {$tickets_table} t ON a.ticket_id = t.id
+               LEFT JOIN {$members_table} m ON a.email = m.email
+              WHERE t.event_ute_id = %s",
+            $ute_id
+        ),
+        ARRAY_A
+    );
+
+    $profiles = [];
+    foreach ( $rows as $row ) {
+        $email = sanitize_email( $row['email'] );
+        if ( isset( $profiles[ $email ] ) ) {
+            continue;
+        }
+        $profiles[ $email ] = [
+            'first_name' => sanitize_text_field( $row['first_name'] ?? '' ),
+            'img_id'     => intval( $row['profileimgid'] ),
+        ];
+    }
+
+    $profiles = array_values( $profiles );
+
+    $ttl = empty( $profiles ) ? 60 : 600;
+    TTA_Cache::set( $cache_key, $profiles, $ttl );
+
+    return $profiles;
+}
+
+function tta_get_event_attendee_image_ids( $event_id ) {
+    $profiles = tta_get_event_attendee_profiles( $event_id );
+    $ids = array_map( function( $p ) { return intval( $p['img_id'] ); }, $profiles );
+    return array_values( array_filter( $ids ) );
 }
 
 /**

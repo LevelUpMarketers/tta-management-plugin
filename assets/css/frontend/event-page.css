@@ -463,6 +463,12 @@ input[disabled] {
   text-align: center;
 }
 
+.tta-gallery-item .tta-attendee-name {
+  display: block;
+  margin-top: 0.5em;
+  font-size: 0.9em;
+}
+
 .tta-event-map-embed{
   margin-top:20px;
 }

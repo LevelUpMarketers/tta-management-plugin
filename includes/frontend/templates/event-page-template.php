@@ -535,7 +535,21 @@ if ( $ticket_count > 1 ) {
           ? array_filter( array_map( 'intval', explode( ',', $event['otherimageids'] ) ) )
           : [];
 
-      $attendee_img_ids = tta_get_event_attendee_image_ids( $event['id'] );
+      $attendees = tta_get_event_attendee_profiles( $event['id'] );
+      $named = [];
+      $hidden = [];
+      foreach ( $attendees as $att ) {
+        if ( ! empty( $att['first_name'] ) ) {
+          $named[] = $att;
+        } else {
+          $hidden[] = $att;
+        }
+      }
+      usort( $named, function( $a, $b ) {
+        return strcasecmp( $a['first_name'], $b['first_name'] );
+      } );
+      $attendees = array_merge( $named, $hidden );
+      $placeholder = TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/placeholder-profile.svg';
 
       if ( ! empty( $other_ids ) ) : ?>
         <section class="tta-event-section tta-event-image-gallery-accordion">
@@ -562,15 +576,22 @@ if ( $ticket_count > 1 ) {
 
       <?php endif; ?>
 
-      <?php if ( ! empty( $attendee_img_ids ) ) : ?>
+      <?php if ( ! empty( $attendees ) ) : ?>
         <section class="tta-event-section tta-event-image-gallery-accordion tta-event-attendees-section">
           <div class="tta-accordion">
             <div class="tta-accordion-content">
               <h2><?php esc_html_e( 'Attendees', 'tta' ); ?></h2>
               <div class="tta-gallery-grid">
-                <?php foreach ( $attendee_img_ids as $img_id ) : ?>
+                <?php foreach ( $attendees as $att ) : ?>
                   <div class="tta-gallery-item">
-                    <?php echo wp_get_attachment_image( $img_id, 'medium_large' ); ?>
+                    <?php
+                      if ( $att['img_id'] ) {
+                        echo wp_get_attachment_image( $att['img_id'], 'medium_large' );
+                      } else {
+                        echo '<img src="' . esc_url( $placeholder ) . '" alt="">';
+                      }
+                    ?>
+                    <span class="tta-attendee-name"><?php echo esc_html( $att['first_name'] ?: 'hidden' ); ?></span>
                   </div>
                 <?php endforeach; ?>
               </div>

@@ -37,6 +37,6 @@ Logged-in members instead see links to profile info, upcoming events, past event
 
 ## Attendee Gallery
 
-Below the image gallery, a second accordion displays profile pictures of confirmed attendees. The list is built from the `tta_memberhistory` table using records where `action_type` is `purchase` for the current event. Each attendee's profile image ID is pulled from the `tta_members` table. Results are cached via `TTA_Cache`: attendee lists persist for ten minutes, while an empty result expires after one minute.
+Below the image gallery, a second accordion displays profile pictures of confirmed attendees. The list is built from the `tta_attendees` table joined to `tta_members` via email so member profile images can be shown. Results are cached via `TTA_Cache` for ten minutes (one minute when empty). Attendees without a profile image or known name appear with a placeholder icon and the label "hidden." Names are sorted alphabetically before the placeholders.
 
 
