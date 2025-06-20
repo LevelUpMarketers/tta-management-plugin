@@ -34,33 +34,34 @@ jQuery(function($){
 
 
 (function($){
-  $(function(){
-    // adjust this selector to match your fixed header
-    var headerSelector = '.site-header, .tta-header'; 
-    var headerHeight   = $(headerSelector).first().outerHeight() || 0;
-    var extraOffset    = 200; // extra space below header
+  var headerSelector = '.site-header, .tta-header';
+  var extraOffset    = 200; // extra space below header
 
-  $('a[href="#tta-event-buy"]').on('click', function(e){
+  function getHeaderHeight(){
+    return $(headerSelector).first().outerHeight() || 0;
+  }
+
+  $(function(){
+    $('a[href="#tta-event-buy"]').on('click', function(e){
       e.preventDefault();
       var target = $('#tta-event-buy');
       if ( target.length ) {
         $('html, body').animate({
-          scrollTop: target.offset().top - headerHeight - extraOffset
+          scrollTop: target.offset().top - getHeaderHeight() - extraOffset
         }, 600);
       }
     });
-  });
 
-  $('.tta-scroll-login').on('click', function(e){
-    e.preventDefault();
-    var target = $('#tta-login-message');
-    if ( target.length ) {
-      $('html, body').animate({
-        scrollTop: target.offset().top - headerHeight - extraOffset
-      }, 600, function(){
-        target.find('.tta-accordion-toggle-login').trigger('click');
-      });
-    }
+    $('.tta-scroll-login').on('click', function(e){
+      e.preventDefault();
+      var target = $('#tta-login-message');
+      $('.tta-message-center .tta-accordion-content').addClass('expanded');
+      if ( target.length ) {
+        $('html, body').animate({
+          scrollTop: target.offset().top - getHeaderHeight() - extraOffset
+        }, 600);
+      }
+    });
   });
 })(jQuery);
 
@@ -93,16 +94,12 @@ $(document).on('change', '.tta-qty-input', enforceLimit);
 jQuery(function($){
   $('.tta-accordion-toggle-login').on('click', function(){
     var $btn  = $(this),
-        $cont = $btn.closest('.tta-accordion').find('.tta-accordion-content'),
-        loginText = 'Log in here',
-        hideText  = 'Hide login';
+        $cont = $btn.closest('.tta-accordion').find('.tta-accordion-content');
 
     if ( $cont.hasClass('expanded') ) {
       $cont.removeClass('expanded');
-      $btn.text( loginText );
     } else {
       $cont.addClass('expanded');
-      $btn.text( hideText );
     }
   });
 });
