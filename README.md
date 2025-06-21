@@ -21,6 +21,7 @@ Without these values, checkout will fail and an admin notice will be displayed.
 - [Event Type Options](docs/EventTypes.md)
 - [Testing Information](docs/TestingInformation.md) (includes sandbox credit card numbers)
 - [Member Privacy Options](docs/MemberPrivacy.md)
+- [Membership Benefits](docs/MembershipBenefits.md)
 - [Development SQL Assets](docs/DevelopmentSQL.md)
 - [Project TODOs](TODO.md)
 

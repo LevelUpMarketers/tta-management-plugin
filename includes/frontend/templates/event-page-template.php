@@ -111,50 +111,127 @@ if ( 'paid' === $event['type'] ) {
 }
 
 // Build the tickets section message
-$tickets_message = $event_type_label;
+$tickets_message = '<span class="tta-event-label"><strong>' . esc_html( $event_type_label ) . '</strong></span>';
+$qualifies       = (
+    'free' === $event_required ||
+    ( 'basic' === $event_required && in_array( $membership_level, [ 'basic', 'premium' ], true ) ) ||
+    ( 'premium' === $event_required && 'premium' === $membership_level )
+);
+$tooltip_message = '';
+$disable_controls = false;
+
 if ( ! $is_logged_in ) {
-    if ( 'free' !== $event['type'] ) {
+    if ( 'free' === $event_required ) {
+        $tickets_message .= ' - <a href="#tta-login-message" class="tta-scroll-login">' . esc_html__( 'Log in here', 'tta' ) . '</a> ' . esc_html__( 'for the best experience.', 'tta' );
         $tickets_message .= ' ' . sprintf(
-            /* translators: 1: opening login link, 2: closing login link, 3: opening registration link, 4: closing registration link */
-            esc_html__( 'Log in to purchase tickets. Not a member? %3$sJoin here%4$s.', 'tta' ),
-            '<a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">',
-            '</a>',
-            '<a href="' . esc_url( wp_registration_url() ) . '">',
+            /* translators: 1: opening link, 2: closing link */
+            esc_html__( "Don't have an account? %1$sCreate one here%2$s!", 'tta' ),
+            '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
             '</a>'
         );
+    } else {
+        $tickets_message .= ' - <a href="#tta-login-message" class="tta-scroll-login">' . esc_html__( 'Log in here', 'tta' ) . '</a> ' . esc_html__( 'to purchase tickets.', 'tta' );
+        $tickets_message .= ' ' . sprintf(
+            /* translators: 1: opening link, 2: closing link */
+            esc_html__( "Don't have an account? %1$sCreate one here%2$s!", 'tta' ),
+            '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
+            '</a>'
+        );
+        $disable_controls = true;
+        $tooltip_message  = 'basic' === $event_required
+            ? __( 'You must be logged in and have at least a Basic Membership to attend this event.', 'tta' )
+            : __( 'You must be logged in and have a Premium Membership to attend this event.', 'tta' );
     }
 } else {
-    $qualifies = (
-        'free' === $event_required ||
-        ('basic' === $event_required && in_array( $membership_level, [ 'basic', 'premium' ], true )) ||
-        ('premium' === $event_required && 'premium' === $membership_level)
-    );
-
+    $first = esc_html( $context['first_name'] );
     if ( $qualifies ) {
-        $tickets_message .= ' ' . esc_html__( 'Thanks for being a member!', 'tta' );
-        if ( 'basic' === $membership_level ) {
+        if ( 'free' === $event_required ) {
+            if ( 'free' === $membership_level ) {
+                $tickets_message .= " - " . sprintf( __( 'Thanks for being a Member, %s!', 'tta' ), $first );
+                $tickets_message .= ' ' . sprintf(
+                    /* translators: 1: opening link, 2: closing link */
+                    __( "Did you know that by upgrading your membership, you'll receive discounts and other perks? %1$sUpgrade your membership here%2$s!", 'tta' ),
+                    '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
+                    '</a>'
+                );
+            } elseif ( 'basic' === $membership_level ) {
+                $tickets_message .= " - " . sprintf( __( 'Thanks for being a Basic Member, %s!', 'tta' ), $first );
+                $tickets_message .= ' ' . sprintf(
+                    /* translators: 1: opening link, 2: closing link */
+                    __( "Did you know that by upgrading your membership to Premium, you'll receive even more discounts and perks? %1$sClick here to upgrade%2$s!", 'tta' ),
+                    '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
+                    '</a>'
+                );
+            } else {
+                $tickets_message .= " - " . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
+                $tickets_message .= ' ' . sprintf(
+                    /* translators: 1: opening link, 2: closing link */
+                    __( 'Did you know that by referring someone new to Trying to Adult, you can receive a referral bonus, including free events? %1$sClick here for more info%2$s!', 'tta' ),
+                    '<a href="' . esc_url( home_url( '/referral-program' ) ) . '">',
+                    '</a>'
+                );
+            }
+        } elseif ( 'basic' === $event_required ) {
+            if ( 'basic' === $membership_level ) {
+                $tickets_message .= " - " . sprintf( __( 'Thanks for being a Basic Member, %s!', 'tta' ), $first );
+                $tickets_message .= ' ' . sprintf(
+                    /* translators: 1: opening link, 2: closing link */
+                    __( "Did you know that by upgrading your membership to Premium, you'll receive even more discounts and perks? %1$sClick here to upgrade%2$s!", 'tta' ),
+                    '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
+                    '</a>'
+                );
+            } else { // premium
+                $tickets_message .= " - " . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
+                $tickets_message .= ' ' . sprintf(
+                    /* translators: 1: opening link, 2: closing link */
+                    __( 'Did you know that by referring someone new to Trying to Adult, you can receive a referral bonus, including free events? %1$sClick here for more info%2$s!', 'tta' ),
+                    '<a href="' . esc_url( home_url( '/referral-program' ) ) . '">',
+                    '</a>'
+                );
+            }
+        } else { // premium event, premium member
+            $tickets_message .= " - " . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
             $tickets_message .= ' ' . sprintf(
-                /* translators: 1: opening upgrade link, 2: closing upgrade link */
-                esc_html__( 'Upgrade to %1$sPremium%2$s for even more perks.', 'tta' ),
-                '<a href="' . esc_url( home_url( '/join/' ) ) . '">',
+                /* translators: 1: opening link, 2: closing link */
+                __( 'Did you know that by referring someone new to Trying to Adult, you can receive a referral bonus, including free events? %1$sClick here for more info%2$s!', 'tta' ),
+                '<a href="' . esc_url( home_url( '/referral-program' ) ) . '">',
                 '</a>'
             );
         }
     } else {
         if ( 'basic' === $event_required ) {
-            $tickets_message .= ' ' . sprintf(
-                /* translators: 1: opening upgrade link, 2: closing upgrade link */
-                esc_html__( 'Upgrade to at least %1$sBasic%2$s to purchase tickets.', 'tta' ),
-                '<a href="' . esc_url( home_url( '/join/' ) ) . '">',
+            $tickets_message .= ' - ' . sprintf(
+                __( "Hey %1$s, you'll need to upgrade to at least %2$sBasic Membership%3$s to purchase tickets for this event. %4$sClick here to upgrade%5$s!", 'tta' ),
+                $first,
+                '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
+                '</a>',
+                '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
                 '</a>'
             );
+            $disable_controls = true;
+            $tooltip_message  = __( 'You must have at least a Basic Membership to attend this event.', 'tta' );
         } else {
-            $tickets_message .= ' ' . sprintf(
-                /* translators: 1: opening upgrade link, 2: closing upgrade link */
-                esc_html__( 'Upgrade to %1$sPremium%2$s to purchase tickets.', 'tta' ),
-                '<a href="' . esc_url( home_url( '/join/' ) ) . '">',
-                '</a>'
-            );
+            if ( 'basic' === $membership_level ) {
+                $tickets_message .= ' - ' . sprintf(
+                    __( 'Hey %1$s, thanks for being a Basic Member! This event is only available to %2$sPremium Members%3$s though. %4$sClick here to upgrade%5$s to attend this event and receive even more discounts and perks!', 'tta' ),
+                    $first,
+                    '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
+                    '</a>',
+                    '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
+                    '</a>'
+                );
+            } else { // free member
+                $tickets_message .= ' - ' . sprintf(
+                    __( "Hey %1$s, you'll need to upgrade to a %2$sPremium Membership%3$s to purchase tickets for this event. %4$sClick here to upgrade%5$s!", 'tta' ),
+                    $first,
+                    '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
+                    '</a>',
+                    '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
+                    '</a>'
+                );
+            }
+            $disable_controls = true;
+            $tooltip_message  = __( 'You must have a Premium Membership to attend this event.', 'tta' );
         }
     }
 }
@@ -428,7 +505,7 @@ if ( $ticket_count > 1 ) {
                 esc_html__( 'Ticket discounts may be available! %1$s to check. Don\'t have an account? %3$sCreate one here%4$s.', 'tta' ),
                 '<button type="button" class="tta-button-link tta-accordion-toggle-login">' . esc_html__( 'Log in here', 'tta' ) . '</button>',
                 '',
-                '<a href="' . esc_url( wp_registration_url() ) . '">',
+                '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
                 '</a>'
               );
               ?>
@@ -497,17 +574,17 @@ if ( $ticket_count > 1 ) {
               <div class="tta-ticket-quantity">
                 <span class="tta-ticket-name"><?php echo esc_html( $ticket['ticket_name'] ); ?></span>
                 <div>
-                  <button type="button" class="tta-qty-decrease<?php echo $is_sold_out ? ' tta-disabled' : ''; ?>" aria-label="<?php esc_attr_e( 'Decrease quantity', 'tta' ); ?>" <?php disabled( $is_sold_out ); ?>>–</button>
+                  <button type="button" class="tta-qty-decrease<?php echo ($is_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?>" aria-label="<?php esc_attr_e( 'Decrease quantity', 'tta' ); ?>" <?php disabled( $is_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' title="' . esc_attr( $tooltip_message ) . '"' : ''; ?>>–</button>
                   <input
                     type="number"
                     name="tta_ticket_qty[<?php echo esc_attr( $ticket['id'] ); ?>]"
-                    class="tta-qty-input<?php echo $is_sold_out ? ' tta-disabled' : ''; ?>"
+                    class="tta-qty-input<?php echo ($is_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?>"
                     value="<?php echo esc_attr( $cart_quantities[ $ticket['id'] ] ?? 0 ); ?>"
                     min="0"
                     <?php if ( $available ): ?>max="<?php echo esc_attr( $available ); ?>"<?php endif; ?>
-                    <?php disabled( $is_sold_out ); ?>
+                    <?php disabled( $is_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' title="' . esc_attr( $tooltip_message ) . '"' : ''; ?>
                   />
-                  <button type="button" class="tta-qty-increase<?php echo $is_sold_out ? ' tta-disabled' : ''; ?>" aria-label="<?php esc_attr_e( 'Increase quantity', 'tta' ); ?>" <?php disabled( $is_sold_out ); ?>>+</button>
+                  <button type="button" class="tta-qty-increase<?php echo ($is_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?>" aria-label="<?php esc_attr_e( 'Increase quantity', 'tta' ); ?>" <?php disabled( $is_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' title="' . esc_attr( $tooltip_message ) . '"' : ''; ?>>+</button>
                 </div>
                 <div class="tta-ticket-notice" aria-live="polite"></div>
               </div>
@@ -521,8 +598,8 @@ if ( $ticket_count > 1 ) {
           <button
             type="button"
             id="tta-get-tickets"
-            class="tta-button tta-button-primary<?php echo $all_sold_out ? ' tta-disabled' : ''; ?>"
-            <?php disabled( empty( $tickets ) || $all_sold_out ); ?>
+            class="tta-button tta-button-primary<?php echo ($all_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?>"
+            <?php disabled( empty( $tickets ) || $all_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' title="' . esc_attr( $tooltip_message ) . '"' : ''; ?>
           >
             <?php esc_html_e( 'Get Tickets', 'tta' ); ?>
           </button>
