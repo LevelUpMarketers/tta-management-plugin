@@ -61,8 +61,11 @@ class TTA_Transaction_Logger {
                         'first_name'     => sanitize_text_field( $att['first_name'] ?? '' ),
                         'last_name'      => sanitize_text_field( $att['last_name'] ?? '' ),
                         'email'          => sanitize_email( $att['email'] ?? '' ),
+                        'phone'          => sanitize_text_field( $att['phone'] ?? '' ),
+                        'opt_in_sms'     => empty( $att['opt_in_sms'] ) ? 0 : 1,
+                        'opt_in_email'   => empty( $att['opt_in_email'] ) ? 0 : 1,
                     ],
-                    [ '%d', '%d', '%s', '%s', '%s' ]
+                    [ '%d', '%d', '%s', '%s', '%s', '%s', '%d', '%d' ]
                 );
             }
         }
@@ -95,5 +98,38 @@ class TTA_Transaction_Logger {
             ],
             [ '%d', '%d', '%d', '%s', '%s' ]
         );
+
+        // Record history for any additional attendees who are members
+        foreach ( $items as $it ) {
+            foreach ( (array) ( $it['attendees'] ?? [] ) as $att ) {
+                $email = sanitize_email( $att['email'] ?? '' );
+                $member_row = $wpdb->get_row(
+                    $wpdb->prepare(
+                        "SELECT id, wpuserid FROM {$members_table} WHERE email = %s LIMIT 1",
+                        $email
+                    ),
+                    ARRAY_A
+                );
+                if ( $member_row && intval( $member_row['wpuserid'] ) !== $user_id ) {
+                    $wpdb->insert(
+                        $history_table,
+                        [
+                            'member_id'   => intval( $member_row['id'] ),
+                            'wpuserid'    => intval( $member_row['wpuserid'] ),
+                            'event_id'    => intval( $event_id ),
+                            'action_type' => 'purchase',
+                            'action_data' => wp_json_encode([
+                                'items'          => $items,
+                                'transaction_id' => $transaction_id,
+                                'discount_code'  => $discount_code,
+                                'discount_saved' => $discount_saved,
+                                'amount'         => $amount,
+                            ]),
+                        ],
+                        [ '%d', '%d', '%d', '%s', '%s' ]
+                    );
+                }
+            }
+        }
     }
 }

@@ -12,6 +12,20 @@ class DummyWpdbCartHelper {
         }
         return [];
     }
+    public function get_row($query,$output=ARRAY_A){
+        if (preg_match('/FROM (\S+) WHERE wpuserid = (\d+)/',$query,$m)) {
+            $table=$m[1]; $uid=intval($m[2]);
+            return $this->data[$table][$uid][0] ?? null;
+        }
+        if (preg_match('/FROM (\S+) WHERE email = ([^ ]+)/',$query,$m)) {
+            $table=$m[1];
+            $email=trim($m[2],"' ");
+            foreach (($this->data[$table][1] ?? []) as $row) {
+                if (($row['email'] ?? '') === $email) return $row;
+            }
+        }
+        return null;
+    }
     public function prepare($q,...$a){
         foreach($a as $v){ $q=preg_replace('/%d/',$v,$q,1); $q=preg_replace('/%s/',$v,$q,1); }
         return $q;
@@ -23,11 +37,33 @@ class CartTest extends TestCase {
         if (!defined('ABSPATH')) {
             define('ABSPATH', sys_get_temp_dir() . '/wp/');
         }
+        if (!function_exists('sanitize_text_field')) { function sanitize_text_field($v){return is_string($v)?trim($v):$v;} }
+        if (!function_exists('sanitize_email')) { function sanitize_email($v){return trim($v);} }
+        if (!function_exists('sanitize_user')) { function sanitize_user($v){ return preg_replace('/[^A-Za-z0-9]/','',$v); } }
+        if (!function_exists('wp_unslash')) { function wp_unslash($v){ return is_array($v)?array_map('wp_unslash',$v):str_replace('\\','',$v); } }
+        if (!function_exists('is_user_logged_in')) { function is_user_logged_in(){ return true; } }
+        if (!function_exists('wp_get_current_user')) { function wp_get_current_user(){ return (object)['ID'=>1,'user_email'=>'me@example.com','user_login'=>'user','first_name'=>'First','last_name'=>'Last']; } }
+        if (!function_exists('get_transient')) { function get_transient($k){ return $GLOBALS['transients'][$k] ?? false; } }
+        if (!function_exists('set_transient')) { function set_transient($k,$v,$t=0){ $GLOBALS['transients'][$k]=$v; } }
+        if (!function_exists('delete_transient')) { function delete_transient($k){ unset($GLOBALS['transients'][$k]); } }
         if (!function_exists('esc_html')) { function esc_html($v){ return $v; } }
         if (!function_exists('esc_html_e')) { function esc_html_e($s,$d=null){ echo $s; } }
         if (!function_exists('esc_html__')) { function esc_html__($s,$d=null){ return $s; } }
         if (!function_exists('esc_attr')) { function esc_attr($v){ return $v; } }
         if (!function_exists('esc_url')) { function esc_url($v){ return $v; } }
+        if (!function_exists('esc_attr__')) { function esc_attr__($s,$d=null){ return $s; } }
+        global $wpdb;
+        $wpdb = new DummyWpdbCartHelper();
+        $wpdb->data['wp_tta_members'][1][] = [
+            'wpuserid' => 1,
+            'first_name' => 'First',
+            'last_name' => 'Last',
+            'email' => 'me@example.com',
+            'phone' => '555',
+            'opt_in_event_update_sms' => 1,
+            'opt_in_event_update_email' => 1,
+        ];
+        if (!defined('TTA_PLUGIN_URL')) { define('TTA_PLUGIN_URL', 'http://example.com/'); }
     }
     public function test_get_purchased_ticket_count(){
         global $wpdb;
@@ -70,6 +106,17 @@ class CartTest extends TestCase {
     public function test_render_attendee_fields_outputs_inputs(){
         require_once __DIR__ . '/../includes/helpers.php';
         require_once __DIR__ . '/../includes/cart/class-cart.php';
+        global $wpdb;
+        $wpdb = new DummyWpdbCartHelper();
+        $wpdb->data['wp_tta_members'][1][] = [
+            'wpuserid'=>1,
+            'first_name'=>'First',
+            'last_name'=>'Last',
+            'email'=>'me@example.com',
+            'phone'=>'555',
+            'opt_in_event_update_sms'=>1,
+            'opt_in_event_update_email'=>1,
+        ];
         $cart = $this->createMock('TTA_Cart');
         $items = [
             [
@@ -86,6 +133,9 @@ class CartTest extends TestCase {
         $cart->method('get_items')->willReturn($items);
         $html = tta_render_attendee_fields($cart);
         $this->assertStringContainsString('attendees[1][0][first_name]', $html);
+        $this->assertStringContainsString('attendees[1][0][phone]', $html);
+        $this->assertStringContainsString('attendees[1][0][opt_in_sms]', $html);
+        $this->assertStringContainsString('value="First"', $html);
         $this->assertStringContainsString('VIP #2', $html);
     }
 
