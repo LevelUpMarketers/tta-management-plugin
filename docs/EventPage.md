@@ -20,7 +20,7 @@ Returned array keys:
 
 ## Message Center
 
-The Event Page template includes a **Message Center** block under the “About This Event” section. When a visitor is not logged in a small callout invites them to authenticate. Clicking **Log in here** expands an embedded login form with the same accordion animation used elsewhere on the page. The form submits via `wp_login_form()` and redirects back to the event page on success. A link to the standard registration page is also provided.
+The Event Page template includes a **Message Center** block under the “About This Event” section. When a visitor is not logged in a small callout invites them to authenticate. The block begins with a **Log in or Register Here** heading followed by a login form that is visible by default. Clicking **Log in here** toggles the embedded form with the same accordion animation used elsewhere on the page. The form submits via `wp_login_form()` and redirects back to the event page on success. A link to the standard registration page is also provided.
 
 ## Event Type and Ticket Context
 

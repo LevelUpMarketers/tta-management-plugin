@@ -505,6 +505,7 @@ if ( $ticket_count > 1 ) {
 
       <?php if ( ! $is_logged_in ) : ?>
         <section id="tta-login-message" class="tta-message-center tta-login-accordion">
+          <h2><?php esc_html_e( 'Log in or Register Here', 'tta' ); ?></h2>
           <div class="tta-accordion">
             <p>
               <?php
@@ -518,7 +519,7 @@ if ( $ticket_count > 1 ) {
               );
               ?>
             </p>
-            <div class="tta-accordion-content">
+            <div class="tta-accordion-content expanded">
               <?php
               wp_login_form(
                 [
