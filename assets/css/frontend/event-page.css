@@ -32,7 +32,8 @@
   margin-bottom: 1em;
 }
 .tta-event-meta .tta-event-date,
-.tta-event-meta .tta-event-price {
+.tta-event-meta .tta-event-price,
+.tta-event-meta .tta-event-type-meta {
   display: inline-block;
   margin-right: 1em;
 }
@@ -383,7 +384,7 @@ input[disabled] {
     border-radius: 4px;
     transition: max-height 0.4s ease;/* animate max-height */
 }
-.tta-event-time, .tta-event-date{
+.tta-event-time, .tta-event-date, .tta-event-type-meta{
   font-size: 16px;
   font-weight: bold;
 }
