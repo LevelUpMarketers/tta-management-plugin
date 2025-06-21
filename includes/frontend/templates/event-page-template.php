@@ -125,7 +125,7 @@ if ( ! $is_logged_in ) {
         $tickets_message .= ' - <a href="#tta-login-message" class="tta-scroll-login">' . esc_html__( 'Log in here', 'tta' ) . '</a> ' . esc_html__( 'for the best experience.', 'tta' );
         $tickets_message .= ' ' . sprintf(
             /* translators: 1: opening link, 2: closing link */
-            esc_html__( "Don't have an account? %1$sCreate one here%2$s!", 'tta' ),
+            esc_html__( 'Don\'t have an account? %1$sCreate one here%2$s!', 'tta' ),
             '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
             '</a>'
         );
@@ -133,7 +133,7 @@ if ( ! $is_logged_in ) {
         $tickets_message .= ' - <a href="#tta-login-message" class="tta-scroll-login">' . esc_html__( 'Log in here', 'tta' ) . '</a> ' . esc_html__( 'to purchase tickets.', 'tta' );
         $tickets_message .= ' ' . sprintf(
             /* translators: 1: opening link, 2: closing link */
-            esc_html__( "Don't have an account? %1$sCreate one here%2$s!", 'tta' ),
+            esc_html__( 'Don\'t have an account? %1$sCreate one here%2$s!', 'tta' ),
             '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
             '</a>'
         );
@@ -150,7 +150,7 @@ if ( ! $is_logged_in ) {
                 $tickets_message .= " - " . sprintf( __( 'Thanks for being a Member, %s!', 'tta' ), $first );
                 $tickets_message .= ' ' . sprintf(
                     /* translators: 1: opening link, 2: closing link */
-                    __( "Did you know that by upgrading your membership, you'll receive discounts and other perks? %1$sUpgrade your membership here%2$s!", 'tta' ),
+                    __( 'Did you know that by upgrading your membership, you\'ll receive discounts and other perks? %1$sUpgrade your membership here%2$s!', 'tta' ),
                     '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
                     '</a>'
                 );
@@ -158,7 +158,7 @@ if ( ! $is_logged_in ) {
                 $tickets_message .= " - " . sprintf( __( 'Thanks for being a Basic Member, %s!', 'tta' ), $first );
                 $tickets_message .= ' ' . sprintf(
                     /* translators: 1: opening link, 2: closing link */
-                    __( "Did you know that by upgrading your membership to Premium, you'll receive even more discounts and perks? %1$sClick here to upgrade%2$s!", 'tta' ),
+                    __( 'Did you know that by upgrading your membership to Premium, you\'ll receive even more discounts and perks? %1$sClick here to upgrade%2$s!', 'tta' ),
                     '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
                     '</a>'
                 );
@@ -176,7 +176,7 @@ if ( ! $is_logged_in ) {
                 $tickets_message .= " - " . sprintf( __( 'Thanks for being a Basic Member, %s!', 'tta' ), $first );
                 $tickets_message .= ' ' . sprintf(
                     /* translators: 1: opening link, 2: closing link */
-                    __( "Did you know that by upgrading your membership to Premium, you'll receive even more discounts and perks? %1$sClick here to upgrade%2$s!", 'tta' ),
+                    __( 'Did you know that by upgrading your membership to Premium, you\'ll receive even more discounts and perks? %1$sClick here to upgrade%2$s!', 'tta' ),
                     '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
                     '</a>'
                 );
@@ -201,7 +201,7 @@ if ( ! $is_logged_in ) {
     } else {
         if ( 'basic' === $event_required ) {
             $tickets_message .= ' - ' . sprintf(
-                __( "Hey %1$s, you'll need to upgrade to at least %2$sBasic Membership%3$s to purchase tickets for this event. %4$sClick here to upgrade%5$s!", 'tta' ),
+                __( 'Hey %1$s, you\'ll need to upgrade to at least %2$sBasic Membership%3$s to purchase tickets for this event. %4$sClick here to upgrade%5$s!', 'tta' ),
                 $first,
                 '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
                 '</a>',
@@ -222,7 +222,7 @@ if ( ! $is_logged_in ) {
                 );
             } else { // free member
                 $tickets_message .= ' - ' . sprintf(
-                    __( "Hey %1$s, you'll need to upgrade to a %2$sPremium Membership%3$s to purchase tickets for this event. %4$sClick here to upgrade%5$s!", 'tta' ),
+                    __( 'Hey %1$s, you\'ll need to upgrade to a %2$sPremium Membership%3$s to purchase tickets for this event. %4$sClick here to upgrade%5$s!', 'tta' ),
                     $first,
                     '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
                     '</a>',
