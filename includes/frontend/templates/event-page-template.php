@@ -622,23 +622,34 @@ if ( $ticket_count > 1 ) {
           : [];
 
       $attendees = tta_get_event_attendee_profiles( $event['id'] );
+      $hosts = [];
+      $volunteers = [];
       $named = [];
       $hidden = [];
       foreach ( $attendees as $att ) {
         if ( ! empty( $att['first_name'] ) && empty( $att['hide'] ) ) {
-          $named[] = $att;
+          if ( ! empty( $att['is_host'] ) ) {
+            $hosts[] = $att;
+          } elseif ( ! empty( $att['is_volunteer'] ) ) {
+            $volunteers[] = $att;
+          } else {
+            $named[] = $att;
+          }
         } else {
           $hidden[] = $att;
         }
       }
-      usort( $named, function( $a, $b ) {
+      $sort_cb = function( $a, $b ) {
         $cmp = strcasecmp( $a['first_name'], $b['first_name'] );
         if ( 0 === $cmp ) {
           $cmp = strcasecmp( $a['last_name'], $b['last_name'] );
         }
         return $cmp;
-      } );
-      $attendees   = array_merge( $named, $hidden );
+      };
+      usort( $hosts, $sort_cb );
+      usort( $volunteers, $sort_cb );
+      usort( $named, $sort_cb );
+      $attendees = array_merge( $hosts, $volunteers, $named, $hidden );
       $placeholder = TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/placeholder-profile.svg';
 
       if ( ! empty( $other_ids ) ) : ?>
@@ -674,20 +685,32 @@ if ( $ticket_count > 1 ) {
               <div class="tta-gallery-grid">
                 <?php $hidden_i = 1; foreach ( $attendees as $att ) : ?>
                   <div class="tta-gallery-item">
-                    <?php
-                      if ( ! empty( $att['img_id'] ) && empty( $att['hide'] ) ) {
-                        echo wp_get_attachment_image( $att['img_id'], 'medium_large' );
-                      } else {
-                        echo '<img src="' . esc_url( $placeholder ) . '" alt="">';
-                      }
-                      if ( empty( $att['hide'] ) && ! empty( $att['first_name'] ) ) {
-                        $name = trim( $att['first_name'] . ' ' . $att['last_name'] );
-                      } else {
-                        $name = sprintf( __( 'Attendee #%d', 'tta' ), $hidden_i );
-                        $hidden_i++;
-                      }
-                    ?>
+                    <div class="tta-attendee-photo-wrapper">
+                      <?php
+                        if ( ! empty( $att['img_id'] ) && empty( $att['hide'] ) ) {
+                            echo wp_get_attachment_image( $att['img_id'], 'medium_large' );
+                        } else {
+                            echo '<img src="' . esc_url( $placeholder ) . '" alt="">';
+                        }
+                        if ( ! empty( $att['is_host'] ) ) {
+                            echo '<span class="tta-attendee-role">' . esc_html__( 'Host', 'tta' ) . '</span>';
+                        } elseif ( ! empty( $att['is_volunteer'] ) ) {
+                            echo '<span class="tta-attendee-role">' . esc_html__( 'Volunteer', 'tta' ) . '</span>';
+                        }
+                        if ( empty( $att['hide'] ) && ! empty( $att['first_name'] ) ) {
+                            $name  = trim( $att['first_name'] . ' ' . $att['last_name'] );
+                            $level = tta_get_membership_label( $att['membership_level'] );
+                        } else {
+                            $name  = sprintf( __( 'Attendee #%d', 'tta' ), $hidden_i );
+                            $level = '';
+                            $hidden_i++;
+                        }
+                      ?>
+                    </div>
                     <span class="tta-attendee-name"><?php echo esc_html( $name ); ?></span>
+                    <?php if ( $level ) : ?>
+                      <span class="tta-attendee-level"><?php echo esc_html( $level ); ?></span>
+                    <?php endif; ?>
                   </div>
                 <?php endforeach; ?>
               </div>

@@ -278,10 +278,18 @@ function tta_get_event_attendee_profiles( $event_id ) {
     $tickets_table = $wpdb->prefix . 'tta_tickets';
     $members_table = $wpdb->prefix . 'tta_members';
 
-    $ute_id = $wpdb->get_var( $wpdb->prepare(
-        "SELECT ute_id FROM {$events_table} WHERE id = %d",
-        $event_id
-    ) );
+    $event_row = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT ute_id, hosts, volunteers FROM {$events_table} WHERE id = %d",
+            $event_id
+        ),
+        ARRAY_A
+    );
+    $ute_id     = $event_row['ute_id'] ?? null;
+    $host_names = array_filter( array_map( 'trim', explode( ',', $event_row['hosts'] ?? '' ) ) );
+    $vol_names  = array_filter( array_map( 'trim', explode( ',', $event_row['volunteers'] ?? '' ) ) );
+    $host_lower = array_map( 'strtolower', $host_names );
+    $vol_lower  = array_map( 'strtolower', $vol_names );
 
     if ( ! $ute_id ) {
         TTA_Cache::set( $cache_key, [], 60 );
@@ -294,7 +302,8 @@ function tta_get_event_attendee_profiles( $event_id ) {
                     COALESCE(m.first_name, a.first_name) AS first_name,
                     COALESCE(m.last_name,  a.last_name)  AS last_name,
                     m.profileimgid,
-                    m.hide_event_attendance
+                    m.hide_event_attendance,
+                    m.membership_level
                FROM {$att_table} a
                JOIN {$tickets_table} t ON a.ticket_id = t.id
                LEFT JOIN {$members_table} m ON a.email = m.email
@@ -310,12 +319,19 @@ function tta_get_event_attendee_profiles( $event_id ) {
         if ( isset( $profiles[ $email ] ) ) {
             continue;
         }
-        $hide    = ! empty( $row['hide_event_attendance'] );
+        $hide   = ! empty( $row['hide_event_attendance'] );
+        $fn     = sanitize_text_field( $row['first_name'] ?? '' );
+        $ln     = sanitize_text_field( $row['last_name']  ?? '' );
+        $name   = trim( $fn . ' ' . $ln );
+        $lower  = strtolower( $name );
         $profiles[ $email ] = [
-            'first_name' => $hide ? '' : sanitize_text_field( $row['first_name'] ?? '' ),
-            'last_name'  => $hide ? '' : sanitize_text_field( $row['last_name']  ?? '' ),
-            'img_id'     => $hide ? 0 : intval( $row['profileimgid'] ),
-            'hide'       => $hide,
+            'first_name'       => $hide ? '' : $fn,
+            'last_name'        => $hide ? '' : $ln,
+            'img_id'           => $hide ? 0 : intval( $row['profileimgid'] ),
+            'hide'             => $hide,
+            'membership_level' => $row['membership_level'] ?? 'free',
+            'is_host'          => in_array( $lower, $host_lower, true ),
+            'is_volunteer'     => in_array( $lower, $vol_lower, true ),
         ];
     }
 
@@ -331,6 +347,23 @@ function tta_get_event_attendee_image_ids( $event_id ) {
     $profiles = tta_get_event_attendee_profiles( $event_id );
     $ids = array_map( function( $p ) { return intval( $p['img_id'] ); }, $profiles );
     return array_values( array_filter( $ids ) );
+}
+
+/**
+ * Convert a membership level slug to a human readable label.
+ *
+ * @param string $level Level slug (free, basic, premium).
+ * @return string
+ */
+function tta_get_membership_label( $level ) {
+    switch ( strtolower( $level ) ) {
+        case 'basic':
+            return __( 'Basic Member', 'tta' );
+        case 'premium':
+            return __( 'Premium Member', 'tta' );
+        default:
+            return __( 'Free Member', 'tta' );
+    }
 }
 
 /**

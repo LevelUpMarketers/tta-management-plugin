@@ -37,12 +37,12 @@ Logged-in members instead see links to profile info, upcoming events, past event
 
 ## Attendee Gallery
 
-Below the image gallery, a second accordion displays profile pictures of confirmed attendees. The list is built from the `tta_attendees` table joined to `tta_members` via email so member profile images can be shown. Results are cached via `TTA_Cache` for ten minutes (one minute when empty). Each attendee's full name appears beneath their photo. If a profile image is missing or attendance is hidden, a placeholder image is shown with a label like "Attendee #1." Names are sorted alphabetically before the numbered placeholders.
+Below the image gallery, a second accordion displays profile pictures of confirmed attendees. The list is built from the `tta_attendees` table joined to `tta_members` via email so member profile images can be shown. Results are cached via `TTA_Cache` for ten minutes (one minute when empty). Each attendee's full name appears beneath their photo along with their membership level (Free, Basic, or Premium). If a profile image is missing or attendance is hidden, a placeholder image is shown with a label like "Attendee #1." Hosts and volunteers are highlighted with a small badge over their photo. Hosts are listed first, followed by volunteers, and then all other attendees in alphabetical order.
 
 Members may opt to hide their attendance in their profile's *Privacy Options*. Hidden attendees always show the placeholder image and use the numbered "Attendee" label.
 
 ## Event Hosts and Volunteers
 
-Admins can assign one or more hosts and volunteers when creating or editing an event. The autocomplete fields pull from members whose type is Volunteer, Admin, or Super Admin. Selected names are stored in the `hosts` and `volunteers` columns of `tta_events`. Front-end display of this information will be handled later.
+Admins can assign one or more hosts and volunteers when creating or editing an event. The autocomplete fields pull from members whose type is Volunteer, Admin, or Super Admin. Selected names are stored in the `hosts` and `volunteers` columns of `tta_events`. On the front end, hosts appear first in the attendee gallery followed by volunteers. Each badge is labelled “Host” or “Volunteer.”
 
 

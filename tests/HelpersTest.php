@@ -8,6 +8,7 @@ class DummyWpdbHelpers {
     public $results_calls = 0;
     public $row_calls = 0;
     public $results_data = [];
+    public $event_row_data = [ 'ute_id' => 'ute1', 'hosts' => '', 'volunteers' => '' ];
 
     public function get_var($query) {
         $this->var_calls++;
@@ -26,12 +27,16 @@ class DummyWpdbHelpers {
                 'last_name' => 'Bee',
                 'profileimgid' => 5,
                 'hide_event_attendance' => 0,
+                'membership_level' => 'premium',
             ],
         ];
     }
 
     public function get_row($query, $output = ARRAY_A) {
         $this->row_calls++;
+        if ( strpos( $query, 'FROM wp_tta_events' ) !== false ) {
+            return $this->event_row_data;
+        }
         return [
             'wpuserid' => 1,
             'membership_level' => 'premium',
@@ -117,10 +122,13 @@ class HelpersTest extends TestCase {
 
     public function test_get_event_attendee_profiles_caches_results() {
         global $wpdb;
+        $this->wpdb->event_row_data = [ 'ute_id' => 'ute1', 'hosts' => 'Ann Bee', 'volunteers' => '' ];
         $profiles1 = tta_get_event_attendee_profiles(5);
         $this->assertCount(1, $profiles1);
-        $this->assertSame(1, $wpdb->var_calls);
+        $this->assertSame(1, $wpdb->row_calls);
         $this->assertSame(1, $wpdb->results_calls);
+        $this->assertTrue($profiles1[0]['is_host']);
+        $this->assertSame('premium', $profiles1[0]['membership_level']);
         $wpdb->results_data = [];
         $profiles2 = tta_get_event_attendee_profiles(5);
         $this->assertCount(1, $profiles2);
@@ -130,9 +138,9 @@ class HelpersTest extends TestCase {
     public function test_get_event_attendee_image_ids_filters_zeroes() {
         global $wpdb;
         $wpdb->results_data = [
-            ['email'=>'a@e.com','first_name'=>'A','last_name'=>'B','profileimgid'=>5,'hide_event_attendance'=>0],
-            ['email'=>'b@e.com','first_name'=>'B','last_name'=>'C','profileimgid'=>0,'hide_event_attendance'=>0],
-            ['email'=>'c@e.com','first_name'=>'C','last_name'=>'D','profileimgid'=>3,'hide_event_attendance'=>1],
+            ['email'=>'a@e.com','first_name'=>'A','last_name'=>'B','profileimgid'=>5,'hide_event_attendance'=>0,'membership_level'=>'free'],
+            ['email'=>'b@e.com','first_name'=>'B','last_name'=>'C','profileimgid'=>0,'hide_event_attendance'=>0,'membership_level'=>'basic'],
+            ['email'=>'c@e.com','first_name'=>'C','last_name'=>'D','profileimgid'=>3,'hide_event_attendance'=>1,'membership_level'=>'premium'],
         ];
         TTA_Cache::delete('event_attendee_profiles_99');
         $ids = tta_get_event_attendee_image_ids(99);
