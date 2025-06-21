@@ -278,10 +278,18 @@ function tta_get_event_attendee_profiles( $event_id ) {
     $tickets_table = $wpdb->prefix . 'tta_tickets';
     $members_table = $wpdb->prefix . 'tta_members';
 
-    $ute_id = $wpdb->get_var( $wpdb->prepare(
-        "SELECT ute_id FROM {$events_table} WHERE id = %d",
-        $event_id
-    ) );
+    $event_row = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT ute_id, hosts, volunteers FROM {$events_table} WHERE id = %d",
+            $event_id
+        ),
+        ARRAY_A
+    );
+    $ute_id     = $event_row['ute_id'] ?? null;
+    $host_names = array_filter( array_map( 'trim', explode( ',', $event_row['hosts'] ?? '' ) ) );
+    $vol_names  = array_filter( array_map( 'trim', explode( ',', $event_row['volunteers'] ?? '' ) ) );
+    $host_lower = array_map( 'strtolower', $host_names );
+    $vol_lower  = array_map( 'strtolower', $vol_names );
 
     if ( ! $ute_id ) {
         TTA_Cache::set( $cache_key, [], 60 );
@@ -294,7 +302,8 @@ function tta_get_event_attendee_profiles( $event_id ) {
                     COALESCE(m.first_name, a.first_name) AS first_name,
                     COALESCE(m.last_name,  a.last_name)  AS last_name,
                     m.profileimgid,
-                    m.hide_event_attendance
+                    m.hide_event_attendance,
+                    m.membership_level
                FROM {$att_table} a
                JOIN {$tickets_table} t ON a.ticket_id = t.id
                LEFT JOIN {$members_table} m ON a.email = m.email
@@ -310,12 +319,19 @@ function tta_get_event_attendee_profiles( $event_id ) {
         if ( isset( $profiles[ $email ] ) ) {
             continue;
         }
-        $hide    = ! empty( $row['hide_event_attendance'] );
+        $hide   = ! empty( $row['hide_event_attendance'] );
+        $fn     = sanitize_text_field( $row['first_name'] ?? '' );
+        $ln     = sanitize_text_field( $row['last_name']  ?? '' );
+        $name   = trim( $fn . ' ' . $ln );
+        $lower  = strtolower( $name );
         $profiles[ $email ] = [
-            'first_name' => $hide ? '' : sanitize_text_field( $row['first_name'] ?? '' ),
-            'last_name'  => $hide ? '' : sanitize_text_field( $row['last_name']  ?? '' ),
-            'img_id'     => $hide ? 0 : intval( $row['profileimgid'] ),
-            'hide'       => $hide,
+            'first_name'       => $hide ? '' : $fn,
+            'last_name'        => $hide ? '' : $ln,
+            'img_id'           => $hide ? 0 : intval( $row['profileimgid'] ),
+            'hide'             => $hide,
+            'membership_level' => $row['membership_level'] ?? 'free',
+            'is_host'          => in_array( $lower, $host_lower, true ),
+            'is_volunteer'     => in_array( $lower, $vol_lower, true ),
         ];
     }
 
@@ -331,6 +347,23 @@ function tta_get_event_attendee_image_ids( $event_id ) {
     $profiles = tta_get_event_attendee_profiles( $event_id );
     $ids = array_map( function( $p ) { return intval( $p['img_id'] ); }, $profiles );
     return array_values( array_filter( $ids ) );
+}
+
+/**
+ * Convert a membership level slug to a human readable label.
+ *
+ * @param string $level Level slug (free, basic, premium).
+ * @return string
+ */
+function tta_get_membership_label( $level ) {
+    switch ( strtolower( $level ) ) {
+        case 'basic':
+            return __( 'Basic Member', 'tta' );
+        case 'premium':
+            return __( 'Premium Member', 'tta' );
+        default:
+            return __( 'Free Member', 'tta' );
+    }
 }
 
 /**
@@ -698,21 +731,44 @@ function tta_render_attendee_fields( TTA_Cart $cart ) {
 
     ob_start();
     echo '<div class="tta-attendee-fields">';
+    $context      = tta_get_current_user_context();
+    $used_default = false;
     foreach ( $groups as $grp ) {
         echo '<div class="tta-event-group">';
         echo '<h4><a href="' . esc_url( get_permalink( $grp['page_id'] ) ) . '">' . esc_html( $grp['event_name'] ) . '</a></h4>';
+        echo '<p class="tta-attendee-note">' . esc_html__( 'Complete the information below for each attendee. This information will be used for checking attendees in when arriving at the event.', 'tta' ) . '</p>';
         foreach ( $grp['tickets'] as $t ) {
             $qty = intval( $t['quantity'] );
             for ( $i = 0; $i < $qty; $i++ ) {
                 echo '<div class="tta-attendee-row">';
                 echo '<strong>' . esc_html( $t['ticket_name'] ) . ' #' . ( $i + 1 ) . '</strong><br />';
-                $base = 'attendees[' . intval( $t['ticket_id'] ) . '][' . $i . ']';
-                echo '<label>' . esc_html__( 'First Name', 'tta' ) . '<br />';
-                echo '<input type="text" name="' . esc_attr( $base . '[first_name]' ) . '" required></label> ';
-                echo '<label>' . esc_html__( 'Last Name', 'tta' ) . '<br />';
-                echo '<input type="text" name="' . esc_attr( $base . '[last_name]' ) . '" required></label> ';
-                echo '<label>' . esc_html__( 'Email', 'tta' ) . '<br />';
-                echo '<input type="email" name="' . esc_attr( $base . '[email]' ) . '" required></label>';
+                $base    = 'attendees[' . intval( $t['ticket_id'] ) . '][' . $i . ']';
+                $fn_val  = '';
+                $ln_val  = '';
+                $em_val  = '';
+                $ph_val  = '';
+                $sms_chk = 'checked';
+                $em_chk  = 'checked';
+                if ( ! $used_default && $context['member'] ) {
+                    $fn_val  = esc_attr( $context['member']['first_name'] );
+                    $ln_val  = esc_attr( $context['member']['last_name'] );
+                    $em_val  = esc_attr( $context['member']['email'] );
+                    $ph_val  = esc_attr( $context['member']['phone'] ?? '' );
+                    $sms_chk = ! empty( $context['member']['opt_in_event_update_sms'] ) ? 'checked' : '';
+                    $em_chk  = ! empty( $context['member']['opt_in_event_update_email'] ) ? 'checked' : '';
+                    $used_default = true;
+                }
+                $img = esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' );
+                echo '<label><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'First name for event check-in.', 'tta' ) . '"><img src="' . $img . '" alt="?"></span>' . esc_html__( 'First Name', 'tta' ) . '<span class="tta-required">*</span><br />';
+                echo '<input type="text" name="' . esc_attr( $base . '[first_name]' ) . '" value="' . $fn_val . '" required></label> ';
+                echo '<label><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Last name for event check-in.', 'tta' ) . '"><img src="' . $img . '" alt="?"></span>' . esc_html__( 'Last Name', 'tta' ) . '<br />';
+                echo '<input type="text" name="' . esc_attr( $base . '[last_name]' ) . '" value="' . $ln_val . '" required></label> ';
+                echo '<label><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Email used for ticket confirmation.', 'tta' ) . '"><img src="' . $img . '" alt="?"></span>' . esc_html__( 'Email', 'tta' ) . '<span class="tta-required">*</span><br />';
+                echo '<input type="email" name="' . esc_attr( $base . '[email]' ) . '" value="' . $em_val . '" required></label> ';
+                echo '<label><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Phone used for event updates or issues.', 'tta' ) . '"><img src="' . $img . '" alt="?"></span>' . esc_html__( 'Phone', 'tta' ) . '<br />';
+                echo '<input type="tel" name="' . esc_attr( $base . '[phone]' ) . '" value="' . $ph_val . '"></label>';
+                echo '<label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_sms]' ) . '" ' . $sms_chk . '> ' . esc_html__( 'text me updates about this event', 'tta' ) . '</label>';
+                echo '<label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_email]' ) . '" ' . $em_chk . '> ' . esc_html__( 'email me updates about this event', 'tta' ) . '</label>';
                 echo '</div>';
             }
         }

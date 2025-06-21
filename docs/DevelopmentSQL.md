@@ -170,3 +170,14 @@ ALTER TABLE `wp_j9bzlz98u3_tta_events`
   ADD COLUMN `hosts` TEXT AFTER `refundsavailable`,
   ADD COLUMN `volunteers` TEXT AFTER `hosts`;
 ```
+
+## Add phone and opt-in columns to `tta_attendees`
+
+Run this after updating the plugin if your install already has the `tta_attendees` table:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_attendees`
+  ADD COLUMN `phone` VARCHAR(50) DEFAULT '',
+  ADD COLUMN `opt_in_sms` TINYINT(1) DEFAULT 0,
+  ADD COLUMN `opt_in_email` TINYINT(1) DEFAULT 0;
+```

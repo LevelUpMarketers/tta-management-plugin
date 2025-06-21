@@ -460,6 +460,9 @@ class TTA_Cart {
           'first_name' => tta_sanitize_text_field( $row['first_name'] ?? '' ),
           'last_name'  => tta_sanitize_text_field( $row['last_name'] ?? '' ),
           'email'      => tta_sanitize_email( $row['email'] ?? '' ),
+          'phone'      => tta_sanitize_text_field( $row['phone'] ?? '' ),
+          'opt_in_sms' => empty( $row['opt_in_sms'] ) ? 0 : 1,
+          'opt_in_email' => empty( $row['opt_in_email'] ) ? 0 : 1,
         ];
       }
     }
