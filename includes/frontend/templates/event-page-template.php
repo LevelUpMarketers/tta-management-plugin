@@ -461,10 +461,18 @@ if ( $ticket_count > 1 ) {
             <?php echo esc_html( $time_str ); ?>
           </span>
         </div>
+        <div class="tta-event-meta-item">
+          <img
+            class="tta-event-details-icon"
+            src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/memberlevel.svg' ); ?>"
+            alt="<?php esc_attr_e( 'Member level icon', 'tta' ); ?>"
+          />
+          <span class="tta-event-type-meta"><?php echo esc_html( $event_type_label ); ?></span>
+        </div>
       </div>
 
-      <a href="#tta-event-buy" class="tta-button tta-button-primary">
-        <?php esc_html_e( 'Buy Tickets', 'tta' ); ?>
+      <a href="<?php echo $is_logged_in ? '#tta-event-buy' : '#tta-login-message'; ?>" class="tta-button tta-button-primary<?php echo $is_logged_in ? '' : ' tta-scroll-login'; ?>">
+        <?php echo $is_logged_in ? esc_html__( 'Buy Tickets', 'tta' ) : esc_html__( 'Log in to Buy Tickets', 'tta' ); ?>
       </a>
     </div>
     <div class="tta-event-hero-image">
@@ -574,17 +582,17 @@ if ( $ticket_count > 1 ) {
               <div class="tta-ticket-quantity">
                 <span class="tta-ticket-name"><?php echo esc_html( $ticket['ticket_name'] ); ?></span>
                 <div>
-                  <button type="button" class="tta-qty-decrease<?php echo ($is_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?>" aria-label="<?php esc_attr_e( 'Decrease quantity', 'tta' ); ?>" <?php disabled( $is_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' title="' . esc_attr( $tooltip_message ) . '"' : ''; ?>>–</button>
+                  <button type="button" class="tta-qty-decrease<?php echo ($is_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?><?php echo $disable_controls ? ' tta-tooltip-trigger' : ''; ?>" aria-label="<?php esc_attr_e( 'Decrease quantity', 'tta' ); ?>" <?php disabled( $is_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' data-tooltip="' . esc_attr( $tooltip_message ) . '"' : ''; ?>>–</button>
                   <input
                     type="number"
                     name="tta_ticket_qty[<?php echo esc_attr( $ticket['id'] ); ?>]"
-                    class="tta-qty-input<?php echo ($is_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?>"
+                    class="tta-qty-input<?php echo ($is_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?><?php echo $disable_controls ? ' tta-tooltip-trigger' : ''; ?>"
                     value="<?php echo esc_attr( $cart_quantities[ $ticket['id'] ] ?? 0 ); ?>"
                     min="0"
                     <?php if ( $available ): ?>max="<?php echo esc_attr( $available ); ?>"<?php endif; ?>
-                    <?php disabled( $is_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' title="' . esc_attr( $tooltip_message ) . '"' : ''; ?>
+                    <?php disabled( $is_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' data-tooltip="' . esc_attr( $tooltip_message ) . '"' : ''; ?>
                   />
-                  <button type="button" class="tta-qty-increase<?php echo ($is_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?>" aria-label="<?php esc_attr_e( 'Increase quantity', 'tta' ); ?>" <?php disabled( $is_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' title="' . esc_attr( $tooltip_message ) . '"' : ''; ?>>+</button>
+                  <button type="button" class="tta-qty-increase<?php echo ($is_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?><?php echo $disable_controls ? ' tta-tooltip-trigger' : ''; ?>" aria-label="<?php esc_attr_e( 'Increase quantity', 'tta' ); ?>" <?php disabled( $is_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' data-tooltip="' . esc_attr( $tooltip_message ) . '"' : ''; ?>>+</button>
                 </div>
                 <div class="tta-ticket-notice" aria-live="polite"></div>
               </div>
@@ -598,8 +606,8 @@ if ( $ticket_count > 1 ) {
           <button
             type="button"
             id="tta-get-tickets"
-            class="tta-button tta-button-primary<?php echo ($all_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?>"
-            <?php disabled( empty( $tickets ) || $all_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' title="' . esc_attr( $tooltip_message ) . '"' : ''; ?>
+            class="tta-button tta-button-primary<?php echo ($all_sold_out || $disable_controls) ? ' tta-disabled' : ''; ?><?php echo $disable_controls ? ' tta-tooltip-trigger' : ''; ?>"
+            <?php disabled( empty( $tickets ) || $all_sold_out || $disable_controls ); ?><?php echo $disable_controls ? ' data-tooltip="' . esc_attr( $tooltip_message ) . '"' : ''; ?>
           >
             <?php esc_html_e( 'Get Tickets', 'tta' ); ?>
           </button>
@@ -713,7 +721,12 @@ if ( $ticket_count > 1 ) {
           <li>
             <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/memberlevel.svg' ); ?>" alt="Help">
             <div class="tta-event-details-icon-after">
-              <strong><?php esc_html_e( 'Event Type', 'tta' ); ?>:</strong> <?php echo esc_html( $event_type_label ); ?>
+              <strong><?php esc_html_e( 'Event Type', 'tta' ); ?>:</strong> <?php
+              $etype_text = esc_html( $event_type_label );
+              if ( in_array( $event_required, [ 'basic', 'premium' ], true ) ) {
+                  $etype_text = '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">' . $etype_text . '</a>';
+              }
+              echo $etype_text; ?>
             </div>
           </li>
           <li>

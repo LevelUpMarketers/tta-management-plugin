@@ -324,11 +324,40 @@
 button[disabled],
 input[disabled] {
   opacity: 0.5;
-  pointer-events: none;
+  pointer-events: auto; /* allow hover for tooltips */
+  cursor: not-allowed;
 }
 
 #tta-get-tickets:disabled {
   cursor: not-allowed;
+}
+
+/* Tooltip for disabled elements */
+.tta-tooltip-trigger {
+  position: relative;
+}
+
+.tta-tooltip-trigger[data-tooltip]::after {
+  content: attr(data-tooltip);
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 170px;
+  text-align: center;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: normal;
+  z-index: 9999;
+}
+
+.tta-tooltip-trigger:hover[data-tooltip]::after {
+  display: block;
 }
 
 /* Get Tickets button */
