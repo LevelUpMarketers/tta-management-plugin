@@ -30,7 +30,7 @@ This document summarizes the current logic around the cart and checkout process 
    - When all tickets for an event are removed, any related discount codes are automatically cleared from the session.
 
 3. **Checkout**
-   - The **Checkout Page** template performs checkout when the form is submitted (`tta_do_checkout`).
+   - The **Checkout Page** template performs checkout via an AJAX request (`tta_do_checkout`). The page fades while a spinner shows and always waits at least five seconds before displaying the result under the **Place Order** button.
    - `TTA_Cart::sync_with_inventory()` ensures requested quantities are still available. If inventory changed, a notice is stored and the user is redirected back to the cart.
    - The notice reads, "Some tickets in your cart were no longer available and have been removed. Please review the updated cart and try again."
    - Checkout displays a read-only summary table that mirrors the cart layout with tooltips, countdown timers, and a list of active discount codes below the total.

@@ -177,6 +177,8 @@ $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
                         <button class="tta-button tta-button-primary" type="submit" name="tta_do_checkout">
                             <?php esc_html_e( 'Place Order', 'tta' ); ?>
                         </button>
+                        <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+                        <span id="tta-checkout-response" class="tta-admin-progress-response-p"></span>
                     </p>
                 </div>
             </div>

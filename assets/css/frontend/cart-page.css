@@ -152,6 +152,16 @@
 .tta-ticket-optin { display:block; margin-top:4px; }
 .tta-required { color:red; margin-left:2px; }
 .tta-attendee-note { margin-bottom:10px; font-style:italic; }
+.tta-admin-progress-response-p {
+  font-size: 18px;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.tta-admin-progress-response-p.updated,
+.tta-admin-progress-response-p.error {
+  opacity: 1;
+}
 @media (max-width: 600px) {
   .tta-checkout-grid { flex-direction: column; }
 }
