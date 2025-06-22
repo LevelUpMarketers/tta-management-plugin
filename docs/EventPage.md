@@ -35,6 +35,10 @@ Scrolling accounts for any fixed header on the site. Adjust the selector in `eve
 
 Logged-in members instead see links to profile info, upcoming events, past events, and membership/billing details. Each link loads the Member Dashboard with the matching tab active. A log out link is also provided which returns the user to the same event page after signing out.
 
+## Image Gallery
+
+Events can include additional photos displayed in an expandable gallery. The gallery uses a masonry-style layout so images of varying dimensions fit nicely together with minimal gaps.
+
 ## Attendee Gallery
 
 Below the image gallery, a second accordion displays profile pictures of confirmed attendees. The list is built from the `tta_attendees` table joined to `tta_members` via email so member profile images can be shown. Results are cached via `TTA_Cache` for ten minutes (one minute when empty). Each attendee's full name appears beneath their photo along with their membership level (Free, Basic, or Premium). If a profile image is missing or attendance is hidden, a placeholder image is shown with a label like "Attendee #1." Hosts and volunteers are highlighted with a small badge over their photo. Hosts are listed first, followed by volunteers, and then all other attendees in alphabetical order.

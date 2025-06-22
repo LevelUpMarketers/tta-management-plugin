@@ -165,4 +165,15 @@ jQuery(function($){
     }
   });
 
+  // Phone number mask for attendee fields
+  $(document).on('input', '.tta-attendee-fields input[type="tel"]', function(){
+    var v = $(this).val().replace(/\D/g,'').slice(0,10);
+    if (v.length > 6) {
+      v = '('+v.slice(0,3)+') '+v.slice(3,6)+'-'+v.slice(6);
+    } else if (v.length > 3) {
+      v = '('+v.slice(0,3)+') '+v.slice(3);
+    }
+    $(this).val(v);
+  });
+
 });

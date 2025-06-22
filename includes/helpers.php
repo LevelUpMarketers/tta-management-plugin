@@ -754,8 +754,6 @@ function tta_render_attendee_fields( TTA_Cart $cart ) {
                     $ln_val  = esc_attr( $context['member']['last_name'] );
                     $em_val  = esc_attr( $context['member']['email'] );
                     $ph_val  = esc_attr( $context['member']['phone'] ?? '' );
-                    $sms_chk = ! empty( $context['member']['opt_in_event_update_sms'] ) ? 'checked' : '';
-                    $em_chk  = ! empty( $context['member']['opt_in_event_update_email'] ) ? 'checked' : '';
                     $used_default = true;
                 }
                 $img = esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' );
