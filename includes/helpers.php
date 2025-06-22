@@ -902,3 +902,17 @@ function tta_admin_preview_image( $attachment_id, array $size, array $attrs = []
         $attr_str
     );
 }
+
+/**
+ * Retrieve Email & SMS templates with defaults.
+ *
+ * @return array
+ */
+function tta_get_comm_templates() {
+    if ( ! class_exists( 'TTA_Comms_Admin' ) ) {
+        require_once TTA_PLUGIN_DIR . 'includes/admin/class-comms-admin.php';
+    }
+    $defaults = TTA_Comms_Admin::get_default_templates();
+    $saved    = get_option( 'tta_comms_templates', [] );
+    return array_merge( $defaults, is_array( $saved ) ? $saved : [] );
+}

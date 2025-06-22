@@ -30,7 +30,9 @@ For each of the sample events (`/dinner-at-crawleys/`, `/roller-skating/`, `/buf
   - `/wp-admin/admin.php?page=tta-events`
   - `/wp-admin/admin.php?page=tta-events&tab=manage`
   - `/wp-admin/admin.php?page=tta-tickets`
-  - `/wp-admin/admin.php?page=tta-settings`
+- `/wp-admin/admin.php?page=tta-settings`
+- `/wp-admin/admin.php?page=tta-comms`
+- Verify each template can be edited and saved on the **Email & SMS** page.
 - Ensure lists load without errors and that cache clearing and log viewing actions work.
 
 ### 4. Checkout and Cart

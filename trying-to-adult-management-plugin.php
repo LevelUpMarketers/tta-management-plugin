@@ -89,6 +89,7 @@ require_once TTA_PLUGIN_DIR . 'includes/admin/class-members-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-events-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-tickets-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-settings-admin.php';
+require_once TTA_PLUGIN_DIR . 'includes/admin/class-comms-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/shortcodes/class-events-shortcode.php';
 require_once TTA_PLUGIN_DIR . 'includes/shortcodes/class-members-shortcode.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-tta-member-dashboard.php';
@@ -121,6 +122,7 @@ class TTA_Plugin {
             TTA_Events_Admin::get_instance();
             TTA_Tickets_Admin::get_instance();
             TTA_Settings_Admin::get_instance();
+            TTA_Comms_Admin::get_instance();
         } else {
             // Frontend shortcodes
             TTA_Events_Shortcode::get_instance();
