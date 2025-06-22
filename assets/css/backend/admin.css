@@ -393,3 +393,21 @@ form p.submit{
   /* Rotate to point down (180°) when open */
   transform: rotate(180deg) scale(1.5);
 }
+
+/* Simple accordion styling for admin sections */
+.tta-admin-accordion .tta-accordion-content {
+    display: none;
+    margin: 10px 0;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+.tta-admin-accordion .tta-accordion-content.expanded {
+    display: block;
+}
+
+.tta-admin-accordion .tta-accordion-toggle {
+    margin-top: 5px;
+}

@@ -32,7 +32,7 @@ For each of the sample events (`/dinner-at-crawleys/`, `/roller-skating/`, `/buf
   - `/wp-admin/admin.php?page=tta-tickets`
 - `/wp-admin/admin.php?page=tta-settings`
 - `/wp-admin/admin.php?page=tta-comms`
-- Verify each template can be edited and saved on the **Email & SMS** page.
+- Verify each template can be edited and saved on the **Email & SMS** page. Each template is collapsed by default; expand the accordion and ensure changes persist after saving.
 - Ensure lists load without errors and that cache clearing and log viewing actions work.
 
 ### 4. Checkout and Cart

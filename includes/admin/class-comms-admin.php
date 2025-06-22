@@ -60,14 +60,20 @@ class TTA_Comms_Admin {
         echo '<div class="wrap"><h1>'.esc_html__('Email & SMS', 'tta').'</h1>';
         echo '<form method="post">';
         wp_nonce_field('tta_save_comms','tta_comms_nonce');
-        echo '<table class="form-table">';
-        foreach ($templates as $key => $vals) {
-            echo '<tr><th colspan="2"><h2>'.esc_html($vals['label']).'</h2></th></tr>';
-            echo '<tr><th scope="row">'.esc_html__('Email Subject', 'tta').'</th><td><input type="text" name="'.$key.'_email_subject" value="'.esc_attr($vals['email_subject']).'" class="regular-text"></td></tr>';
-            echo '<tr><th scope="row">'.esc_html__('Email Body', 'tta').'</th><td><textarea name="'.$key.'_email_body" rows="4" class="large-text">'.esc_textarea($vals['email_body']).'</textarea></td></tr>';
-            echo '<tr><th scope="row">'.esc_html__('SMS Text', 'tta').'</th><td><textarea name="'.$key.'_sms_text" rows="2" class="large-text">'.esc_textarea($vals['sms_text']).'</textarea></td></tr>';
+        foreach ( $templates as $key => $vals ) {
+            echo '<div class="tta-admin-accordion">';
+            echo '<div class="tta-accordion">';
+            echo '<button type="button" class="button tta-accordion-toggle" data-open-text="' . esc_attr__( 'Edit', 'tta' ) . '" data-close-text="' . esc_attr__( 'Hide', 'tta' ) . '">' . esc_html( $vals['label'] ) . '</button>';
+            echo '<div class="tta-accordion-content">';
+            echo '<table class="form-table">';
+            echo '<tr><th scope="row">' . esc_html__( 'Email Subject', 'tta' ) . '</th><td><input type="text" name="' . $key . '_email_subject" value="' . esc_attr( $vals['email_subject'] ) . '" class="regular-text"></td></tr>';
+            echo '<tr><th scope="row">' . esc_html__( 'Email Body', 'tta' ) . '</th><td><textarea name="' . $key . '_email_body" rows="4" class="large-text">' . esc_textarea( $vals['email_body'] ) . '</textarea></td></tr>';
+            echo '<tr><th scope="row">' . esc_html__( 'SMS Text', 'tta' ) . '</th><td><textarea name="' . $key . '_sms_text" rows="2" class="large-text">' . esc_textarea( $vals['sms_text'] ) . '</textarea></td></tr>';
+            echo '</table>';
+            echo '</div>'; // content
+            echo '</div>'; // accordion
+            echo '</div>'; // wrapper
         }
-        echo '</table>'; 
         echo '<p><input type="submit" name="tta_save_comms" class="button button-primary" value="'.esc_attr__('Save Changes', 'tta').'"></p>';
         echo '</form></div>';
     }

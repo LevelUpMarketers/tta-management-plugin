@@ -859,6 +859,22 @@ jQuery(function($){
     $(this).closest('.tta-wl-entry').remove();
   });
 
+  // Simple accordion toggle used on Email & SMS admin page
+  $(document).on('click', '.tta-admin-accordion .tta-accordion-toggle', function(){
+    var $btn  = $(this),
+        $cont = $btn.siblings('.tta-accordion-content'),
+        openText  = $btn.data('openText') || 'Edit',
+        closeText = $btn.data('closeText') || 'Hide';
+
+    if ( $cont.hasClass('expanded') ) {
+      $cont.removeClass('expanded');
+      $btn.text(openText);
+    } else {
+      $cont.addClass('expanded');
+      $btn.text(closeText);
+    }
+  });
+
 
 
 
