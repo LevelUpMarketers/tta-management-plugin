@@ -30,6 +30,15 @@ if ( file_exists( $config_file ) ) {
     include_once $config_file;
 }
 
+require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-debug-logger.php';
+TTA_Debug_Logger::init();
+
+// Load Authorize.Net credentials from a config file if present
+$config_file = TTA_PLUGIN_DIR . 'authnet-config.php';
+if ( file_exists( $config_file ) ) {
+    include_once $config_file;
+}
+
 // Attempt to load Authorize.Net credentials from environment variables
 if ( getenv( 'TTA_AUTHNET_LOGIN_ID' ) && ! defined( 'TTA_AUTHNET_LOGIN_ID' ) ) {
     define( 'TTA_AUTHNET_LOGIN_ID', getenv( 'TTA_AUTHNET_LOGIN_ID' ) );
