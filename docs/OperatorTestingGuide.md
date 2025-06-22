@@ -33,6 +33,7 @@ For each of the sample events (`/dinner-at-crawleys/`, `/roller-skating/`, `/buf
 - `/wp-admin/admin.php?page=tta-settings`
 - `/wp-admin/admin.php?page=tta-comms`
 - Verify each template on the **Email & SMS** page. Click a row to reveal its inline form, edit the fields, then click **Save Changes** and wait for the spinner to disappear. Refresh the page to ensure the updated values persist. Each template should operate independently.
+- Confirm that the Email and SMS previews update after editing fields and that the SMS character count turns red when over 160 characters.
 - Ensure lists load without errors and that cache clearing and log viewing actions work.
 
 ### 4. Checkout and Cart

@@ -433,3 +433,22 @@ form p.submit{
 .tta-admin-accordion .tta-accordion-toggle {
     margin-top: 5px;
 }
+
+.tta-email-preview {
+  background:#f9f9f9;
+  border:1px solid #ccd0d4;
+  padding:10px;
+  margin-top:5px;
+}
+.tta-sms-preview {
+  background:#f1f1f1;
+  border:1px solid #ccd0d4;
+  padding:10px;
+  margin-top:5px;
+}
+.tta-sms-count {
+  font-weight:bold;
+}
+.tta-sms-count.tta-over-limit {
+  color:#b32d2e;
+}

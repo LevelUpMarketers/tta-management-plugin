@@ -920,6 +920,67 @@ jQuery(function($){
     });
   });
 
+  // Track the last focused input for token insertion
+  var activeField = null;
+  $(document).on('focus', '.tta-comm-input', function(){
+    activeField = this;
+  });
+
+  function insertAtCursor(field, text){
+    if (!field) return;
+    if (document.selection) {
+      field.focus();
+      var sel = document.selection.createRange();
+      sel.text = text;
+    } else if (field.selectionStart || field.selectionStart === 0) {
+      var start = field.selectionStart, end = field.selectionEnd;
+      field.value = field.value.substring(0, start) + text + field.value.substring(end);
+      field.selectionStart = field.selectionEnd = start + text.length;
+    } else {
+      field.value += text;
+    }
+  }
+
+  $(document).on('click', '.tta-insert-token', function(){
+    insertAtCursor(activeField, $(this).data('token'));
+    if (activeField) { $(activeField).trigger('blur'); }
+  });
+
+  function renderPreview($form){
+    var subj = $form.find('input[name=email_subject]').val() || '';
+    var body = $form.find('textarea[name=email_body]').val() || '';
+    var sms  = $form.find('textarea[name=sms_text]').val() || '';
+    var ev   = TTA_Ajax.sample_event || {};
+    var map  = {
+      '{event_name}': ev.name || 'Sample Event',
+      '{event_address}': ev.address || '123 Main St',
+      '{event_link}': ev.page_url || '#',
+      '{dashboard_link}': ev.dashboard_url || '#',
+      '{event_date}': ev.date || '2025-01-01',
+      '{event_time}': ev.time || '00:00'
+    };
+    Object.keys(map).forEach(function(tok){
+      var val = map[tok];
+      subj = subj.split(tok).join(val);
+      body = body.split(tok).join(val);
+      sms  = sms.split(tok).join(val);
+    });
+    $form.find('.tta-email-preview-subject').text(subj);
+    $form.find('.tta-email-preview-body').text(body);
+    $form.find('.tta-sms-preview').text(sms);
+    var count = sms.length;
+    var $count = $form.find('.tta-sms-count').text(count);
+    if (count > 160) { $count.addClass('tta-over-limit'); } else { $count.removeClass('tta-over-limit'); }
+  }
+
+  $(document).on('blur', '.tta-comm-input', function(){
+    renderPreview($(this).closest('.tta-comms-form'));
+  });
+
+  $('.tta-comms-form').each(function(){
+    renderPreview($(this));
+  });
+
 
 
 

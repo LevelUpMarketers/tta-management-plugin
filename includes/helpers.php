@@ -452,6 +452,54 @@ function tta_get_member_upcoming_events( $wp_user_id ) {
 }
 
 /**
+ * Retrieve the next upcoming event.
+ *
+ * @return array|null {
+ *     @type int    $id      Event ID.
+ *     @type string $name    Event name.
+ *     @type string $date    Event date (Y-m-d).
+ *     @type string $time    Event time string.
+ *     @type string $address Formatted address string.
+ *     @type int    $page_id Page ID for event page.
+ * }
+ */
+function tta_get_next_event() {
+    $cache_key = 'tta_next_event';
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $events_table = $wpdb->prefix . 'tta_events';
+
+    $row = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT id, name, date, time, address, page_id FROM {$events_table} WHERE date >= %s ORDER BY date ASC LIMIT 1",
+            current_time( 'Y-m-d' )
+        ),
+        ARRAY_A
+    );
+
+    if ( ! $row ) {
+        TTA_Cache::set( $cache_key, null, 60 );
+        return null;
+    }
+
+    $event = [
+        'id'      => intval( $row['id'] ),
+        'name'    => sanitize_text_field( $row['name'] ),
+        'date'    => $row['date'],
+        'time'    => $row['time'],
+        'address' => sanitize_text_field( $row['address'] ),
+        'page_id' => intval( $row['page_id'] ),
+    ];
+
+    TTA_Cache::set( $cache_key, $event, 300 );
+    return $event;
+}
+
+/**
  * Retrieve information about the current visitor and any associated member
  * record.
  *

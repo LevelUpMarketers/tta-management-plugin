@@ -27,3 +27,20 @@ Default values are provided on initial install:
 - **2-Hour Reminder Email Body**: "Your event is only 2 hours away! Below are the details."
 
 The member dashboard link appended to SMS messages uses a short URL when possible.
+
+## Previews and Tokens
+
+Editing a template shows live **Email Preview** and **SMS Preview** boxes. Values are updated whenever an input field loses focus. For reminder and purchase templates, the preview substitutes details from the next upcoming event in the database.
+
+SMS previews show a character count. If the text exceeds 160 characters the count turns red to indicate the message may be split by carriers.
+
+Buttons labelled with tokens (e.g. `{event_name}`) insert placeholders into the last focused field. The sending logic will replace these tokens with real data. Available tokens include:
+
+```
+{event_name}
+{event_address}
+{event_link}
+{dashboard_link}
+{event_date}
+{event_time}
+```

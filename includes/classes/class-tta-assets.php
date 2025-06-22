@@ -93,6 +93,15 @@ class TTA_Assets {
                     'get_ticket_nonce'    => wp_create_nonce( 'tta_ticket_get_action' ),
                     'save_ticket_nonce'   => wp_create_nonce( 'tta_ticket_save_action' ),
                     'save_comm_nonce'     => wp_create_nonce( 'tta_comms_save_action' ),
+                    'sample_event'        => ( function() {
+                        $e = tta_get_next_event();
+                        if ( ! $e ) {
+                            return null;
+                        }
+                        $e['page_url']       = get_permalink( $e['page_id'] );
+                        $e['dashboard_url']  = site_url( '/member-dashboard/?tab=upcoming' );
+                        return $e;
+                    } )(),
                 ]
             );
         }

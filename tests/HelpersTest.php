@@ -189,4 +189,21 @@ class HelpersTest extends TestCase {
         $this->assertSame('123 St -  - Town - ST - 12345', $events[0]['address']);
         $this->assertStringContainsString('wp_tta_memberhistory', $wpdb->last_query);
     }
+
+    public function test_get_next_event_returns_cached_row() {
+        global $wpdb;
+        $this->wpdb->event_row_data = [
+            'id' => 7,
+            'name' => 'Soon Event',
+            'date' => '2030-02-01',
+            'time' => '20:00|22:00',
+            'address' => '1 St -  - City - ST - 00000',
+            'page_id' => 9,
+        ];
+        TTA_Cache::delete('tta_next_event');
+        $ev1 = tta_get_next_event();
+        $ev2 = tta_get_next_event();
+        $this->assertSame($ev1, $ev2);
+        $this->assertSame('Soon Event', $ev1['name']);
+    }
 }
