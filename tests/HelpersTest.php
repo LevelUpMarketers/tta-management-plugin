@@ -177,12 +177,16 @@ class HelpersTest extends TestCase {
                 'page_id'     => 1,
                 'mainimageid' => 2,
                 'date'        => '2030-01-01',
-                'time'        => '10:00|12:00'
+                'time'        => '10:00|12:00',
+                'address'     => '123 St -  - Town - ST - 12345',
+                'type'        => 'paid',
+                'refundsavailable' => '1'
             ]
         ];
         $events = tta_get_member_upcoming_events(1);
         $this->assertCount(1, $events);
         $this->assertSame('Test Event', $events[0]['name']);
+        $this->assertSame('123 St -  - Town - ST - 12345', $events[0]['address']);
         $this->assertStringContainsString('wp_tta_memberhistory', $wpdb->last_query);
     }
 }

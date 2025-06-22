@@ -367,6 +367,26 @@ function tta_get_membership_label( $level ) {
 }
 
 /**
+ * Format a raw address string from the events table.
+ *
+ * @param string $raw Raw address ("street - addr2 - city - state - zip").
+ * @return string Formatted address.
+ */
+function tta_format_address( $raw ) {
+    $parts  = preg_split( '/\s*[-–]\s*/u', $raw );
+    $street = trim( $parts[0] ?? '' );
+    $addr2  = trim( $parts[1] ?? '' );
+    $city   = trim( $parts[2] ?? '' );
+    $state  = trim( $parts[3] ?? '' );
+    $zip    = trim( $parts[4] ?? '' );
+
+    $street_full    = $street . ( $addr2 ? ' ' . $addr2 : '' );
+    $city_state_zip = $city . ( $state || $zip ? ', ' : '' ) . $state . ( $zip ? ' ' . $zip : '' );
+
+    return trim( $street_full . ( $street_full && $city_state_zip ? ' – ' : '' ) . $city_state_zip );
+}
+
+/**
  * Retrieve upcoming events purchased by a user.
  *
  * @param int $wp_user_id WordPress user ID.
@@ -390,7 +410,7 @@ function tta_get_member_upcoming_events( $wp_user_id ) {
 
     $rows = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT mh.action_data, mh.event_id, e.name, e.page_id, e.mainimageid, e.date, e.time
+            "SELECT mh.action_data, mh.event_id, e.name, e.page_id, e.mainimageid, e.date, e.time, e.address, e.type, e.refundsavailable
                FROM {$hist_table} mh
                JOIN {$events_table} e ON mh.event_id = e.id
               WHERE mh.wpuserid = %d
@@ -416,6 +436,9 @@ function tta_get_member_upcoming_events( $wp_user_id ) {
             'image_id'       => intval( $row['mainimageid'] ),
             'date'           => $row['date'],
             'time'           => $row['time'],
+            'address'        => sanitize_text_field( $row['address'] ),
+            'event_type'     => sanitize_text_field( $row['type'] ),
+            'refunds'        => intval( $row['refundsavailable'] ),
             'transaction_id' => $data['transaction_id'] ?? '',
             'amount'         => floatval( $data['amount'] ?? 0 ),
             'items'          => $data['items'] ?? [],

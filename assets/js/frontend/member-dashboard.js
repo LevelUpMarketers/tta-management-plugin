@@ -195,4 +195,12 @@ jQuery(function($){
       }, wait);
     });
   });
+
+  // Refund/cancel form toggle
+  $(document).on('click', '.tta-refund-link, .tta-cancel-link', function(e){
+    e.preventDefault();
+    var tx = $(this).data('tx');
+    var $form = $('.tta-refund-form[data-tx="'+tx+'"]');
+    $form.slideToggle(200);
+  });
 });

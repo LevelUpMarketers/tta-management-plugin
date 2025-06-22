@@ -7,9 +7,9 @@
       foreach ( $events as $ev ) :
           $thumb = '';
           if ( ! empty( $ev['image_id'] ) ) {
-              $thumb = wp_get_attachment_image( $ev['image_id'], 'thumbnail' );
+              $thumb = wp_get_attachment_image( $ev['image_id'], 'medium' );
           } elseif ( ! empty( $ev['page_id'] ) ) {
-              $thumb = get_the_post_thumbnail( $ev['page_id'], 'thumbnail' );
+              $thumb = get_the_post_thumbnail( $ev['page_id'], 'medium' );
           }
 
           $date_str = date_i18n( get_option( 'date_format' ), strtotime( $ev['date'] ) );
@@ -26,6 +26,7 @@
             <div class="tta-upcoming-info">
               <h4><a href="<?php echo esc_url( get_permalink( $ev['page_id'] ) ); ?>"><?php echo esc_html( $ev['name'] ); ?></a></h4>
               <p class="tta-upcoming-date"><?php echo esc_html( $date_str . ( $time_str ? ' – ' . $time_str : '' ) ); ?></p>
+              <p class="tta-upcoming-address"><?php echo esc_html( tta_format_address( $ev['address'] ) ); ?></p>
               <p class="tta-upcoming-total"><?php printf( esc_html__( 'Total Paid: $%s', 'tta' ), number_format( $ev['amount'], 2 ) ); ?></p>
             </div>
           </div>
@@ -39,8 +40,30 @@
               </ul>
             </div>
           <?php endforeach; ?>
+          <div class="tta-refund-wrapper">
+            <?php if ( $ev['amount'] > 0 ) : ?>
+              <a href="#" class="tta-refund-link" data-tx="<?php echo esc_attr( $ev['transaction_id'] ); ?>">
+                <?php esc_html_e( 'Request a Refund', 'tta' ); ?>
+              </a>
+            <?php else : ?>
+              <a href="#" class="tta-cancel-link" data-tx="<?php echo esc_attr( $ev['transaction_id'] ); ?>">
+                <?php esc_html_e( 'Cancel Attendance', 'tta' ); ?>
+              </a>
+            <?php endif; ?>
+            <form class="tta-refund-form" data-tx="<?php echo esc_attr( $ev['transaction_id'] ); ?>">
+              <label for="refund-<?php echo esc_attr( $ev['transaction_id'] ); ?>">
+                <?php esc_html_e( 'Refund Request Details', 'tta' ); ?>
+              </label>
+              <span class="description"><?php esc_html_e( 'tell us why you\'re requesting a refund', 'tta' ); ?></span>
+              <textarea id="refund-<?php echo esc_attr( $ev['transaction_id'] ); ?>" placeholder="<?php esc_attr_e( 'tell us why you\'re requesting a refund', 'tta' ); ?>"></textarea>
+              <button type="button" class="tta-refund-submit" data-tx="<?php echo esc_attr( $ev['transaction_id'] ); ?>">
+                <?php esc_html_e( 'Request Refund', 'tta' ); ?>
+              </button>
+            </form>
+          </div>
       <?php endforeach; ?>
   <?php else : ?>
       <p><?php esc_html_e( 'No upcoming events found.', 'tta' ); ?></p>
   <?php endif; ?>
 </div>
+
