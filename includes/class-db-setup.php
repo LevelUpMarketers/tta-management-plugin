@@ -64,6 +64,46 @@ class TTA_DB_Setup {
         ) $charset_collate";
 
         // ─────────────────────────────────────────────────────────────────
+        // Events archive table
+        // ─────────────────────────────────────────────────────────────────
+        $sql_statements[] = "
+        CREATE TABLE {$prefix}events_archive (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            ute_id VARCHAR(100) NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            date DATE NOT NULL,
+            baseeventcost DECIMAL(10,2) DEFAULT 0.00,
+            discountedmembercost DECIMAL(10,2) DEFAULT 0.00,
+            premiummembercost DECIMAL(10,2) DEFAULT 0.00,
+            address VARCHAR(500) DEFAULT '',
+            type VARCHAR(50) DEFAULT 'free',
+            time VARCHAR(50) DEFAULT 'N/A',
+            venuename VARCHAR(255) DEFAULT '',
+            venueurl VARCHAR(255) DEFAULT '',
+            url2 VARCHAR(255) DEFAULT '',
+            url3 VARCHAR(255) DEFAULT '',
+            url4 VARCHAR(255) DEFAULT '',
+            mainimageid BIGINT UNSIGNED DEFAULT 0,
+            otherimageids TEXT,
+            waitlistavailable TINYINT(1) DEFAULT 0,
+            waitlist_id BIGINT UNSIGNED DEFAULT 0,
+            page_id BIGINT UNSIGNED DEFAULT 0,
+            ticket_id BIGINT UNSIGNED DEFAULT 0,
+            discountcode VARCHAR(255) DEFAULT '',
+            all_day_event TINYINT(1) DEFAULT 0,
+            virtual_event TINYINT(1) DEFAULT 0,
+            refundsavailable TINYINT(1) DEFAULT 0,
+            hosts TEXT,
+            volunteers TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY ute_id (ute_id),
+            KEY page_id_idx (page_id),
+            KEY date_idx (date)
+        ) $charset_collate";
+
+        // ─────────────────────────────────────────────────────────────────
         // Members table
         // ─────────────────────────────────────────────────────────────────
         $sql_statements[] = "
@@ -227,6 +267,7 @@ class TTA_DB_Setup {
             opt_in_sms      TINYINT(1)     DEFAULT 0,
             opt_in_email    TINYINT(1)     DEFAULT 0,
             is_member       TINYINT(1)     DEFAULT 0,
+            status          ENUM('pending','checked_in','no_show') DEFAULT 'pending',
             PRIMARY KEY     (id),
             KEY transaction_idx (transaction_id),
             KEY ticket_idx      (ticket_id),

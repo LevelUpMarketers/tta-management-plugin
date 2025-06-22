@@ -9,13 +9,24 @@ if ( isset( $_GET['action'] ) && $_GET['action'] === 'delete' && isset( $_GET['e
     if ( check_admin_referer( 'tta_event_delete_nonce' ) ) {
         $event_id = intval( $_GET['event_id'] );
 
-        // 1) Fetch the event's unique identifier (ute_id)
-        $ute_id = $wpdb->get_var(
+        // 1) Fetch the full event row
+        $event_row = $wpdb->get_row(
             $wpdb->prepare(
-                "SELECT ute_id FROM {$table} WHERE id = %d",
+                "SELECT * FROM {$table} WHERE id = %d",
                 $event_id
-            )
+            ),
+            ARRAY_A
         );
+        $ute_id = $event_row['ute_id'] ?? null;
+
+        // Archive the event before deleting
+        if ( $event_row ) {
+            $archive_table = $wpdb->prefix . 'tta_events_archive';
+            $exists = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$archive_table} WHERE id = %d", $event_id ) );
+            if ( ! $exists ) {
+                $wpdb->insert( $archive_table, $event_row );
+            }
+        }
 
         if ( $ute_id ) {
             // 2) Delete all waitlists for that event

@@ -452,3 +452,7 @@ form p.submit{
 .tta-sms-count.tta-over-limit {
   color:#b32d2e;
 }
+
+.tta-token-section {
+  margin-bottom:8px;
+}

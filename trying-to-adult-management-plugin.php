@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'TTA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TTA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'TTA_PLUGIN_VERSION', '0.2.0' );
-define( 'TTA_DB_VERSION', '1.1.0' );
+define( 'TTA_DB_VERSION', '1.2.0' );
 
 require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-debug-logger.php';
 TTA_Debug_Logger::init();
@@ -102,16 +102,20 @@ require_once TTA_PLUGIN_DIR . 'includes/admin/class-comms-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/shortcodes/class-events-shortcode.php';
 require_once TTA_PLUGIN_DIR . 'includes/shortcodes/class-members-shortcode.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-tta-member-dashboard.php';
+require_once TTA_PLUGIN_DIR . 'includes/frontend/class-tta-checkin-page-manager.php';
 require_once TTA_PLUGIN_DIR . 'includes/cart/class-cart.php';
 require_once TTA_PLUGIN_DIR . 'includes/cart/class-cart-cleanup.php';
+require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-event-archiver.php';
 
 
 
 // Activation & Deactivation
 register_activation_hook( __FILE__, array( 'TTA_DB_Setup', 'install' ) );
 register_activation_hook( __FILE__, array( 'TTA_Cart_Cleanup', 'schedule_event' ) );
+register_activation_hook( __FILE__, array( 'TTA_Event_Archiver', 'schedule_event' ) );
 register_deactivation_hook( __FILE__, array( 'TTA_DB_Setup', 'uninstall' ) );
 register_deactivation_hook( __FILE__, array( 'TTA_Cart_Cleanup', 'clear_event' ) );
+register_deactivation_hook( __FILE__, array( 'TTA_Event_Archiver', 'clear_event' ) );
 
 // Initialize plugin
 add_action( 'plugins_loaded', array( 'TTA_Plugin', 'init' ) );
@@ -144,6 +148,7 @@ class TTA_Plugin {
 
         // Expired cart cleanup
         TTA_Cart_Cleanup::init();
+        TTA_Event_Archiver::init();
     }
 }
 ?>

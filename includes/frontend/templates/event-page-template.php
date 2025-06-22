@@ -873,19 +873,19 @@ if ( $ticket_count > 1 ) {
               <?php else : ?>
                 <li>
                   <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/profile.svg' ); ?>" alt="<?php esc_attr_e( 'Profile', 'tta' ); ?>">
-                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard#tab-profile' ) ); ?>" class="tta-dashboard-link" data-tab="profile"><?php esc_html_e( 'Your Profile Info', 'tta' ); ?></a></div>
+                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard/?tab=profile', 'relative' ) ); ?>" class="tta-dashboard-link" data-tab="profile"><?php esc_html_e( 'Your Profile Info', 'tta' ); ?></a></div>
                 </li>
                 <li>
                   <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/upcoming.svg' ); ?>" alt="<?php esc_attr_e( 'Upcoming', 'tta' ); ?>">
-                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard#tab-upcoming' ) ); ?>" class="tta-dashboard-link" data-tab="upcoming"><?php esc_html_e( 'Your Upcoming Events', 'tta' ); ?></a></div>
+                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard/?tab=upcoming', 'relative' ) ); ?>" class="tta-dashboard-link" data-tab="upcoming"><?php esc_html_e( 'Your Upcoming Events', 'tta' ); ?></a></div>
                 </li>
                 <li>
                   <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/past.svg' ); ?>" alt="<?php esc_attr_e( 'Past', 'tta' ); ?>">
-                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard#tab-past' ) ); ?>" class="tta-dashboard-link" data-tab="past"><?php esc_html_e( 'Your Past Events', 'tta' ); ?></a></div>
+                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard/?tab=past', 'relative' ) ); ?>" class="tta-dashboard-link" data-tab="past"><?php esc_html_e( 'Your Past Events', 'tta' ); ?></a></div>
                 </li>
                 <li>
                   <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/billing.svg' ); ?>" alt="<?php esc_attr_e( 'Billing', 'tta' ); ?>">
-                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard#tab-billing' ) ); ?>" class="tta-dashboard-link" data-tab="billing"><?php esc_html_e( 'Membership Details', 'tta' ); ?></a></div>
+                  <div class="tta-event-details-icon-after"><a href="<?php echo esc_url( home_url( '/member-dashboard/?tab=billing', 'relative' ) ); ?>" class="tta-dashboard-link" data-tab="billing"><?php esc_html_e( 'Membership Details', 'tta' ); ?></a></div>
                 </li>
                 <li>
                   <img class="tta-event-details-icon logout-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/login.svg' ); ?>" alt="<?php esc_attr_e( 'Log out', 'tta' ); ?>">
