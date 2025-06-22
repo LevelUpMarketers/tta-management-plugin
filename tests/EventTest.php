@@ -76,6 +76,10 @@ class DummyWpdb {
 
     public function esc_like($str) { return $str; }
     public function query($sql) { $this->queries[] = $sql; }
+
+    public function get_col($query) {
+        return [];
+    }
 }
 
 class EventTest extends TestCase {

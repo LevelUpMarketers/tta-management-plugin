@@ -63,15 +63,18 @@ class TTA_Cache {
      */
     public static function flush() {
         global $wpdb;
-        $like = $wpdb->esc_like( '_transient_' . self::$prefix ) . '%';
-        $wpdb->query( $wpdb->prepare(
-            "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-            $like
-        ) );
-        $like = $wpdb->esc_like( '_transient_timeout_' . self::$prefix ) . '%';
-        $wpdb->query( $wpdb->prepare(
-            "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-            $like
-        ) );
+        $pattern = $wpdb->esc_like( self::$prefix ) . '%';
+
+        $option_names = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s",
+                '_transient_%' . $pattern
+            )
+        );
+
+        foreach ( $option_names as $option_name ) {
+            $transient = substr( $option_name, strlen( '_transient_' ) );
+            delete_transient( $transient );
+        }
     }
 }

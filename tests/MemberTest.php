@@ -58,6 +58,10 @@ class DummyWpdbMembers {
         }
         return $query;
     }
+
+    public function get_col($query) {
+        return [];
+    }
 }
 
 class MemberTest extends TestCase {

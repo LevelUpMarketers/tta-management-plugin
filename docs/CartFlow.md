@@ -34,7 +34,7 @@ This document summarizes the current logic around the cart and checkout process 
    - `TTA_Cart::sync_with_inventory()` ensures requested quantities are still available. If inventory changed, a notice is stored and the user is redirected back to the cart.
    - The notice reads, "Some tickets in your cart were no longer available and have been removed. Please review the updated cart and try again."
    - Checkout displays a read-only summary table that mirrors the cart layout with tooltips, countdown timers, and a list of active discount codes below the total.
-   - Attendee fields collect a first name, last name, and email for each ticket. Inputs are grouped by event beside the billing form.
+   - Attendee fields collect a first name, last name, email, and phone for each ticket. A "text me" and "email me" checkbox is included and checked by default. The first ticket autofills with the logged-in member's details.
    - Countdown timers run just like on the cart page. If a timer reaches zero the item is removed and totals update automatically.
    - The `tta_update_cart` AJAX endpoint returns updated markup for both the cart table and checkout summary so timers can refresh either view.
    - A total is calculated with any discount code applied. Payment details are sent to `TTA_AuthorizeNet_API::charge()`.

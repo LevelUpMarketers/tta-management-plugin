@@ -36,7 +36,26 @@ class TTA_Settings_Admin {
         echo '<form method="post">';
         wp_nonce_field( 'tta_flush_cache_action', 'tta_flush_cache_nonce' );
         echo '<p><input type="submit" name="tta_flush_cache" class="button button-secondary" value="Clear Cache"></p>';
-        echo '</form></div>';
+        echo '</form>';
+
+        if ( isset( $_POST['tta_clear_log'] ) && check_admin_referer( 'tta_clear_log_action', 'tta_clear_log_nonce' ) ) {
+            TTA_Debug_Logger::clear();
+            echo '<div class="updated"><p>Debug log cleared.</p></div>';
+        }
+
+        echo '<h2>' . esc_html__( 'Debug Log', 'tta' ) . '</h2>';
+        $log = TTA_Debug_Logger::get_messages();
+        if ( $log ) {
+            echo '<pre class="tta-debug-log" style="max-height:400px;overflow:auto;background:#fff;border:1px solid #ccc;padding:10px;">' . esc_html( implode( "\n", $log ) ) . '</pre>';
+            echo '<form method="post">';
+            wp_nonce_field( 'tta_clear_log_action', 'tta_clear_log_nonce' );
+            echo '<p><input type="submit" name="tta_clear_log" class="button" value="Clear Log"></p>';
+            echo '</form>';
+        } else {
+            echo '<p>' . esc_html__( 'No debug messages logged yet.', 'tta' ) . '</p>';
+        }
+
+        echo '</div>';
     }
 }
 
