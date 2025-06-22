@@ -19,6 +19,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'TTA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TTA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'TTA_PLUGIN_VERSION', '0.2.0' );
+define( 'TTA_DB_VERSION', '1.1.0' );
+
+require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-debug-logger.php';
+TTA_Debug_Logger::init();
+
+// Load Authorize.Net credentials from a config file if present
+$config_file = TTA_PLUGIN_DIR . 'authnet-config.php';
+if ( file_exists( $config_file ) ) {
+    include_once $config_file;
+}
 
 require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-debug-logger.php';
 TTA_Debug_Logger::init();
@@ -88,6 +98,7 @@ require_once TTA_PLUGIN_DIR . 'includes/admin/class-members-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-events-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-tickets-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-settings-admin.php';
+require_once TTA_PLUGIN_DIR . 'includes/admin/class-comms-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/shortcodes/class-events-shortcode.php';
 require_once TTA_PLUGIN_DIR . 'includes/shortcodes/class-members-shortcode.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-tta-member-dashboard.php';
@@ -108,6 +119,9 @@ add_action( 'plugins_loaded', array( 'TTA_Plugin', 'init' ) );
 class TTA_Plugin {
     public static function init() {
 
+        // Ensure database schema is up to date
+        TTA_DB_Setup::maybe_upgrade();
+
         // Load assets hooks:
         TTA_Assets::init();
 
@@ -117,6 +131,7 @@ class TTA_Plugin {
             TTA_Events_Admin::get_instance();
             TTA_Tickets_Admin::get_instance();
             TTA_Settings_Admin::get_instance();
+            TTA_Comms_Admin::get_instance();
         } else {
             // Frontend shortcodes
             TTA_Events_Shortcode::get_instance();

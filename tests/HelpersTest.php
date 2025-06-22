@@ -7,6 +7,7 @@ class DummyWpdbHelpers {
     public $var_calls = 0;
     public $results_calls = 0;
     public $row_calls = 0;
+    public $last_query = '';
     public $results_data = [];
     public $event_row_data = [ 'ute_id' => 'ute1', 'hosts' => '', 'volunteers' => '' ];
 
@@ -17,6 +18,7 @@ class DummyWpdbHelpers {
 
     public function get_results($query, $output = ARRAY_A) {
         $this->results_calls++;
+        $this->last_query = $query;
         if ($this->results_data) {
             return $this->results_data;
         }
@@ -159,5 +161,49 @@ class HelpersTest extends TestCase {
         $html = tta_admin_preview_image(1, [50,50], ['class'=>'x']);
         $this->assertStringContainsString('file1.jpg', $html);
         $this->assertStringContainsString('class="x"', $html);
+    }
+
+    public function test_get_member_upcoming_events_queries_tables() {
+        global $wpdb;
+        $wpdb->results_data = [
+            [
+                'action_data' => json_encode([
+                    'transaction_id' => 'TX1',
+                    'amount' => 20,
+                    'items' => [ [ 'ticket_name'=>'General', 'quantity'=>1, 'attendees'=>[] ] ]
+                ]),
+                'event_id'    => 5,
+                'name'        => 'Test Event',
+                'page_id'     => 1,
+                'mainimageid' => 2,
+                'date'        => '2030-01-01',
+                'time'        => '10:00|12:00',
+                'address'     => '123 St -  - Town - ST - 12345',
+                'type'        => 'paid',
+                'refundsavailable' => '1'
+            ]
+        ];
+        $events = tta_get_member_upcoming_events(1);
+        $this->assertCount(1, $events);
+        $this->assertSame('Test Event', $events[0]['name']);
+        $this->assertSame('123 St -  - Town - ST - 12345', $events[0]['address']);
+        $this->assertStringContainsString('wp_tta_memberhistory', $wpdb->last_query);
+    }
+
+    public function test_get_next_event_returns_cached_row() {
+        global $wpdb;
+        $this->wpdb->event_row_data = [
+            'id' => 7,
+            'name' => 'Soon Event',
+            'date' => '2030-02-01',
+            'time' => '20:00|22:00',
+            'address' => '1 St -  - City - ST - 00000',
+            'page_id' => 9,
+        ];
+        TTA_Cache::delete('tta_next_event');
+        $ev1 = tta_get_next_event();
+        $ev2 = tta_get_next_event();
+        $this->assertSame($ev1, $ev2);
+        $this->assertSame('Soon Event', $ev1['name']);
     }
 }

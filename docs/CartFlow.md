@@ -30,11 +30,11 @@ This document summarizes the current logic around the cart and checkout process 
    - When all tickets for an event are removed, any related discount codes are automatically cleared from the session.
 
 3. **Checkout**
-   - The **Checkout Page** template performs checkout when the form is submitted (`tta_do_checkout`).
+   - The **Checkout Page** template performs checkout via an AJAX request (`tta_do_checkout`). The page fades while a spinner shows and always waits at least five seconds before displaying the result under the **Place Order** button.
    - `TTA_Cart::sync_with_inventory()` ensures requested quantities are still available. If inventory changed, a notice is stored and the user is redirected back to the cart.
    - The notice reads, "Some tickets in your cart were no longer available and have been removed. Please review the updated cart and try again."
    - Checkout displays a read-only summary table that mirrors the cart layout with tooltips, countdown timers, and a list of active discount codes below the total.
-   - Attendee fields collect a first name, last name, email, and phone for each ticket. A "text me" and "email me" checkbox is included and checked by default. The first ticket autofills with the logged-in member's details.
+   - Attendee fields collect a first name, last name, email, and phone for each ticket. A "text me" and "email me" checkbox is included and checked by default. The first ticket autofills with the logged-in member's details. Phone numbers are automatically formatted as the user types.
    - Countdown timers run just like on the cart page. If a timer reaches zero the item is removed and totals update automatically.
    - The `tta_update_cart` AJAX endpoint returns updated markup for both the cart table and checkout summary so timers can refresh either view.
    - A total is calculated with any discount code applied. Payment details are sent to `TTA_AuthorizeNet_API::charge()`.

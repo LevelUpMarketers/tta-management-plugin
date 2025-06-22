@@ -367,6 +367,145 @@ function tta_get_membership_label( $level ) {
 }
 
 /**
+ * Format a raw address string from the events table.
+ *
+ * @param string $raw Raw address ("street - addr2 - city - state - zip").
+ * @return string Formatted address.
+ */
+function tta_format_address( $raw ) {
+    $parts  = preg_split( '/\s*[-–]\s*/u', $raw );
+    $street = trim( $parts[0] ?? '' );
+    $addr2  = trim( $parts[1] ?? '' );
+    $city   = trim( $parts[2] ?? '' );
+    $state  = trim( $parts[3] ?? '' );
+    $zip    = trim( $parts[4] ?? '' );
+
+    $street_full    = $street . ( $addr2 ? ' ' . $addr2 : '' );
+    $city_state_zip = $city . ( $state || $zip ? ', ' : '' ) . $state . ( $zip ? ' ' . $zip : '' );
+
+    return trim( $street_full . ( $street_full && $city_state_zip ? ' – ' : '' ) . $city_state_zip );
+}
+
+/**
+ * Retrieve upcoming events purchased by a user.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ * @return array[] List of events with transaction details.
+ */
+function tta_get_member_upcoming_events( $wp_user_id ) {
+    $wp_user_id = intval( $wp_user_id );
+    if ( ! $wp_user_id ) {
+        return [];
+    }
+
+    $cache_key = 'upcoming_events_' . $wp_user_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $events_table  = $wpdb->prefix . 'tta_events';
+    $hist_table    = $wpdb->prefix . 'tta_memberhistory';
+
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT mh.action_data, mh.event_id, e.name, e.page_id, e.mainimageid, e.date, e.time, e.address, e.type, e.refundsavailable
+               FROM {$hist_table} mh
+               JOIN {$events_table} e ON mh.event_id = e.id
+              WHERE mh.wpuserid = %d
+                AND mh.action_type = 'purchase'
+                AND e.date >= %s
+              ORDER BY e.date ASC",
+            $wp_user_id,
+            current_time( 'Y-m-d' )
+        ),
+        ARRAY_A
+    );
+
+    $events = [];
+    foreach ( $rows as $row ) {
+        $data = json_decode( $row['action_data'], true );
+        if ( ! is_array( $data ) ) {
+            continue;
+        }
+        $events[] = [
+            'event_id'       => intval( $row['event_id'] ),
+            'name'           => sanitize_text_field( $row['name'] ),
+            'page_id'        => intval( $row['page_id'] ),
+            'image_id'       => intval( $row['mainimageid'] ),
+            'date'           => $row['date'],
+            'time'           => $row['time'],
+            'address'        => sanitize_text_field( $row['address'] ),
+            'event_type'     => sanitize_text_field( $row['type'] ),
+            'refunds'        => intval( $row['refundsavailable'] ),
+            'transaction_id' => $data['transaction_id'] ?? '',
+            'amount'         => floatval( $data['amount'] ?? 0 ),
+            'items'          => $data['items'] ?? [],
+        ];
+    }
+
+    $ttl = empty( $events ) ? 60 : 300;
+    TTA_Cache::set( $cache_key, $events, $ttl );
+
+    return $events;
+}
+
+/**
+ * Retrieve the next upcoming event.
+ *
+ * @return array|null {
+ *     @type int    $id      Event ID.
+ *     @type string $name    Event name.
+ *     @type string $date    Event date (Y-m-d).
+ *     @type string $time    Event time string.
+ *     @type string $address Formatted address string.
+ *     @type int    $page_id Page ID for event page.
+ * }
+ */
+function tta_get_next_event() {
+    $cache_key = 'tta_next_event';
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $events_table = $wpdb->prefix . 'tta_events';
+
+    $row = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT id, name, date, time, address, page_id, type, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost FROM {$events_table} WHERE date >= %s ORDER BY date ASC LIMIT 1",
+            current_time( 'Y-m-d' )
+        ),
+        ARRAY_A
+    );
+
+    if ( ! $row ) {
+        TTA_Cache::set( $cache_key, null, 60 );
+        return null;
+    }
+
+    $event = [
+        'id'                 => intval( $row['id'] ),
+        'name'               => sanitize_text_field( $row['name'] ),
+        'date'               => $row['date'],
+        'time'               => $row['time'],
+        'address'            => tta_format_address( $row['address'] ),
+        'page_id'            => intval( $row['page_id'] ),
+        'type'               => sanitize_text_field( $row['type'] ),
+        'venue_name'         => sanitize_text_field( $row['venuename'] ),
+        'venue_url'          => esc_url_raw( $row['venueurl'] ),
+        'base_cost'          => floatval( $row['baseeventcost'] ),
+        'member_cost'        => floatval( $row['discountedmembercost'] ),
+        'premium_cost'       => floatval( $row['premiummembercost'] ),
+    ];
+
+    TTA_Cache::set( $cache_key, $event, 300 );
+    return $event;
+}
+
+/**
  * Retrieve information about the current visitor and any associated member
  * record.
  *
@@ -754,8 +893,6 @@ function tta_render_attendee_fields( TTA_Cart $cart ) {
                     $ln_val  = esc_attr( $context['member']['last_name'] );
                     $em_val  = esc_attr( $context['member']['email'] );
                     $ph_val  = esc_attr( $context['member']['phone'] ?? '' );
-                    $sms_chk = ! empty( $context['member']['opt_in_event_update_sms'] ) ? 'checked' : '';
-                    $em_chk  = ! empty( $context['member']['opt_in_event_update_email'] ) ? 'checked' : '';
                     $used_default = true;
                 }
                 $img = esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' );
@@ -818,4 +955,27 @@ function tta_admin_preview_image( $attachment_id, array $size, array $attrs = []
         $height,
         $attr_str
     );
+}
+
+/**
+ * Retrieve Email & SMS templates with defaults.
+ *
+ * @return array
+ */
+function tta_get_comm_templates() {
+    if ( ! class_exists( 'TTA_Comms_Admin' ) ) {
+        require_once TTA_PLUGIN_DIR . 'includes/admin/class-comms-admin.php';
+    }
+    $defaults = TTA_Comms_Admin::get_default_templates();
+    $saved    = get_option( 'tta_comms_templates', [] );
+
+    if ( is_array( $saved ) ) {
+        foreach ( $saved as $k => $vals ) {
+            if ( isset( $defaults[ $k ] ) && is_array( $vals ) ) {
+                $defaults[ $k ] = array_merge( $defaults[ $k ], $vals );
+            }
+        }
+    }
+
+    return $defaults;
 }

@@ -23,13 +23,17 @@ For each of the sample events (`/dinner-at-crawleys/`, `/roller-skating/`, `/buf
 3. Confirm that the attendee gallery, event type labels, and call-to-action buttons render correctly for hosts, volunteers, and regular attendees.
 4. If ticket controls are disabled, hover to see the membership requirement tooltip.
 5. Add tickets to the cart when allowed and proceed to the cart page to verify pricing.
+6. Complete checkout and then revisit the event page to confirm the new attendees appear in the Attendees section.
 
 ### 3. Admin Pages
 - Navigate to the plugin's admin menus:
   - `/wp-admin/admin.php?page=tta-events`
   - `/wp-admin/admin.php?page=tta-events&tab=manage`
   - `/wp-admin/admin.php?page=tta-tickets`
-  - `/wp-admin/admin.php?page=tta-settings`
+- `/wp-admin/admin.php?page=tta-settings`
+- `/wp-admin/admin.php?page=tta-comms`
+- Verify each template on the **Email & SMS** page. Click a row to reveal its inline form, edit the fields, then click **Save Changes** and wait for the spinner to disappear. Refresh the page to ensure the updated values persist. Each template should operate independently.
+- Confirm that the Email and SMS previews update after editing fields and that the SMS character count turns red when over 160 characters.
 - Ensure lists load without errors and that cache clearing and log viewing actions work.
 
 ### 4. Checkout and Cart

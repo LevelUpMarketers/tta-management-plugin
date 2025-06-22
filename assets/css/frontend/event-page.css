@@ -493,6 +493,21 @@ input[disabled] {
   text-align: center;
 }
 
+/* Masonry layout for image gallery */
+.tta-event-image-gallery-accordion .tta-gallery-grid {
+  column-count: 3;
+  column-gap: 0.25em;
+}
+.tta-event-image-gallery-accordion .tta-gallery-item {
+  break-inside: avoid;
+  margin-bottom: 0.25em;
+}
+@media (max-width: 600px) {
+  .tta-event-image-gallery-accordion .tta-gallery-grid {
+    column-count: 2;
+  }
+}
+
 .tta-attendee-photo-wrapper {
   position: relative;
   display: inline-block;

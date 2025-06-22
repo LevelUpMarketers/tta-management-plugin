@@ -2,6 +2,10 @@
 
 This document collects helpful SQL snippets for testing and development. They are designed for a local sandbox WordPress environment.
 
+## Automatic Upgrades
+
+The plugin automatically runs `dbDelta()` when its database version changes. Any new columns introduced in updates are created without manual intervention. The current version is stored in the `tta_db_version` option.
+
 ## Import WordPress users into `tta_members` & assign hosts & volunteers
 
 Use the following SQL to copy existing WordPress users into the `tta_members`
@@ -173,11 +177,20 @@ ALTER TABLE `wp_j9bzlz98u3_tta_events`
 
 ## Add phone and opt-in columns to `tta_attendees`
 
-Run this after updating the plugin if your install already has the `tta_attendees` table:
+If you updated from a version prior to 1.0.0, these columns will be added automatically when the plugin loads. If you prefer to run the SQL manually, use:
 
 ```sql
 ALTER TABLE `wp_j9bzlz98u3_tta_attendees`
   ADD COLUMN `phone` VARCHAR(50) DEFAULT '',
   ADD COLUMN `opt_in_sms` TINYINT(1) DEFAULT 0,
   ADD COLUMN `opt_in_email` TINYINT(1) DEFAULT 0;
+```
+
+## Track whether attendees are members
+
+Version 1.1.0 adds an `is_member` column to `tta_attendees`. Existing installs will update automatically, but the raw SQL is:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_attendees`
+  ADD COLUMN `is_member` TINYINT(1) DEFAULT 0;
 ```

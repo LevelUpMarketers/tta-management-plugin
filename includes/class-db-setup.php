@@ -226,6 +226,7 @@ class TTA_DB_Setup {
             phone           VARCHAR(50)    DEFAULT '',
             opt_in_sms      TINYINT(1)     DEFAULT 0,
             opt_in_email    TINYINT(1)     DEFAULT 0,
+            is_member       TINYINT(1)     DEFAULT 0,
             PRIMARY KEY     (id),
             KEY transaction_idx (transaction_id),
             KEY ticket_idx      (ticket_id),
@@ -240,6 +241,17 @@ class TTA_DB_Setup {
         // Run dbDelta on each statement
         foreach ( $sql_statements as $sql ) {
             dbDelta( $sql );
+        }
+    }
+
+    /**
+     * Run install when the stored DB version differs from the plugin version.
+     */
+    public static function maybe_upgrade() {
+        $current = get_option( 'tta_db_version' );
+        if ( $current !== TTA_DB_VERSION ) {
+            self::install();
+            update_option( 'tta_db_version', TTA_DB_VERSION, false );
         }
     }
 

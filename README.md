@@ -14,6 +14,7 @@ If these constants are not defined, checkout will fail and an admin notice will 
 
 - [Cart and Checkout Flow](docs/CartFlow.md)
 - [Object Caching](docs/ObjectCaching.md)
+  - Plugin caches can now be cleared reliably even on hosts with persistent object caching.
 - [Input Sanitization Helpers](docs/InputSanitization.md)
 - [Event Page Context](docs/EventPage.md)
 - [Event Hosts & Volunteers](docs/EventPage.md#event-hosts-and-volunteers)
@@ -21,7 +22,10 @@ If these constants are not defined, checkout will fail and an admin notice will 
 - [Testing Information](docs/TestingInformation.md) (includes sandbox credit card numbers)
 - [Member Privacy Options](docs/MemberPrivacy.md)
 - [Membership Benefits](docs/MembershipBenefits.md)
+- [Member Dashboard](docs/MemberDashboard.md)
+- [Email and SMS Templates](docs/EmailSMS.md) – manage message text with live previews and token insertion
 - [Debugging Tools](docs/Debugging.md)
+- [Database Upgrades](docs/DevelopmentSQL.md#automatic-upgrades)
 - [Development SQL Assets](docs/DevelopmentSQL.md)
 - [Operator Testing Guide](docs/OperatorTestingGuide.md)
 - [Project TODOs](TODO.md)

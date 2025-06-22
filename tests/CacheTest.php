@@ -57,21 +57,28 @@ class CacheTest extends TestCase {
         $this->assertSame(1, $GLOBALS['callback_calls']);
     }
 
-    public function test_flush_runs_delete_queries() {
+    public function test_flush_deletes_cached_transients() {
         global $wpdb;
         $wpdb = new class {
             public $options = 'wp_options';
-            public $queries = [];
+            public $prepared = [];
             public function esc_like($str) { return $str; }
             public function prepare($query, $param) {
-                return sprintf($query, $param);
+                $this->prepared[] = sprintf($query, $param);
+                return end($this->prepared);
             }
-            public function query($sql) { $this->queries[] = $sql; }
+            public function get_col($query) {
+                return ['_transient_tta_cache_a', '_transient_tta_cache_b'];
+            }
         };
+
+        $GLOBALS['transients']['tta_cache_a'] = 'x';
+        $GLOBALS['transients']['tta_cache_b'] = 'y';
+
         TTA_Cache::flush();
-        $this->assertCount(2, $wpdb->queries);
-        $this->assertStringContainsString('DELETE FROM wp_options', $wpdb->queries[0]);
-        $this->assertStringContainsString('tta_cache_', $wpdb->queries[0]);
-        $this->assertStringContainsString('_transient_timeout_', $wpdb->queries[1]);
+
+        $this->assertFalse( isset( $GLOBALS['transients']['tta_cache_a'] ) );
+        $this->assertFalse( isset( $GLOBALS['transients']['tta_cache_b'] ) );
+        $this->assertNotEmpty( $wpdb->prepared );
     }
 }

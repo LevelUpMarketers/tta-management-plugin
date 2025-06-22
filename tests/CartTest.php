@@ -135,6 +135,8 @@ class CartTest extends TestCase {
         $this->assertStringContainsString('attendees[1][0][first_name]', $html);
         $this->assertStringContainsString('attendees[1][0][phone]', $html);
         $this->assertStringContainsString('attendees[1][0][opt_in_sms]', $html);
+        $this->assertStringContainsString('attendees[1][0][opt_in_sms]" checked', $html);
+        $this->assertStringContainsString('attendees[1][0][opt_in_email]" checked', $html);
         $this->assertStringContainsString('value="First"', $html);
         $this->assertStringContainsString('VIP #2', $html);
     }

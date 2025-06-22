@@ -859,6 +859,140 @@ jQuery(function($){
     $(this).closest('.tta-wl-entry').remove();
   });
 
+  // Inline edit toggle for Email & SMS templates
+  $(document).on('click', '.widefat tbody tr[data-comms-key]', function(e){
+    if ( $(e.target).is('a, button, input, textarea, select') ) return;
+
+    var $row    = $(this),
+        $arrow  = $row.find('.tta-toggle-arrow'),
+        $inline = $row.next('.tta-inline-row');
+
+    if ( $inline.is(':visible') ) {
+      $arrow.removeClass('open');
+      $inline.find('.tta-inline-container').slideUp(200, function(){
+        $inline.hide();
+      });
+      return;
+    }
+
+    $('.tta-inline-row').each(function(){
+      $(this).prev('tr').find('.tta-toggle-arrow').removeClass('open');
+      $(this).hide().find('.tta-inline-container').hide();
+    });
+
+    $arrow.addClass('open');
+    $inline.show();
+    $inline.find('.tta-inline-container').slideDown(200, function(){
+      var offset = $inline.offset().top;
+      $('html, body').animate({ scrollTop: offset - 120 }, 300);
+    });
+  });
+
+  // Save a single communication template via AJAX
+  $(document).on('submit', '.tta-comms-form', function(e){
+    e.preventDefault();
+
+    var $form = $(this),
+        $btn  = $form.find('button[type=submit]').prop('disabled', true),
+        $spin = $form.find('.tta-admin-progress-spinner-svg').css({display:'inline-block', opacity:0}).fadeTo(200,1),
+        data  = $form.serialize() + '&action=tta_save_comm_template' + '&tta_comms_save_nonce=' + TTA_Ajax.save_comm_nonce;
+
+    $.post(TTA_Ajax.ajax_url, data, function(res){
+      setTimeout(function(){
+        $spin.fadeTo(200,0,function(){ $(this).hide(); });
+        var cls = res.success ? 'updated' : 'error',
+            msg = res.data.message || 'Error saving template';
+        $form.find('.tta-admin-progress-response-p')
+            .removeClass('updated error')
+            .addClass(cls)
+            .text(msg);
+        $btn.prop('disabled', false);
+      }, 5000);
+    }, 'json').fail(function(){
+      setTimeout(function(){
+        $spin.fadeTo(200,0,function(){ $(this).hide(); });
+        $form.find('.tta-admin-progress-response-p')
+            .removeClass('updated')
+            .addClass('error')
+            .text('Request failed.');
+        $btn.prop('disabled', false);
+      }, 5000);
+    });
+  });
+
+  // Track the last focused input for token insertion
+  var activeField = null;
+  $(document).on('focus', '.tta-comm-input', function(){
+    activeField = this;
+  });
+
+  function insertAtCursor(field, text){
+    if (!field) return;
+    if (document.selection) {
+      field.focus();
+      var sel = document.selection.createRange();
+      sel.text = text;
+    } else if (field.selectionStart || field.selectionStart === 0) {
+      var start = field.selectionStart, end = field.selectionEnd;
+      field.value = field.value.substring(0, start) + text + field.value.substring(end);
+      field.selectionStart = field.selectionEnd = start + text.length;
+    } else {
+      field.value += text;
+    }
+  }
+
+  $(document).on('click', '.tta-insert-token', function(){
+    insertAtCursor(activeField, $(this).data('token'));
+    if (activeField) { $(activeField).trigger('blur'); }
+  });
+
+  $(document).on('click', '.tta-insert-br', function(){
+    insertAtCursor(activeField, "\n");
+    if (activeField) { $(activeField).trigger('blur'); }
+  });
+
+  function renderPreview($form){
+    var subj = $form.find('input[name=email_subject]').val() || '';
+    var body = $form.find('textarea[name=email_body]').val() || '';
+    var sms  = $form.find('textarea[name=sms_text]').val() || '';
+    var ev   = TTA_Ajax.sample_event || {};
+    var map  = {
+      '{event_name}': ev.name || 'Sample Event',
+      '{event_address}': ev.address || '123 Main St',
+      '{event_link}': ev.page_url || '#',
+      '{dashboard_link}': ev.dashboard_url || '#',
+      '{event_date}': ev.date || '2025-01-01',
+      '{event_time}': ev.time || '00:00',
+      '{event_type}': ev.type || 'Open',
+      '{venue_name}': ev.venue_name || 'Venue',
+      '{venue_url}': ev.venue_url || '#',
+      '{base_cost}': ev.base_cost || '0',
+      '{member_cost}': ev.member_cost || '0',
+      '{premium_cost}': ev.premium_cost || '0'
+    };
+    Object.keys(map).forEach(function(tok){
+      var val = map[tok];
+      subj = subj.split(tok).join(val);
+      body = body.split(tok).join(val);
+      sms  = sms.split(tok).join(val);
+    });
+    var bodyHtml = body.replace(/\n/g, '<br>');
+    $form.find('.tta-email-preview-subject').text(subj);
+    $form.find('.tta-email-preview-body').html(bodyHtml);
+    $form.find('.tta-sms-preview').text(sms);
+    var count = sms.length;
+    var $count = $form.find('.tta-sms-count').text(count);
+    if (count > 160) { $count.addClass('tta-over-limit'); } else { $count.removeClass('tta-over-limit'); }
+  }
+
+  $(document).on('blur', '.tta-comm-input', function(){
+    renderPreview($(this).closest('.tta-comms-form'));
+  });
+
+  $('.tta-comms-form').each(function(){
+    renderPreview($(this));
+  });
+
 
 
 
