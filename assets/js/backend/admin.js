@@ -946,6 +946,11 @@ jQuery(function($){
     if (activeField) { $(activeField).trigger('blur'); }
   });
 
+  $(document).on('click', '.tta-insert-br', function(){
+    insertAtCursor(activeField, "\n");
+    if (activeField) { $(activeField).trigger('blur'); }
+  });
+
   function renderPreview($form){
     var subj = $form.find('input[name=email_subject]').val() || '';
     var body = $form.find('textarea[name=email_body]').val() || '';
@@ -957,7 +962,13 @@ jQuery(function($){
       '{event_link}': ev.page_url || '#',
       '{dashboard_link}': ev.dashboard_url || '#',
       '{event_date}': ev.date || '2025-01-01',
-      '{event_time}': ev.time || '00:00'
+      '{event_time}': ev.time || '00:00',
+      '{event_type}': ev.type || 'Open',
+      '{venue_name}': ev.venue_name || 'Venue',
+      '{venue_url}': ev.venue_url || '#',
+      '{base_cost}': ev.base_cost || '0',
+      '{member_cost}': ev.member_cost || '0',
+      '{premium_cost}': ev.premium_cost || '0'
     };
     Object.keys(map).forEach(function(tok){
       var val = map[tok];
@@ -965,8 +976,9 @@ jQuery(function($){
       body = body.split(tok).join(val);
       sms  = sms.split(tok).join(val);
     });
+    var bodyHtml = body.replace(/\n/g, '<br>');
     $form.find('.tta-email-preview-subject').text(subj);
-    $form.find('.tta-email-preview-body').text(body);
+    $form.find('.tta-email-preview-body').html(bodyHtml);
     $form.find('.tta-sms-preview').text(sms);
     var count = sms.length;
     var $count = $form.find('.tta-sms-count').text(count);

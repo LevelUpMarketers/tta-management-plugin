@@ -103,7 +103,16 @@ class TTA_Comms_Admin {
             echo '<button type="button" class="button tta-insert-token" data-token="{event_name}">{event_name}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{event_address}">{event_address}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{event_link}">{event_link}</button> ';
-            echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_link}">{dashboard_link}</button>';
+            echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_link}">{dashboard_link}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{event_date}">{event_date}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{event_time}">{event_time}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{event_type}">{event_type}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{venue_name}">{venue_name}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{venue_url}">{venue_url}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{base_cost}">{base_cost}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{member_cost}">{member_cost}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{premium_cost}">{premium_cost}</button> ';
+            echo '<button type="button" class="button tta-insert-br">Line Break</button>';
             echo '</td></tr>';
             echo '<tr><th scope="row">' . esc_html__( 'Email Preview', 'tta' ) . '</th><td><div class="tta-email-preview"><strong class="tta-email-preview-subject"></strong><p class="tta-email-preview-body"></p></div></td></tr>';
             echo '<tr><th scope="row">' . esc_html__( 'SMS Preview', 'tta' ) . '</th><td><div class="tta-sms-preview"></div></td></tr>';

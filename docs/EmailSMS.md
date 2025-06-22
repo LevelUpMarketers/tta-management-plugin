@@ -43,4 +43,12 @@ Buttons labelled with tokens (e.g. `{event_name}`) insert placeholders into the 
 {dashboard_link}
 {event_date}
 {event_time}
+{event_type}
+{venue_name}
+{venue_url}
+{base_cost}
+{member_cost}
+{premium_cost}
 ```
+
+Use the **Line Break** button to insert a newline. Email previews render these breaks as HTML `<br>` tags so the saved text remains plain.

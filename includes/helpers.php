@@ -475,7 +475,7 @@ function tta_get_next_event() {
 
     $row = $wpdb->get_row(
         $wpdb->prepare(
-            "SELECT id, name, date, time, address, page_id FROM {$events_table} WHERE date >= %s ORDER BY date ASC LIMIT 1",
+            "SELECT id, name, date, time, address, page_id, type, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost FROM {$events_table} WHERE date >= %s ORDER BY date ASC LIMIT 1",
             current_time( 'Y-m-d' )
         ),
         ARRAY_A
@@ -487,12 +487,18 @@ function tta_get_next_event() {
     }
 
     $event = [
-        'id'      => intval( $row['id'] ),
-        'name'    => sanitize_text_field( $row['name'] ),
-        'date'    => $row['date'],
-        'time'    => $row['time'],
-        'address' => sanitize_text_field( $row['address'] ),
-        'page_id' => intval( $row['page_id'] ),
+        'id'                 => intval( $row['id'] ),
+        'name'               => sanitize_text_field( $row['name'] ),
+        'date'               => $row['date'],
+        'time'               => $row['time'],
+        'address'            => tta_format_address( $row['address'] ),
+        'page_id'            => intval( $row['page_id'] ),
+        'type'               => sanitize_text_field( $row['type'] ),
+        'venue_name'         => sanitize_text_field( $row['venuename'] ),
+        'venue_url'          => esc_url_raw( $row['venueurl'] ),
+        'base_cost'          => floatval( $row['baseeventcost'] ),
+        'member_cost'        => floatval( $row['discountedmembercost'] ),
+        'premium_cost'       => floatval( $row['premiummembercost'] ),
     ];
 
     TTA_Cache::set( $cache_key, $event, 300 );
