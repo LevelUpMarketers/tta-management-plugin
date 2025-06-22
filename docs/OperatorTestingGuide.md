@@ -32,7 +32,7 @@ For each of the sample events (`/dinner-at-crawleys/`, `/roller-skating/`, `/buf
   - `/wp-admin/admin.php?page=tta-tickets`
 - `/wp-admin/admin.php?page=tta-settings`
 - `/wp-admin/admin.php?page=tta-comms`
-- Verify each template on the **Email & SMS** page. Expand an accordion, edit the fields, click its **Save Changes** button and wait for the spinner to disappear. Confirm the success message appears and that refreshing the page shows the updated values. Each template should operate independently.
+- Verify each template on the **Email & SMS** page. Click a row to reveal its inline form, edit the fields, then click **Save Changes** and wait for the spinner to disappear. Refresh the page to ensure the updated values persist. Each template should operate independently.
 - Ensure lists load without errors and that cache clearing and log viewing actions work.
 
 ### 4. Checkout and Cart

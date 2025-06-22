@@ -859,20 +859,33 @@ jQuery(function($){
     $(this).closest('.tta-wl-entry').remove();
   });
 
-  // Simple accordion toggle used on Email & SMS admin page
-  $(document).on('click', '.tta-admin-accordion .tta-accordion-toggle', function(){
-    var $btn  = $(this),
-        $cont = $btn.siblings('.tta-accordion-content'),
-        openText  = $btn.data('openText') || 'Edit',
-        closeText = $btn.data('closeText') || 'Hide';
+  // Inline edit toggle for Email & SMS templates
+  $(document).on('click', '.widefat tbody tr[data-comms-key]', function(e){
+    if ( $(e.target).is('a, button, input, textarea, select') ) return;
 
-    if ( $cont.hasClass('expanded') ) {
-      $cont.removeClass('expanded');
-      $btn.text(openText);
-    } else {
-      $cont.addClass('expanded');
-      $btn.text(closeText);
+    var $row    = $(this),
+        $arrow  = $row.find('.tta-toggle-arrow'),
+        $inline = $row.next('.tta-inline-row');
+
+    if ( $inline.is(':visible') ) {
+      $arrow.removeClass('open');
+      $inline.find('.tta-inline-container').slideUp(200, function(){
+        $inline.hide();
+      });
+      return;
     }
+
+    $('.tta-inline-row').each(function(){
+      $(this).prev('tr').find('.tta-toggle-arrow').removeClass('open');
+      $(this).hide().find('.tta-inline-container').hide();
+    });
+
+    $arrow.addClass('open');
+    $inline.show();
+    $inline.find('.tta-inline-container').slideDown(200, function(){
+      var offset = $inline.offset().top;
+      $('html, body').animate({ scrollTop: offset - 120 }, 300);
+    });
   });
 
   // Save a single communication template via AJAX

@@ -22,6 +22,8 @@ class CommsTest extends TestCase {
         $templates = tta_get_comm_templates();
         $this->assertArrayHasKey('purchase', $templates);
         $this->assertSame('Thanks for Registering!', $templates['purchase']['email_subject']);
+        $this->assertSame('External', $templates['purchase']['type']);
+        $this->assertSame('Event Confirmation', $templates['purchase']['category']);
     }
 
     public function test_saved_values_override_defaults() {
@@ -32,6 +34,7 @@ class CommsTest extends TestCase {
         $templates = tta_get_comm_templates();
         $this->assertSame('Custom', $templates['purchase']['email_subject']);
         $this->assertSame('B', $templates['purchase']['email_body']);
+        $this->assertSame('External', $templates['purchase']['type']);
     }
 
     public function test_ajax_save_template() {

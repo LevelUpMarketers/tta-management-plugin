@@ -914,5 +914,14 @@ function tta_get_comm_templates() {
     }
     $defaults = TTA_Comms_Admin::get_default_templates();
     $saved    = get_option( 'tta_comms_templates', [] );
-    return array_merge( $defaults, is_array( $saved ) ? $saved : [] );
+
+    if ( is_array( $saved ) ) {
+        foreach ( $saved as $k => $vals ) {
+            if ( isset( $defaults[ $k ] ) && is_array( $vals ) ) {
+                $defaults[ $k ] = array_merge( $defaults[ $k ], $vals );
+            }
+        }
+    }
+
+    return $defaults;
 }

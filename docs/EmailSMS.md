@@ -1,6 +1,6 @@
 # Email and SMS Templates
 
-The plugin sends a few automated notifications to members. Administrators can customise the text for each from **Email & SMS** in the WordPress admin menu. Each template appears in its own collapsible accordion so you can focus on one message at a time. Every accordion contains its own **Save Changes** button and progress spinner, matching the style used on the Events and Members screens.
+The plugin sends automated notifications to members. Administrators can edit the text for each message from **Email & SMS** in the WordPress admin menu. Templates are listed in a table similar to the Manage Events page. Click a row to expand an inline form containing the fields for that communication. Each form has its own **Save Changes** button and progress spinner.
 
 ## Available Templates
 
@@ -12,6 +12,8 @@ The plugin sends a few automated notifications to members. Administrators can cu
 
 Each template stores:
 
+- **Type** – whether the message is sent to members (External) or used internally
+- **Category** – grouping such as Event Reminder or Event Confirmation
 - **Email Subject** – subject line of the email
 - **Email Body** – text shown above the automatically generated event details
 - **SMS Text** – short message sent via SMS
