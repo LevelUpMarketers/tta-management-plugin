@@ -23,6 +23,7 @@ If these constants are not defined, checkout will fail and an admin notice will 
 - [Membership Benefits](docs/MembershipBenefits.md)
 - [Debugging Tools](docs/Debugging.md)
 - [Development SQL Assets](docs/DevelopmentSQL.md)
+- [Operator Testing Guide](docs/OperatorTestingGuide.md)
 - [Project TODOs](TODO.md)
 
 ## Running Tests
