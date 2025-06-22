@@ -58,24 +58,30 @@ class TTA_Comms_Admin {
             echo '<div class="updated"><p>'.esc_html__('Settings saved.', 'tta').'</p></div>';
         }
         echo '<div class="wrap"><h1>'.esc_html__('Email & SMS', 'tta').'</h1>';
-        echo '<form method="post">';
-        wp_nonce_field('tta_save_comms','tta_comms_nonce');
         foreach ( $templates as $key => $vals ) {
             echo '<div class="tta-admin-accordion">';
             echo '<div class="tta-accordion">';
             echo '<button type="button" class="button tta-accordion-toggle" data-open-text="' . esc_attr__( 'Edit', 'tta' ) . '" data-close-text="' . esc_attr__( 'Hide', 'tta' ) . '">' . esc_html( $vals['label'] ) . '</button>';
             echo '<div class="tta-accordion-content">';
+            echo '<form method="post" class="tta-comms-form">';
+            wp_nonce_field('tta_comms_save_action','tta_comms_save_nonce');
+            echo '<input type="hidden" name="template_key" value="'.esc_attr($key).'">';
             echo '<table class="form-table">';
-            echo '<tr><th scope="row">' . esc_html__( 'Email Subject', 'tta' ) . '</th><td><input type="text" name="' . $key . '_email_subject" value="' . esc_attr( $vals['email_subject'] ) . '" class="regular-text"></td></tr>';
-            echo '<tr><th scope="row">' . esc_html__( 'Email Body', 'tta' ) . '</th><td><textarea name="' . $key . '_email_body" rows="4" class="large-text">' . esc_textarea( $vals['email_body'] ) . '</textarea></td></tr>';
-            echo '<tr><th scope="row">' . esc_html__( 'SMS Text', 'tta' ) . '</th><td><textarea name="' . $key . '_sms_text" rows="2" class="large-text">' . esc_textarea( $vals['sms_text'] ) . '</textarea></td></tr>';
+            echo '<tr><th scope="row">' . esc_html__( 'Email Subject', 'tta' ) . '</th><td><input type="text" name="email_subject" value="' . esc_attr( $vals['email_subject'] ) . '" class="regular-text"></td></tr>';
+            echo '<tr><th scope="row">' . esc_html__( 'Email Body', 'tta' ) . '</th><td><textarea name="email_body" rows="4" class="large-text">' . esc_textarea( $vals['email_body'] ) . '</textarea></td></tr>';
+            echo '<tr><th scope="row">' . esc_html__( 'SMS Text', 'tta' ) . '</th><td><textarea name="sms_text" rows="2" class="large-text">' . esc_textarea( $vals['sms_text'] ) . '</textarea></td></tr>';
             echo '</table>';
+            echo '<p class="submit">';
+            echo '<button type="submit" class="button button-primary">'.esc_html__('Save Changes','tta').'</button>';
+            echo '<div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="'.esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ).'" alt="Loading" /></div>';
+            echo '<div class="tta-admin-progress-response-div"><p class="tta-admin-progress-response-p"></p></div>';
+            echo '</p>';
+            echo '</form>';
             echo '</div>'; // content
             echo '</div>'; // accordion
             echo '</div>'; // wrapper
         }
-        echo '<p><input type="submit" name="tta_save_comms" class="button button-primary" value="'.esc_attr__('Save Changes', 'tta').'"></p>';
-        echo '</form></div>';
+        echo '</div>';
     }
 }
 

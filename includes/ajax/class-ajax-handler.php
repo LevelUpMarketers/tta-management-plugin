@@ -9,6 +9,7 @@ require_once TTA_PLUGIN_DIR . 'includes/ajax/handlers/class-ajax-members.php';
 require_once TTA_PLUGIN_DIR . 'includes/ajax/handlers/class-ajax-tickets.php';
 require_once TTA_PLUGIN_DIR . 'includes/ajax/handlers/class-ajax-cart.php';
 require_once TTA_PLUGIN_DIR . 'includes/ajax/handlers/class-ajax-checkout.php';
+require_once TTA_PLUGIN_DIR . 'includes/ajax/handlers/class-ajax-comms.php';
 
 
 // Initialize them
@@ -17,3 +18,4 @@ TTA_Ajax_Members::init();
 TTA_Ajax_Tickets::init();
 TTA_Ajax_Cart::init();
 TTA_Ajax_Checkout::init();
+TTA_Ajax_Comms::init();

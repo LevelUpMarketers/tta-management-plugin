@@ -875,6 +875,38 @@ jQuery(function($){
     }
   });
 
+  // Save a single communication template via AJAX
+  $(document).on('submit', '.tta-comms-form', function(e){
+    e.preventDefault();
+
+    var $form = $(this),
+        $btn  = $form.find('button[type=submit]').prop('disabled', true),
+        $spin = $form.find('.tta-admin-progress-spinner-svg').css({display:'inline-block', opacity:0}).fadeTo(200,1),
+        data  = $form.serialize() + '&action=tta_save_comm_template' + '&tta_comms_save_nonce=' + TTA_Ajax.save_comm_nonce;
+
+    $.post(TTA_Ajax.ajax_url, data, function(res){
+      setTimeout(function(){
+        $spin.fadeTo(200,0,function(){ $(this).hide(); });
+        var cls = res.success ? 'updated' : 'error',
+            msg = res.data.message || 'Error saving template';
+        $form.find('.tta-admin-progress-response-p')
+            .removeClass('updated error')
+            .addClass(cls)
+            .text(msg);
+        $btn.prop('disabled', false);
+      }, 5000);
+    }, 'json').fail(function(){
+      setTimeout(function(){
+        $spin.fadeTo(200,0,function(){ $(this).hide(); });
+        $form.find('.tta-admin-progress-response-p')
+            .removeClass('updated')
+            .addClass('error')
+            .text('Request failed.');
+        $btn.prop('disabled', false);
+      }, 5000);
+    });
+  });
+
 
 
 

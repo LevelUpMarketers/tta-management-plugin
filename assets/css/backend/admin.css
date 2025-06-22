@@ -73,6 +73,28 @@
     width:96%;
 }
 
+/* Email & SMS template forms */
+.tta-comms-form .form-table {
+    width: initial;
+}
+.tta-comms-form .form-table tr {
+    margin-top: 20px;
+    display: inline-block;
+    vertical-align: top;
+    min-width: 220px;
+}
+.tta-comms-form .form-table textarea {
+    min-height: 150px;
+}
+.tta-comms-form .form-table td {
+    display: block;
+}
+.tta-comms-form .form-table td,
+.tta-comms-form .form-table textarea,
+.tta-comms-form .form-table input[type="text"] {
+    width: 96%;
+}
+
 .tta-member-edit-unexpanded-profile-img{
     max-width: 150px;
     max-height: 100px;

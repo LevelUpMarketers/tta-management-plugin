@@ -1,6 +1,6 @@
 # Email and SMS Templates
 
-The plugin sends a few automated notifications to members. Administrators can customise the text for each from **Email & SMS** in the WordPress admin menu. Each template appears in its own collapsible accordion so you can focus on one message at a time.
+The plugin sends a few automated notifications to members. Administrators can customise the text for each from **Email & SMS** in the WordPress admin menu. Each template appears in its own collapsible accordion so you can focus on one message at a time. Every accordion contains its own **Save Changes** button and progress spinner, matching the style used on the Events and Members screens.
 
 ## Available Templates
 
