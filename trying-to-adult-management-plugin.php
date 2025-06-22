@@ -20,6 +20,15 @@ define( 'TTA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TTA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'TTA_PLUGIN_VERSION', '0.2.0' );
 
+require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-debug-logger.php';
+TTA_Debug_Logger::init();
+
+// Load Authorize.Net credentials from a config file if present
+$config_file = TTA_PLUGIN_DIR . 'authnet-config.php';
+if ( file_exists( $config_file ) ) {
+    include_once $config_file;
+}
+
 // Attempt to load Authorize.Net credentials from environment variables
 if ( getenv( 'TTA_AUTHNET_LOGIN_ID' ) && ! defined( 'TTA_AUTHNET_LOGIN_ID' ) ) {
     define( 'TTA_AUTHNET_LOGIN_ID', getenv( 'TTA_AUTHNET_LOGIN_ID' ) );
@@ -37,7 +46,7 @@ if ( is_admin() ) {
     add_action( 'admin_notices', function () {
         if ( current_user_can( 'manage_options' ) && ( ! defined( 'TTA_AUTHNET_LOGIN_ID' ) || ! defined( 'TTA_AUTHNET_TRANSACTION_KEY' ) ) ) {
             echo '<div class="notice notice-error"><p>' .
-                esc_html__( 'Authorize.Net credentials are not configured. Define TTA_AUTHNET_LOGIN_ID and TTA_AUTHNET_TRANSACTION_KEY in wp-config.php or your server environment.', 'tta' ) .
+                esc_html__( 'Authorize.Net credentials are not configured. Define TTA_AUTHNET_LOGIN_ID and TTA_AUTHNET_TRANSACTION_KEY in authnet-config.php or your server environment.', 'tta' ) .
                 '</p></div>';
         }
     } );

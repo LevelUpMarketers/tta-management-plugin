@@ -32,7 +32,8 @@
   margin-bottom: 1em;
 }
 .tta-event-meta .tta-event-date,
-.tta-event-meta .tta-event-price {
+.tta-event-meta .tta-event-price,
+.tta-event-meta .tta-event-type-meta {
   display: inline-block;
   margin-right: 1em;
 }
@@ -324,11 +325,40 @@
 button[disabled],
 input[disabled] {
   opacity: 0.5;
-  pointer-events: none;
+  pointer-events: auto; /* allow hover for tooltips */
+  cursor: not-allowed;
 }
 
 #tta-get-tickets:disabled {
   cursor: not-allowed;
+}
+
+/* Tooltip for disabled elements */
+.tta-tooltip-trigger {
+  position: relative;
+}
+
+.tta-tooltip-trigger[data-tooltip]::after {
+  content: attr(data-tooltip);
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 170px;
+  text-align: center;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: normal;
+  z-index: 9999;
+}
+
+.tta-tooltip-trigger:hover[data-tooltip]::after {
+  display: block;
 }
 
 /* Get Tickets button */
@@ -354,7 +384,7 @@ input[disabled] {
     border-radius: 4px;
     transition: max-height 0.4s ease;/* animate max-height */
 }
-.tta-event-time, .tta-event-date{
+.tta-event-time, .tta-event-date, .tta-event-type-meta{
   font-size: 16px;
   font-weight: bold;
 }
@@ -461,6 +491,28 @@ input[disabled] {
 
 .tta-event-attendees-section .tta-gallery-grid{
   text-align: center;
+}
+
+.tta-attendee-photo-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tta-attendee-role {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #0073aa;
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.tta-attendee-level {
+  display: block;
+  font-size: 0.8em;
+  color: #666;
 }
 
 .tta-gallery-item .tta-attendee-name {

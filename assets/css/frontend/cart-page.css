@@ -149,6 +149,9 @@
 }
 .tta-attendee-row { margin-bottom: 10px; }
 .tta-attendee-row label { display: block; margin-bottom: 4px; }
+.tta-ticket-optin { display:block; margin-top:4px; }
+.tta-required { color:red; margin-left:2px; }
+.tta-attendee-note { margin-bottom:10px; font-style:italic; }
 @media (max-width: 600px) {
   .tta-checkout-grid { flex-direction: column; }
 }
