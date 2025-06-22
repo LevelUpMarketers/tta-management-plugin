@@ -9,6 +9,13 @@ The plugin sends automated notifications to members. Administrators can edit the
 | `purchase` | Sent after a successful event purchase. Includes event details automatically. |
 | `reminder_24hr` | Sent 24 hours before an event starts. |
 | `reminder_2hr` | Sent two hours before an event starts. |
+| `new_event` | Internal notice when a new event is created. |
+| `refund_requested` | Internal notice when a member requests a refund. |
+| `event_sold_out` | Internal alert when an event reaches capacity. |
+| `host_reminder_24hr` | Reminder to event hosts 24 hours before their event. |
+| `host_reminder_2hr` | Reminder to event hosts two hours before their event. |
+| `volunteer_reminder_24hr` | Reminder to volunteers 24 hours before their event. |
+| `volunteer_reminder_2hr` | Reminder to volunteers two hours before their event. |
 
 Each template stores:
 
@@ -25,8 +32,10 @@ Default values are provided on initial install:
 - **Purchase SMS**: "Thanks for registering! View your upcoming events at "
 - **24-Hour Reminder Email Body**: "Heads-up! Your event is just 1 day away! Below are the details."
 - **2-Hour Reminder Email Body**: "Your event is only 2 hours away! Below are the details."
+- **Admin Notifications**: emails are sent when new events are created, refunds are requested or events sell out.
+- **Host and Volunteer Reminders**: internal messages mirror attendee reminders at 24 and 2 hours before the event.
 
-The member dashboard link appended to SMS messages uses a short URL when possible.
+Links to the member dashboard are relative URLs so they work on any domain. Tokens include direct links to each dashboard tab.
 
 ## Previews and Tokens
 
@@ -36,11 +45,16 @@ SMS previews show a character count. If the text exceeds 160 characters the coun
 
 Buttons labelled with tokens (e.g. `{event_name}`) insert placeholders into the last focused field. The sending logic will replace these tokens with real data. Available tokens include:
 
+### Event Information
+
 ```
 {event_name}
 {event_address}
 {event_link}
-{dashboard_link}
+{dashboard_profile_url}
+{dashboard_upcoming_url}
+{dashboard_past_url}
+{dashboard_billing_url}
 {event_date}
 {event_time}
 {event_type}
@@ -49,6 +63,26 @@ Buttons labelled with tokens (e.g. `{event_name}`) insert placeholders into the 
 {base_cost}
 {member_cost}
 {premium_cost}
+```
+
+### Member Information
+
+```
+{first_name}
+{last_name}
+{email}
+{phone}
+{membership_level}
+{member_type}
+```
+
+### Event Attendee Information
+
+```
+{attendee_first_name}
+{attendee_last_name}
+{attendee_email}
+{attendee_phone}
 ```
 
 Use the **Line Break** button to insert a newline. Email previews render these breaks as HTML `<br>` tags so the saved text remains plain.

@@ -20,3 +20,7 @@ Events are loaded chronologically and the layout supports any number of events.
 Attendee details are pulled from the transaction history and stored in the
 `tta_attendees` table.
 Event thumbnails use the medium image size and are scaled to a consistent width so nothing is cropped.
+
+## Past Events Tab
+
+Past events show the same details as upcoming events. To keep the database small, events more than three days past are moved to an `tta_events_archive` table by a daily cron job. The dashboard transparently queries both the current events table and this archive so members can always view their history.

@@ -131,6 +131,9 @@ CREATE TABLE `wp_j9bzlz98u3_tta_events` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Re-create tta_events_archive (same structure as tta_events)
+CREATE TABLE `wp_j9bzlz98u3_tta_events_archive` LIKE `wp_j9bzlz98u3_tta_events`;
+
 -- Populate tta_tickets
 INSERT INTO `wp_j9bzlz98u3_tta_tickets`
   (`id`, `event_ute_id`, `event_name`, `ticket_name`, `waitlist_id`, `ticketlimit`, `baseeventcost`, `discountedmembercost`, `premiummembercost`)
@@ -193,4 +196,13 @@ Version 1.1.0 adds an `is_member` column to `tta_attendees`. Existing installs w
 ```sql
 ALTER TABLE `wp_j9bzlz98u3_tta_attendees`
   ADD COLUMN `is_member` TINYINT(1) DEFAULT 0;
+```
+
+## Track attendance check-in status
+
+Version 1.2.0 introduces an `status` column on `tta_attendees` to record whether each attendee was checked in or marked a no-show. Existing installs will add the column automatically, or you can run:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_attendees`
+  ADD COLUMN `status` ENUM('pending','checked_in','no_show') DEFAULT 'pending';
 ```

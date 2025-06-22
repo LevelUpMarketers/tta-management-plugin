@@ -98,10 +98,14 @@ class TTA_Assets {
                         if ( ! $e ) {
                             return null;
                         }
-                        $e['page_url']       = get_permalink( $e['page_id'] );
-                        $e['dashboard_url']  = site_url( '/member-dashboard/?tab=upcoming' );
+                        $e['page_url']              = get_permalink( $e['page_id'] );
+                        $e['dashboard_profile_url'] = home_url( '/member-dashboard/?tab=profile', 'relative' );
+                        $e['dashboard_upcoming_url'] = home_url( '/member-dashboard/?tab=upcoming', 'relative' );
+                        $e['dashboard_past_url']    = home_url( '/member-dashboard/?tab=past', 'relative' );
+                        $e['dashboard_billing_url'] = home_url( '/member-dashboard/?tab=billing', 'relative' );
                         return $e;
                     } )(),
+                    'sample_member'       => tta_get_sample_member(),
                 ]
             );
         }
@@ -238,6 +242,26 @@ class TTA_Assets {
                 [
                     'ajax_url' => admin_url( 'admin-ajax.php' ),
                     'nonce'    => wp_create_nonce( 'tta_checkout_action' ),
+                ]
+            );
+        }
+
+        // 5) Host Check-In template assets
+        if ( function_exists( 'is_page_template' ) && is_page_template( 'host-checkin-template.php' ) ) {
+            wp_enqueue_script(
+                'tta-checkin-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/event-checkin.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+            wp_localize_script(
+                'tta-checkin-js',
+                'TTA_Checkin',
+                [
+                    'ajax_url'  => admin_url( 'admin-ajax.php' ),
+                    'get_nonce' => wp_create_nonce( 'tta_get_attendance_action' ),
+                    'set_nonce' => wp_create_nonce( 'tta_set_attendance_action' ),
                 ]
             );
         }

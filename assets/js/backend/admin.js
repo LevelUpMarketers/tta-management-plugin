@@ -956,20 +956,34 @@ jQuery(function($){
     var body = $form.find('textarea[name=email_body]').val() || '';
     var sms  = $form.find('textarea[name=sms_text]').val() || '';
     var ev   = TTA_Ajax.sample_event || {};
+    var mem  = TTA_Ajax.sample_member || {};
     var map  = {
-      '{event_name}': ev.name || 'Sample Event',
-      '{event_address}': ev.address || '123 Main St',
-      '{event_link}': ev.page_url || '#',
-      '{dashboard_link}': ev.dashboard_url || '#',
-      '{event_date}': ev.date || '2025-01-01',
-      '{event_time}': ev.time || '00:00',
-      '{event_type}': ev.type || 'Open',
-      '{venue_name}': ev.venue_name || 'Venue',
-      '{venue_url}': ev.venue_url || '#',
-      '{base_cost}': ev.base_cost || '0',
-      '{member_cost}': ev.member_cost || '0',
-      '{premium_cost}': ev.premium_cost || '0'
-    };
+        '{event_name}': ev.name || 'Sample Event',
+        '{event_address}': ev.address || '123 Main St',
+        '{event_link}': ev.page_url || '#',
+        '{dashboard_profile_url}': ev.dashboard_profile_url || '#',
+        '{dashboard_upcoming_url}': ev.dashboard_upcoming_url || '#',
+        '{dashboard_past_url}': ev.dashboard_past_url || '#',
+        '{dashboard_billing_url}': ev.dashboard_billing_url || '#',
+        '{event_date}': ev.date || '2025-01-01',
+        '{event_time}': ev.time || '00:00',
+        '{event_type}': ev.type || 'Open',
+        '{venue_name}': ev.venue_name || 'Venue',
+        '{venue_url}': ev.venue_url || '#',
+        '{base_cost}': ev.base_cost || '0',
+        '{member_cost}': ev.member_cost || '0',
+        '{premium_cost}': ev.premium_cost || '0',
+        '{first_name}': mem.first_name || 'First',
+        '{last_name}': mem.last_name || 'Last',
+        '{email}': mem.email || 'member@example.com',
+        '{phone}': mem.phone || '555-555-5555',
+        '{membership_level}': mem.membership_level || 'basic',
+        '{member_type}': mem.member_type || 'member',
+        '{attendee_first_name}': mem.first_name || 'First',
+        '{attendee_last_name}': mem.last_name || 'Last',
+        '{attendee_email}': mem.email || 'attendee@example.com',
+        '{attendee_phone}': mem.phone || '555-555-5555'
+      };
     Object.keys(map).forEach(function(tok){
       var val = map[tok];
       subj = subj.split(tok).join(val);

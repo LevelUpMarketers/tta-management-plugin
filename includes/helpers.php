@@ -255,6 +255,75 @@ function tta_get_event_attendees( $event_ute_id ) {
 }
 
 /**
+ * Retrieve attendee records with check-in status for a given event.
+ *
+ * @param string $event_ute_id Event ute_id.
+ * @return array[] Array of attendees with status.
+ */
+function tta_get_event_attendees_with_status( $event_ute_id ) {
+    global $wpdb;
+    $att_table     = $wpdb->prefix . 'tta_attendees';
+    $tickets_table = $wpdb->prefix . 'tta_tickets';
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT a.id, a.first_name, a.last_name, a.email, a.phone, a.status
+               FROM {$att_table} a
+               JOIN {$tickets_table} t ON a.ticket_id = t.id
+              WHERE t.event_ute_id = %s
+              ORDER BY a.last_name, a.first_name",
+            $event_ute_id
+        ),
+        ARRAY_A
+    );
+    foreach ( $rows as &$r ) {
+        $r['id']         = intval( $r['id'] );
+        $r['first_name'] = sanitize_text_field( $r['first_name'] );
+        $r['last_name']  = sanitize_text_field( $r['last_name'] );
+        $r['email']      = sanitize_email( $r['email'] );
+        $r['phone']      = sanitize_text_field( $r['phone'] );
+        $r['status']     = sanitize_text_field( $r['status'] );
+    }
+    return $rows;
+}
+
+/**
+ * Update an attendee's status.
+ *
+ * @param int    $attendee_id Attendee ID.
+ * @param string $status      New status.
+ */
+function tta_set_attendance_status( $attendee_id, $status ) {
+    global $wpdb;
+    $att_table = $wpdb->prefix . 'tta_attendees';
+    $status = in_array( $status, [ 'checked_in', 'no_show', 'pending' ], true ) ? $status : 'pending';
+    $wpdb->update( $att_table, [ 'status' => $status ], [ 'id' => intval( $attendee_id ) ], [ '%s' ], [ '%d' ] );
+    TTA_Cache::delete( 'attendance_status_' . intval( $attendee_id ) );
+}
+
+/**
+ * Get an attendee's current check-in status.
+ *
+ * @param int $attendee_id Attendee ID.
+ * @return string Status string.
+ */
+function tta_get_attendance_status( $attendee_id ) {
+    $attendee_id = intval( $attendee_id );
+    $cache_key   = 'attendance_status_' . $attendee_id;
+    $cached      = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+    global $wpdb;
+    $att_table = $wpdb->prefix . 'tta_attendees';
+    $status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$att_table} WHERE id = %d", $attendee_id ) );
+    if ( ! $status ) {
+        $status = 'pending';
+    }
+    TTA_Cache::set( $cache_key, $status, 300 );
+    return $status;
+}
+
+/**
  * Retrieve profile image IDs for attendees of a given event.
  *
  * @param int $event_id Event ID.
@@ -452,6 +521,81 @@ function tta_get_member_upcoming_events( $wp_user_id ) {
 }
 
 /**
+ * Retrieve past events purchased by a user.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ * @return array[] List of events with transaction details.
+ */
+function tta_get_member_past_events( $wp_user_id ) {
+    $wp_user_id = intval( $wp_user_id );
+    if ( ! $wp_user_id ) {
+        return [];
+    }
+
+    $cache_key = 'past_events_' . $wp_user_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $events_table  = $wpdb->prefix . 'tta_events';
+    $archive_table = $wpdb->prefix . 'tta_events_archive';
+    $hist_table    = $wpdb->prefix . 'tta_memberhistory';
+
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT mh.action_data, mh.event_id,
+                    COALESCE(e.name, a.name) AS name,
+                    COALESCE(e.page_id, a.page_id) AS page_id,
+                    COALESCE(e.mainimageid, a.mainimageid) AS mainimageid,
+                    COALESCE(e.date, a.date) AS date,
+                    COALESCE(e.time, a.time) AS time,
+                    COALESCE(e.address, a.address) AS address,
+                    COALESCE(e.type, a.type) AS type,
+                    COALESCE(e.refundsavailable, a.refundsavailable) AS refunds
+               FROM {$hist_table} mh
+               LEFT JOIN {$events_table} e ON mh.event_id = e.id
+               LEFT JOIN {$archive_table} a ON mh.event_id = a.id
+              WHERE mh.wpuserid = %d
+                AND mh.action_type = 'purchase'
+                AND COALESCE(e.date, a.date) < %s
+              ORDER BY COALESCE(e.date, a.date) DESC",
+            $wp_user_id,
+            current_time( 'Y-m-d' )
+        ),
+        ARRAY_A
+    );
+
+    $events = [];
+    foreach ( $rows as $row ) {
+        $data = json_decode( $row['action_data'], true );
+        if ( ! is_array( $data ) ) {
+            continue;
+        }
+        $events[] = [
+            'event_id'       => intval( $row['event_id'] ),
+            'name'           => sanitize_text_field( $row['name'] ),
+            'page_id'        => intval( $row['page_id'] ),
+            'image_id'       => intval( $row['mainimageid'] ),
+            'date'           => $row['date'],
+            'time'           => $row['time'],
+            'address'        => sanitize_text_field( $row['address'] ),
+            'event_type'     => sanitize_text_field( $row['type'] ),
+            'refunds'        => intval( $row['refunds'] ),
+            'transaction_id' => $data['transaction_id'] ?? '',
+            'amount'         => floatval( $data['amount'] ?? 0 ),
+            'items'          => $data['items'] ?? [],
+        ];
+    }
+
+    $ttl = empty( $events ) ? 60 : 300;
+    TTA_Cache::set( $cache_key, $events, $ttl );
+
+    return $events;
+}
+
+/**
  * Retrieve the next upcoming event.
  *
  * @return array|null {
@@ -503,6 +647,58 @@ function tta_get_next_event() {
 
     TTA_Cache::set( $cache_key, $event, 300 );
     return $event;
+}
+
+/**
+ * Retrieve a sample member record for previews.
+ *
+ * @return array{
+ *     first_name:string,
+ *     last_name:string,
+ *     email:string,
+ *     phone:string,
+ *     membership_level:string,
+ *     member_type:string
+ * }
+ */
+function tta_get_sample_member() {
+    $cache_key = 'tta_sample_member';
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $row = $wpdb->get_row(
+        "SELECT first_name, last_name, email, phone, membership_level, member_type FROM {$members_table} ORDER BY id ASC LIMIT 1",
+        ARRAY_A
+    );
+
+    if ( ! $row ) {
+        $row = [
+            'first_name'       => 'First',
+            'last_name'        => 'Last',
+            'email'            => 'member@example.com',
+            'phone'            => '555-555-5555',
+            'membership_level' => 'basic',
+            'member_type'      => 'member',
+        ];
+        TTA_Cache::set( $cache_key, $row, 60 );
+        return $row;
+    }
+
+    $member = [
+        'first_name'       => sanitize_text_field( $row['first_name'] ?? '' ),
+        'last_name'        => sanitize_text_field( $row['last_name'] ?? '' ),
+        'email'            => sanitize_email( $row['email'] ?? '' ),
+        'phone'            => sanitize_text_field( $row['phone'] ?? '' ),
+        'membership_level' => sanitize_text_field( $row['membership_level'] ?? 'basic' ),
+        'member_type'      => sanitize_text_field( $row['member_type'] ?? 'member' ),
+    ];
+
+    TTA_Cache::set( $cache_key, $member, 300 );
+    return $member;
 }
 
 /**

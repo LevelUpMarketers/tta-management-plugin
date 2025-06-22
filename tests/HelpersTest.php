@@ -190,6 +190,32 @@ class HelpersTest extends TestCase {
         $this->assertStringContainsString('wp_tta_memberhistory', $wpdb->last_query);
     }
 
+    public function test_get_member_past_events_queries_archive() {
+        global $wpdb;
+        $wpdb->results_data = [
+            [
+                'action_data' => json_encode([
+                    'transaction_id' => 'TX2',
+                    'amount' => 10,
+                    'items' => [ [ 'ticket_name'=>'General', 'quantity'=>1, 'attendees'=>[] ] ]
+                ]),
+                'event_id'    => 5,
+                'name'        => 'Past Event',
+                'page_id'     => 1,
+                'mainimageid' => 2,
+                'date'        => '2020-01-01',
+                'time'        => '10:00|12:00',
+                'address'     => '1 St -  - Town - ST - 00000',
+                'type'        => 'paid',
+                'refunds'     => '0'
+            ]
+        ];
+        $events = tta_get_member_past_events(1);
+        $this->assertCount(1, $events);
+        $this->assertSame('Past Event', $events[0]['name']);
+        $this->assertStringContainsString('wp_tta_events_archive', $wpdb->last_query);
+    }
+
     public function test_get_next_event_returns_cached_row() {
         global $wpdb;
         $this->wpdb->event_row_data = [
@@ -205,5 +231,34 @@ class HelpersTest extends TestCase {
         $ev2 = tta_get_next_event();
         $this->assertSame($ev1, $ev2);
         $this->assertSame('Soon Event', $ev1['name']);
+    }
+
+    public function test_set_attendance_status_updates_db() {
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $updated = [];
+            public function update($table, $data, $where, $formats, $where_f) {
+                $this->updated = [$table, $data, $where];
+            }
+        };
+        require_once __DIR__ . '/../includes/helpers.php';
+        tta_set_attendance_status(5, 'checked_in');
+        $this->assertSame('wp_tta_attendees', $wpdb->updated[0]);
+        $this->assertSame('checked_in', $wpdb->updated[1]['status']);
+    }
+
+    public function test_get_event_attendees_with_status_queries_table() {
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $last_query = '';
+            public function get_results($q,$o=ARRAY_A){ $this->last_query = $q; return [ ['id'=>1,'first_name'=>'A','last_name'=>'B','email'=>'e','phone'=>'p','status'=>'pending'] ]; }
+            public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%s/',$v,$q,1); $q=preg_replace('/%d/',$v,$q,1); } return $q; }
+        };
+        require_once __DIR__ . '/../includes/helpers.php';
+        $rows = tta_get_event_attendees_with_status('ev1');
+        $this->assertCount(1, $rows);
+        $this->assertStringContainsString('wp_tta_attendees', $wpdb->last_query);
     }
 }

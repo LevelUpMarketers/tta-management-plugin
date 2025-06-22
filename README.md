@@ -30,6 +30,9 @@ If these constants are not defined, checkout will fail and an admin notice will 
 - [Operator Testing Guide](docs/OperatorTestingGuide.md)
 - [Project TODOs](TODO.md)
 
+Old events are automatically moved to an `tta_events_archive` table by a daily cron. The process is transparent to admins and members.
+Whenever the structure of `tta_events` changes, mirror those updates to `tta_events_archive` as well.
+
 ## Running Tests
 
 After installing PHP and Composer, execute `composer install` followed by

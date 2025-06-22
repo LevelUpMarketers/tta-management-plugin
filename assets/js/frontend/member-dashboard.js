@@ -26,13 +26,26 @@ jQuery(function($){
     $('#tab-' + tab).show();
   });
 
-  // Activate tab based on URL hash
-  var hashTab = window.location.hash.replace('#tab-', '');
-  if ( hashTab ) {
-    var $trigger = $('.tta-dashboard-tabs li[data-tab="' + hashTab + '"]');
-    if ( $trigger.length ) {
+  // Activate tab based on URL hash or ?tab=name parameter
+  function activateTab(tab){
+    var $trigger = $('.tta-dashboard-tabs li[data-tab="' + tab + '"]');
+    if ($trigger.length) {
       $trigger.trigger('click');
+      // scroll to the dashboard area after activating
+      var $wrap = $('.tta-member-dashboard-wrap');
+      var h = $('.site-header, .tta-header').first().outerHeight() || 0;
+      $('html, body').animate({
+        scrollTop: $wrap.offset().top - h - 100
+      }, 600);
     }
+  }
+
+  var urlParams = new URLSearchParams(window.location.search);
+  var paramTab = urlParams.get('tab');
+  var hashTab = window.location.hash.replace('#tab-', '');
+  var active = paramTab || hashTab;
+  if (active) {
+    activateTab(active);
   }
 
   // 3) Add/remove interests
