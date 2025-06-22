@@ -367,6 +367,68 @@ function tta_get_membership_label( $level ) {
 }
 
 /**
+ * Retrieve upcoming events purchased by a user.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ * @return array[] List of events with transaction details.
+ */
+function tta_get_member_upcoming_events( $wp_user_id ) {
+    $wp_user_id = intval( $wp_user_id );
+    if ( ! $wp_user_id ) {
+        return [];
+    }
+
+    $cache_key = 'upcoming_events_' . $wp_user_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $events_table  = $wpdb->prefix . 'tta_events';
+    $hist_table    = $wpdb->prefix . 'tta_memberhistory';
+
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT mh.action_data, mh.event_id, e.name, e.page_id, e.mainimageid, e.date, e.time
+               FROM {$hist_table} mh
+               JOIN {$events_table} e ON mh.event_id = e.id
+              WHERE mh.wpuserid = %d
+                AND mh.action_type = 'purchase'
+                AND e.date >= %s
+              ORDER BY e.date ASC",
+            $wp_user_id,
+            current_time( 'Y-m-d' )
+        ),
+        ARRAY_A
+    );
+
+    $events = [];
+    foreach ( $rows as $row ) {
+        $data = json_decode( $row['action_data'], true );
+        if ( ! is_array( $data ) ) {
+            continue;
+        }
+        $events[] = [
+            'event_id'       => intval( $row['event_id'] ),
+            'name'           => sanitize_text_field( $row['name'] ),
+            'page_id'        => intval( $row['page_id'] ),
+            'image_id'       => intval( $row['mainimageid'] ),
+            'date'           => $row['date'],
+            'time'           => $row['time'],
+            'transaction_id' => $data['transaction_id'] ?? '',
+            'amount'         => floatval( $data['amount'] ?? 0 ),
+            'items'          => $data['items'] ?? [],
+        ];
+    }
+
+    $ttl = empty( $events ) ? 60 : 300;
+    TTA_Cache::set( $cache_key, $events, $ttl );
+
+    return $events;
+}
+
+/**
  * Retrieve information about the current visitor and any associated member
  * record.
  *

@@ -53,6 +53,8 @@ class TTA_Transaction_Logger {
         $att_table = $wpdb->prefix . 'tta_attendees';
         foreach ( $items as $it ) {
             foreach ( (array) ( $it['attendees'] ?? [] ) as $att ) {
+                $email      = sanitize_email( $att['email'] ?? '' );
+                $is_member  = $email ? (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$members_table} WHERE email = %s", $email ) ) : 0;
                 $wpdb->insert(
                     $att_table,
                     [
@@ -60,12 +62,13 @@ class TTA_Transaction_Logger {
                         'ticket_id'      => intval( $it['ticket_id'] ),
                         'first_name'     => sanitize_text_field( $att['first_name'] ?? '' ),
                         'last_name'      => sanitize_text_field( $att['last_name'] ?? '' ),
-                        'email'          => sanitize_email( $att['email'] ?? '' ),
+                        'email'          => $email,
                         'phone'          => sanitize_text_field( $att['phone'] ?? '' ),
                         'opt_in_sms'     => empty( $att['opt_in_sms'] ) ? 0 : 1,
                         'opt_in_email'   => empty( $att['opt_in_email'] ) ? 0 : 1,
+                        'is_member'      => $is_member ? 1 : 0,
                     ],
-                    [ '%d', '%d', '%s', '%s', '%s', '%s', '%d', '%d' ]
+                    [ '%d', '%d', '%s', '%s', '%s', '%s', '%d', '%d', '%d' ]
                 );
             }
         }

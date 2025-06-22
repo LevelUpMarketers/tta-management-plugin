@@ -7,6 +7,7 @@ class DummyWpdbHelpers {
     public $var_calls = 0;
     public $results_calls = 0;
     public $row_calls = 0;
+    public $last_query = '';
     public $results_data = [];
     public $event_row_data = [ 'ute_id' => 'ute1', 'hosts' => '', 'volunteers' => '' ];
 
@@ -17,6 +18,7 @@ class DummyWpdbHelpers {
 
     public function get_results($query, $output = ARRAY_A) {
         $this->results_calls++;
+        $this->last_query = $query;
         if ($this->results_data) {
             return $this->results_data;
         }
@@ -159,5 +161,28 @@ class HelpersTest extends TestCase {
         $html = tta_admin_preview_image(1, [50,50], ['class'=>'x']);
         $this->assertStringContainsString('file1.jpg', $html);
         $this->assertStringContainsString('class="x"', $html);
+    }
+
+    public function test_get_member_upcoming_events_queries_tables() {
+        global $wpdb;
+        $wpdb->results_data = [
+            [
+                'action_data' => json_encode([
+                    'transaction_id' => 'TX1',
+                    'amount' => 20,
+                    'items' => [ [ 'ticket_name'=>'General', 'quantity'=>1, 'attendees'=>[] ] ]
+                ]),
+                'event_id'    => 5,
+                'name'        => 'Test Event',
+                'page_id'     => 1,
+                'mainimageid' => 2,
+                'date'        => '2030-01-01',
+                'time'        => '10:00|12:00'
+            ]
+        ];
+        $events = tta_get_member_upcoming_events(1);
+        $this->assertCount(1, $events);
+        $this->assertSame('Test Event', $events[0]['name']);
+        $this->assertStringContainsString('wp_tta_memberhistory', $wpdb->last_query);
     }
 }

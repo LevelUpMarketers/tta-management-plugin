@@ -200,3 +200,23 @@
 #select-profile-image{
   margin-top:20px;
 }
+
+/* Upcoming events layout */
+.tta-upcoming-event {
+  display:flex;
+  border-bottom:1px solid #ddd;
+  padding:15px 0;
+  gap:15px;
+}
+.tta-upcoming-thumb img {
+  width:100px;
+  height:auto;
+}
+.tta-ticket-details {
+  margin-left:115px;
+  margin-bottom:10px;
+}
+.tta-ticket-details ul {
+  margin:4px 0 0 20px;
+  list-style:disc;
+}

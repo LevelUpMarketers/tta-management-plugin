@@ -22,6 +22,7 @@ If these constants are not defined, checkout will fail and an admin notice will 
 - [Testing Information](docs/TestingInformation.md) (includes sandbox credit card numbers)
 - [Member Privacy Options](docs/MemberPrivacy.md)
 - [Membership Benefits](docs/MembershipBenefits.md)
+- [Member Dashboard](docs/MemberDashboard.md)
 - [Debugging Tools](docs/Debugging.md)
 - [Database Upgrades](docs/DevelopmentSQL.md#automatic-upgrades)
 - [Development SQL Assets](docs/DevelopmentSQL.md)

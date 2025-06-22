@@ -185,3 +185,12 @@ ALTER TABLE `wp_j9bzlz98u3_tta_attendees`
   ADD COLUMN `opt_in_sms` TINYINT(1) DEFAULT 0,
   ADD COLUMN `opt_in_email` TINYINT(1) DEFAULT 0;
 ```
+
+## Track whether attendees are members
+
+Version 1.1.0 adds an `is_member` column to `tta_attendees`. Existing installs will update automatically, but the raw SQL is:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_attendees`
+  ADD COLUMN `is_member` TINYINT(1) DEFAULT 0;
+```

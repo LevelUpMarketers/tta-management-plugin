@@ -226,6 +226,7 @@ class TTA_DB_Setup {
             phone           VARCHAR(50)    DEFAULT '',
             opt_in_sms      TINYINT(1)     DEFAULT 0,
             opt_in_email    TINYINT(1)     DEFAULT 0,
+            is_member       TINYINT(1)     DEFAULT 0,
             PRIMARY KEY     (id),
             KEY transaction_idx (transaction_id),
             KEY ticket_idx      (ticket_id),
