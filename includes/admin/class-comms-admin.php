@@ -201,7 +201,19 @@ class TTA_Comms_Admin {
             echo '<button type="button" class="button tta-insert-token" data-token="{attendee_first_name}">{attendee_first_name}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{attendee_last_name}">{attendee_last_name}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{attendee_email}">{attendee_email}</button> ';
-            echo '<button type="button" class="button tta-insert-token" data-token="{attendee_phone}">{attendee_phone}</button></div>';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee_phone}">{attendee_phone}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee2_first_name}">{attendee2_first_name}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee2_last_name}">{attendee2_last_name}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee2_email}">{attendee2_email}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee2_phone}">{attendee2_phone}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee3_first_name}">{attendee3_first_name}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee3_last_name}">{attendee3_last_name}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee3_email}">{attendee3_email}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee3_phone}">{attendee3_phone}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee4_first_name}">{attendee4_first_name}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee4_last_name}">{attendee4_last_name}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee4_email}">{attendee4_email}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{attendee4_phone}">{attendee4_phone}</button></div>';
 
             echo '<button type="button" class="button tta-insert-br">Line Break</button>';
             echo '</td></tr>';

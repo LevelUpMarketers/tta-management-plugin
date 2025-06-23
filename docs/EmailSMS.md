@@ -83,6 +83,18 @@ Buttons labelled with tokens (e.g. `{event_name}`) insert placeholders into the 
 {attendee_last_name}
 {attendee_email}
 {attendee_phone}
+{attendee2_first_name}
+{attendee2_last_name}
+{attendee2_email}
+{attendee2_phone}
+{attendee3_first_name}
+{attendee3_last_name}
+{attendee3_email}
+{attendee3_phone}
+{attendee4_first_name}
+{attendee4_last_name}
+{attendee4_email}
+{attendee4_phone}
 ```
 
 Use the **Line Break** button to insert a newline. Email previews render these breaks as HTML `<br>` tags so the saved text remains plain.

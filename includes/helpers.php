@@ -596,6 +596,117 @@ function tta_get_member_past_events( $wp_user_id ) {
 }
 
 /**
+ * Summarize a member's purchase and attendance history.
+ *
+ * @param int $member_id Member ID.
+ * @return array Summary data.
+ */
+function tta_get_member_history_summary( $member_id ) {
+    $member_id = intval( $member_id );
+    if ( ! $member_id ) {
+        return [
+            'total_spent'   => 0,
+            'events'        => 0,
+            'attended'      => 0,
+            'no_show'       => 0,
+            'refunds'       => 0,
+            'cancellations' => 0,
+            'transactions'  => [],
+        ];
+    }
+
+    $cache_key = 'member_hist_sum_' . $member_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $hist_table    = $wpdb->prefix . 'tta_memberhistory';
+    $events_table  = $wpdb->prefix . 'tta_events';
+    $archive_table = $wpdb->prefix . 'tta_events_archive';
+    $tx_table      = $wpdb->prefix . 'tta_transactions';
+    $att_table     = $wpdb->prefix . 'tta_attendees';
+
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT mh.action_data, mh.event_id,
+                    COALESCE(e.name, a.name)   AS name,
+                    COALESCE(e.date, a.date)   AS date,
+                    COALESCE(e.time, a.time)   AS time,
+                    COALESCE(e.address, a.address) AS address
+               FROM {$hist_table} mh
+               LEFT JOIN {$events_table} e ON mh.event_id = e.id
+               LEFT JOIN {$archive_table} a ON mh.event_id = a.id
+              WHERE mh.member_id = %d
+                AND mh.action_type = 'purchase'
+              ORDER BY COALESCE(e.date, a.date) DESC",
+            $member_id
+        ),
+        ARRAY_A
+    );
+
+    $summary = [
+        'total_spent'   => 0,
+        'events'        => 0,
+        'attended'      => 0,
+        'no_show'       => 0,
+        'refunds'       => 0,
+        'cancellations' => 0,
+        'transactions'  => [],
+    ];
+
+    $event_ids = [];
+    foreach ( $rows as $row ) {
+        $data   = json_decode( $row['action_data'], true );
+        $amount = floatval( $data['amount'] ?? 0 );
+        $summary['total_spent'] += $amount;
+        $event_ids[] = intval( $row['event_id'] );
+        $summary['transactions'][] = [
+            'event_id'       => intval( $row['event_id'] ),
+            'name'           => sanitize_text_field( $row['name'] ),
+            'date'           => $row['date'],
+            'time'           => $row['time'],
+            'address'        => sanitize_text_field( $row['address'] ),
+            'amount'         => $amount,
+            'transaction_id' => $data['transaction_id'] ?? '',
+        ];
+    }
+
+    $summary['events'] = count( array_unique( $event_ids ) );
+
+    $status_rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT a.status FROM {$att_table} a
+             JOIN {$tx_table} t ON a.transaction_id = t.id
+            WHERE t.member_id = %d",
+            $member_id
+        ),
+        ARRAY_A
+    );
+    foreach ( $status_rows as $r ) {
+        if ( 'checked_in' === $r['status'] ) {
+            $summary['attended']++;
+        } elseif ( 'no_show' === $r['status'] ) {
+            $summary['no_show']++;
+        }
+    }
+
+    $summary['refunds'] = (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT COUNT(*) FROM {$hist_table} WHERE member_id = %d AND action_type = 'refund_request'",
+        $member_id
+    ) );
+
+    $summary['cancellations'] = (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT COUNT(*) FROM {$hist_table} WHERE member_id = %d AND action_type = 'cancel_request'",
+        $member_id
+    ) );
+
+    TTA_Cache::set( $cache_key, $summary, 300 );
+    return $summary;
+}
+
+/**
  * Retrieve the next upcoming event.
  *
  * @return array|null {

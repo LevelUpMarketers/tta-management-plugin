@@ -25,6 +25,8 @@ global $wpdb;
 $events_table = $wpdb->prefix . 'tta_events';
 $events = $wpdb->get_results( "SELECT * FROM {$events_table} WHERE date >= CURDATE() ORDER BY date ASC", ARRAY_A );
 $today  = current_time( 'Y-m-d' );
+
+get_header();
 ?>
 <div class="tta-checkin-wrap">
 <table class="widefat striped">
@@ -61,3 +63,5 @@ $today  = current_time( 'Y-m-d' );
 </table>
 </div>
 <?php
+get_footer();
+

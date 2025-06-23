@@ -103,6 +103,7 @@ require_once TTA_PLUGIN_DIR . 'includes/shortcodes/class-events-shortcode.php';
 require_once TTA_PLUGIN_DIR . 'includes/shortcodes/class-members-shortcode.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-tta-member-dashboard.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-tta-checkin-page-manager.php';
+require_once TTA_PLUGIN_DIR . 'includes/frontend/class-become-member-page.php';
 require_once TTA_PLUGIN_DIR . 'includes/cart/class-cart.php';
 require_once TTA_PLUGIN_DIR . 'includes/cart/class-cart-cleanup.php';
 require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-event-archiver.php';
