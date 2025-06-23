@@ -20,21 +20,19 @@ if ( isset( $_GET['action'] ) && $_GET['action'] === 'delete' && isset( $_GET['e
         $ute_id = $event_row['ute_id'] ?? null;
 
         if ( $ute_id ) {
-            // 2) Delete all waitlists for that event
-            $waitlist_table = $wpdb->prefix . 'tta_waitlist';
-            $wpdb->delete(
-                $waitlist_table,
-                [ 'event_ute_id' => $ute_id ],
-                [ '%s' ]
-            );
+            $tickets_table    = $wpdb->prefix . 'tta_tickets_archive';
+            $att_archive      = $wpdb->prefix . 'tta_attendees_archive';
 
-            // 3) Delete all tickets for that event
-            $tickets_table = $wpdb->prefix . 'tta_tickets';
-            $wpdb->delete(
-                $tickets_table,
-                [ 'event_ute_id' => $ute_id ],
-                [ '%s' ]
-            );
+            // 2) Delete any archived tickets and attendees
+            $tickets = $wpdb->get_results( $wpdb->prepare( "SELECT id FROM {$tickets_table} WHERE event_ute_id = %s", $ute_id ), ARRAY_A );
+            foreach ( $tickets as $t ) {
+                $wpdb->delete( $att_archive, [ 'ticket_id' => $t['id'] ], [ '%d' ] );
+            }
+            $wpdb->delete( $tickets_table, [ 'event_ute_id' => $ute_id ], [ '%s' ] );
+
+            // Remove any active waitlist rows just in case
+            $waitlist_table = $wpdb->prefix . 'tta_waitlist';
+            $wpdb->delete( $waitlist_table, [ 'event_ute_id' => $ute_id ], [ '%s' ] );
         }
 
         // 4) Finally delete the event itself

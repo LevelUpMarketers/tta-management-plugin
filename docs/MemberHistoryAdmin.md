@@ -10,4 +10,7 @@ The **Member History** tab is available under **Members** in the WordPress admin
 - A table of all past event transactions
 - Any private notes stored with the member record appear in the expanded detail view rather than as a table column
 
-Data is pulled from `tta_memberhistory`, `tta_transactions`, `tta_attendees`, `tta_events`, and `tta_events_archive`.
+Data is pulled from `tta_memberhistory`, `tta_transactions`, `tta_attendees` (and
+`tta_attendees_archive`), `tta_events`, `tta_events_archive`, and
+`tta_tickets_archive` to ensure attendance metrics remain accurate even after
+events are removed.

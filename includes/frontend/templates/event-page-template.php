@@ -64,7 +64,7 @@ if ( ! $event ) {
 $tickets        = [];
 $ticket_count   = 0;
 $cart_quantities = [];
-$tickets_table  = $wpdb->prefix . 'tta_tickets';
+$tickets_table  = $wpdb->prefix . ( $is_archived ? 'tta_tickets_archive' : 'tta_tickets' );
 $tickets        = TTA_Cache::remember( 'tickets_' . $event['ute_id'], function() use ( $wpdb, $tickets_table, $event ) {
     return $wpdb->get_results(
         $wpdb->prepare(
