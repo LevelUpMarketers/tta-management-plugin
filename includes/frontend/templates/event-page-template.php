@@ -250,6 +250,7 @@ if ( ! $is_logged_in ) {
             }
             $disable_controls = true;
             $tooltip_message  = __( 'You must have a Premium Membership to attend this event.', 'tta' );
+        }
     }
 }
 
