@@ -26,6 +26,8 @@ global $wpdb, $post;
 // ───────────────
 $page_id      = $post->ID;
 $events_table = $wpdb->prefix . 'tta_events';
+$archive_table = $wpdb->prefix . 'tta_events_archive';
+$is_archived  = false;
 $event        = TTA_Cache::remember( 'event_' . $page_id, function() use ( $wpdb, $events_table, $page_id ) {
     return $wpdb->get_row(
         $wpdb->prepare(
@@ -35,36 +37,54 @@ $event        = TTA_Cache::remember( 'event_' . $page_id, function() use ( $wpdb
         ARRAY_A
     );
 }, 600 );
+
 if ( ! $event ) {
-    echo '<div class="wrap"><h1>' . esc_html__( 'Event not found.', 'tta' ) . '</h1>'
-       . '<p>' . esc_html__( 'Sorry, this event does not exist.', 'tta' ) . '</p></div>';
-    get_footer();
-    exit;
+    $event = TTA_Cache::remember( 'arch_event_' . $page_id, function() use ( $wpdb, $archive_table, $page_id ) {
+        return $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$archive_table} WHERE page_id = %d",
+                $page_id
+            ),
+            ARRAY_A
+        );
+    }, 600 );
+    if ( $event ) {
+        $is_archived = true;
+    } else {
+        echo '<div class="wrap"><h1>' . esc_html__( 'Event not found.', 'tta' ) . '</h1>'
+           . '<p>' . esc_html__( 'Sorry, this event does not exist.', 'tta' ) . '</p></div>';
+        get_footer();
+        exit;
+    }
 }
 
 // ───────────────
 // 3) Fetch this event’s ticket types
 // ───────────────
-$tickets_table = $wpdb->prefix . 'tta_tickets';
-$tickets       = TTA_Cache::remember( 'tickets_' . $event['ute_id'], function() use ( $wpdb, $tickets_table, $event ) {
-    return $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT id, ticket_name, ticketlimit, baseeventcost, discountedmembercost, premiummembercost
-             FROM {$tickets_table}
-             WHERE event_ute_id = %s
-             ORDER BY id ASC",
-            $event['ute_id']
-        ),
-        ARRAY_A
-    );
-}, 600 );
-$ticket_count = count( $tickets );
-
-// Build a map of quantities for this event from the cart
+$tickets       = [];
+$ticket_count  = 0;
 $cart_quantities = [];
-foreach ( $cart_items as $it ) {
-    if ( isset( $it['event_ute_id'] ) && $it['event_ute_id'] === $event['ute_id'] ) {
-        $cart_quantities[ intval( $it['ticket_id'] ) ] = intval( $it['quantity'] );
+if ( ! $is_archived ) {
+    $tickets_table = $wpdb->prefix . 'tta_tickets';
+    $tickets       = TTA_Cache::remember( 'tickets_' . $event['ute_id'], function() use ( $wpdb, $tickets_table, $event ) {
+        return $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT id, ticket_name, ticketlimit, baseeventcost, discountedmembercost, premiummembercost
+                 FROM {$tickets_table}
+                 WHERE event_ute_id = %s
+                 ORDER BY id ASC",
+                $event['ute_id']
+            ),
+            ARRAY_A
+        );
+    }, 600 );
+    $ticket_count = count( $tickets );
+
+    // Build a map of quantities for this event from the cart
+    foreach ( $cart_items as $it ) {
+        if ( isset( $it['event_ute_id'] ) && $it['event_ute_id'] === $event['ute_id'] ) {
+            $cart_quantities[ intval( $it['ticket_id'] ) ] = intval( $it['quantity'] );
+        }
     }
 }
 
@@ -471,9 +491,11 @@ if ( $ticket_count > 1 ) {
         </div>
       </div>
 
-      <a href="<?php echo $is_logged_in ? '#tta-event-buy' : '#tta-login-message'; ?>" class="tta-button tta-button-primary<?php echo $is_logged_in ? '' : ' tta-scroll-login'; ?>">
-        <?php echo $is_logged_in ? esc_html__( 'Buy Tickets', 'tta' ) : esc_html__( 'Log in to Buy Tickets', 'tta' ); ?>
-      </a>
+      <?php if ( ! $is_archived ) : ?>
+        <a href="<?php echo $is_logged_in ? '#tta-event-buy' : '#tta-login-message'; ?>" class="tta-button tta-button-primary<?php echo $is_logged_in ? '' : ' tta-scroll-login'; ?>">
+          <?php echo $is_logged_in ? esc_html__( 'Buy Tickets', 'tta' ) : esc_html__( 'Log in to Buy Tickets', 'tta' ); ?>
+        </a>
+      <?php endif; ?>
     </div>
     <div class="tta-event-hero-image">
       <?php echo $hero_html; ?>
@@ -492,6 +514,13 @@ if ( $ticket_count > 1 ) {
       <?php if ( $raw_content ) : ?>
         <section class="tta-event-section tta-event-description-accordion">
           <div class="tta-accordion">
+            <?php if ( $is_archived ) : ?>
+              <div class="tta-message-center">
+                <p><?php echo esc_html__( "This event has passed, but don't worry! There's tons of other upcoming events.", 'tta' ); ?>
+                  <a href="<?php echo esc_url( home_url( '/events/' ) ); ?>"><?php esc_html_e( 'Click here to see all upcoming events', 'tta' ); ?></a>
+                </p>
+              </div>
+            <?php endif; ?>
             <div class="tta-accordion-content">
               <h2><?php esc_html_e( 'About This Event', 'tta' ); ?></h2>
               <?php echo apply_filters( 'the_content', $raw_content ); ?>
@@ -503,7 +532,7 @@ if ( $ticket_count > 1 ) {
         </section>
       <?php endif; ?>
 
-      <?php if ( ! $is_logged_in ) : ?>
+      <?php if ( ! $is_logged_in && ! $is_archived ) : ?>
         <section id="tta-login-message" class="tta-message-center tta-login-accordion">
           <h2><?php esc_html_e( 'Log in or Register Here', 'tta' ); ?></h2>
           <div class="tta-accordion">
@@ -534,7 +563,7 @@ if ( $ticket_count > 1 ) {
         </section>
       <?php endif; ?>
 
-
+      <?php if ( ! $is_archived ) : ?>
       <section id="tta-event-buy" class="tta-event-buy">
         <h2><?php esc_html_e( 'Get Your Tickets Now', 'tta' ); ?></h2>
         <p class="tta-ticket-context">
@@ -614,6 +643,7 @@ if ( $ticket_count > 1 ) {
           </button>
         </div>
       </section>
+      <?php endif; ?>
 
       <?php
       // Grab & sanitize gallery IDs
@@ -867,7 +897,11 @@ if ( $ticket_count > 1 ) {
                 <li>
                   <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/login.svg' ); ?>" alt="<?php esc_attr_e( 'Login', 'tta' ); ?>">
                   <div class="tta-event-details-icon-after">
-                    <a href="#tta-login-message" class="tta-scroll-login"><?php esc_html_e( 'Login to see info about your events', 'tta' ); ?></a>
+                    <?php if ( $is_archived ) : ?>
+                      <a href="<?php echo esc_url( wp_login_url( get_permalink() ) ); ?>"><?php esc_html_e( 'Login to see info about your events', 'tta' ); ?></a>
+                    <?php else : ?>
+                      <a href="#tta-login-message" class="tta-scroll-login"><?php esc_html_e( 'Login to see info about your events', 'tta' ); ?></a>
+                    <?php endif; ?>
                   </div>
                 </li>
               <?php else : ?>

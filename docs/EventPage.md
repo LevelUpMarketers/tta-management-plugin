@@ -39,6 +39,15 @@ Logged-in members instead see links to profile info, upcoming events, past event
 
 Events can include additional photos displayed in an expandable gallery. The gallery uses a masonry-style layout so images of varying dimensions fit nicely together with minimal gaps.
 
+## Archived Events
+
+When a visitor lands on an event page that no longer exists in the primary
+`tta_events` table, the template automatically checks the
+`tta_events_archive` table. Archived events display all of the standard details
+but ticket purchasing and the login prompt are removed. A small notice appears
+above the “About This Event” section letting the visitor know the event has
+passed and links them to `/events/` to browse upcoming events.
+
 ## Attendee Gallery
 
 Below the image gallery, a second accordion displays profile pictures of confirmed attendees. The list is built from the `tta_attendees` table joined to `tta_members` via email so member profile images can be shown. Results are cached via `TTA_Cache` for ten minutes (one minute when empty). Each attendee's full name appears beneath their photo along with their membership level (Free, Basic, or Premium). If a profile image is missing or attendance is hidden, a placeholder image is shown with a label like "Attendee #1." Hosts and volunteers are highlighted with a small badge over their photo. Hosts are listed first, followed by volunteers, and then all other attendees in alphabetical order.
