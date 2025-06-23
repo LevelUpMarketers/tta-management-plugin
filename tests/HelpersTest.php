@@ -260,5 +260,6 @@ class HelpersTest extends TestCase {
         $rows = tta_get_event_attendees_with_status('ev1');
         $this->assertCount(1, $rows);
         $this->assertStringContainsString('wp_tta_attendees', $wpdb->last_query);
+        $this->assertStringContainsString('wp_tta_attendees_archive', $wpdb->last_query);
     }
 }

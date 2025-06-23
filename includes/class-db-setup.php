@@ -157,6 +157,24 @@ class TTA_DB_Setup {
         ) $charset_collate";
 
         // ─────────────────────────────────────────────────────────────────
+        // Tickets archive table
+        // ─────────────────────────────────────────────────────────────────
+        $sql_statements[] = "
+        CREATE TABLE {$prefix}tickets_archive (
+            id                     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            event_ute_id           VARCHAR(100) NOT NULL,
+            event_name             VARCHAR(255) NOT NULL,
+            ticket_name            VARCHAR(255) NOT NULL,
+            waitlist_id            BIGINT UNSIGNED NOT NULL,
+            ticketlimit            INT UNSIGNED NOT NULL DEFAULT 10000,
+            baseeventcost          DECIMAL(10,2) NOT NULL,
+            discountedmembercost   DECIMAL(10,2) NOT NULL,
+            premiummembercost      DECIMAL(10,2) DEFAULT 0.00,
+            PRIMARY KEY (id),
+            KEY event_ute_id_idx (event_ute_id)
+        ) $charset_collate";
+
+        // ─────────────────────────────────────────────────────────────────
         // Member history table
         // ─────────────────────────────────────────────────────────────────
         $sql_statements[] = "
@@ -276,6 +294,33 @@ class TTA_DB_Setup {
                 ON DELETE CASCADE,
             CONSTRAINT fk_attendee_ticket FOREIGN KEY (ticket_id)
                 REFERENCES {$wpdb->prefix}tta_tickets(id)
+                ON DELETE CASCADE
+        ) $charset_collate";
+
+        // ─────────────────────────────────────────────────────────────────
+        // Attendees archive table
+        // ─────────────────────────────────────────────────────────────────
+        $sql_statements[] = "
+        CREATE TABLE {$prefix}attendees_archive (
+            id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            transaction_id  BIGINT UNSIGNED NOT NULL,
+            ticket_id       BIGINT UNSIGNED NOT NULL,
+            first_name      VARCHAR(255)   NOT NULL,
+            last_name       VARCHAR(255)   NOT NULL,
+            email           VARCHAR(255)   NOT NULL,
+            phone           VARCHAR(50)    DEFAULT '',
+            opt_in_sms      TINYINT(1)     DEFAULT 0,
+            opt_in_email    TINYINT(1)     DEFAULT 0,
+            is_member       TINYINT(1)     DEFAULT 0,
+            status          ENUM('pending','checked_in','no_show') DEFAULT 'pending',
+            PRIMARY KEY     (id),
+            KEY transaction_idx (transaction_id),
+            KEY ticket_idx      (ticket_id),
+            CONSTRAINT fk_arch_attendee_txn FOREIGN KEY (transaction_id)
+                REFERENCES {$prefix}transactions(id)
+                ON DELETE CASCADE,
+            CONSTRAINT fk_arch_attendee_ticket FOREIGN KEY (ticket_id)
+                REFERENCES {$prefix}tickets_archive(id)
                 ON DELETE CASCADE
         ) $charset_collate";
 

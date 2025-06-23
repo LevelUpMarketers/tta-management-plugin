@@ -134,6 +134,27 @@ CREATE TABLE `wp_j9bzlz98u3_tta_events` (
 -- Re-create tta_events_archive (same structure as tta_events)
 CREATE TABLE `wp_j9bzlz98u3_tta_events_archive` LIKE `wp_j9bzlz98u3_tta_events`;
 
+-- Re-create tta_tickets_archive (same structure as tta_tickets)
+CREATE TABLE `wp_j9bzlz98u3_tta_tickets_archive` LIKE `wp_j9bzlz98u3_tta_tickets`;
+
+-- Re-create tta_attendees_archive (same structure as tta_attendees but referencing archive tickets)
+CREATE TABLE `wp_j9bzlz98u3_tta_attendees_archive` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `transaction_id` BIGINT UNSIGNED NOT NULL,
+  `ticket_id` BIGINT UNSIGNED NOT NULL,
+  `first_name` VARCHAR(255) NOT NULL,
+  `last_name` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `phone` VARCHAR(50) DEFAULT '',
+  `opt_in_sms` TINYINT(1) DEFAULT 0,
+  `opt_in_email` TINYINT(1) DEFAULT 0,
+  `is_member` TINYINT(1) DEFAULT 0,
+  `status` ENUM('pending','checked_in','no_show') DEFAULT 'pending',
+  PRIMARY KEY (`id`),
+  KEY `transaction_idx` (`transaction_id`),
+  KEY `ticket_idx` (`ticket_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Populate tta_tickets
 INSERT INTO `wp_j9bzlz98u3_tta_tickets`
   (`id`, `event_ute_id`, `event_name`, `ticket_name`, `waitlist_id`, `ticketlimit`, `baseeventcost`, `discountedmembercost`, `premiummembercost`)

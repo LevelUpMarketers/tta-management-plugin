@@ -44,11 +44,12 @@ Events can include additional photos displayed in an expandable gallery. The gal
 When a visitor lands on an event page that no longer exists in the primary
 `tta_events` table, the template automatically checks the
 `tta_events_archive` table. Archived events display all of the standard details
-and retain the attendee gallery. The **Get Your Tickets Now** section remains in
-place but all controls are disabled and a tooltip explains that ticket sales are
-closed. The login prompt is suppressed. A small notice appears above the “About
-This Event” section letting the visitor know the event has passed and linking to
-`/events/` to browse upcoming events.
+and retain the attendee gallery. Ticket types come from `tta_tickets_archive`
+and attendee profiles load from `tta_attendees_archive`. The **Get Your Tickets
+Now** section remains in place but all controls are disabled and a tooltip
+explains that ticket sales are closed. The login prompt is suppressed. A small
+notice appears above the “About This Event” section letting the visitor know the
+event has passed and linking to `/events/` to browse upcoming events.
 
 ## Attendee Gallery
 

@@ -238,18 +238,24 @@ function tta_get_purchased_ticket_count( $user_id, $event_ute_id ) {
  */
 function tta_get_event_attendees( $event_ute_id ) {
     global $wpdb;
-    $att_table    = $wpdb->prefix . 'tta_attendees';
-    $tickets_table = $wpdb->prefix . 'tta_tickets';
+    $att_table       = $wpdb->prefix . 'tta_attendees';
+    $att_archive     = $wpdb->prefix . 'tta_attendees_archive';
+    $tickets_table   = $wpdb->prefix . 'tta_tickets';
+    $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
+
+    $sql = "(SELECT a.first_name, a.last_name, a.email, a.ticket_id
+              FROM {$att_table} a
+              JOIN {$tickets_table} t ON a.ticket_id = t.id
+             WHERE t.event_ute_id = %s)
+            UNION ALL
+            (SELECT a.first_name, a.last_name, a.email, a.ticket_id
+              FROM {$att_archive} a
+              JOIN {$tickets_archive} t ON a.ticket_id = t.id
+             WHERE t.event_ute_id = %s)
+            ORDER BY last_name, first_name";
 
     return $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT a.first_name, a.last_name, a.email, a.ticket_id
-             FROM {$att_table} a
-             JOIN {$tickets_table} t ON a.ticket_id = t.id
-             WHERE t.event_ute_id = %s
-             ORDER BY a.last_name, a.first_name",
-            $event_ute_id
-        ),
+        $wpdb->prepare( $sql, $event_ute_id, $event_ute_id ),
         ARRAY_A
     );
 }
@@ -262,19 +268,22 @@ function tta_get_event_attendees( $event_ute_id ) {
  */
 function tta_get_event_attendees_with_status( $event_ute_id ) {
     global $wpdb;
-    $att_table     = $wpdb->prefix . 'tta_attendees';
-    $tickets_table = $wpdb->prefix . 'tta_tickets';
-    $rows = $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT a.id, a.first_name, a.last_name, a.email, a.phone, a.status
+    $att_table       = $wpdb->prefix . 'tta_attendees';
+    $att_archive     = $wpdb->prefix . 'tta_attendees_archive';
+    $tickets_table   = $wpdb->prefix . 'tta_tickets';
+    $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
+    $sql = "(SELECT a.id, a.first_name, a.last_name, a.email, a.phone, a.status
                FROM {$att_table} a
                JOIN {$tickets_table} t ON a.ticket_id = t.id
-              WHERE t.event_ute_id = %s
-              ORDER BY a.last_name, a.first_name",
-            $event_ute_id
-        ),
-        ARRAY_A
-    );
+              WHERE t.event_ute_id = %s)
+            UNION ALL
+            (SELECT a.id, a.first_name, a.last_name, a.email, a.phone, a.status
+               FROM {$att_archive} a
+               JOIN {$tickets_archive} t ON a.ticket_id = t.id
+              WHERE t.event_ute_id = %s)
+            ORDER BY last_name, first_name";
+
+    $rows = $wpdb->get_results( $wpdb->prepare( $sql, $event_ute_id, $event_ute_id ), ARRAY_A );
     foreach ( $rows as &$r ) {
         $r['id']         = intval( $r['id'] );
         $r['first_name'] = sanitize_text_field( $r['first_name'] );
@@ -314,8 +323,12 @@ function tta_get_attendance_status( $attendee_id ) {
         return $cached;
     }
     global $wpdb;
-    $att_table = $wpdb->prefix . 'tta_attendees';
+    $att_table   = $wpdb->prefix . 'tta_attendees';
+    $att_archive = $wpdb->prefix . 'tta_attendees_archive';
     $status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$att_table} WHERE id = %d", $attendee_id ) );
+    if ( ! $status ) {
+        $status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$att_archive} WHERE id = %d", $attendee_id ) );
+    }
     if ( ! $status ) {
         $status = 'pending';
     }
@@ -342,11 +355,13 @@ function tta_get_event_attendee_profiles( $event_id ) {
     }
 
     global $wpdb;
-    $events_table   = $wpdb->prefix . 'tta_events';
-    $archive_table  = $wpdb->prefix . 'tta_events_archive';
-    $att_table      = $wpdb->prefix . 'tta_attendees';
-    $tickets_table  = $wpdb->prefix . 'tta_tickets';
-    $members_table  = $wpdb->prefix . 'tta_members';
+    $events_table    = $wpdb->prefix . 'tta_events';
+    $archive_table   = $wpdb->prefix . 'tta_events_archive';
+    $att_table       = $wpdb->prefix . 'tta_attendees';
+    $att_archive     = $wpdb->prefix . 'tta_attendees_archive';
+    $tickets_table   = $wpdb->prefix . 'tta_tickets';
+    $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
+    $members_table   = $wpdb->prefix . 'tta_members';
 
     $event_row = $wpdb->get_row(
         $wpdb->prepare(
@@ -375,9 +390,7 @@ function tta_get_event_attendee_profiles( $event_id ) {
         return [];
     }
 
-    $rows = $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT a.email,
+    $sql = "(SELECT a.email,
                     COALESCE(m.first_name, a.first_name) AS first_name,
                     COALESCE(m.last_name,  a.last_name)  AS last_name,
                     m.profileimgid,
@@ -386,11 +399,20 @@ function tta_get_event_attendee_profiles( $event_id ) {
                FROM {$att_table} a
                JOIN {$tickets_table} t ON a.ticket_id = t.id
                LEFT JOIN {$members_table} m ON a.email = m.email
-              WHERE t.event_ute_id = %s",
-            $ute_id
-        ),
-        ARRAY_A
-    );
+              WHERE t.event_ute_id = %s)
+            UNION ALL
+            (SELECT a.email,
+                    COALESCE(m.first_name, a.first_name) AS first_name,
+                    COALESCE(m.last_name,  a.last_name)  AS last_name,
+                    m.profileimgid,
+                    m.hide_event_attendance,
+                    m.membership_level
+               FROM {$att_archive} a
+               JOIN {$tickets_archive} t ON a.ticket_id = t.id
+               LEFT JOIN {$members_table} m ON a.email = m.email
+              WHERE t.event_ute_id = %s)";
+
+    $rows = $wpdb->get_results( $wpdb->prepare( $sql, $ute_id, $ute_id ), ARRAY_A );
 
     $profiles = [];
     foreach ( $rows as $row ) {
