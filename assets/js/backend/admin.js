@@ -197,7 +197,7 @@ jQuery(function($){
         // At this point, the HTML (including the `wp_editor()` textarea) is in the DOM.
         // Now we must explicitly initialize TinyMCE + Quicktags on that textarea ID.
         //
-        if ( typeof wp !== 'undefined' && typeof wp.editor !== 'undefined' ) {
+        if ( $('#tta_event_description').length && typeof wp !== 'undefined' && typeof wp.editor !== 'undefined' ) {
           // If TinyMCE was previously initialized on this ID, remove it first:
           try {
             wp.editor.remove('tta_event_description');

@@ -167,7 +167,26 @@ class TTA_Assets {
             );
         }
 
-        // 3) Cart Page template assets
+        // 3) Become a Member page assets
+        if ( function_exists( 'is_page_template' ) && is_page_template( 'become-member-page-template.php' ) ) {
+            wp_enqueue_script(
+                'tta-cart-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/tta-cart.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+            wp_localize_script(
+                'tta-cart-js',
+                'tta_ajax',
+                [
+                    'ajax_url' => admin_url( 'admin-ajax.php' ),
+                    'nonce'    => wp_create_nonce( 'tta_frontend_nonce' ),
+                ]
+            );
+        }
+
+        // 4) Cart Page template assets
         if ( function_exists( 'is_page_template' ) && is_page_template( 'cart-page-template.php' ) ) {
             wp_enqueue_style(
                 'tta-cartpage-css',

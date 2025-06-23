@@ -482,6 +482,8 @@ if ( $ticket_count > 1 ) {
         $cost_sidebar_row = '';
     }
 
+}
+
 
 // ───────────────
 // 11) Build Event Schema markup

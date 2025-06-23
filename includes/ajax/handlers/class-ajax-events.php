@@ -334,10 +334,12 @@ class TTA_Ajax_Events {
             wp_send_json_error([ 'message'=>'Missing event ID' ]);
         }
         wp_enqueue_media();
-        wp_enqueue_editor();
+        $src = sanitize_key( $_POST['source'] ?? 'events' );
+        if ( 'archive' !== $src ) {
+            wp_enqueue_editor();
+        }
 
         $_GET['event_id'] = intval( $_POST['event_id'] );
-        $src = sanitize_key( $_POST['source'] ?? 'events' );
         if ( 'archive' === $src ) {
             $_GET['archive'] = 1;
         }

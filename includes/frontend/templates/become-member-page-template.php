@@ -24,11 +24,6 @@ get_header();
       </tr>
     </thead>
     <tbody>
-      <tr class="tta-pricing-row">
-        <td><strong><?php esc_html_e( 'Price per month', 'tta' ); ?></strong></td>
-        <td>$5</td>
-        <td>$10</td>
-      </tr>
       <tr>
         <td><?php esc_html_e( 'Access to free events every month', 'tta' ); ?></td>
         <td class="check">&#10003;</td>
@@ -48,6 +43,11 @@ get_header();
         <td><?php esc_html_e( 'Local discounts (coming soon)', 'tta' ); ?></td>
         <td></td>
         <td class="check">&#10003;</td>
+      </tr>
+      <tr class="tta-pricing-row">
+        <td><strong><?php esc_html_e( 'Price per month', 'tta' ); ?></strong></td>
+        <td>$5</td>
+        <td>$10</td>
       </tr>
       <tr class="tta-membership-actions">
         <td></td>
