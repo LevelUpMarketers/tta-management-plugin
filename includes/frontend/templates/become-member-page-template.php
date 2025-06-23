@@ -44,17 +44,21 @@ get_header();
         <td></td>
         <td class="check">&#10003;</td>
       </tr>
+      <tr class="tta-membership-actions">
+        <td></td>
+        <td>
+          <button type="button" id="tta-basic-signup" class="tta-button tta-button-primary">
+            <?php esc_html_e( 'Sign Up', 'tta' ); ?>
+          </button>
+        </td>
+        <td>
+          <button type="button" id="tta-premium-signup" class="tta-button tta-button-primary">
+            <?php esc_html_e( 'Sign Up', 'tta' ); ?>
+          </button>
+        </td>
+      </tr>
     </tbody>
   </table>
-
-  <div class="tta-membership-buttons">
-    <a class="button" href="<?php echo esc_url( home_url( '/product/membership/?add-to-cart=7184' ) ); ?>">
-      <?php esc_html_e( 'Sign Up for Basic', 'tta' ); ?>
-    </a>
-    <a class="button" href="<?php echo esc_url( home_url( '/product/premium-membership/?add-to-cart=378' ) ); ?>">
-      <?php esc_html_e( 'Sign Up for Premium', 'tta' ); ?>
-    </a>
-  </div>
 </div>
 <?php
 get_footer();

@@ -81,6 +81,7 @@ $total_pages = ceil( $total_members / $per_page );
                 <th class="manage-column column-email">Email</th>
                 <th class="manage-column column-membertype">Type</th>
                 <th class="manage-column column-joined">Joined</th>
+                <th class="manage-column column-notes">Notes</th>
                 <th class="manage-column column-actions">Actions</th>
             </tr>
         </thead>
@@ -125,6 +126,7 @@ $total_pages = ceil( $total_members / $per_page );
                     <td><?php echo esc_html( $member['email'] ); ?></td>
                     <td><?php echo esc_html( ucfirst( str_replace( '_', ' ', $member['member_type'] ) ) ); ?></td>
                     <td><?php echo esc_html( $readable_date ); ?></td>
+                    <td><?php echo esc_html( $member['notes'] ); ?></td>
                     <td>
                         <a href="#" class="tta-edit-link">View History</a>
                     </td>
@@ -132,7 +134,7 @@ $total_pages = ceil( $total_members / $per_page );
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
-                <td colspan="7">No members found.</td>
+                <td colspan="8">No members found.</td>
             </tr>
         <?php endif; ?>
         </tbody>

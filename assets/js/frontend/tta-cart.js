@@ -35,6 +35,23 @@ jQuery(function($){
     }, 'json');
   });
 
+  function sendMembership(level){
+    $.post( tta_ajax.ajax_url, {
+      action: 'tta_add_membership',
+      level: level,
+      nonce: tta_ajax.nonce
+    }, function(res){
+      if(res.success){
+        window.location.href = res.data.cart_url;
+      } else {
+        alert(res.data.message || 'Error adding membership.');
+      }
+    }, 'json');
+  }
+
+  $('#tta-basic-signup').on('click', function(){ sendMembership('basic'); });
+  $('#tta-premium-signup').on('click', function(){ sendMembership('premium'); });
+
   function collectCartData(){
     var data = { cart_qty: {} };
     $('.tta-cart-qty').each(function(){

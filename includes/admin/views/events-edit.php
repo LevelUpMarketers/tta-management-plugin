@@ -66,51 +66,6 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
                 </td>
             </tr>
 
-            <!-- Event Hosts -->
-            <tr>
-                <th>
-                    <label for="hosts">Event Hosts</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Add one or more hosts." style="margin-left:4px;">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <div id="hosts-container">
-                        <?php foreach ( $hosts as $i => $h ) : ?>
-                            <div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;">
-                                <input type="text" name="hosts[]" class="regular-text host-field" list="tta-member-options" placeholder="Host #<?php echo $i+1; ?>" value="<?php echo esc_attr( $h ); ?>" />
-                                <button type="button" class="delete-interest" aria-label="Remove" style="background:none;border:none;cursor:pointer;margin-left:8px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>" alt="×" style="width:16px;height:16px;" />
-                                </button>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <button type="button" class="button" id="add-host-edit" style="margin-top:8px;">+ Add Another Host</button>
-                </td>
-            </tr>
-
-            <!-- Event Volunteers -->
-            <tr>
-                <th>
-                    <label for="volunteers">Event Volunteers</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Add volunteers assisting with this event." style="margin-left:4px;">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <div id="volunteers-container">
-                        <?php foreach ( $volunteers as $i => $v ) : ?>
-                            <div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;">
-                                <input type="text" name="volunteers[]" class="regular-text volunteer-field" list="tta-member-options" placeholder="Volunteer #<?php echo $i+1; ?>" value="<?php echo esc_attr( $v ); ?>" />
-                                <button type="button" class="delete-interest" aria-label="Remove" style="background:none;border:none;cursor:pointer;margin-left:8px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>" alt="×" style="width:16px;height:16px;" />
-                                </button>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <button type="button" class="button" id="add-volunteer-edit" style="margin-top:8px;">+ Add Another Volunteer</button>
-                </td>
-            </tr>
 
             <!-- Date -->
             <tr>
@@ -519,7 +474,54 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
                            value="<?php echo esc_attr( $event["url{$i}"] ?? '' ); ?>">
                 </td>
             </tr>
-            <?php endfor; ?>
+
+<?php endfor; ?>
+
+            <!-- Event Hosts -->
+            <tr>
+                <th>
+                    <label for="hosts">Event Hosts</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Add one or more hosts." style="margin-left:4px;">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <div id="hosts-container">
+                        <?php foreach ( $hosts as $i => $h ) : ?>
+                            <div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;">
+                                <input type="text" name="hosts[]" class="regular-text host-field" list="tta-member-options" placeholder="Host #<?php echo $i+1; ?>" value="<?php echo esc_attr( $h ); ?>" />
+                                <button type="button" class="delete-interest" aria-label="Remove" style="background:none;border:none;cursor:pointer;margin-left:8px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>" alt="×" style="width:16px;height:16px;" />
+                                </button>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <button type="button" class="button" id="add-host-edit" style="margin-top:8px;">+ Add Another Host</button>
+                </td>
+            </tr>
+
+            <!-- Event Volunteers -->
+            <tr>
+                <th>
+                    <label for="volunteers">Event Volunteers</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Add volunteers assisting with this event." style="margin-left:4px;">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <div id="volunteers-container">
+                        <?php foreach ( $volunteers as $i => $v ) : ?>
+                            <div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;">
+                                <input type="text" name="volunteers[]" class="regular-text volunteer-field" list="tta-member-options" placeholder="Volunteer #<?php echo $i+1; ?>" value="<?php echo esc_attr( $v ); ?>" />
+                                <button type="button" class="delete-interest" aria-label="Remove" style="background:none;border:none;cursor:pointer;margin-left:8px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>" alt="×" style="width:16px;height:16px;" />
+                                </button>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <button type="button" class="button" id="add-volunteer-edit" style="margin-top:8px;">+ Add Another Volunteer</button>
+                </td>
+            </tr>
 
         </tbody>
 

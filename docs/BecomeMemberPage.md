@@ -6,12 +6,7 @@ The **Become a Member** template introduces a front‑end landing page for membe
 - Located at `includes/frontend/templates/become-member-page-template.php`.
 - Registered by `TTA_Become_Member_Page`.
 - Describes Basic vs. Premium benefits in a simple table.
-- Includes buttons that link to WooCommerce products to add the membership to the cart.
+- Includes signup buttons embedded within the table. Clicking a button sends an AJAX request that stores the selected membership level in the session and redirects visitors to the cart page.
 
-## Sign Up Links
-The sign up buttons direct visitors to the following URLs which automatically add the product to the WooCommerce cart:
-
-- Basic Membership: `/product/membership/?add-to-cart=7184`
-- Premium Membership: `/product/premium-membership/?add-to-cart=378`
-
-Adjust the product IDs if they differ on your installation.
+## Processing
+Membership purchases are handled separately from one‑off ticket sales. The JavaScript on the page calls the `tta_add_membership` AJAX action which stores the chosen level in the visitor's session. Checkout can then call `TTA_AuthorizeNet_API::create_subscription()` to create a recurring subscription with Authorize.Net.
