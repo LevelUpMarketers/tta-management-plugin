@@ -482,7 +482,67 @@ if ( $ticket_count > 1 ) {
         $cost_sidebar_row = '';
     }
 
+
+// ───────────────
+// 11) Build Event Schema markup
+// ───────────────
+$start_ts  = strtotime( $event['date'] . ' ' . ( $start ?? '00:00' ) );
+$end_ts    = $event['all_day_event'] ? $start_ts : strtotime( $event['date'] . ' ' . ( $end ?? '00:00' ) );
+$schema    = [
+    '@context'  => 'https://schema.org',
+    '@type'     => 'Event',
+    'name'      => $event['name'],
+    'description' => wp_strip_all_tags( $raw_content ),
+    'startDate' => date( 'c', $start_ts ),
+    'endDate'   => date( 'c', $end_ts ),
+    'eventStatus' => 'https://schema.org/EventScheduled',
+    'eventAttendanceMode' => $event['virtual_event'] ? 'https://schema.org/OnlineEventAttendanceMode' : 'https://schema.org/OfflineEventAttendanceMode',
+    'url'       => get_permalink(),
+];
+
+$location = [
+    '@type' => 'Place',
+    'name'  => $event['venuename'] ?: $event['name'],
+    'address' => [
+        '@type'           => 'PostalAddress',
+        'streetAddress'   => $street_full,
+        'addressLocality' => $city,
+        'addressRegion'   => $state,
+        'postalCode'      => $zip,
+        'addressCountry'  => 'US',
+    ],
+];
+$schema['location'] = $location;
+
+if ( ! empty( $event['mainimageid'] ) ) {
+    $image_url       = wp_get_attachment_image_url( intval( $event['mainimageid'] ), 'full' );
+    $schema['image'] = $image_url;
 }
+
+if ( $ticket_count > 0 ) {
+    $all_sold_out = true;
+    foreach ( $tickets as $t ) {
+        if ( intval( $t['ticketlimit'] ) > 0 ) {
+            $all_sold_out = false;
+            break;
+        }
+    }
+
+    if ( 1 === $ticket_count ) {
+        $single  = reset( $tickets );
+        $price   = floatval( $single['baseeventcost'] );
+        if ( $price > 0 ) {
+            $schema['offers'] = [
+                '@type'         => 'Offer',
+                'price'         => number_format( $price, 2, '.', '' ),
+                'priceCurrency' => 'USD',
+                'availability'  => $all_sold_out ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+            ];
+        }
+    }
+}
+
+echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>';
 ?>
 
 <div class="wrap event-page tta-event-page">

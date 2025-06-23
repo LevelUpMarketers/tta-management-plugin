@@ -6,6 +6,7 @@ The **Become a Member** template introduces a front‑end landing page for membe
 - Located at `includes/frontend/templates/become-member-page-template.php`.
 - Registered by `TTA_Become_Member_Page`.
 - Describes Basic vs. Premium benefits in a simple table.
+- Shows pricing ($5 Basic, $10 Premium) in a dedicated row.
 - Includes signup buttons embedded within the table. Clicking a button sends an AJAX request that stores the selected membership level in the session and redirects visitors to the cart page.
 
 ## Processing

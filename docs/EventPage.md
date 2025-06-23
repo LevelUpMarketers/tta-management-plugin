@@ -60,4 +60,8 @@ Members may opt to hide their attendance in their profile's *Privacy Options*. H
 
 Admins can assign one or more hosts and volunteers when creating or editing an event. The autocomplete fields pull from members whose type is Volunteer, Admin, or Super Admin. Selected names are stored in the `hosts` and `volunteers` columns of `tta_events`. On the front end, hosts appear first in the attendee gallery followed by volunteers. Each badge is labelled “Host” or “Volunteer.”
 
+## SEO and Schema Markup
+
+Each event page outputs JSON‑LD Event schema. The markup includes the event name, description, dates, location, main image, and pricing when available. This helps search engines display the event in rich results.
+
 

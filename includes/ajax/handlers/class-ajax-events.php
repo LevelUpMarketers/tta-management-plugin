@@ -335,7 +335,12 @@ class TTA_Ajax_Events {
         }
         wp_enqueue_media();
         wp_enqueue_editor();
-        $_GET['event_id'] = intval($_POST['event_id']);
+
+        $_GET['event_id'] = intval( $_POST['event_id'] );
+        $src = sanitize_key( $_POST['source'] ?? 'events' );
+        if ( 'archive' === $src ) {
+            $_GET['archive'] = 1;
+        }
         ob_start();
         include TTA_PLUGIN_DIR . 'includes/admin/views/events-edit.php';
         $html = ob_get_clean();

@@ -8,9 +8,11 @@
  */
 
 global $wpdb;
-$table   = $wpdb->prefix . 'tta_events';
-$editing = false;
-$event   = [];
+$is_archive = ! empty( $_GET['archive'] );
+$table      = $wpdb->prefix . ( $is_archive ? 'tta_events_archive' : 'tta_events' );
+$readonly   = $is_archive;
+$editing    = false;
+$event      = [];
 
 // Load existing event data (using the event_id we passed via AJAX)
 if ( isset( $_GET['event_id'] ) ) {
@@ -38,7 +40,9 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
 ?>
 
 <form method="post" id="tta-event-edit-form">
-    <?php wp_nonce_field( 'tta_event_save_action', 'tta_event_save_nonce' ); ?>
+    <?php if ( ! $readonly ) : ?>
+        <?php wp_nonce_field( 'tta_event_save_action', 'tta_event_save_nonce' ); ?>
+    <?php endif; ?>
     <?php if ( $editing ) : ?>
         <input type="hidden" name="tta_event_id" value="<?php echo esc_attr( $event['id'] ); ?>">
     <?php endif; ?>
@@ -46,6 +50,12 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
     <!-- Always output waitlist_id for AJAX updates -->
     <input type="hidden" name="waitlist_id" id="waitlist_id"
            value="<?php echo esc_attr( $event['waitlist_id'] ?? 0 ); ?>">
+
+    <?php if ( $readonly ) : ?>
+        <p><em><?php esc_html_e( 'This archived event is read-only.', 'tta' ); ?></em></p>
+    <?php endif; ?>
+
+    <fieldset <?php echo $readonly ? 'disabled' : ''; ?>>
 
     <table class="form-table">
         <tbody>
@@ -651,15 +661,18 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
     $show_waitlist = ( $event['waitlistavailable'] ?? '0' ) === '1';
     ?>
 
-    <p class="submit">
-        <button type="submit" name="tta_event_save" class="button button-primary">
-            <?php echo $editing ? 'Update Event' : 'Create Event'; ?>
-        </button>
-        <div class="tta-admin-progress-spinner-div">
-            <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>"/>
-        </div>
-        <div class="tta-admin-progress-reponse-div">
-            <p class="tta-admin-progress-response-p"></p>
-        </div>
-    </p>
+    </fieldset>
+    <?php if ( ! $readonly ) : ?>
+        <p class="submit">
+            <button type="submit" name="tta_event_save" class="button button-primary">
+                <?php echo $editing ? 'Update Event' : 'Create Event'; ?>
+            </button>
+            <div class="tta-admin-progress-spinner-div">
+                <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>"/>
+            </div>
+            <div class="tta-admin-progress-reponse-div">
+                <p class="tta-admin-progress-response-p"></p>
+            </div>
+        </p>
+    <?php endif; ?>
 </form>

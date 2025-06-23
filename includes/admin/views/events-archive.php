@@ -84,7 +84,7 @@ $events = $wpdb->get_results(
 
 <form method="get" style="margin-bottom: 1em;">
     <input type="hidden" name="page" value="tta-events">
-    <input type="hidden" name="tab"  value="manage">
+    <input type="hidden" name="tab"  value="archive">
     <p class="search-box">
         <label for="event-search-input" class="screen-reader-text">Search Events:</label>
         <input type="search" id="event-search-input" name="s" value="<?php echo esc_attr( $search ); ?>">
@@ -129,7 +129,7 @@ $events = $wpdb->get_results(
             $page_id        = intval( $e['page_id'] );
             $event_page_url = $page_id ? get_permalink( $page_id ) : '#';
     ?>
-        <tr data-event-id="<?php echo esc_attr( $e['id'] ); ?>">
+        <tr data-event-id="<?php echo esc_attr( $e['id'] ); ?>" data-source="archive">
             <td><?php echo $img_html; ?></td>
             <td><?php echo esc_html( $e['name'] ); ?></td>
             <td><?php echo esc_html( date_i18n( 'n-j-Y', strtotime( $e['date'] ) ) ); ?></td>
@@ -147,23 +147,8 @@ $events = $wpdb->get_results(
                 <a href="#"
                    class="tta-edit-link"
                    data-event-id="<?php echo esc_attr( $e['id'] ); ?>">
-                   Edit
+                   View
                 </a>
-                <?php
-                $delete_url = wp_nonce_url(
-                    add_query_arg( [
-                        'page'     => 'tta-events',
-                        'tab'      => 'manage',
-                        'action'   => 'delete',
-                        'event_id' => $e['id'],
-                    ], admin_url( 'admin.php' ) ),
-                    'tta_event_delete_nonce'
-                );
-                ?>
-                | <a href="<?php echo esc_url( $delete_url ); ?>"
-                     onclick="return confirm('Are you sure you want to delete this event? This will also delete ALL Tickets, Waitlists, etc., that are associated with this event! Member purchase and attendance records will be preserved.')">
-                       Delete
-                   </a>
             </td>
             <td class="tta-toggle-cell">
                 <img

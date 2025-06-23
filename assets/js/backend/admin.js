@@ -159,10 +159,14 @@ jQuery(function($){
     // Start arrow animation immediately
     $arrow.addClass('open');
 
+    // Determine data source (events or archive)
+    var source = $row.data('source') || 'events';
+
     // Fetch the pre-populated edit form HTML for this event
     $.post(TTA_Ajax.ajax_url, {
       action:          'tta_get_event_form',
       event_id:        eventId,
+      source:          source,
       get_event_nonce: TTA_Ajax.get_event_nonce
     }, function(res){
       if ( ! res.success ) {
