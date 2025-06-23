@@ -61,30 +61,28 @@ if ( ! $event ) {
 // ───────────────
 // 3) Fetch this event’s ticket types
 // ───────────────
-$tickets       = [];
-$ticket_count  = 0;
+$tickets        = [];
+$ticket_count   = 0;
 $cart_quantities = [];
-if ( ! $is_archived ) {
-    $tickets_table = $wpdb->prefix . 'tta_tickets';
-    $tickets       = TTA_Cache::remember( 'tickets_' . $event['ute_id'], function() use ( $wpdb, $tickets_table, $event ) {
-        return $wpdb->get_results(
-            $wpdb->prepare(
-                "SELECT id, ticket_name, ticketlimit, baseeventcost, discountedmembercost, premiummembercost
-                 FROM {$tickets_table}
-                 WHERE event_ute_id = %s
-                 ORDER BY id ASC",
-                $event['ute_id']
-            ),
-            ARRAY_A
-        );
-    }, 600 );
-    $ticket_count = count( $tickets );
+$tickets_table  = $wpdb->prefix . 'tta_tickets';
+$tickets        = TTA_Cache::remember( 'tickets_' . $event['ute_id'], function() use ( $wpdb, $tickets_table, $event ) {
+    return $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT id, ticket_name, ticketlimit, baseeventcost, discountedmembercost, premiummembercost
+             FROM {$tickets_table}
+             WHERE event_ute_id = %s
+             ORDER BY id ASC",
+            $event['ute_id']
+        ),
+        ARRAY_A
+    );
+}, 600 );
+$ticket_count = count( $tickets );
 
-    // Build a map of quantities for this event from the cart
-    foreach ( $cart_items as $it ) {
-        if ( isset( $it['event_ute_id'] ) && $it['event_ute_id'] === $event['ute_id'] ) {
-            $cart_quantities[ intval( $it['ticket_id'] ) ] = intval( $it['quantity'] );
-        }
+// Build a map of quantities for this event from the cart
+foreach ( $cart_items as $it ) {
+    if ( isset( $it['event_ute_id'] ) && $it['event_ute_id'] === $event['ute_id'] ) {
+        $cart_quantities[ intval( $it['ticket_id'] ) ] = intval( $it['quantity'] );
     }
 }
 
@@ -252,8 +250,12 @@ if ( ! $is_logged_in ) {
             }
             $disable_controls = true;
             $tooltip_message  = __( 'You must have a Premium Membership to attend this event.', 'tta' );
-        }
     }
+}
+
+if ( $is_archived ) {
+    $disable_controls = true;
+    $tooltip_message  = __( 'Ticket sales are closed for this event.', 'tta' );
 }
 
 if ( $is_logged_in ) {
@@ -410,7 +412,7 @@ if ( $ticket_count > 1 ) {
         . '</div></li>';
 
     }
-} else {
+} elseif ( 1 === $ticket_count ) {
     // Single ticket
     $single     = reset( $tickets );
     $p_base     = floatval( $single['baseeventcost'] );
@@ -443,7 +445,43 @@ if ( $ticket_count > 1 ) {
           . '</div></li>';
     }
 
-  }
+} else {
+    // No ticket rows, fall back to base costs on the event record
+    $p_base    = floatval( $event['baseeventcost'] );
+    $p_basic   = floatval( $event['discountedmembercost'] );
+    $p_premium = floatval( $event['premiummembercost'] );
+
+    if ( $p_base || $p_basic || $p_premium ) {
+        $price_str         = $p_base    ? sprintf( esc_html__( '$%s', 'tta' ), number_format_i18n( $p_base, 2 ) ) : esc_html__( 'Free', 'tta' );
+        $price_str_basic   = $p_basic   ? sprintf( esc_html__( '$%s', 'tta' ), number_format_i18n( $p_basic, 2 ) ) : esc_html__( 'Free', 'tta' );
+        $price_str_premium = $p_premium ? sprintf( esc_html__( '$%s', 'tta' ), number_format_i18n( $p_premium, 2 ) ) : esc_html__( 'Free', 'tta' );
+
+        $cost_sidebar_row =
+            '<li class="tta-event-costmod-class">'
+          . '<img class="tta-event-details-icon" src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/money.svg' ) . '" alt="Help"> '
+          . '<div class="tta-event-details-icon-after"><strong>Cost: </strong>' . esc_html( $price_str )
+          . '</div></li>';
+
+        if ( 'basic' === $membership_level ) {
+            $cost_sidebar_row =
+                '<li class="tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-basic">'
+              . '<img class="tta-event-details-icon" src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/money.svg' ) . '" alt="Help"> '
+              . '<div class="tta-event-details-icon-after"><strong>Cost: </strong><span>' . esc_html( $price_str ) . '</span> '
+              . esc_html( $price_str_basic )
+              . '</div></li>';
+        } elseif ( 'premium' === $membership_level ) {
+            $cost_sidebar_row =
+                '<li class="tta-event-costmod-class tta-event-costmod-class-strikethrough tta-event-costmod-class-premium">'
+              . '<img class="tta-event-details-icon" src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/money.svg' ) . '" alt="Help"> '
+              . '<div class="tta-event-details-icon-after"><strong>Cost: </strong><span>' . esc_html( $price_str ) . '</span> '
+              . esc_html( $price_str_premium )
+              . '</div></li>';
+        }
+    } else {
+        $cost_sidebar_row = '';
+    }
+
+}
 ?>
 
 <div class="wrap event-page tta-event-page">
@@ -563,7 +601,6 @@ if ( $ticket_count > 1 ) {
         </section>
       <?php endif; ?>
 
-      <?php if ( ! $is_archived ) : ?>
       <section id="tta-event-buy" class="tta-event-buy">
         <h2><?php esc_html_e( 'Get Your Tickets Now', 'tta' ); ?></h2>
         <p class="tta-ticket-context">
@@ -643,7 +680,6 @@ if ( $ticket_count > 1 ) {
           </button>
         </div>
       </section>
-      <?php endif; ?>
 
       <?php
       // Grab & sanitize gallery IDs
