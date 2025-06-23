@@ -259,6 +259,34 @@ jQuery(function($){
     $(this).closest('tr').trigger('click');
   });
 
+  // Expand member row to show history details
+  $(document).on('click', '#tta-members-history .widefat tbody tr[data-member-id]', function(e){
+    if ($(e.target).is('a, button, input, textarea, select')) return;
+
+    var $row   = $(this),
+        $arrow = $row.find('.tta-toggle-arrow'),
+        id     = $row.data('member-id'),
+        colsp  = $row.find('td').length,
+        $ex    = $row.next('.tta-inline-row');
+
+    if ($ex.length){
+      $arrow.removeClass('open');
+      $ex.remove();
+      return;
+    }
+
+    $('.tta-inline-row').remove();
+    $('.tta-toggle-arrow').removeClass('open');
+    $arrow.addClass('open');
+
+    $.post(TTA_Ajax.ajax_url, { action:'tta_get_member_history', member_id:id, get_member_nonce:TTA_Ajax.get_member_nonce }, function(res){
+      if(!res.success) return;
+      var $new = $('<tr class="tta-inline-row"><td colspan="'+colsp+'"><div class="tta-inline-container"></div></td></tr>');
+      $row.after($new);
+      $new.find('.tta-inline-container').html(res.data.html).slideDown(200);
+    }, 'json');
+  });
+
   //
   // Update Existing Event (delegate to injected form)
   //
@@ -351,7 +379,7 @@ jQuery(function($){
   // ─────────────────────────────────────────────────────────────────────
   // Inline Edit for “Manage Members” rows
   //
-  $(document).on('click', '.widefat tbody tr[data-member-id]', function(e){
+  $(document).on('click', '#tta-members-manage .widefat tbody tr[data-member-id]', function(e){
     // Don’t trigger if clicking inside controls
     if ( $(e.target).is('a, button, input, textarea, select') ) {
       return;
@@ -982,7 +1010,19 @@ jQuery(function($){
         '{attendee_first_name}': mem.first_name || 'First',
         '{attendee_last_name}': mem.last_name || 'Last',
         '{attendee_email}': mem.email || 'attendee@example.com',
-        '{attendee_phone}': mem.phone || '555-555-5555'
+        '{attendee_phone}': mem.phone || '555-555-5555',
+        '{attendee2_first_name}': mem.first_name || 'First',
+        '{attendee2_last_name}': mem.last_name || 'Last',
+        '{attendee2_email}': mem.email || 'attendee2@example.com',
+        '{attendee2_phone}': mem.phone || '555-555-5556',
+        '{attendee3_first_name}': mem.first_name || 'First',
+        '{attendee3_last_name}': mem.last_name || 'Last',
+        '{attendee3_email}': mem.email || 'attendee3@example.com',
+        '{attendee3_phone}': mem.phone || '555-555-5557',
+        '{attendee4_first_name}': mem.first_name || 'First',
+        '{attendee4_last_name}': mem.last_name || 'Last',
+        '{attendee4_email}': mem.email || 'attendee4@example.com',
+        '{attendee4_phone}': mem.phone || '555-555-5558'
       };
     Object.keys(map).forEach(function(tok){
       var val = map[tok];

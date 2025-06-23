@@ -11,6 +11,7 @@ class TTA_Ajax_Members {
         add_action( 'wp_ajax_tta_save_member',        [ __CLASS__, 'save_member' ] );
         add_action( 'wp_ajax_tta_get_member',         [ __CLASS__, 'get_member' ] );
         add_action( 'wp_ajax_tta_get_member_form',    [ __CLASS__, 'get_member_form' ] );
+        add_action( 'wp_ajax_tta_get_member_history', [ __CLASS__, 'get_member_history' ] );
         add_action( 'wp_ajax_tta_update_member',      [ __CLASS__, 'update_member' ] );
         add_action( 'wp_ajax_tta_front_update_member',[ __CLASS__, 'update_member_front' ] );
     }
@@ -219,6 +220,18 @@ class TTA_Ajax_Members {
         include TTA_PLUGIN_DIR . 'includes/admin/views/members-edit.php';
         $html = ob_get_clean();
         wp_send_json_success([ 'html'=>$html ]);
+    }
+
+    public static function get_member_history() {
+        check_ajax_referer( 'tta_member_update_action', 'get_member_nonce' );
+        if ( empty( $_POST['member_id'] ) ) {
+            wp_send_json_error( [ 'message' => 'Missing member ID.' ] );
+        }
+        $_GET['member_id'] = intval( $_POST['member_id'] );
+        ob_start();
+        include TTA_PLUGIN_DIR . 'includes/admin/views/member-history-details.php';
+        $html = ob_get_clean();
+        wp_send_json_success( [ 'html' => $html ] );
     }
 
     public static function update_member() {

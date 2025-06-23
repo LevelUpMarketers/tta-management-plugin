@@ -1,19 +1,27 @@
 jQuery(function($){
   // Toggle event rows
   $(document).on('click', '.tta-event-row', function(e){
-    if ($(e.target).is('button, a, img')) return;
-    var $row = $(this), ute = $row.data('event-ute-id'),
-        $ex = $row.next('.tta-inline-row');
+    if ($(e.target).is('button, a')) return;
+    var $row   = $(this),
+        $arrow = $row.find('.tta-toggle-arrow'),
+        ute    = $row.data('event-ute-id'),
+        $ex    = $row.next('.tta-inline-row');
+
     if ($ex.length){
+      $arrow.removeClass('open');
       $ex.remove();
       return;
     }
+
     $('.tta-inline-row').remove();
+    $('.tta-toggle-arrow').removeClass('open');
+
     $.post(TTA_Checkin.ajax_url, { action:'tta_get_event_attendance', nonce:TTA_Checkin.get_nonce, event_ute_id: ute }, function(res){
       if(!res.success) return;
       var colspan = $row.find('td').length;
       var $new = $('<tr class="tta-inline-row"><td colspan="'+colspan+'">'+res.data.html+'</td></tr>');
       $row.after($new);
+      $arrow.addClass('open');
     }, 'json');
   });
 

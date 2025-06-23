@@ -27,9 +27,8 @@ class TTA_Members_Admin {
 
     public function render_list() {
         // Determine which “tab” is active: create vs. manage
-        $tab = isset( $_GET['tab'] ) && $_GET['tab'] === 'create'
-             ? 'create'
-             : 'manage';
+        $allowed = [ 'create', 'manage', 'history' ];
+        $tab = isset( $_GET['tab'] ) && in_array( $_GET['tab'], $allowed, true ) ? $_GET['tab'] : 'manage';
 
         // Render horizontal tabs, matching the style of Events
         echo '<div class="wrap">';
@@ -49,11 +48,18 @@ class TTA_Members_Admin {
                 esc_url( admin_url( 'admin.php?page=tta-members&tab=manage' ) ),
                 $tab === 'manage' ? 'nav-tab-active' : ''
             );
+            printf(
+                '<a href="%1$s" class="nav-tab %2$s">Member History</a>',
+                esc_url( admin_url( 'admin.php?page=tta-members&tab=history' ) ),
+                $tab === 'history' ? 'nav-tab-active' : ''
+            );
           echo '</h2>';
 
           // Load the appropriate view
           if ( $tab === 'create' ) {
               include plugin_dir_path( __FILE__ ) . '../admin/views/members-create.php';
+          } elseif ( $tab === 'history' ) {
+              include plugin_dir_path( __FILE__ ) . '../admin/views/members-history.php';
           } else {
               include plugin_dir_path( __FILE__ ) . '../admin/views/members-manage.php';
           }
