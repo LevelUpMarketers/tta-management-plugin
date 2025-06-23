@@ -342,10 +342,11 @@ function tta_get_event_attendee_profiles( $event_id ) {
     }
 
     global $wpdb;
-    $events_table  = $wpdb->prefix . 'tta_events';
-    $att_table     = $wpdb->prefix . 'tta_attendees';
-    $tickets_table = $wpdb->prefix . 'tta_tickets';
-    $members_table = $wpdb->prefix . 'tta_members';
+    $events_table   = $wpdb->prefix . 'tta_events';
+    $archive_table  = $wpdb->prefix . 'tta_events_archive';
+    $att_table      = $wpdb->prefix . 'tta_attendees';
+    $tickets_table  = $wpdb->prefix . 'tta_tickets';
+    $members_table  = $wpdb->prefix . 'tta_members';
 
     $event_row = $wpdb->get_row(
         $wpdb->prepare(
@@ -354,6 +355,15 @@ function tta_get_event_attendee_profiles( $event_id ) {
         ),
         ARRAY_A
     );
+    if ( ! $event_row ) {
+        $event_row = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT ute_id, hosts, volunteers FROM {$archive_table} WHERE id = %d",
+                $event_id
+            ),
+            ARRAY_A
+        );
+    }
     $ute_id     = $event_row['ute_id'] ?? null;
     $host_names = array_filter( array_map( 'trim', explode( ',', $event_row['hosts'] ?? '' ) ) );
     $vol_names  = array_filter( array_map( 'trim', explode( ',', $event_row['volunteers'] ?? '' ) ) );

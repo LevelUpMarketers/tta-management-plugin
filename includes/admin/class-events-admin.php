@@ -24,8 +24,9 @@ class TTA_Events_Admin {
     public function render_page() {
         // Tabs
         $tabs = [
-            'create' => 'Add New Event',
-            'manage' => 'Manage Events',
+            'create'  => 'Add New Event',
+            'manage'  => 'Manage Events',
+            'archive' => 'Archived Events',
         ];
         $current = isset( $_GET['tab'] ) && array_key_exists( $_GET['tab'], $tabs )
             ? $_GET['tab']

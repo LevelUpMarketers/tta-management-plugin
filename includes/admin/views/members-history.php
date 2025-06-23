@@ -132,7 +132,7 @@ $total_pages = ceil( $total_members / $per_page );
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
-                <td colspan="7">No members found.</td>
+                <td colspan="8">No members found.</td>
             </tr>
         <?php endif; ?>
         </tbody>

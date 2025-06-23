@@ -8,9 +8,11 @@
  */
 
 global $wpdb;
-$table   = $wpdb->prefix . 'tta_events';
-$editing = false;
-$event   = [];
+$is_archive = ! empty( $_GET['archive'] );
+$table      = $wpdb->prefix . ( $is_archive ? 'tta_events_archive' : 'tta_events' );
+$readonly   = $is_archive;
+$editing    = false;
+$event      = [];
 
 // Load existing event data (using the event_id we passed via AJAX)
 if ( isset( $_GET['event_id'] ) ) {
@@ -38,7 +40,9 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
 ?>
 
 <form method="post" id="tta-event-edit-form">
-    <?php wp_nonce_field( 'tta_event_save_action', 'tta_event_save_nonce' ); ?>
+    <?php if ( ! $readonly ) : ?>
+        <?php wp_nonce_field( 'tta_event_save_action', 'tta_event_save_nonce' ); ?>
+    <?php endif; ?>
     <?php if ( $editing ) : ?>
         <input type="hidden" name="tta_event_id" value="<?php echo esc_attr( $event['id'] ); ?>">
     <?php endif; ?>
@@ -46,6 +50,12 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
     <!-- Always output waitlist_id for AJAX updates -->
     <input type="hidden" name="waitlist_id" id="waitlist_id"
            value="<?php echo esc_attr( $event['waitlist_id'] ?? 0 ); ?>">
+
+    <?php if ( $readonly ) : ?>
+        <p><em><?php esc_html_e( 'This archived event is read-only.', 'tta' ); ?></em></p>
+    <?php endif; ?>
+
+    <fieldset <?php echo $readonly ? 'disabled' : ''; ?>>
 
     <table class="form-table">
         <tbody>
@@ -66,51 +76,6 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
                 </td>
             </tr>
 
-            <!-- Event Hosts -->
-            <tr>
-                <th>
-                    <label for="hosts">Event Hosts</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Add one or more hosts." style="margin-left:4px;">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <div id="hosts-container">
-                        <?php foreach ( $hosts as $i => $h ) : ?>
-                            <div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;">
-                                <input type="text" name="hosts[]" class="regular-text host-field" list="tta-member-options" placeholder="Host #<?php echo $i+1; ?>" value="<?php echo esc_attr( $h ); ?>" />
-                                <button type="button" class="delete-interest" aria-label="Remove" style="background:none;border:none;cursor:pointer;margin-left:8px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>" alt="×" style="width:16px;height:16px;" />
-                                </button>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <button type="button" class="button" id="add-host-edit" style="margin-top:8px;">+ Add Another Host</button>
-                </td>
-            </tr>
-
-            <!-- Event Volunteers -->
-            <tr>
-                <th>
-                    <label for="volunteers">Event Volunteers</label>
-                    <span class="tta-tooltip-icon" data-tooltip="Add volunteers assisting with this event." style="margin-left:4px;">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
-                    </span>
-                </th>
-                <td>
-                    <div id="volunteers-container">
-                        <?php foreach ( $volunteers as $i => $v ) : ?>
-                            <div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;">
-                                <input type="text" name="volunteers[]" class="regular-text volunteer-field" list="tta-member-options" placeholder="Volunteer #<?php echo $i+1; ?>" value="<?php echo esc_attr( $v ); ?>" />
-                                <button type="button" class="delete-interest" aria-label="Remove" style="background:none;border:none;cursor:pointer;margin-left:8px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>" alt="×" style="width:16px;height:16px;" />
-                                </button>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <button type="button" class="button" id="add-volunteer-edit" style="margin-top:8px;">+ Add Another Volunteer</button>
-                </td>
-            </tr>
 
             <!-- Date -->
             <tr>
@@ -519,7 +484,54 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
                            value="<?php echo esc_attr( $event["url{$i}"] ?? '' ); ?>">
                 </td>
             </tr>
-            <?php endfor; ?>
+
+<?php endfor; ?>
+
+            <!-- Event Hosts -->
+            <tr>
+                <th>
+                    <label for="hosts">Event Hosts</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Add one or more hosts." style="margin-left:4px;">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <div id="hosts-container">
+                        <?php foreach ( $hosts as $i => $h ) : ?>
+                            <div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;">
+                                <input type="text" name="hosts[]" class="regular-text host-field" list="tta-member-options" placeholder="Host #<?php echo $i+1; ?>" value="<?php echo esc_attr( $h ); ?>" />
+                                <button type="button" class="delete-interest" aria-label="Remove" style="background:none;border:none;cursor:pointer;margin-left:8px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>" alt="×" style="width:16px;height:16px;" />
+                                </button>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <button type="button" class="button" id="add-host-edit" style="margin-top:8px;">+ Add Another Host</button>
+                </td>
+            </tr>
+
+            <!-- Event Volunteers -->
+            <tr>
+                <th>
+                    <label for="volunteers">Event Volunteers</label>
+                    <span class="tta-tooltip-icon" data-tooltip="Add volunteers assisting with this event." style="margin-left:4px;">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                </th>
+                <td>
+                    <div id="volunteers-container">
+                        <?php foreach ( $volunteers as $i => $v ) : ?>
+                            <div class="interest-item" style="margin-bottom:8px; display:flex; align-items:center;">
+                                <input type="text" name="volunteers[]" class="regular-text volunteer-field" list="tta-member-options" placeholder="Volunteer #<?php echo $i+1; ?>" value="<?php echo esc_attr( $v ); ?>" />
+                                <button type="button" class="delete-interest" aria-label="Remove" style="background:none;border:none;cursor:pointer;margin-left:8px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/bin.svg' ); ?>" alt="×" style="width:16px;height:16px;" />
+                                </button>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <button type="button" class="button" id="add-volunteer-edit" style="margin-top:8px;">+ Add Another Volunteer</button>
+                </td>
+            </tr>
 
         </tbody>
 
@@ -541,28 +553,32 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             if ( ! empty( $event['page_id'] ) ) {
                 $description = get_post_field( 'post_content', intval( $event['page_id'] ) );
             }
-            // Render the full TinyMCE editor
-           wp_editor(
-                $description,
-                'tta_event_description',
-                [
-                    'textarea_name' => 'description',
-                    'media_buttons' => true,
-                    'textarea_rows' => 10,
-                    'teeny'         => false,
+            if ( $readonly ) {
+                echo '<div class="tta-archived-description">' . apply_filters( 'the_content', $description ) . '</div>';
+            } else {
+                // Render the full TinyMCE editor
+               wp_editor(
+                    $description,
+                    'tta_event_description',
+                    [
+                        'textarea_name' => 'description',
+                        'media_buttons' => true,
+                        'textarea_rows' => 10,
+                        'teeny'         => false,
 
-                    // force TinyMCE to load all the usual buttons (format dropdown, quotes, etc)
-                    'tinymce' => [
-                        'wpautop'   => true,
-                        'toolbar1'  => 'formatselect,bold,italic,underline,strikethrough,blockquote,alignleft,aligncenter,alignright,alignjustify,bullist,numlist,link,unlink,undo,redo,fullscreen',
-                        'toolbar2'  => 'pastetext,pasteword,selectall,removeformat,table,hr',
-                        'toolbar3'  => '',
-                        'toolbar4'  => '',
-                        'block_formats' => 'Paragraph=p;Heading 1=h1;Heading 2=h2;Heading 3=h3;Heading 4=h4;Heading 5=h5;Heading 6=h6',
-                    ],
-                    'quicktags' => true,  // still allow the “Code” tab
-                ]
-            );
+                        // force TinyMCE to load all the usual buttons (format dropdown, quotes, etc)
+                        'tinymce' => [
+                            'wpautop'   => true,
+                            'toolbar1'  => 'formatselect,bold,italic,underline,strikethrough,blockquote,alignleft,aligncenter,alignright,alignjustify,bullist,numlist,link,unlink,undo,redo,fullscreen',
+                            'toolbar2'  => 'pastetext,pasteword,selectall,removeformat,table,hr',
+                            'toolbar3'  => '',
+                            'toolbar4'  => '',
+                            'block_formats' => 'Paragraph=p;Heading 1=h1;Heading 2=h2;Heading 3=h3;Heading 4=h4;Heading 5=h5;Heading 6=h6',
+                        ],
+                        'quicktags' => true,  // still allow the “Code" tab
+                    ]
+                );
+            }
             ?>
           </td>
         </tr>
@@ -649,15 +665,18 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
     $show_waitlist = ( $event['waitlistavailable'] ?? '0' ) === '1';
     ?>
 
-    <p class="submit">
-        <button type="submit" name="tta_event_save" class="button button-primary">
-            <?php echo $editing ? 'Update Event' : 'Create Event'; ?>
-        </button>
-        <div class="tta-admin-progress-spinner-div">
-            <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>"/>
-        </div>
-        <div class="tta-admin-progress-reponse-div">
-            <p class="tta-admin-progress-response-p"></p>
-        </div>
-    </p>
+    </fieldset>
+    <?php if ( ! $readonly ) : ?>
+        <p class="submit">
+            <button type="submit" name="tta_event_save" class="button button-primary">
+                <?php echo $editing ? 'Update Event' : 'Create Event'; ?>
+            </button>
+            <div class="tta-admin-progress-spinner-div">
+                <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>"/>
+            </div>
+            <div class="tta-admin-progress-reponse-div">
+                <p class="tta-admin-progress-response-p"></p>
+            </div>
+        </p>
+    <?php endif; ?>
 </form>

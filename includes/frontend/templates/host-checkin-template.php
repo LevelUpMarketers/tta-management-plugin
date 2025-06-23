@@ -10,7 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 $context = tta_get_current_user_context();
 
 if ( ! $context['is_logged_in'] ) {
+    get_header();
     wp_login_form( [ 'redirect' => get_permalink() ] );
+    get_footer();
     return;
 }
 

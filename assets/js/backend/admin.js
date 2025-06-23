@@ -159,10 +159,14 @@ jQuery(function($){
     // Start arrow animation immediately
     $arrow.addClass('open');
 
+    // Determine data source (events or archive)
+    var source = $row.data('source') || 'events';
+
     // Fetch the pre-populated edit form HTML for this event
     $.post(TTA_Ajax.ajax_url, {
       action:          'tta_get_event_form',
       event_id:        eventId,
+      source:          source,
       get_event_nonce: TTA_Ajax.get_event_nonce
     }, function(res){
       if ( ! res.success ) {
@@ -193,7 +197,7 @@ jQuery(function($){
         // At this point, the HTML (including the `wp_editor()` textarea) is in the DOM.
         // Now we must explicitly initialize TinyMCE + Quicktags on that textarea ID.
         //
-        if ( typeof wp !== 'undefined' && typeof wp.editor !== 'undefined' ) {
+        if ( $('#tta_event_description').length && typeof wp !== 'undefined' && typeof wp.editor !== 'undefined' ) {
           // If TinyMCE was previously initialized on this ID, remove it first:
           try {
             wp.editor.remove('tta_event_description');

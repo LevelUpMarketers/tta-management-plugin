@@ -13,6 +13,9 @@ $summary = tta_get_member_history_summary( $member_id );
 <div class="tta-member-history-details">
   <h3><?php echo esc_html( $member['first_name'] . ' ' . $member['last_name'] ); ?></h3>
   <p><?php echo esc_html( $member['email'] ); ?></p>
+  <?php if ( ! empty( $member['notes'] ) ) : ?>
+    <p class="tta-member-notes"><strong><?php esc_html_e( 'Notes:', 'tta' ); ?></strong> <?php echo esc_html( $member['notes'] ); ?></p>
+  <?php endif; ?>
   <h4><?php esc_html_e( 'Member Summary', 'tta' ); ?></h4>
   <ul>
     <li><?php printf( esc_html__( 'Total Spent: $%s', 'tta' ), number_format( $summary['total_spent'], 2 ) ); ?></li>
