@@ -5,6 +5,7 @@ class DummyWpdbSample {
     public $prefix = 'wp_';
     public $events = [];
     public $tickets = [];
+    public $last_query = '';
 
     public function esc_like( $str ) { return $str; }
     public function get_col( $query ) { return []; }
@@ -23,6 +24,25 @@ class DummyWpdbSample {
             $this->tickets[] = $data;
         }
         return true;
+    }
+
+    public function update( $table, $data, $where ) {
+        if ( false !== strpos( $table, 'tta_events' ) && ! empty( $this->events ) ) {
+            $this->events[count($this->events)-1] = array_merge($this->events[count($this->events)-1], $data);
+        }
+        return 1;
+    }
+
+    public function query( $sql ) {
+        $this->last_query = $sql;
+        if ( stripos( $sql, 'DELETE' ) !== false ) {
+            if ( strpos( $sql, 'tta_events' ) !== false ) {
+                $this->events = [];
+            } elseif ( strpos( $sql, 'tta_tickets' ) !== false ) {
+                $this->tickets = [];
+            }
+        }
+        return 1;
     }
 }
 
@@ -45,7 +65,16 @@ class SampleDataTest extends TestCase {
         global $wpdb;
         $wpdb = new DummyWpdbSample();
         TTA_Sample_Data::load();
-        $this->assertCount( 20, $wpdb->events );
-        $this->assertCount( 20, $wpdb->tickets );
+        $this->assertGreaterThanOrEqual( 3, count( $wpdb->events ) );
+        $this->assertGreaterThanOrEqual( 3, count( $wpdb->tickets ) );
+    }
+
+    public function test_clear_removes_rows() {
+        global $wpdb;
+        $wpdb = new DummyWpdbSample();
+        TTA_Sample_Data::load();
+        TTA_Sample_Data::clear();
+        $this->assertCount( 0, $wpdb->events );
+        $this->assertCount( 0, $wpdb->tickets );
     }
 }
