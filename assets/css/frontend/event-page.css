@@ -116,10 +116,10 @@
   display: flex;
   gap: 20px;
 }
-.tta-event-left {
+.tta-event-right {
   flex: 0 0 220px;
   align-self: stretch;
-  order: 1;
+  order: 3;
 }
 .tta-stick-on-scroll {
   position: sticky;
@@ -135,7 +135,7 @@
   background: #fafafa;
   padding: 20px;
   border-radius: 4px;
-  order: 3;
+  order: 1;
 }
 .tta-event-details h2 {
   margin-top: 0;
@@ -585,7 +585,7 @@ input[disabled] {
   .tta-event-columns {
     flex-direction: column;
   }
-  .tta-event-left,
+  .tta-event-right,
   .tta-event-sidebar {
     flex: 1 1 auto;
   }

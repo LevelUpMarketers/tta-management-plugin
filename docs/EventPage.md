@@ -5,10 +5,10 @@ This document summarizes helper functions and template behavior related to user 
 ## Layout Overview
 
 The template now uses a three-column layout, mirroring the Events List Page. A
-random ad image occupies a narrow **left** column and stays visible while
+random ad image occupies a narrow **right** column and stays visible while
 scrolling. The sticky class is applied directly to this `<aside>` so it scrolls
 independently. The wrapper column stretches to match the main content height so the
-sticky ad behaves properly. The event details sidebar appears on the right with
+sticky ad behaves properly. The event details sidebar now appears on the left with
 the main content in the center.
 
 ## Current User Context Helper
