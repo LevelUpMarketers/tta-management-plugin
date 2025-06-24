@@ -21,6 +21,7 @@
 
 .tta-events-right {
   flex: 0 0 220px;
+  align-self: flex-start;
 }
 
 .tta-events-right .tta-events-ad {

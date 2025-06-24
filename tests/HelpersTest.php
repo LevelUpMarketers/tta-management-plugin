@@ -339,4 +339,19 @@ class HelpersTest extends TestCase {
         $ad = tta_get_random_ad();
         $this->assertArrayHasKey('image_id', $ad);
     }
+
+    public function test_get_first_event_page_id_for_date() {
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public function get_var($q) { return 42; }
+            public function prepare($q, ...$a) { foreach ($a as $v) { $q = preg_replace('/%s/', $v, $q, 1); } return $q; }
+        };
+
+        require_once __DIR__ . '/../includes/helpers.php';
+        require_once __DIR__ . '/../includes/classes/class-tta-cache.php';
+
+        $page_id = tta_get_first_event_page_id_for_date(2025, 7, 15);
+        $this->assertSame(42, $page_id);
+    }
 }

@@ -9,7 +9,7 @@ The layout consists of three columns:
 
 1. **Left column** – a small calendar with arrows to navigate between months. The
    calendar allows browsing three years back and forward. Days that have events
-   are highlighted so visitors can quickly see which dates are busy.
+   are highlighted and link to the first event scheduled on that date.
 2. **Center column** – the list of upcoming events ordered by date. Each row links
    to the corresponding Event Page. Event images are constrained with `object-fit: contain`
    to ensure consistent sizing without cropping.

@@ -74,8 +74,17 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
                     echo '<div class="tta-cal-day empty"></div>';
                 }
                 for ( $d = 1; $d <= $days_in_month; $d++ ) {
-                    $class = in_array( $d, $event_days, true ) ? 'tta-cal-day has-event' : 'tta-cal-day';
-                    echo '<div class="' . esc_attr( $class ) . '">' . intval( $d ) . '</div>';
+                    $has_event = in_array( $d, $event_days, true );
+                    $class     = $has_event ? 'tta-cal-day has-event' : 'tta-cal-day';
+                    $output    = intval( $d );
+                    if ( $has_event ) {
+                        $page_id = tta_get_first_event_page_id_for_date( $year, $month, $d );
+                        if ( $page_id ) {
+                            $url    = get_permalink( $page_id );
+                            $output = '<a href="' . esc_url( $url ) . '">' . $output . '</a>';
+                        }
+                    }
+                    echo '<div class="' . esc_attr( $class ) . '">' . $output . '</div>';
                 }
                 ?>
             </div>
