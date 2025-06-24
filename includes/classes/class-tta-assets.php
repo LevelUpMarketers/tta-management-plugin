@@ -167,7 +167,17 @@ class TTA_Assets {
             );
         }
 
-        // 3) Become a Member page assets
+        // 3) Events List Page template assets
+        if ( function_exists( 'is_page_template' ) && is_page_template( 'events-list-page-template.php' ) ) {
+            wp_enqueue_style(
+                'tta-eventslist-css',
+                TTA_PLUGIN_URL . 'assets/css/frontend/events-list.css',
+                [ 'tta-frontend-css' ],
+                TTA_PLUGIN_VERSION
+            );
+        }
+
+        // 4) Become a Member page assets
         if ( function_exists( 'is_page_template' ) && is_page_template( 'become-member-page-template.php' ) ) {
             wp_enqueue_script(
                 'tta-cart-js',

@@ -1,0 +1,70 @@
+/* assets/css/frontend/events-list.css */
+
+.tta-events-list-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.tta-events-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tta-event-list-item {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 20px;
+}
+
+.tta-event-list-item:last-child {
+  border-bottom: 0;
+}
+
+.tta-event-thumb {
+  flex: 0 0 200px;
+  margin-right: 20px;
+}
+
+.tta-event-thumb img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.tta-event-summary {
+  flex: 1 1 300px;
+}
+
+.tta-event-name {
+  font-size: 1.5em;
+  margin-top: 0;
+}
+
+.tta-event-datetime,
+.tta-event-venue,
+.tta-event-address,
+.tta-event-remaining {
+  margin: 0 0 0.5em 0;
+}
+
+.tta-event-excerpt {
+  margin-bottom: 0.5em;
+}
+
+.tta-event-link {
+  display: inline-block;
+  margin-top: 0.5em;
+  padding: 8px 16px;
+  background: #0073aa;
+  color: #fff;
+  border-radius: 4px;
+}
+
+.tta-events-pagination {
+  text-align: center;
+  margin-top: 40px;
+}
