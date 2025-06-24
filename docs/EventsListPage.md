@@ -30,3 +30,7 @@ Use the `events-list-page-template.php` page template from the **Page Attributes
 section when creating a WordPress page. Each list item links to the associated
 Event Page. Front‑end styling is provided by `assets/css/frontend/events-list.css`
 which is automatically enqueued when this template is active.
+
+The icon and text pairs within `.tta-event-detail-list` are arranged with flexbox
+to keep them on a single line. Time strings are parsed safely, so missing or
+malformed values no longer trigger PHP warnings.

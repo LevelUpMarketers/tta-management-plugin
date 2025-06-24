@@ -2,6 +2,10 @@
 
 This document summarizes helper functions and template behavior related to user context on the Event Page.
 
+## Layout Overview
+
+The template now uses a three-column layout, mirroring the Events List Page. A random ad image occupies a narrow left column and stays visible while scrolling. The center column contains the main event content and the familiar sidebar remains on the right.
+
 ## Current User Context Helper
 
 `tta_get_current_user_context()` returns information about the visiting user and any linked member record. The data is cached for five minutes to reduce queries.

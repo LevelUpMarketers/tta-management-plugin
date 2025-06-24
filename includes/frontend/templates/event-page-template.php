@@ -310,14 +310,16 @@ $map_url           = "https://www.google.com/maps/search/?api=1&query={$map_quer
 // 7) Format date & time
 // ───────────────
 $timestamp = strtotime( $event['date'] );
-$date_str  = date_i18n( get_option( 'date_format' ), $timestamp );
-list( $start, $end ) = explode( '|', $event['time'] );
+$date_str = date_i18n( get_option( 'date_format' ), $timestamp );
+$parts    = array_pad( explode( '|', $event['time'] ), 2, '' );
+$start    = $parts[0];
+$end      = $parts[1];
 if ( $event['all_day_event'] ) {
     $time_str = esc_html__( 'All day', 'tta' );
 } else {
-    $time_str = date_i18n( get_option( 'time_format' ), strtotime( $start ) )
-              . ' – '
-              . date_i18n( get_option( 'time_format' ), strtotime( $end ) );
+    $start_fmt = $start ? date_i18n( get_option( 'time_format' ), strtotime( $start ) ) : '';
+    $end_fmt   = $end ? date_i18n( get_option( 'time_format' ), strtotime( $end ) ) : '';
+    $time_str  = trim( $start_fmt . ( $end_fmt ? ' – ' . $end_fmt : '' ) );
 }
 
 // ───────────────
@@ -608,9 +610,23 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
 
   <!-- MAIN + SIDEBAR -->
   <div class="tta-event-content-wrap">
+    <div class="tta-event-columns">
+      <aside class="tta-event-left">
+        <div class="tta-events-ad tta-stick-on-scroll">
+          <?php $ad = tta_get_random_ad(); ?>
+          <?php if ( $ad ) : ?>
+            <?php $img = wp_get_attachment_image( intval( $ad['image_id'] ), 'medium' ); ?>
+            <?php if ( $ad['url'] ) : ?><a href="<?php echo esc_url( $ad['url'] ); ?>"><?php endif; ?>
+            <?php echo $img ? $img : '<img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ) . '" alt="">'; ?>
+            <?php if ( $ad['url'] ) : ?></a><?php endif; ?>
+          <?php else : ?>
+            <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ); ?>" alt="Ad" />
+          <?php endif; ?>
+        </div>
+      </aside>
 
-    <!-- MAIN CONTENT -->
-    <main class="tta-event-main">
+      <!-- MAIN CONTENT -->
+      <main class="tta-event-main">
 
       <?php if ( $raw_content ) : ?>
         <section class="tta-event-section tta-event-description-accordion">
@@ -1068,6 +1084,7 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
         </div>
       <?php endif; ?>
     </aside>
+    </div><!-- .tta-event-columns -->
 
   </div><!-- .tta-event-content-wrap -->
 
@@ -1087,8 +1104,9 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
             $default = esc_url( TTA_PLUGIN_URL . 'assets/images/admin/default-event.png' );
             $img     = '<img src="' . $default . '" alt="' . esc_attr( $re['name'] ) . '" class="tta-related-event-img">';
           }
-          list( $rs, ) = explode( '|', $re['time'] );
-          $re_ts = strtotime( $re['date'] . ' ' . $rs );
+          $time_parts = array_pad( explode( '|', $re['time'] ), 2, '' );
+          $rs        = $time_parts[0];
+          $re_ts     = strtotime( $re['date'] . ( $rs ? ' ' . $rs : '' ) );
           $dt_iso = date( 'c', $re_ts );
           $dt_disp = date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $re_ts );
         ?>
