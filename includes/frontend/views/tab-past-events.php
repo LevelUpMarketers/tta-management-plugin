@@ -15,8 +15,10 @@
           $date_str = date_i18n( get_option( 'date_format' ), strtotime( $ev['date'] ) );
           $time_str = '';
           if ( ! empty( $ev['time'] ) ) {
-              list( $start, $end ) = explode( '|', $ev['time'] );
-              $time_str = date_i18n( get_option( 'time_format' ), strtotime( $start ) ) . ' – ' . date_i18n( get_option( 'time_format' ), strtotime( $end ) );
+              $parts     = array_pad( explode( '|', $ev['time'] ), 2, '' );
+              $start_fmt = $parts[0] ? date_i18n( get_option( 'time_format' ), strtotime( $parts[0] ) ) : '';
+              $end_fmt   = $parts[1] ? date_i18n( get_option( 'time_format' ), strtotime( $parts[1] ) ) : '';
+              $time_str  = trim( $start_fmt . ( $end_fmt ? ' – ' . $end_fmt : '' ) );
           }
           ?>
           <div class="tta-upcoming-event">
