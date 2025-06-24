@@ -21,11 +21,35 @@
 
 .tta-events-right {
   flex: 0 0 220px;
+  align-self: flex-start;
 }
 
-.tta-events-right .tta-events-ad {
+.tta-stick-on-scroll {
   position: sticky;
-  top: 20px;
+  top: 80px; /* fallback offset */
+}
+
+.tta-join-friends {
+  margin-top: 20px;
+}
+.tta-join-friends h2 {
+  margin: 0 0 4px;
+}
+.tta-join-friends .tta-join-sub {
+  margin: 0 0 8px;
+  font-size: 0.9em;
+  color: #666;
+}
+.tta-friend-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tta-friend-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .tta-calendar {
@@ -34,10 +58,24 @@
   border-radius: 4px;
 }
 
-.tta-cal-header {
-  text-align: center;
+.tta-cal-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 8px;
+}
+
+.tta-cal-nav a {
+  text-decoration: none;
   font-weight: bold;
+}
+
+.tta-cal-nav span {
+  font-weight: bold;
+}
+
+.tta-cal-disabled {
+  color: #ccc;
 }
 
 .tta-cal-grid {
@@ -89,6 +127,7 @@
   height: auto;
   max-height: 150px;
   object-fit: contain;
+  object-position: right center;
   border-radius: 4px;
 }
 
@@ -124,6 +163,56 @@
 .tta-events-pagination {
   text-align: center;
   margin-top: 40px;
+}
+
+.tta-member-events,
+.tta-membership-perks {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+}
+.tta-member-events h2,
+.tta-membership-perks h2 {
+  margin-top: 0;
+}
+.tta-member-events ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tta-member-events li {
+  margin-bottom: 6px;
+}
+.tta-membership-perks img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 8px;
+}
+.login-wrap form {
+  margin-top: 10px;
+}
+
+.tta-event-detail-list {
+  list-style: none;
+  margin: 0 0 0.5em 0;
+  padding: 0;
+}
+.tta-event-detail-list li {
+  margin-bottom: 4px;
+}
+.tta-event-details-icon {
+  width: 18px;
+  display: inline-block;
+  position: relative;
+  top: 2px;
+  margin-right: 4px;
+}
+.tta-event-details-icon-after {
+  display: inline-block;
+  width: calc(100% - 22px);
+  vertical-align: top;
 }
 
 @media (max-width: 768px) {

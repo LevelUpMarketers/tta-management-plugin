@@ -1437,3 +1437,71 @@ function tta_get_comm_templates() {
 
     return $defaults;
 }
+
+/**
+ * Retrieve all saved ads.
+ *
+ * @return array[] List of ads with image_id and url.
+ */
+function tta_get_ads() {
+    $cache_key = 'tta_ads_all';
+    $ads = TTA_Cache::get( $cache_key );
+    if ( false !== $ads ) {
+        return $ads;
+    }
+    $ads = get_option( 'tta_ads', [] );
+    if ( ! is_array( $ads ) ) {
+        $ads = [];
+    }
+    TTA_Cache::set( $cache_key, $ads, 300 );
+    return $ads;
+}
+
+/**
+ * Retrieve one random ad record.
+ *
+ * @return array|null
+ */
+function tta_get_random_ad() {
+    $ads = tta_get_ads();
+    if ( empty( $ads ) ) {
+        return null;
+    }
+    $ads = array_values( $ads );
+    shuffle( $ads );
+    return $ads[0];
+}
+
+/**
+ * Get the page ID of the first event scheduled for a given date.
+ *
+ * @param int $year  Year in YYYY format.
+ * @param int $month Month number (1-12).
+ * @param int $day   Day of month (1-31).
+ * @return int       WordPress page ID or 0 if none found.
+ */
+function tta_get_first_event_page_id_for_date( $year, $month, $day ) {
+    $year  = max( 1970, intval( $year ) );
+    $month = max( 1, min( 12, intval( $month ) ) );
+    $day   = max( 1, min( 31, intval( $day ) ) );
+
+    $cache_key = sprintf( 'event_page_%04d_%02d_%02d', $year, $month, $day );
+    $page_id   = TTA_Cache::get( $cache_key );
+    if ( false !== $page_id ) {
+        return intval( $page_id );
+    }
+
+    global $wpdb;
+    $events_table = $wpdb->prefix . 'tta_events';
+    $date         = sprintf( '%04d-%02d-%02d', $year, $month, $day );
+
+    $page_id = (int) $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT page_id FROM {$events_table} WHERE date = %s ORDER BY id ASC LIMIT 1",
+            $date
+        )
+    );
+
+    TTA_Cache::set( $cache_key, $page_id, 300 );
+    return $page_id;
+}
