@@ -176,10 +176,18 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
             $default  = esc_url( TTA_PLUGIN_URL . 'assets/images/admin/default-event.png' );
             $img_html = '<img src="' . $default . '" alt="" class="attachment-medium size-medium" />';
         }
-        $ts        = strtotime( $ev['date'] );
-        $date_str  = date_i18n( 'm-d-Y', $ts );
-        list( $start, $end ) = explode( '|', $ev['time'] );
-        $time_str = $ev['all_day_event'] ? esc_html__( 'All day', 'tta' ) : date_i18n( get_option( 'time_format' ), strtotime( $start ) ) . ' – ' . date_i18n( get_option( 'time_format' ), strtotime( $end ) );
+        $ts       = strtotime( $ev['date'] );
+        $date_str = date_i18n( 'm-d-Y', $ts );
+        $parts    = array_pad( explode( '|', $ev['time'] ), 2, '' );
+        $start    = $parts[0];
+        $end      = $parts[1];
+        if ( $ev['all_day_event'] ) {
+            $time_str = esc_html__( 'All day', 'tta' );
+        } else {
+            $start_fmt = $start ? date_i18n( get_option( 'time_format' ), strtotime( $start ) ) : '';
+            $end_fmt   = $end ? date_i18n( get_option( 'time_format' ), strtotime( $end ) ) : '';
+            $time_str  = trim( $start_fmt . ( $end_fmt ? ' – ' . $end_fmt : '' ) );
+        }
         $address   = tta_format_address( $ev['address'] );
         $content   = get_post_field( 'post_content', $ev['page_id'] );
         $excerpt   = wp_trim_words( wp_strip_all_tags( $content ), 25, '…' );

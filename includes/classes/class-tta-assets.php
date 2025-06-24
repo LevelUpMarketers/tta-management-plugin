@@ -149,6 +149,13 @@ class TTA_Assets {
                 TTA_PLUGIN_VERSION,
                 true
             );
+            wp_enqueue_script(
+                'tta-sticky-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/sticky-scroll.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
 
             wp_enqueue_style(
                 'tta-popup-css',
