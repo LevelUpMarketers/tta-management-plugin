@@ -9,9 +9,10 @@ The layout consists of three columns:
 
 1. **Left column** – a small calendar with arrows to navigate between months. The
    calendar allows browsing three years back and forward. Days that have events
-   are highlighted and link to the first event scheduled on that date. A "Join Your
-   Friends" box below the calendar shows profile photos of members attending the
-   currently visible events.
+   are highlighted and link to the first event scheduled on that date. Navigation
+   happens over AJAX so changing months no longer resets pagination. Above the
+   friends box is a **Your Upcoming Events** widget showing events for the logged
+   in member and a **Membership Perks** panel encouraging upgrades.
 2. **Center column** – the list of upcoming events ordered by date. Each row links
    to the corresponding Event Page. Event images are constrained with `object-fit: contain`
    to ensure consistent sizing without cropping.

@@ -169,6 +169,35 @@
   margin-top: 40px;
 }
 
+.tta-member-events,
+.tta-membership-perks {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+}
+.tta-member-events h2,
+.tta-membership-perks h2 {
+  margin-top: 0;
+}
+.tta-member-events ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tta-member-events li {
+  margin-bottom: 6px;
+}
+.tta-membership-perks img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 8px;
+}
+.login-wrap form {
+  margin-top: 10px;
+}
+
 @media (max-width: 768px) {
   .tta-events-columns {
     flex-direction: column;

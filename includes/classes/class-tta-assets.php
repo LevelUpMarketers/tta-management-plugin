@@ -182,6 +182,39 @@ class TTA_Assets {
                 TTA_PLUGIN_VERSION,
                 true
             );
+            wp_enqueue_script(
+                'tta-calendar-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/calendar-ajax.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+            $current_year = intval( date_i18n( 'Y' ) );
+            $year  = isset( $_GET['cal_year'] ) ? intval( $_GET['cal_year'] ) : $current_year;
+            $month = isset( $_GET['cal_month'] ) ? intval( $_GET['cal_month'] ) : intval( date_i18n( 'n' ) );
+            $min_year = $current_year - 3;
+            $max_year = $current_year + 3;
+            if ( $year < $min_year || $year > $max_year ) {
+                $year = $current_year;
+            }
+            $month = max( 1, min( 12, $month ) );
+            $event_days = tta_get_event_days_for_month( $year, $month );
+            $permalinks = [];
+            foreach ( $event_days as $d ) {
+                $pid = tta_get_first_event_page_id_for_date( $year, $month, $d );
+                if ( $pid ) {
+                    $permalinks[ $d ] = get_permalink( $pid );
+                }
+            }
+            wp_localize_script(
+                'tta-calendar-js',
+                'ttaCal',
+                [
+                    'ajax_url' => admin_url( 'admin-ajax.php' ),
+                    'nonce'    => wp_create_nonce( 'tta_frontend_nonce' ),
+                    'permalinks' => $permalinks,
+                ]
+            );
         }
 
         // 4) Become a Member page assets

@@ -12,6 +12,7 @@ require_once TTA_PLUGIN_DIR . 'includes/ajax/handlers/class-ajax-membership.php'
 require_once TTA_PLUGIN_DIR . 'includes/ajax/handlers/class-ajax-checkout.php';
 require_once TTA_PLUGIN_DIR . 'includes/ajax/handlers/class-ajax-comms.php';
 require_once TTA_PLUGIN_DIR . 'includes/ajax/handlers/class-ajax-attendance.php';
+require_once TTA_PLUGIN_DIR . 'includes/ajax/handlers/class-ajax-calendar.php';
 
 
 // Initialize them
@@ -23,3 +24,4 @@ TTA_Ajax_Membership::init();
 TTA_Ajax_Checkout::init();
 TTA_Ajax_Comms::init();
 TTA_Ajax_Attendance::init();
+TTA_Ajax_Calendar::init();

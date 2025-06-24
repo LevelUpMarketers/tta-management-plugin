@@ -38,6 +38,12 @@ foreach ( $events as $ev ) {
     }
 }
 
+$context = tta_get_current_user_context();
+$member_events = [];
+if ( $context['is_logged_in'] ) {
+    $member_events = array_slice( tta_get_member_upcoming_events( $context['wp_user_id'] ), 0, 5 );
+}
+
 $prev_year  = $year;
 $prev_month = $month - 1;
 if ( $prev_month < 1 ) {
@@ -52,24 +58,24 @@ if ( $next_month > 12 ) {
 }
 $prev_allowed = ( $prev_year >= $min_year );
 $next_allowed = ( $next_year <= $max_year );
-$prev_url = $prev_allowed ? add_query_arg( [ 'cal_year' => $prev_year, 'cal_month' => $prev_month ], get_permalink() ) : '';
-$next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_month' => $next_month ], get_permalink() ) : '';
+$prev_url = $prev_allowed ? add_query_arg( [ 'cal_year' => $prev_year, 'cal_month' => $prev_month, 'paged' => $paged ], get_permalink() ) : '';
+$next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_month' => $next_month, 'paged' => $paged ], get_permalink() ) : '';
 ?>
 <div class="wrap tta-events-list-page">
 <div class="tta-events-columns">
     <aside class="tta-events-left">
-        <div class="tta-calendar">
+        <div class="tta-calendar" data-year="<?php echo esc_attr( $year ); ?>" data-month="<?php echo esc_attr( $month ); ?>" data-min-year="<?php echo esc_attr( $min_year ); ?>" data-max-year="<?php echo esc_attr( $max_year ); ?>">
             <div class="tta-cal-nav">
                 <?php if ( $prev_allowed ) : ?>
-                    <a href="<?php echo esc_url( $prev_url ); ?>">&laquo;</a>
+                    <a href="<?php echo esc_url( $prev_url ); ?>" class="tta-cal-prev">&laquo;</a>
                 <?php else : ?>
-                    <span class="tta-cal-disabled">&laquo;</span>
+                    <span class="tta-cal-prev tta-cal-disabled">&laquo;</span>
                 <?php endif; ?>
-                <span><?php echo esc_html( date_i18n( 'F Y', mktime( 0, 0, 0, $month, 1, $year ) ) ); ?></span>
+                <span class="tta-cal-current"><?php echo esc_html( date_i18n( 'F Y', mktime( 0, 0, 0, $month, 1, $year ) ) ); ?></span>
                 <?php if ( $next_allowed ) : ?>
-                    <a href="<?php echo esc_url( $next_url ); ?>">&raquo;</a>
+                    <a href="<?php echo esc_url( $next_url ); ?>" class="tta-cal-next">&raquo;</a>
                 <?php else : ?>
-                    <span class="tta-cal-disabled">&raquo;</span>
+                    <span class="tta-cal-next tta-cal-disabled">&raquo;</span>
                 <?php endif; ?>
             </div>
             <div class="tta-cal-grid">
@@ -97,6 +103,27 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
                 ?>
             </div>
         </div>
+
+        <div class="tta-member-events">
+            <h2><?php esc_html_e( 'Your Upcoming Events', 'tta' ); ?></h2>
+            <?php if ( $context['is_logged_in'] ) : ?>
+                <?php if ( $member_events ) : ?>
+                    <ul>
+                        <?php foreach ( $member_events as $mev ) : ?>
+                            <li><a href="<?php echo esc_url( get_permalink( $mev['page_id'] ) ); ?>"><?php echo esc_html( $mev['name'] ); ?></a> <span class="tta-member-date"><?php echo esc_html( date_i18n( 'M j', strtotime( $mev['date'] ) ) ); ?></span></li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php else : ?>
+                    <p><?php esc_html_e( 'You have no upcoming events.', 'tta' ); ?></p>
+                <?php endif; ?>
+            <?php else : ?>
+                <p><?php esc_html_e( 'Log in to see your upcoming events.', 'tta' ); ?></p>
+                <div class="login-wrap">
+                    <?php wp_login_form( [ 'echo' => true ] ); ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
         <?php if ( $friend_imgs ) : ?>
         <div class="tta-join-friends">
             <h2><?php esc_html_e( 'Join Your Friends', 'tta' ); ?></h2>
@@ -112,6 +139,26 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
             </div>
         </div>
         <?php endif; ?>
+
+        <div class="tta-membership-perks">
+            <h2><?php esc_html_e( 'Membership Perks', 'tta' ); ?></h2>
+            <?php
+            $become_url = home_url( '/become-a-member' );
+            if ( ! $context['is_logged_in'] || 'free' === $context['membership_level'] ) :
+                ?>
+                <a href="<?php echo esc_url( $become_url ); ?>">
+                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ); ?>" alt="Become a Member">
+                </a>
+                <p><?php esc_html_e( 'Become a member today to unlock discounts and exclusive events!', 'tta' ); ?></p>
+            <?php elseif ( 'basic' === $context['membership_level'] ) : ?>
+                <p><?php esc_html_e( 'Thanks for being a member! Upgrade to Premium for even more perks.', 'tta' ); ?></p>
+                <a href="<?php echo esc_url( $become_url ); ?>">
+                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder2.svg' ); ?>" alt="Upgrade">
+                </a>
+            <?php else : ?>
+                <p><?php esc_html_e( 'Thanks for being a Premium Member! Don\'t forget about our referral program for extra rewards.', 'tta' ); ?></p>
+            <?php endif; ?>
+        </div>
     </aside>
     <main class="tta-events-center">
 <?php if ( $events ) : ?>
