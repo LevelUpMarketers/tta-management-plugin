@@ -156,6 +156,13 @@ class TTA_Assets {
                 TTA_PLUGIN_VERSION,
                 true
             );
+            wp_enqueue_script(
+                'tta-share-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/share/event-share.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
 
             wp_enqueue_style(
                 'tta-popup-css',

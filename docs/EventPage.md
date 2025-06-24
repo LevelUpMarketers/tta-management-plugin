@@ -30,6 +30,10 @@ The Event Page template includes a **Message Center** block under the “About T
 
 The **Event Details** sidebar now lists the event type (Open Event, Basic Membership Required, or Premium Membership Required). A short message under the “Get Your Tickets Now” heading communicates the membership requirement and offers login or upgrade links depending on the visitor’s status.
 
+## Social Sharing
+
+Below the event meta information the hero section shows small Facebook and Instagram icons. Clicking either icon opens a share window preloaded with the event title and URL so visitors can quickly post about the event on social media. The behaviour is handled by `event-share.js` which is only loaded on individual Event Pages.
+
 ## Your Events Sidebar Section
 
 Between the Venue Links and Refund Policy sections a new **Your Events** block appears. When not logged in it shows a single link prompting visitors to log in. Clicking the link scrolls to the Message Center and automatically expands the login form.

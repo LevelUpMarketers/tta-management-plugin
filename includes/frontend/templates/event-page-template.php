@@ -594,6 +594,16 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
         </div>
       </div>
 
+      <div class="tta-event-share">
+        <span class="tta-share-label"><?php esc_html_e( 'Share this event', 'tta' ); ?></span>
+        <a href="#" class="tta-share-link" data-platform="facebook">
+          <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/facebook.svg' ); ?>" alt="Facebook">
+        </a>
+        <a href="#" class="tta-share-link" data-platform="instagram">
+          <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/instagram.svg' ); ?>" alt="Instagram">
+        </a>
+      </div>
+
       <?php if ( ! $is_archived ) : ?>
         <a href="<?php echo $is_logged_in ? '#tta-event-buy' : '#tta-login-message'; ?>" class="tta-button tta-button-primary<?php echo $is_logged_in ? '' : ' tta-scroll-login'; ?>">
           <?php echo $is_logged_in ? esc_html__( 'Buy Tickets', 'tta' ) : esc_html__( 'Log in to Buy Tickets', 'tta' ); ?>

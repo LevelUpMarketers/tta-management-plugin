@@ -31,6 +31,18 @@
   font-size: 1.1em;
   margin-bottom: 1em;
 }
+.tta-event-share {
+  margin-bottom: 1em;
+}
+.tta-event-share .tta-share-label {
+  margin-right: 0.5em;
+}
+.tta-event-share img {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.25em;
+  vertical-align: middle;
+}
 .tta-event-meta .tta-event-date,
 .tta-event-meta .tta-event-price,
 .tta-event-meta .tta-event-type-meta {
@@ -140,6 +152,8 @@
 }
 .tta-event-details li {
   margin-bottom: .5em;
+  display: flex;
+  align-items: flex-start;
 }
 .tta-event-map iframe {
   width: 100%;
@@ -451,6 +465,8 @@ input[disabled] {
 }
 .tta-your-events-list li {
   margin-bottom: .5em;
+  display: flex;
+  align-items: flex-start;
 }
 .tta-your-events-list .logout-icon {
   transform: rotate(180deg);
@@ -469,16 +485,14 @@ input[disabled] {
 
 .tta-event-details-icon{
     width: 18px;
-    display: inline-block;
+    flex: 0 0 auto;
     position: relative;
     top: 2px;
-    right: 2px;
+    margin-right: 4px;
 }
 
 .tta-event-details-icon-after{
-    display: inline-block;
-    width: 93%;
-    vertical-align: top;
+    flex: 1 1 auto;
 }
 
 /* Gallery grid */
