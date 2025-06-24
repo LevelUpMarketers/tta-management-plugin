@@ -1467,7 +1467,9 @@ function tta_get_random_ad() {
     if ( empty( $ads ) ) {
         return null;
     }
-    return $ads[ array_rand( $ads ) ];
+    $ads = array_values( $ads );
+    shuffle( $ads );
+    return $ads[0];
 }
 
 /**

@@ -39,6 +39,7 @@ class TTA_Ads_Admin {
                 }
             }
             update_option( 'tta_ads', $new_ads, false );
+            TTA_Cache::delete( 'tta_ads_all' );
             $ads = $new_ads;
             echo '<div class="updated"><p>' . esc_html__( 'Ads saved.', 'tta' ) . '</p></div>';
         }

@@ -9,13 +9,16 @@ The layout consists of three columns:
 
 1. **Left column** – a small calendar with arrows to navigate between months. The
    calendar allows browsing three years back and forward. Days that have events
-   are highlighted and link to the first event scheduled on that date.
+   are highlighted and link to the first event scheduled on that date. A "Join Your
+   Friends" box below the calendar shows profile photos of members attending the
+   currently visible events.
 2. **Center column** – the list of upcoming events ordered by date. Each row links
    to the corresponding Event Page. Event images are constrained with `object-fit: contain`
    to ensure consistent sizing without cropping.
 3. **Right column** – an advertising slot that displays one random ad image from
    the Ads admin page. The slot sticks to the viewport while scrolling thanks to
-   `sticky-scroll.js` which fixes elements with the `.tta-stick-on-scroll` class.
+   `sticky-scroll.js` which fixes elements with the `.tta-stick-on-scroll` class
+   and recalculates its position when images load or the window resizes.
 
 On small screens the columns stack vertically for a mobile‑friendly layout.
 

@@ -20,7 +20,7 @@ jQuery(function ($) {
       var top = $(window).scrollTop();
       if (top >= start) {
         if (!$el.hasClass('tta-fixed')) {
-          $el.addClass('tta-fixed').css({ position: 'fixed', top: OFFSET, width: orig.width });
+          $el.addClass('tta-fixed').css({ position: 'fixed', top: OFFSET, width: orig.width, left: $ph.offset().left });
           $ph.show();
         }
       } else if ($el.hasClass('tta-fixed')) {
@@ -37,5 +37,9 @@ jQuery(function ($) {
 
     compute();
     onScroll();
+    $el.find('img').on('load', function(){
+      compute();
+      onScroll();
+    });
   });
 });

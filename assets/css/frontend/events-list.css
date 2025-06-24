@@ -34,6 +34,29 @@
   top: 20px;
 }
 
+.tta-join-friends {
+  margin-top: 20px;
+}
+.tta-join-friends h2 {
+  margin: 0 0 4px;
+}
+.tta-join-friends .tta-join-sub {
+  margin: 0 0 8px;
+  font-size: 0.9em;
+  color: #666;
+}
+.tta-friend-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tta-friend-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .tta-calendar {
   border: 1px solid #ccc;
   padding: 10px;

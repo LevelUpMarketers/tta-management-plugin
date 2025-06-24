@@ -30,6 +30,13 @@ $event_days = tta_get_event_days_for_month( $year, $month );
 $days_in_month = (int) date( 't', mktime( 0, 0, 0, $month, 1, $year ) );
 $first_wday = (int) date( 'w', mktime( 0, 0, 0, $month, 1, $year ) );
 
+$friend_imgs = [];
+foreach ( $events as $ev ) {
+    $ids        = tta_get_event_attendee_image_ids( $ev['id'] );
+    $friend_imgs = array_merge( $friend_imgs, $ids );
+}
+$friend_imgs = array_values( array_unique( array_filter( $friend_imgs ) ) );
+
 $prev_year  = $year;
 $prev_month = $month - 1;
 if ( $prev_month < 1 ) {
@@ -89,6 +96,17 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
                 ?>
             </div>
         </div>
+        <?php if ( $friend_imgs ) : ?>
+        <div class="tta-join-friends">
+            <h2><?php esc_html_e( 'Join Your Friends', 'tta' ); ?></h2>
+            <p class="tta-join-sub"><?php esc_html_e( 'Members attending upcoming events', 'tta' ); ?></p>
+            <div class="tta-friend-grid">
+                <?php foreach ( $friend_imgs as $img_id ) : ?>
+                    <?php echo wp_get_attachment_image( $img_id, 'thumbnail', false, [ 'class' => 'tta-friend-thumb' ] ); ?>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
     </aside>
     <main class="tta-events-center">
 <?php if ( $events ) : ?>
