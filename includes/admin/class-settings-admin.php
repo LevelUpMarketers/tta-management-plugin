@@ -33,9 +33,21 @@ class TTA_Settings_Admin {
             echo '<div class="updated"><p>All caches cleared.</p></div>';
         }
 
+        if ( isset( $_POST['tta_load_sample_data'] ) && check_admin_referer( 'tta_load_sample_data_action', 'tta_load_sample_data_nonce' ) ) {
+            if ( current_user_can( 'manage_options' ) ) {
+                TTA_Sample_Data::load();
+                echo '<div class="updated"><p>Sample data loaded.</p></div>';
+            }
+        }
+
         echo '<form method="post">';
         wp_nonce_field( 'tta_flush_cache_action', 'tta_flush_cache_nonce' );
         echo '<p><input type="submit" name="tta_flush_cache" class="button button-secondary" value="Clear Cache"></p>';
+        echo '</form>';
+
+        echo '<form method="post">';
+        wp_nonce_field( 'tta_load_sample_data_action', 'tta_load_sample_data_nonce' );
+        echo '<p><input type="submit" name="tta_load_sample_data" class="button button-secondary" value="Load Sample Data"></p>';
         echo '</form>';
 
         if ( isset( $_POST['tta_clear_log'] ) && check_admin_referer( 'tta_clear_log_action', 'tta_clear_log_nonce' ) ) {

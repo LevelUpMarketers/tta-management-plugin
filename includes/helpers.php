@@ -793,6 +793,125 @@ function tta_get_next_event() {
 }
 
 /**
+ * Get the remaining ticket count for an upcoming event.
+ *
+ * @param string $event_ute_id Event ute_id.
+ * @return int Remaining tickets.
+ */
+function tta_get_remaining_ticket_count( $event_ute_id ) {
+    $event_ute_id = sanitize_text_field( $event_ute_id );
+    if ( '' === $event_ute_id ) {
+        return 0;
+    }
+
+    $cache_key = 'tickets_remaining_' . $event_ute_id;
+    $remaining = TTA_Cache::get( $cache_key );
+    if ( false !== $remaining ) {
+        return intval( $remaining );
+    }
+
+    global $wpdb;
+    $tickets_table = $wpdb->prefix . 'tta_tickets';
+    $remaining     = (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT SUM(ticketlimit) FROM {$tickets_table} WHERE event_ute_id = %s",
+        $event_ute_id
+    ) );
+
+    $remaining = max( 0, $remaining );
+    TTA_Cache::set( $cache_key, $remaining, 60 );
+    return $remaining;
+}
+
+/**
+ * Retrieve upcoming events with pagination.
+ *
+ * @param int $paged    Page number (1-indexed).
+ * @param int $per_page Events per page.
+ * @return array{events:array[],total:int}
+ */
+function tta_get_upcoming_events( $paged = 1, $per_page = 5 ) {
+    $paged    = max( 1, intval( $paged ) );
+    $per_page = max( 1, intval( $per_page ) );
+
+    $cache_key = 'upcoming_events_' . $paged . '_' . $per_page;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $events_table = $wpdb->prefix . 'tta_events';
+    $offset       = ( $paged - 1 ) * $per_page;
+
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT SQL_CALC_FOUND_ROWS * FROM {$events_table} WHERE date >= %s ORDER BY date ASC LIMIT %d, %d",
+            current_time( 'Y-m-d' ),
+            $offset,
+            $per_page
+        ),
+        ARRAY_A
+    );
+
+    $total = (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' );
+
+    $events = [];
+    foreach ( $rows as $row ) {
+        $events[] = [
+            'id'            => intval( $row['id'] ),
+            'ute_id'        => sanitize_text_field( $row['ute_id'] ),
+            'name'          => sanitize_text_field( $row['name'] ),
+            'date'          => $row['date'],
+            'time'          => $row['time'],
+            'all_day_event' => ! empty( $row['all_day_event'] ),
+            'venuename'     => sanitize_text_field( $row['venuename'] ),
+            'address'       => sanitize_text_field( $row['address'] ),
+            'page_id'       => intval( $row['page_id'] ),
+            'mainimageid'   => intval( $row['mainimageid'] ),
+        ];
+    }
+
+    $result = [ 'events' => $events, 'total' => $total ];
+    TTA_Cache::set( $cache_key, $result, 300 );
+    return $result;
+}
+
+/**
+ * Get a list of days in a month that have events scheduled.
+ *
+ * @param int $year 4-digit year.
+ * @param int $month Numeric month (1-12).
+ * @return int[] Array of day numbers with events.
+ */
+function tta_get_event_days_for_month( $year, $month ) {
+    $year  = max( 1970, intval( $year ) );
+    $month = max( 1, min( 12, intval( $month ) ) );
+
+    $cache_key = 'event_days_' . $year . '_' . $month;
+    $days      = TTA_Cache::get( $cache_key );
+    if ( false !== $days ) {
+        return (array) $days;
+    }
+
+    global $wpdb;
+    $events_table = $wpdb->prefix . 'tta_events';
+    $start = sprintf( '%04d-%02d-01', $year, $month );
+    $end   = date( 'Y-m-t', strtotime( $start ) );
+
+    $results = $wpdb->get_col(
+        $wpdb->prepare(
+            "SELECT DAY(date) FROM {$events_table} WHERE date BETWEEN %s AND %s",
+            $start,
+            $end
+        )
+    );
+
+    $days = array_map( 'intval', $results );
+    TTA_Cache::set( $cache_key, $days, 300 );
+    return $days;
+}
+
+/**
  * Retrieve a sample member record for previews.
  *
  * @return array{
