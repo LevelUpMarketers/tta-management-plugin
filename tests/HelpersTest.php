@@ -323,4 +323,20 @@ class HelpersTest extends TestCase {
         $this->assertSame([1,15,28], $days);
         $this->assertStringContainsString('wp_tta_events', $wpdb->get_col_query);
     }
+
+    public function test_get_ads_functions() {
+        update_option('tta_ads', [
+            ['image_id' => 1, 'url' => 'https://example.com/a'],
+            ['image_id' => 2, 'url' => 'https://example.com/b'],
+        ], false);
+
+        require_once __DIR__ . '/../includes/helpers.php';
+        require_once __DIR__ . '/../includes/classes/class-tta-cache.php';
+
+        $ads = tta_get_ads();
+        $this->assertCount(2, $ads);
+
+        $ad = tta_get_random_ad();
+        $this->assertArrayHasKey('image_id', $ad);
+    }
 }

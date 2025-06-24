@@ -34,10 +34,24 @@
   border-radius: 4px;
 }
 
-.tta-cal-header {
-  text-align: center;
+.tta-cal-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 8px;
+}
+
+.tta-cal-nav a {
+  text-decoration: none;
   font-weight: bold;
+}
+
+.tta-cal-nav span {
+  font-weight: bold;
+}
+
+.tta-cal-disabled {
+  color: #ccc;
 }
 
 .tta-cal-grid {

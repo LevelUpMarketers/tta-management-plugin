@@ -1437,3 +1437,35 @@ function tta_get_comm_templates() {
 
     return $defaults;
 }
+
+/**
+ * Retrieve all saved ads.
+ *
+ * @return array[] List of ads with image_id and url.
+ */
+function tta_get_ads() {
+    $cache_key = 'tta_ads_all';
+    $ads = TTA_Cache::get( $cache_key );
+    if ( false !== $ads ) {
+        return $ads;
+    }
+    $ads = get_option( 'tta_ads', [] );
+    if ( ! is_array( $ads ) ) {
+        $ads = [];
+    }
+    TTA_Cache::set( $cache_key, $ads, 300 );
+    return $ads;
+}
+
+/**
+ * Retrieve one random ad record.
+ *
+ * @return array|null
+ */
+function tta_get_random_ad() {
+    $ads = tta_get_ads();
+    if ( empty( $ads ) ) {
+        return null;
+    }
+    return $ads[ array_rand( $ads ) ];
+}

@@ -17,17 +17,53 @@ $events   = $data['events'];
 $total    = $data['total'];
 $total_pages = $per_page > 0 ? ceil( $total / $per_page ) : 1;
 
-$year  = intval( date_i18n( 'Y' ) );
-$month = intval( date_i18n( 'n' ) );
+$current_year = intval( date_i18n( 'Y' ) );
+$year  = isset( $_GET['cal_year'] ) ? intval( $_GET['cal_year'] ) : $current_year;
+$month = isset( $_GET['cal_month'] ) ? intval( $_GET['cal_month'] ) : intval( date_i18n( 'n' ) );
+$min_year = $current_year - 3;
+$max_year = $current_year + 3;
+if ( $year < $min_year || $year > $max_year ) {
+    $year = $current_year;
+}
+$month = max( 1, min( 12, $month ) );
 $event_days = tta_get_event_days_for_month( $year, $month );
 $days_in_month = (int) date( 't', mktime( 0, 0, 0, $month, 1, $year ) );
 $first_wday = (int) date( 'w', mktime( 0, 0, 0, $month, 1, $year ) );
+
+$prev_year  = $year;
+$prev_month = $month - 1;
+if ( $prev_month < 1 ) {
+    $prev_month = 12;
+    $prev_year--;
+}
+$next_year  = $year;
+$next_month = $month + 1;
+if ( $next_month > 12 ) {
+    $next_month = 1;
+    $next_year++;
+}
+$prev_allowed = ( $prev_year >= $min_year );
+$next_allowed = ( $next_year <= $max_year );
+$prev_url = $prev_allowed ? add_query_arg( [ 'cal_year' => $prev_year, 'cal_month' => $prev_month ], get_permalink() ) : '';
+$next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_month' => $next_month ], get_permalink() ) : '';
 ?>
 <div class="wrap tta-events-list-page">
 <div class="tta-events-columns">
     <aside class="tta-events-left">
         <div class="tta-calendar">
-            <div class="tta-cal-header"><?php echo esc_html( date_i18n( 'F Y', mktime( 0, 0, 0, $month, 1, $year ) ) ); ?></div>
+            <div class="tta-cal-nav">
+                <?php if ( $prev_allowed ) : ?>
+                    <a href="<?php echo esc_url( $prev_url ); ?>">&laquo;</a>
+                <?php else : ?>
+                    <span class="tta-cal-disabled">&laquo;</span>
+                <?php endif; ?>
+                <span><?php echo esc_html( date_i18n( 'F Y', mktime( 0, 0, 0, $month, 1, $year ) ) ); ?></span>
+                <?php if ( $next_allowed ) : ?>
+                    <a href="<?php echo esc_url( $next_url ); ?>">&raquo;</a>
+                <?php else : ?>
+                    <span class="tta-cal-disabled">&raquo;</span>
+                <?php endif; ?>
+            </div>
             <div class="tta-cal-grid">
                 <?php
                 $labels = [ 'Su','Mo','Tu','We','Th','Fr','Sa' ];
@@ -102,7 +138,15 @@ $first_wday = (int) date( 'w', mktime( 0, 0, 0, $month, 1, $year ) );
     </main>
     <aside class="tta-events-right">
         <div class="tta-events-ad">
-            <img src="https://via.placeholder.com/300x250?text=Ad" alt="Advertisement" />
+            <?php $ad = tta_get_random_ad(); ?>
+            <?php if ( $ad ) : ?>
+                <?php $img = wp_get_attachment_image( intval( $ad['image_id'] ), 'medium' ); ?>
+                <?php if ( $ad['url'] ) : ?><a href="<?php echo esc_url( $ad['url'] ); ?>"><?php endif; ?>
+                <?php echo $img ? $img : '<img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ) . '" alt="">'; ?>
+                <?php if ( $ad['url'] ) : ?></a><?php endif; ?>
+            <?php else : ?>
+                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ); ?>" alt="Ad" />
+            <?php endif; ?>
         </div>
     </aside>
 </div>

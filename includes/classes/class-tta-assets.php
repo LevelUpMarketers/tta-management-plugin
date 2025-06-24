@@ -27,7 +27,7 @@ class TTA_Assets {
      * @param string $hook_suffix The current admin page.
      */
     public static function enqueue_backend_assets( $hook_suffix ) {
-        if ( isset( $_GET['page'] ) && in_array( $_GET['page'], [ 'tta-events', 'tta-members', 'tta-tickets', 'tta-comms' ], true ) ) {
+        if ( isset( $_GET['page'] ) && in_array( $_GET['page'], [ 'tta-events', 'tta-members', 'tta-tickets', 'tta-comms', 'tta-ads' ], true ) ) {
 
             // 1) Make sure the full TinyMCE / Quicktags / editor CSS are loaded:
             if ( function_exists( 'wp_enqueue_editor' ) ) {
