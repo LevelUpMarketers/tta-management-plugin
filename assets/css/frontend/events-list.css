@@ -29,6 +29,11 @@
   top: 20px;
 }
 
+.tta-stick-on-scroll {
+  position: sticky;
+  top: 20px;
+}
+
 .tta-calendar {
   border: 1px solid #ccc;
   padding: 10px;

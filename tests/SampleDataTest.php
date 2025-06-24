@@ -65,8 +65,8 @@ class SampleDataTest extends TestCase {
         global $wpdb;
         $wpdb = new DummyWpdbSample();
         TTA_Sample_Data::load();
-        $this->assertGreaterThanOrEqual( 3, count( $wpdb->events ) );
-        $this->assertGreaterThanOrEqual( 3, count( $wpdb->tickets ) );
+        $this->assertGreaterThanOrEqual( 20, count( $wpdb->events ) );
+        $this->assertGreaterThanOrEqual( 20, count( $wpdb->tickets ) );
     }
 
     public function test_clear_removes_rows() {
