@@ -24,11 +24,6 @@
   align-self: flex-start;
 }
 
-.tta-events-right .tta-events-ad {
-  position: sticky;
-  top: 20px;
-}
-
 .tta-stick-on-scroll {
   position: sticky;
   top: 80px; /* fallback offset */
@@ -132,6 +127,7 @@
   height: auto;
   max-height: 150px;
   object-fit: contain;
+  object-position: right center;
   border-radius: 4px;
 }
 
@@ -196,6 +192,27 @@
 }
 .login-wrap form {
   margin-top: 10px;
+}
+
+.tta-event-detail-list {
+  list-style: none;
+  margin: 0 0 0.5em 0;
+  padding: 0;
+}
+.tta-event-detail-list li {
+  margin-bottom: 4px;
+}
+.tta-event-details-icon {
+  width: 18px;
+  display: inline-block;
+  position: relative;
+  top: 2px;
+  margin-right: 4px;
+}
+.tta-event-details-icon-after {
+  display: inline-block;
+  width: calc(100% - 22px);
+  vertical-align: top;
 }
 
 @media (max-width: 768px) {

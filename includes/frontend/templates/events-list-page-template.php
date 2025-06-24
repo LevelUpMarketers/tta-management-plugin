@@ -138,7 +138,7 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
                         ] );
                         echo $thumb; ?>
                     <?php else : ?>
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' ); ?>" class="tta-friend-thumb" alt="">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' ); ?>" class="tta-friend-thumb tta-popup-img" data-full="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' ); ?>" alt="">
                     <?php endif; ?>
                 <?php endforeach; ?>
             </div>
@@ -184,21 +184,53 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
         $content   = get_post_field( 'post_content', $ev['page_id'] );
         $excerpt   = wp_trim_words( wp_strip_all_tags( $content ), 25, '…' );
         $remaining = tta_get_remaining_ticket_count( $ev['ute_id'] );
+        $cost      = floatval( $ev['baseeventcost'] );
+        $cost_str  = $cost ? sprintf( esc_html__( '$%s', 'tta' ), number_format_i18n( $cost, 2 ) ) : esc_html__( 'Free', 'tta' );
+        $type_map  = [
+            'free'       => __( 'Open Event', 'tta' ),
+            'paid'       => __( 'Basic Membership Required', 'tta' ),
+            'memberonly' => __( 'Premium Membership Required', 'tta' ),
+        ];
+        $event_type = $type_map[ $ev['type'] ] ?? '';
+        $maps_url   = 'https://www.google.com/maps/search/?api=1&query=' . urlencode( $address );
     ?>
         <li class="tta-event-list-item">
             <a href="<?php echo esc_url( $page_url ); ?>">
                 <div class="tta-event-thumb"><?php echo $img_html; ?></div>
                 <div class="tta-event-summary">
                     <h2 class="tta-event-name"><?php echo esc_html( $ev['name'] ); ?></h2>
-                    <p class="tta-event-datetime"><?php echo esc_html( $date_str . ' ' . $time_str ); ?></p>
-                    <?php if ( $ev['venuename'] ) : ?>
-                        <p class="tta-event-venue"><?php echo esc_html( $ev['venuename'] ); ?></p>
-                    <?php endif; ?>
-                    <p class="tta-event-address"><?php echo esc_html( $address ); ?></p>
+                    <ul class="tta-event-detail-list">
+                        <li>
+                            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/calendar.svg' ); ?>" alt="">
+                            <div class="tta-event-details-icon-after"><strong><?php esc_html_e( 'Date:', 'tta' ); ?></strong> <?php echo esc_html( $date_str ); ?></div>
+                        </li>
+                        <li>
+                            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/clock.svg' ); ?>" alt="">
+                            <div class="tta-event-details-icon-after"><strong><?php esc_html_e( 'Time:', 'tta' ); ?></strong> <?php echo esc_html( $time_str ); ?></div>
+                        </li>
+                        <li>
+                            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/money.svg' ); ?>" alt="">
+                            <div class="tta-event-details-icon-after"><strong><?php esc_html_e( 'Cost:', 'tta' ); ?></strong> <?php echo esc_html( $cost_str ); ?></div>
+                        </li>
+                        <?php if ( $event_type ) : ?>
+                        <li>
+                            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/memberlevel.svg' ); ?>" alt="">
+                            <div class="tta-event-details-icon-after"><strong><?php esc_html_e( 'Event Type:', 'tta' ); ?></strong> <?php echo esc_html( $event_type ); ?></div>
+                        </li>
+                        <?php endif; ?>
+                        <?php if ( $ev['venuename'] ) : ?>
+                        <li>
+                            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/store.svg' ); ?>" alt="">
+                            <div class="tta-event-details-icon-after"><strong><?php esc_html_e( 'Venue:', 'tta' ); ?></strong> <?php echo esc_html( $ev['venuename'] ); ?></div>
+                        </li>
+                        <?php endif; ?>
+                        <li>
+                            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/location.svg' ); ?>" alt="">
+                            <div class="tta-event-details-icon-after"><strong><?php esc_html_e( 'Location:', 'tta' ); ?></strong> <a href="<?php echo esc_url( $maps_url ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $address ); ?></a></div>
+                        </li>
+                    </ul>
                     <p class="tta-event-excerpt"><?php echo esc_html( $excerpt ); ?></p>
-                    <p class="tta-event-remaining">
-                        <?php printf( esc_html__( '%d tickets remaining', 'tta' ), $remaining ); ?>
-                    </p>
+                    <p class="tta-event-remaining"><?php printf( esc_html__( '%d tickets remaining', 'tta' ), $remaining ); ?></p>
                     <span class="tta-event-link"><?php esc_html_e( 'Get Your Tickets', 'tta' ); ?></span>
                 </div>
             </a>

@@ -15,13 +15,12 @@ The layout consists of three columns:
    in member and a **Membership Perks** panel encouraging upgrades.
 2. **Center column** – the list of upcoming events ordered by date. Each row links
    to the corresponding Event Page. Event images are constrained with `object-fit: contain`
-   to ensure consistent sizing without cropping.
+   and are right aligned. Below each event name a list of key details appears with
+   the same icons used on individual Event Pages.
 3. **Right column** – an advertising slot that displays one random ad image from
-  the Ads admin page. The slot sticks to the viewport while scrolling thanks to
-  `sticky-scroll.js` which fixes elements with the `.tta-stick-on-scroll` class
-  and recalculates its position when images load or the window resizes. The
-  script accounts for the admin bar and site header so the ad never sits beneath
-  them while scrolling.
+  the Ads admin page. The slot stays fixed via CSS `position: sticky` while
+  `sticky-scroll.js` dynamically sets the top offset to account for the admin
+  bar and site header so the ad never appears underneath them.
 
 Profile thumbnails within the “Join Your Friends” section open a larger version in a simple popup when clicked. The popup is disabled on very small screens.
 
