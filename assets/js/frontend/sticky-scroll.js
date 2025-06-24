@@ -1,6 +1,6 @@
 jQuery(function ($) {
   $('.tta-stick-on-scroll').each(function () {
-    var headerH = $('.site-header').first().outerHeight() || 0;
+    var headerH = $('header').first().outerHeight() || $('.site-header').first().outerHeight() || 0;
     var adminH  = $('#wpadminbar').length ? $('#wpadminbar').outerHeight() : 0;
     var OFFSET  = headerH + adminH + 20;
     var $el = $(this);
@@ -13,7 +13,7 @@ jQuery(function ($) {
     var start = $el.offset().top - OFFSET;
 
     function compute() {
-      headerH = $('.site-header').first().outerHeight() || 0;
+      headerH = $('header').first().outerHeight() || $('.site-header').first().outerHeight() || 0;
       adminH  = $('#wpadminbar').length ? $('#wpadminbar').outerHeight() : 0;
       OFFSET  = headerH + adminH + 20;
       start = $el.offset().top - OFFSET;
@@ -25,8 +25,10 @@ jQuery(function ($) {
       var top = $(window).scrollTop();
       if (top >= start) {
         if (!$el.hasClass('tta-fixed')) {
-          $el.addClass('tta-fixed').css({ position: 'fixed', top: OFFSET, width: orig.width, left: $ph.offset().left });
+          $el.addClass('tta-fixed').css({ position: 'fixed', zIndex: 999, top: OFFSET, width: orig.width, left: $ph.offset().left });
           $ph.show();
+        } else {
+          $el.css({ left: $ph.offset().left, top: OFFSET });
         }
       } else if ($el.hasClass('tta-fixed')) {
         $el.removeClass('tta-fixed').css(orig);

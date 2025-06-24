@@ -131,7 +131,12 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
             <div class="tta-friend-grid">
                 <?php foreach ( $friend_imgs as $img_id ) : ?>
                     <?php if ( $img_id ) : ?>
-                        <?php echo wp_get_attachment_image( $img_id, 'thumbnail', false, [ 'class' => 'tta-friend-thumb' ] ); ?>
+                        <?php
+                        $thumb = wp_get_attachment_image( $img_id, 'thumbnail', false, [
+                            'class'     => 'tta-friend-thumb tta-popup-img',
+                            'data-full' => wp_get_attachment_image_url( $img_id, 'large' ),
+                        ] );
+                        echo $thumb; ?>
                     <?php else : ?>
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' ); ?>" class="tta-friend-thumb" alt="">
                     <?php endif; ?>

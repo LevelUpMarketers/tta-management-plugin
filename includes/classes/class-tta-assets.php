@@ -149,6 +149,21 @@ class TTA_Assets {
                 TTA_PLUGIN_VERSION,
                 true
             );
+
+            wp_enqueue_style(
+                'tta-popup-css',
+                TTA_PLUGIN_URL . 'assets/css/frontend/profile-popup.css',
+                [ 'tta-frontend-css' ],
+                TTA_PLUGIN_VERSION
+            );
+
+            wp_enqueue_script(
+                'tta-popup-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/profile-popup.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
             wp_localize_script(
                 'tta-cart-js',
                 'tta_ajax',
@@ -175,9 +190,22 @@ class TTA_Assets {
                 [ 'tta-frontend-css' ],
                 TTA_PLUGIN_VERSION
             );
+            wp_enqueue_style(
+                'tta-popup-css',
+                TTA_PLUGIN_URL . 'assets/css/frontend/profile-popup.css',
+                [ 'tta-frontend-css' ],
+                TTA_PLUGIN_VERSION
+            );
             wp_enqueue_script(
                 'tta-sticky-js',
                 TTA_PLUGIN_URL . 'assets/js/frontend/sticky-scroll.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+            wp_enqueue_script(
+                'tta-popup-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/profile-popup.js',
                 [ 'jquery' ],
                 TTA_PLUGIN_VERSION,
                 true

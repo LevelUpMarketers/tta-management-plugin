@@ -4,6 +4,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class TTA_Sample_Data {
+    /**
+     * Attempt to fetch an existing attachment ID from the media library.
+     *
+     * @return int Attachment ID or 0 if none found.
+     */
+    private static function get_random_image_id() {
+        if ( function_exists( 'get_post' ) ) {
+            for ( $i = 0; $i < 5; $i++ ) {
+                $id   = rand( 9637, 22072 );
+                $post = get_post( $id );
+                if ( $post && 'attachment' === $post->post_type ) {
+                    return $id;
+                }
+            }
+        }
+        return 0;
+    }
     public static function load() {
         $events   = include TTA_PLUGIN_DIR . 'database-testing/sample-events.php';
         $tickets  = include TTA_PLUGIN_DIR . 'database-testing/sample-tickets.php';
@@ -41,8 +58,8 @@ class TTA_Sample_Data {
                 'url2'                 => sanitize_text_field( $event['url2'] ),
                 'url3'                 => sanitize_text_field( $event['url3'] ),
                 'url4'                 => sanitize_text_field( $event['url4'] ),
-                'mainimageid'          => intval( $event['mainimageid'] ),
-                'otherimageids'        => sanitize_text_field( $event['otherimageids'] ),
+                'mainimageid'          => $event['mainimageid'] ? intval( $event['mainimageid'] ) : self::get_random_image_id(),
+                'otherimageids'        => $event['otherimageids'] ? sanitize_text_field( $event['otherimageids'] ) : '',
                 'waitlistavailable'    => intval( $event['waitlistavailable'] ),
                 'discountcode'         => sanitize_text_field( $event['discountcode'] ),
                 'all_day_event'        => intval( $event['all_day_event'] ),

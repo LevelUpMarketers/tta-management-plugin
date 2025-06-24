@@ -88,6 +88,7 @@ class SampleDataTest extends TestCase {
         $this->assertGreaterThanOrEqual( 10, count( $wpdb->members ) );
         $this->assertGreaterThanOrEqual( 20, count( $wpdb->transactions ) );
         $this->assertNotEmpty( $wpdb->attendees );
+        $this->assertIsInt( $wpdb->events[0]['mainimageid'] );
     }
 
     public function test_clear_removes_rows() {

@@ -17,9 +17,13 @@ The layout consists of three columns:
    to the corresponding Event Page. Event images are constrained with `object-fit: contain`
    to ensure consistent sizing without cropping.
 3. **Right column** – an advertising slot that displays one random ad image from
-   the Ads admin page. The slot sticks to the viewport while scrolling thanks to
-   `sticky-scroll.js` which fixes elements with the `.tta-stick-on-scroll` class
-   and recalculates its position when images load or the window resizes.
+  the Ads admin page. The slot sticks to the viewport while scrolling thanks to
+  `sticky-scroll.js` which fixes elements with the `.tta-stick-on-scroll` class
+  and recalculates its position when images load or the window resizes. The
+  script accounts for the admin bar and site header so the ad never sits beneath
+  them while scrolling.
+
+Profile thumbnails within the “Join Your Friends” section open a larger version in a simple popup when clicked. The popup is disabled on very small screens.
 
 On small screens the columns stack vertically for a mobile‑friendly layout.
 
