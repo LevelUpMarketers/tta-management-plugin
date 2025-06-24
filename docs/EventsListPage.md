@@ -22,7 +22,8 @@ The layout consists of three columns:
    `sticky-scroll.js` dynamically sets the top offset to account for the admin
    bar and site header so the ad never appears underneath them. The wrapper
    column uses `align-self: stretch` so the sticky element has enough height to
-   scroll correctly.
+   scroll correctly. The sticky class now applies to the `<aside>` element so the
+   ad container itself requires no additional wrapper.
 
 Profile thumbnails within the “Join Your Friends” section open a larger version in a simple popup when clicked. The popup is disabled on very small screens.
 

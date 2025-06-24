@@ -1083,8 +1083,8 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
       <?php endif; ?>
     </aside>
 
-    <aside class="tta-event-right">
-      <div class="tta-events-ad tta-stick-on-scroll">
+    <aside class="tta-event-left tta-stick-on-scroll">
+      <div class="tta-events-ad">
         <?php $ad = tta_get_random_ad(); ?>
         <?php if ( $ad ) : ?>
           <?php $img = wp_get_attachment_image( intval( $ad['image_id'] ), 'medium' ); ?>
