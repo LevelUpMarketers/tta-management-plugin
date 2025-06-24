@@ -118,11 +118,11 @@
 }
 .tta-event-left {
   flex: 0 0 220px;
-  align-self: flex-start;
+  align-self: stretch;
 }
 .tta-event-right {
   flex: 0 0 220px;
-  align-self: flex-start;
+  align-self: stretch;
   order: 3;
 }
 .tta-stick-on-scroll {

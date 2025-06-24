@@ -18,9 +18,11 @@ The layout consists of three columns:
    and are right aligned. Below each event name a list of key details appears with
    the same icons used on individual Event Pages.
 3. **Right column** – an advertising slot that displays one random ad image from
-  the Ads admin page. The slot stays fixed via CSS `position: sticky` while
-  `sticky-scroll.js` dynamically sets the top offset to account for the admin
-  bar and site header so the ad never appears underneath them.
+   the Ads admin page. The slot stays fixed via CSS `position: sticky` while
+   `sticky-scroll.js` dynamically sets the top offset to account for the admin
+   bar and site header so the ad never appears underneath them. The wrapper
+   column uses `align-self: stretch` so the sticky element has enough height to
+   scroll correctly.
 
 Profile thumbnails within the “Join Your Friends” section open a larger version in a simple popup when clicked. The popup is disabled on very small screens.
 

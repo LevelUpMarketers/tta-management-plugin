@@ -21,7 +21,7 @@
 
 .tta-events-right {
   flex: 0 0 220px;
-  align-self: flex-start;
+  align-self: stretch;
 }
 
 .tta-stick-on-scroll {
