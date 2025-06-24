@@ -30,6 +30,7 @@ If these constants are not defined, checkout will fail and an admin notice will 
 - [Debugging Tools](docs/Debugging.md)
 - [Database Upgrades](docs/DevelopmentSQL.md#automatic-upgrades)
 - [Development SQL Assets](docs/DevelopmentSQL.md)
+- [Sample Database Data](docs/SampleData.md)
 - [Operator Testing Guide](docs/OperatorTestingGuide.md)
 - [Project TODOs](TODO.md)
 

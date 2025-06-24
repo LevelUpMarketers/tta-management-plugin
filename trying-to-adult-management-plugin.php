@@ -108,6 +108,7 @@ require_once TTA_PLUGIN_DIR . 'includes/frontend/class-become-member-page.php';
 require_once TTA_PLUGIN_DIR . 'includes/cart/class-cart.php';
 require_once TTA_PLUGIN_DIR . 'includes/cart/class-cart-cleanup.php';
 require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-event-archiver.php';
+require_once TTA_PLUGIN_DIR . 'includes/database-testing/class-tta-sample-data.php';
 
 
 
