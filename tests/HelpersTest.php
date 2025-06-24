@@ -262,4 +262,49 @@ class HelpersTest extends TestCase {
         $this->assertStringContainsString('wp_tta_attendees', $wpdb->last_query);
         $this->assertStringContainsString('wp_tta_attendees_archive', $wpdb->last_query);
     }
+
+    public function test_get_remaining_ticket_count_queries_table() {
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $last_query = '';
+            public function get_var($q){ $this->last_query = $q; return 7; }
+            public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%s/',$v,$q,1); $q=preg_replace('/%d/',$v,$q,1); } return $q; }
+        };
+        require_once __DIR__ . '/../includes/helpers.php';
+        require_once __DIR__ . '/../includes/classes/class-tta-cache.php';
+        $count = tta_get_remaining_ticket_count('ute1');
+        $this->assertSame(7, $count);
+        $this->assertStringContainsString('wp_tta_tickets', $wpdb->last_query);
+    }
+
+    public function test_get_upcoming_events_returns_rows() {
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $last_query = '';
+            public $rows = [];
+            public function get_results($q,$o=ARRAY_A){ $this->last_query = $q; return $this->rows; }
+            public function get_var($q){ return 1; }
+            public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%s/',$v,$q,1); $q=preg_replace('/%d/',$v,$q,1); } return $q; }
+        };
+        $wpdb->rows = [ [
+            'id'=>1,
+            'ute_id'=>'ute1',
+            'name'=>'Soon',
+            'date'=>'2030-01-01',
+            'time'=>'10:00|12:00',
+            'all_day_event'=>0,
+            'venuename'=>'Venue',
+            'address'=>'1 St -  - Town - ST - 00000',
+            'page_id'=>5,
+            'mainimageid'=>0
+        ] ];
+        require_once __DIR__ . '/../includes/helpers.php';
+        require_once __DIR__ . '/../includes/classes/class-tta-cache.php';
+        $res = tta_get_upcoming_events(1,5);
+        $this->assertCount(1, $res['events']);
+        $this->assertSame('Soon', $res['events'][0]['name']);
+        $this->assertStringContainsString('wp_tta_events', $wpdb->last_query);
+    }
 }

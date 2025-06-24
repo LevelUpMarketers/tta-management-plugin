@@ -89,6 +89,7 @@ require_once TTA_PLUGIN_DIR . 'includes/class-db-setup.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-event-page-manager.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-cart-page-manager.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-checkout-page-manager.php';
+require_once TTA_PLUGIN_DIR . 'includes/frontend/class-events-list-page.php';
 require_once TTA_PLUGIN_DIR . 'includes/api/class-authorizenet-api.php';
 require_once TTA_PLUGIN_DIR . 'includes/email/class-email-handler.php';
 require_once TTA_PLUGIN_DIR . 'includes/sms/class-sms-handler.php';
