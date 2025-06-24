@@ -70,6 +70,8 @@ Below the image gallery, a second accordion displays profile pictures of confirm
 
 Members may opt to hide their attendance in their profile's *Privacy Options*. Hidden attendees always show the placeholder image and use the numbered "Attendee" label.
 
+Attendee thumbnails use the same popup script as the Events List page. Clicking a profile photo opens a larger version in an overlay, which is disabled on very small screens.
+
 ## Event Hosts and Volunteers
 
 Admins can assign one or more hosts and volunteers when creating or editing an event. The autocomplete fields pull from members whose type is Volunteer, Admin, or Super Admin. Selected names are stored in the `hosts` and `volunteers` columns of `tta_events`. On the front end, hosts appear first in the attendee gallery followed by volunteers. Each badge is labelled “Host” or “Volunteer.”

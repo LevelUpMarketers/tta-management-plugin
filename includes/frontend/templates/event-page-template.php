@@ -831,9 +831,17 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
                     <div class="tta-attendee-photo-wrapper">
                       <?php
                         if ( ! empty( $att['img_id'] ) && empty( $att['hide'] ) ) {
-                            echo wp_get_attachment_image( $att['img_id'], 'medium_large' );
+                            echo wp_get_attachment_image(
+                                $att['img_id'],
+                                'medium_large',
+                                false,
+                                [
+                                    'class'     => 'tta-popup-img',
+                                    'data-full' => wp_get_attachment_image_url( $att['img_id'], 'large' ),
+                                ]
+                            );
                         } else {
-                            echo '<img src="' . esc_url( $placeholder ) . '" alt="">';
+                            echo '<img src="' . esc_url( $placeholder ) . '" alt="" class="tta-popup-img" data-full="' . esc_url( $placeholder ) . '">';
                         }
                         if ( ! empty( $att['is_host'] ) ) {
                             echo '<span class="tta-attendee-role">' . esc_html__( 'Host', 'tta' ) . '</span>';
