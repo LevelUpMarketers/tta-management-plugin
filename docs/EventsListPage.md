@@ -34,3 +34,4 @@ which is automatically enqueued when this template is active.
 The icon and text pairs within `.tta-event-detail-list` are arranged with flexbox
 to keep them on a single line. Time strings are parsed safely, so missing or
 malformed values no longer trigger PHP warnings.
+Cost and event type values are also checked for existence so undefined keys do not generate notices.

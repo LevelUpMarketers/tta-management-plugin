@@ -4,7 +4,7 @@ This document summarizes helper functions and template behavior related to user 
 
 ## Layout Overview
 
-The template now uses a three-column layout, mirroring the Events List Page. A random ad image occupies a narrow left column and stays visible while scrolling. The center column contains the main event content and the familiar sidebar remains on the right.
+The template now uses a three-column layout, mirroring the Events List Page. A random ad image occupies a narrow **right** column and stays visible while scrolling. The event details sidebar now appears on the left with the main content in the center.
 
 ## Current User Context Helper
 

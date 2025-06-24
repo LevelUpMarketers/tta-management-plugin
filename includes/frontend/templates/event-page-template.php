@@ -611,19 +611,7 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
   <!-- MAIN + SIDEBAR -->
   <div class="tta-event-content-wrap">
     <div class="tta-event-columns">
-      <aside class="tta-event-left">
-        <div class="tta-events-ad tta-stick-on-scroll">
-          <?php $ad = tta_get_random_ad(); ?>
-          <?php if ( $ad ) : ?>
-            <?php $img = wp_get_attachment_image( intval( $ad['image_id'] ), 'medium' ); ?>
-            <?php if ( $ad['url'] ) : ?><a href="<?php echo esc_url( $ad['url'] ); ?>"><?php endif; ?>
-            <?php echo $img ? $img : '<img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ) . '" alt="">'; ?>
-            <?php if ( $ad['url'] ) : ?></a><?php endif; ?>
-          <?php else : ?>
-            <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ); ?>" alt="Ad" />
-          <?php endif; ?>
-        </div>
-      </aside>
+
 
       <!-- MAIN CONTENT -->
       <main class="tta-event-main">
@@ -1083,6 +1071,20 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
           <?php echo $event['mapiframe']; ?>
         </div>
       <?php endif; ?>
+    </aside>
+
+    <aside class="tta-event-right">
+      <div class="tta-events-ad tta-stick-on-scroll">
+        <?php $ad = tta_get_random_ad(); ?>
+        <?php if ( $ad ) : ?>
+          <?php $img = wp_get_attachment_image( intval( $ad['image_id'] ), 'medium' ); ?>
+          <?php if ( $ad['url'] ) : ?><a href="<?php echo esc_url( $ad['url'] ); ?>"><?php endif; ?>
+          <?php echo $img ? $img : '<img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ) . '" alt="">'; ?>
+          <?php if ( $ad['url'] ) : ?></a><?php endif; ?>
+        <?php else : ?>
+          <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ); ?>" alt="Ad" />
+        <?php endif; ?>
+      </div>
     </aside>
     </div><!-- .tta-event-columns -->
 

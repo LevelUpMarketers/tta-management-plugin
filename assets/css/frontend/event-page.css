@@ -108,6 +108,11 @@
   flex: 0 0 220px;
   align-self: flex-start;
 }
+.tta-event-right {
+  flex: 0 0 220px;
+  align-self: flex-start;
+  order: 3;
+}
 .tta-stick-on-scroll {
   position: sticky;
   top: 80px;
@@ -115,6 +120,7 @@
 .tta-event-main {
   flex: 1 1 auto;
   padding-right: 30px;
+  order: 2;
 }
 
 .tta-event-sidebar {
@@ -122,6 +128,7 @@
   background: #fafafa;
   padding: 20px;
   border-radius: 4px;
+  order: 1;
 }
 .tta-event-details h2 {
   margin-top: 0;
@@ -570,7 +577,8 @@ input[disabled] {
     flex-direction: column;
   }
   .tta-event-left,
-  .tta-event-sidebar {
+  .tta-event-sidebar,
+  .tta-event-right {
     flex: 1 1 auto;
   }
   .tta-event-main {

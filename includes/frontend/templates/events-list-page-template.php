@@ -192,14 +192,14 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
         $content   = get_post_field( 'post_content', $ev['page_id'] );
         $excerpt   = wp_trim_words( wp_strip_all_tags( $content ), 25, '…' );
         $remaining = tta_get_remaining_ticket_count( $ev['ute_id'] );
-        $cost      = floatval( $ev['baseeventcost'] );
+        $cost      = floatval( $ev['baseeventcost'] ?? 0 );
         $cost_str  = $cost ? sprintf( esc_html__( '$%s', 'tta' ), number_format_i18n( $cost, 2 ) ) : esc_html__( 'Free', 'tta' );
         $type_map  = [
             'free'       => __( 'Open Event', 'tta' ),
             'paid'       => __( 'Basic Membership Required', 'tta' ),
             'memberonly' => __( 'Premium Membership Required', 'tta' ),
         ];
-        $event_type = $type_map[ $ev['type'] ] ?? '';
+        $event_type = $type_map[ $ev['type'] ?? '' ] ?? '';
         $maps_url   = 'https://www.google.com/maps/search/?api=1&query=' . urlencode( $address );
     ?>
         <li class="tta-event-list-item">
