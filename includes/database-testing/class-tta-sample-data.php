@@ -5,13 +5,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class TTA_Sample_Data {
     public static function load() {
-        $events  = include TTA_PLUGIN_DIR . 'database-testing/sample-events.php';
-        $tickets = include TTA_PLUGIN_DIR . 'database-testing/sample-tickets.php';
+        $events   = include TTA_PLUGIN_DIR . 'database-testing/sample-events.php';
+        $tickets  = include TTA_PLUGIN_DIR . 'database-testing/sample-tickets.php';
+        $members  = include TTA_PLUGIN_DIR . 'database-testing/sample-members.php';
 
         global $wpdb;
-        $events_table   = $wpdb->prefix . 'tta_events';
-        $tickets_table  = $wpdb->prefix . 'tta_tickets';
-        $waitlist_table = $wpdb->prefix . 'tta_waitlist';
+        $events_table      = $wpdb->prefix . 'tta_events';
+        $tickets_table     = $wpdb->prefix . 'tta_tickets';
+        $waitlist_table    = $wpdb->prefix . 'tta_waitlist';
+        $members_table     = $wpdb->prefix . 'tta_members';
+        $tx_table          = $wpdb->prefix . 'tta_transactions';
+        $attendees_table   = $wpdb->prefix . 'tta_attendees';
+
+        foreach ( $members as $mem ) {
+            $row = [];
+            foreach ( $mem as $k => $v ) {
+                $row[ $k ] = is_string( $v ) ? sanitize_text_field( $v ) : $v;
+            }
+            $wpdb->insert( $members_table, $row );
+        }
 
         foreach ( $events as $index => $event ) {
             $row = [
@@ -89,6 +101,39 @@ class TTA_Sample_Data {
                     $wpdb->update( $events_table, [ 'page_id' => $page_id ], [ 'id' => $event_id ] );
                 }
             }
+
+            // Create a sample transaction with attendees
+            $txn_id = null;
+            if ( $ticket_id ) {
+                $txn_row = [
+                    'wpuserid'       => intval( $members[ $index % count( $members ) ]['wpuserid'] ),
+                    'member_id'      => 0,
+                    'transaction_id' => 'sample_txn_' . $index,
+                    'amount'         => floatval( $ticket['baseeventcost'] ),
+                    'discount_code'  => '',
+                    'discount_saved' => 0,
+                    'details'        => '',
+                ];
+                $wpdb->insert( $tx_table, $txn_row );
+                $txn_id = $wpdb->insert_id;
+
+                $att_count = rand( 1, 3 );
+                for ( $a = 0; $a < $att_count; $a++ ) {
+                    $m = $members[ ( $index + $a ) % count( $members ) ];
+                    $wpdb->insert( $attendees_table, [
+                        'transaction_id' => $txn_id,
+                        'ticket_id'      => $ticket_id,
+                        'first_name'     => sanitize_text_field( $m['first_name'] ),
+                        'last_name'      => sanitize_text_field( $m['last_name'] ),
+                        'email'          => sanitize_email( $m['email'] ),
+                        'phone'          => sanitize_text_field( $m['phone'] ),
+                        'opt_in_sms'     => 1,
+                        'opt_in_email'   => 1,
+                        'is_member'      => 1,
+                        'status'         => 'pending',
+                    ] );
+                }
+            }
         }
 
         TTA_Cache::flush();
@@ -96,9 +141,12 @@ class TTA_Sample_Data {
 
     public static function clear() {
         global $wpdb;
-        $events_table   = $wpdb->prefix . 'tta_events';
-        $tickets_table  = $wpdb->prefix . 'tta_tickets';
-        $waitlist_table = $wpdb->prefix . 'tta_waitlist';
+        $events_table    = $wpdb->prefix . 'tta_events';
+        $tickets_table   = $wpdb->prefix . 'tta_tickets';
+        $waitlist_table  = $wpdb->prefix . 'tta_waitlist';
+        $members_table   = $wpdb->prefix . 'tta_members';
+        $tx_table        = $wpdb->prefix . 'tta_transactions';
+        $attendees_table = $wpdb->prefix . 'tta_attendees';
 
         $page_ids = $wpdb->get_col( "SELECT page_id FROM {$events_table} WHERE ute_id LIKE 'sample_event_%'" );
         foreach ( $page_ids as $pid ) {
@@ -110,6 +158,9 @@ class TTA_Sample_Data {
         $wpdb->query( "DELETE FROM {$events_table} WHERE ute_id LIKE 'sample_event_%'" );
         $wpdb->query( "DELETE FROM {$tickets_table} WHERE event_ute_id LIKE 'sample_event_%'" );
         $wpdb->query( "DELETE FROM {$waitlist_table} WHERE event_ute_id LIKE 'sample_event_%'" );
+        $wpdb->query( "DELETE FROM {$attendees_table} WHERE transaction_id IN (SELECT id FROM {$tx_table} WHERE transaction_id LIKE 'sample_txn_%')" );
+        $wpdb->query( "DELETE FROM {$tx_table} WHERE transaction_id LIKE 'sample_txn_%'" );
+        $wpdb->query( "DELETE FROM {$members_table} WHERE email LIKE 'sample_member_%@example.com'" );
 
         TTA_Cache::flush();
     }

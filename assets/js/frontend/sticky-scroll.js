@@ -1,6 +1,8 @@
 jQuery(function ($) {
-  var OFFSET = 20;
   $('.tta-stick-on-scroll').each(function () {
+    var headerH = $('.site-header').first().outerHeight() || 0;
+    var adminH  = $('#wpadminbar').length ? $('#wpadminbar').outerHeight() : 0;
+    var OFFSET  = headerH + adminH + 20;
     var $el = $(this);
     var $ph = $('<div>').height($el.outerHeight()).insertBefore($el).hide();
     var orig = {
@@ -11,6 +13,9 @@ jQuery(function ($) {
     var start = $el.offset().top - OFFSET;
 
     function compute() {
+      headerH = $('.site-header').first().outerHeight() || 0;
+      adminH  = $('#wpadminbar').length ? $('#wpadminbar').outerHeight() : 0;
+      OFFSET  = headerH + adminH + 20;
       start = $el.offset().top - OFFSET;
       orig.width = $el.outerWidth();
       $ph.height($el.outerHeight());

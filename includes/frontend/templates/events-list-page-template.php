@@ -32,10 +32,11 @@ $first_wday = (int) date( 'w', mktime( 0, 0, 0, $month, 1, $year ) );
 
 $friend_imgs = [];
 foreach ( $events as $ev ) {
-    $ids        = tta_get_event_attendee_image_ids( $ev['id'] );
-    $friend_imgs = array_merge( $friend_imgs, $ids );
+    $profiles = tta_get_event_attendee_profiles( $ev['id'] );
+    foreach ( $profiles as $p ) {
+        $friend_imgs[] = intval( $p['img_id'] );
+    }
 }
-$friend_imgs = array_values( array_unique( array_filter( $friend_imgs ) ) );
 
 $prev_year  = $year;
 $prev_month = $month - 1;
@@ -102,7 +103,11 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
             <p class="tta-join-sub"><?php esc_html_e( 'Members attending upcoming events', 'tta' ); ?></p>
             <div class="tta-friend-grid">
                 <?php foreach ( $friend_imgs as $img_id ) : ?>
-                    <?php echo wp_get_attachment_image( $img_id, 'thumbnail', false, [ 'class' => 'tta-friend-thumb' ] ); ?>
+                    <?php if ( $img_id ) : ?>
+                        <?php echo wp_get_attachment_image( $img_id, 'thumbnail', false, [ 'class' => 'tta-friend-thumb' ] ); ?>
+                    <?php else : ?>
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg' ); ?>" class="tta-friend-thumb" alt="">
+                    <?php endif; ?>
                 <?php endforeach; ?>
             </div>
         </div>

@@ -5,7 +5,12 @@ class DummyWpdbSample {
     public $prefix = 'wp_';
     public $events = [];
     public $tickets = [];
+    public $members = [];
+    public $transactions = [];
+    public $attendees = [];
+    public $insert_id = 0;
     public $last_query = '';
+    public $queries = [];
 
     public function esc_like( $str ) { return $str; }
     public function get_col( $query ) { return []; }
@@ -20,9 +25,16 @@ class DummyWpdbSample {
     public function insert( $table, $data ) {
         if ( false !== strpos( $table, 'tta_events' ) ) {
             $this->events[] = $data;
-        } else {
+        } elseif ( false !== strpos( $table, 'tta_tickets' ) ) {
             $this->tickets[] = $data;
+        } elseif ( false !== strpos( $table, 'tta_members' ) ) {
+            $this->members[] = $data;
+        } elseif ( false !== strpos( $table, 'tta_transactions' ) ) {
+            $this->transactions[] = $data;
+        } elseif ( false !== strpos( $table, 'tta_attendees' ) ) {
+            $this->attendees[] = $data;
         }
+        $this->insert_id++;
         return true;
     }
 
@@ -35,11 +47,18 @@ class DummyWpdbSample {
 
     public function query( $sql ) {
         $this->last_query = $sql;
+        $this->queries[] = $sql;
         if ( stripos( $sql, 'DELETE' ) !== false ) {
             if ( strpos( $sql, 'tta_events' ) !== false ) {
                 $this->events = [];
             } elseif ( strpos( $sql, 'tta_tickets' ) !== false ) {
                 $this->tickets = [];
+            } elseif ( strpos( $sql, 'tta_members' ) !== false ) {
+                $this->members = [];
+            } elseif ( strpos( $sql, 'tta_transactions' ) !== false ) {
+                $this->transactions = [];
+            } elseif ( strpos( $sql, 'tta_attendees' ) !== false ) {
+                $this->attendees = [];
             }
         }
         return 1;
@@ -54,9 +73,8 @@ class SampleDataTest extends TestCase {
         if ( ! defined( 'TTA_PLUGIN_DIR' ) ) {
             define( 'TTA_PLUGIN_DIR', dirname( __DIR__ ) . '/' );
         }
-        if ( ! function_exists( 'sanitize_text_field' ) ) {
-            function sanitize_text_field( $v ) { return $v; }
-        }
+        if ( ! function_exists( 'sanitize_text_field' ) ) { function sanitize_text_field( $v ) { return $v; } }
+        if ( ! function_exists( 'sanitize_email' ) ) { function sanitize_email( $v ) { return $v; } }
         require_once __DIR__ . '/../includes/classes/class-tta-cache.php';
         require_once __DIR__ . '/../includes/database-testing/class-tta-sample-data.php';
     }
@@ -67,6 +85,9 @@ class SampleDataTest extends TestCase {
         TTA_Sample_Data::load();
         $this->assertGreaterThanOrEqual( 20, count( $wpdb->events ) );
         $this->assertGreaterThanOrEqual( 20, count( $wpdb->tickets ) );
+        $this->assertGreaterThanOrEqual( 10, count( $wpdb->members ) );
+        $this->assertGreaterThanOrEqual( 20, count( $wpdb->transactions ) );
+        $this->assertNotEmpty( $wpdb->attendees );
     }
 
     public function test_clear_removes_rows() {
@@ -76,5 +97,7 @@ class SampleDataTest extends TestCase {
         TTA_Sample_Data::clear();
         $this->assertCount( 0, $wpdb->events );
         $this->assertCount( 0, $wpdb->tickets );
+        $this->assertCount( 0, $wpdb->members );
+        $this->assertCount( 0, $wpdb->transactions );
     }
 }
