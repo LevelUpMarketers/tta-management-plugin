@@ -877,6 +877,41 @@ function tta_get_upcoming_events( $paged = 1, $per_page = 5 ) {
 }
 
 /**
+ * Get a list of days in a month that have events scheduled.
+ *
+ * @param int $year 4-digit year.
+ * @param int $month Numeric month (1-12).
+ * @return int[] Array of day numbers with events.
+ */
+function tta_get_event_days_for_month( $year, $month ) {
+    $year  = max( 1970, intval( $year ) );
+    $month = max( 1, min( 12, intval( $month ) ) );
+
+    $cache_key = 'event_days_' . $year . '_' . $month;
+    $days      = TTA_Cache::get( $cache_key );
+    if ( false !== $days ) {
+        return (array) $days;
+    }
+
+    global $wpdb;
+    $events_table = $wpdb->prefix . 'tta_events';
+    $start = sprintf( '%04d-%02d-01', $year, $month );
+    $end   = date( 'Y-m-t', strtotime( $start ) );
+
+    $results = $wpdb->get_col(
+        $wpdb->prepare(
+            "SELECT DAY(date) FROM {$events_table} WHERE date BETWEEN %s AND %s",
+            $start,
+            $end
+        )
+    );
+
+    $days = array_map( 'intval', $results );
+    TTA_Cache::set( $cache_key, $days, 300 );
+    return $days;
+}
+
+/**
  * Retrieve a sample member record for previews.
  *
  * @return array{

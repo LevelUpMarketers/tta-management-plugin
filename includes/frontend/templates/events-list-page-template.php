@@ -16,8 +16,36 @@ $data     = tta_get_upcoming_events( $paged, $per_page );
 $events   = $data['events'];
 $total    = $data['total'];
 $total_pages = $per_page > 0 ? ceil( $total / $per_page ) : 1;
+
+$year  = intval( date_i18n( 'Y' ) );
+$month = intval( date_i18n( 'n' ) );
+$event_days = tta_get_event_days_for_month( $year, $month );
+$days_in_month = (int) date( 't', mktime( 0, 0, 0, $month, 1, $year ) );
+$first_wday = (int) date( 'w', mktime( 0, 0, 0, $month, 1, $year ) );
 ?>
 <div class="wrap tta-events-list-page">
+<div class="tta-events-columns">
+    <aside class="tta-events-left">
+        <div class="tta-calendar">
+            <div class="tta-cal-header"><?php echo esc_html( date_i18n( 'F Y', mktime( 0, 0, 0, $month, 1, $year ) ) ); ?></div>
+            <div class="tta-cal-grid">
+                <?php
+                $labels = [ 'Su','Mo','Tu','We','Th','Fr','Sa' ];
+                foreach ( $labels as $lab ) {
+                    echo '<div class="tta-cal-label">' . esc_html( $lab ) . '</div>';
+                }
+                for ( $i = 0; $i < $first_wday; $i++ ) {
+                    echo '<div class="tta-cal-day empty"></div>';
+                }
+                for ( $d = 1; $d <= $days_in_month; $d++ ) {
+                    $class = in_array( $d, $event_days, true ) ? 'tta-cal-day has-event' : 'tta-cal-day';
+                    echo '<div class="' . esc_attr( $class ) . '">' . intval( $d ) . '</div>';
+                }
+                ?>
+            </div>
+        </div>
+    </aside>
+    <main class="tta-events-center">
 <?php if ( $events ) : ?>
     <ul class="tta-events-list">
     <?php foreach ( $events as $ev ) :
@@ -71,6 +99,13 @@ $total_pages = $per_page > 0 ? ceil( $total / $per_page ) : 1;
 <?php else : ?>
     <p><?php esc_html_e( 'No upcoming events found.', 'tta' ); ?></p>
 <?php endif; ?>
+    </main>
+    <aside class="tta-events-right">
+        <div class="tta-events-ad">
+            <img src="https://via.placeholder.com/300x250?text=Ad" alt="Advertisement" />
+        </div>
+    </aside>
+</div>
 </div>
 <?php
 get_footer();

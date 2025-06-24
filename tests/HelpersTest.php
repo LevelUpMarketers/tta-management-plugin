@@ -307,4 +307,20 @@ class HelpersTest extends TestCase {
         $this->assertSame('Soon', $res['events'][0]['name']);
         $this->assertStringContainsString('wp_tta_events', $wpdb->last_query);
     }
+
+    public function test_get_event_days_for_month() {
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $get_col_query = '';
+            public function get_col($q){ $this->get_col_query = $q; return [1,15,28]; }
+            public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%s/',$v,$q,1); } return $q; }
+        };
+
+        require_once __DIR__ . '/../includes/helpers.php';
+        require_once __DIR__ . '/../includes/classes/class-tta-cache.php';
+        $days = tta_get_event_days_for_month(2025,7);
+        $this->assertSame([1,15,28], $days);
+        $this->assertStringContainsString('wp_tta_events', $wpdb->get_col_query);
+    }
 }
