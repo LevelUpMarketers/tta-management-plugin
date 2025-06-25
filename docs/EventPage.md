@@ -4,10 +4,10 @@ This document summarizes helper functions and template behavior related to user 
 
 ## Layout Overview
 
-The template now uses a three-column layout, mirroring the Events List Page. A
-random ad image occupies a narrow **right** column beside the main event
-content. The event details sidebar appears on the left with the main
-content in the center.
+The template uses a three‑column layout—sidebar, main content, and an ad
+column—all wrapped in a single `.tta-event-columns` container. The random ad
+image sits in the narrow **right** column while the event details sidebar is on
+the left and the main content occupies the center.
 
 ## Current User Context Helper
 
