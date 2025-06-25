@@ -98,10 +98,12 @@ class TTA_AuthorizeNet_API {
      * @param string $card_number Credit card number.
      * @param string $exp_date   Expiration date YYYY-MM.
      * @param string $card_code  Card code/CVV.
-     * @param array  $billing    Billing fields first_name,last_name,address,city,state,zip.
+     * @param array  $billing      Billing fields first_name,last_name,address,city,state,zip.
+     * @param string $name         Optional subscription name.
+     * @param string $description  Optional subscription description.
      * @return array { success:bool, subscription_id?:string, error?:string }
      */
-    public function create_subscription( $amount, $card_number, $exp_date, $card_code, array $billing = [] ) {
+    public function create_subscription( $amount, $card_number, $exp_date, $card_code, array $billing = [], $name = 'Membership Subscription', $description = '' ) {
         if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
@@ -127,7 +129,10 @@ class TTA_AuthorizeNet_API {
         $schedule->setTotalOccurrences( 9999 );
 
         $subscription = new AnetAPI\ARBSubscriptionType();
-        $subscription->setName( 'Membership Subscription' );
+        $subscription->setName( $name );
+        if ( $description ) {
+            $subscription->setDescription( $description );
+        }
         $subscription->setPaymentSchedule( $schedule );
         $subscription->setAmount( $amount );
         $subscription->setPayment( $payment );

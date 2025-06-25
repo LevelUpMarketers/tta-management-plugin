@@ -66,12 +66,16 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
         $transaction_id = '';
 
         if ( $membership_total > 0 ) {
+            $sub_name = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_NAME : TTA_BASIC_SUBSCRIPTION_NAME;
+            $sub_desc = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_DESCRIPTION : TTA_BASIC_SUBSCRIPTION_DESCRIPTION;
             $sub = $api->create_subscription(
                 $membership_total,
                 preg_replace( '/\D/', '', $_POST['card_number'] ),
                 $exp_date,
                 tta_sanitize_text_field( $_POST['card_cvc'] ),
-                $billing
+                $billing,
+                $sub_name,
+                $sub_desc
             );
             if ( $sub['success'] ) {
                 tta_update_user_membership_level( get_current_user_id(), $membership_level, $sub['subscription_id'] );

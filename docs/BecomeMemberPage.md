@@ -17,3 +17,5 @@ The **Become a Member** template introduces a front‑end landing page for membe
 ## Processing
 Membership purchases are handled separately from one‑off ticket sales. The JavaScript on the page calls the `tta_add_membership` AJAX action which stores the chosen level in the visitor's session. Checkout will display this membership in the cart summary and use `TTA_AuthorizeNet_API::create_subscription()` to create a recurring subscription with Authorize.Net.
 The subscription ID returned by the API is stored on the member record for future cancellation and reporting.
+Each subscription uses a consistent name and description depending on the level:
+"Trying to Adult Basic Membership" or "Trying to Adult Premium Membership" with matching descriptions.
