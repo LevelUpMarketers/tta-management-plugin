@@ -21,13 +21,9 @@
 
 .tta-events-right {
   flex: 0 0 220px;
-  align-self: flex-start;
+  align-self: stretch;
 }
 
-.tta-stick-on-scroll {
-  position: sticky;
-  top: 80px; /* fallback offset */
-}
 
 .tta-join-friends {
   margin-top: 20px;

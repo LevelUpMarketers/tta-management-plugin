@@ -31,6 +31,18 @@
   font-size: 1.1em;
   margin-bottom: 1em;
 }
+.tta-event-share {
+  margin-bottom: 1em;
+}
+.tta-event-share .tta-share-label {
+  margin-right: 0.5em;
+}
+.tta-event-share img {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.25em;
+  vertical-align: middle;
+}
 .tta-event-meta .tta-event-date,
 .tta-event-meta .tta-event-price,
 .tta-event-meta .tta-event-type-meta {
@@ -104,24 +116,22 @@
   display: flex;
   gap: 20px;
 }
-.tta-event-left {
+.tta-event-right {
   flex: 0 0 220px;
-  align-self: flex-start;
-}
-.tta-stick-on-scroll {
-  position: sticky;
-  top: 80px;
+  align-self: stretch;
+  order: 3;
 }
 .tta-event-main {
   flex: 1 1 auto;
   padding-right: 30px;
+  order: 2;
 }
-
 .tta-event-sidebar {
   flex: 0 0 300px;
   background: #fafafa;
   padding: 20px;
   border-radius: 4px;
+  order: 1;
 }
 .tta-event-details h2 {
   margin-top: 0;
@@ -133,6 +143,8 @@
 }
 .tta-event-details li {
   margin-bottom: .5em;
+  display: flex;
+  align-items: flex-start;
 }
 .tta-event-map iframe {
   width: 100%;
@@ -444,6 +456,8 @@ input[disabled] {
 }
 .tta-your-events-list li {
   margin-bottom: .5em;
+  display: flex;
+  align-items: flex-start;
 }
 .tta-your-events-list .logout-icon {
   transform: rotate(180deg);
@@ -462,16 +476,14 @@ input[disabled] {
 
 .tta-event-details-icon{
     width: 18px;
-    display: inline-block;
+    flex: 0 0 auto;
     position: relative;
     top: 2px;
-    right: 2px;
+    margin-right: 4px;
 }
 
 .tta-event-details-icon-after{
-    display: inline-block;
-    width: 93%;
-    vertical-align: top;
+    flex: 1 1 auto;
 }
 
 /* Gallery grid */
@@ -569,7 +581,7 @@ input[disabled] {
   .tta-event-columns {
     flex-direction: column;
   }
-  .tta-event-left,
+  .tta-event-right,
   .tta-event-sidebar {
     flex: 1 1 auto;
   }

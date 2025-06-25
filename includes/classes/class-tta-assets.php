@@ -150,8 +150,8 @@ class TTA_Assets {
                 true
             );
             wp_enqueue_script(
-                'tta-sticky-js',
-                TTA_PLUGIN_URL . 'assets/js/frontend/sticky-scroll.js',
+                'tta-share-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/share/event-share.js',
                 [ 'jquery' ],
                 TTA_PLUGIN_VERSION,
                 true
@@ -202,13 +202,6 @@ class TTA_Assets {
                 TTA_PLUGIN_URL . 'assets/css/frontend/profile-popup.css',
                 [ 'tta-frontend-css' ],
                 TTA_PLUGIN_VERSION
-            );
-            wp_enqueue_script(
-                'tta-sticky-js',
-                TTA_PLUGIN_URL . 'assets/js/frontend/sticky-scroll.js',
-                [ 'jquery' ],
-                TTA_PLUGIN_VERSION,
-                true
             );
             wp_enqueue_script(
                 'tta-popup-js',

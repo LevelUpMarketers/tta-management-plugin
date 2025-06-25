@@ -4,7 +4,10 @@ This document summarizes helper functions and template behavior related to user 
 
 ## Layout Overview
 
-The template now uses a three-column layout, mirroring the Events List Page. A random ad image occupies a narrow left column and stays visible while scrolling. The center column contains the main event content and the familiar sidebar remains on the right.
+The template now uses a three-column layout, mirroring the Events List Page. A
+random ad image occupies a narrow **right** column beside the main event
+content. The event details sidebar appears on the left with the main
+content in the center.
 
 ## Current User Context Helper
 
@@ -29,6 +32,10 @@ The Event Page template includes a **Message Center** block under the “About T
 ## Event Type and Ticket Context
 
 The **Event Details** sidebar now lists the event type (Open Event, Basic Membership Required, or Premium Membership Required). A short message under the “Get Your Tickets Now” heading communicates the membership requirement and offers login or upgrade links depending on the visitor’s status.
+
+## Social Sharing
+
+Below the event meta information the hero section shows small Facebook and Instagram icons. Clicking either icon opens a share window preloaded with the event title and URL so visitors can quickly post about the event on social media. The behaviour is handled by `event-share.js` which is only loaded on individual Event Pages.
 
 ## Your Events Sidebar Section
 
@@ -60,6 +67,8 @@ event has passed and linking to `/events/` to browse upcoming events.
 Below the image gallery, a second accordion displays profile pictures of confirmed attendees. The list is built from the `tta_attendees` table joined to `tta_members` via email so member profile images can be shown. Results are cached via `TTA_Cache` for ten minutes (one minute when empty). Each attendee's full name appears beneath their photo along with their membership level (Free, Basic, or Premium). If a profile image is missing or attendance is hidden, a placeholder image is shown with a label like "Attendee #1." Hosts and volunteers are highlighted with a small badge over their photo. Hosts are listed first, followed by volunteers, and then all other attendees in alphabetical order.
 
 Members may opt to hide their attendance in their profile's *Privacy Options*. Hidden attendees always show the placeholder image and use the numbered "Attendee" label.
+
+Attendee thumbnails use the same popup script as the Events List page. Clicking a profile photo opens a larger version in an overlay, which is disabled on very small screens.
 
 ## Event Hosts and Volunteers
 

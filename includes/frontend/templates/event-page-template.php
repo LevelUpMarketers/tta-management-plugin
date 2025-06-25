@@ -594,6 +594,16 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
         </div>
       </div>
 
+      <div class="tta-event-share">
+        <span class="tta-share-label"><?php esc_html_e( 'Share this event', 'tta' ); ?></span>
+        <a href="#" class="tta-share-link" data-platform="facebook">
+          <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/facebook.svg' ); ?>" alt="Facebook">
+        </a>
+        <a href="#" class="tta-share-link" data-platform="instagram">
+          <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/instagram.svg' ); ?>" alt="Instagram">
+        </a>
+      </div>
+
       <?php if ( ! $is_archived ) : ?>
         <a href="<?php echo $is_logged_in ? '#tta-event-buy' : '#tta-login-message'; ?>" class="tta-button tta-button-primary<?php echo $is_logged_in ? '' : ' tta-scroll-login'; ?>">
           <?php echo $is_logged_in ? esc_html__( 'Buy Tickets', 'tta' ) : esc_html__( 'Log in to Buy Tickets', 'tta' ); ?>
@@ -611,20 +621,6 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
   <!-- MAIN + SIDEBAR -->
   <div class="tta-event-content-wrap">
     <div class="tta-event-columns">
-      <aside class="tta-event-left">
-        <div class="tta-events-ad tta-stick-on-scroll">
-          <?php $ad = tta_get_random_ad(); ?>
-          <?php if ( $ad ) : ?>
-            <?php $img = wp_get_attachment_image( intval( $ad['image_id'] ), 'medium' ); ?>
-            <?php if ( $ad['url'] ) : ?><a href="<?php echo esc_url( $ad['url'] ); ?>"><?php endif; ?>
-            <?php echo $img ? $img : '<img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ) . '" alt="">'; ?>
-            <?php if ( $ad['url'] ) : ?></a><?php endif; ?>
-          <?php else : ?>
-            <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ); ?>" alt="Ad" />
-          <?php endif; ?>
-        </div>
-      </aside>
-
       <!-- MAIN CONTENT -->
       <main class="tta-event-main">
 
@@ -833,9 +829,17 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
                     <div class="tta-attendee-photo-wrapper">
                       <?php
                         if ( ! empty( $att['img_id'] ) && empty( $att['hide'] ) ) {
-                            echo wp_get_attachment_image( $att['img_id'], 'medium_large' );
+                            echo wp_get_attachment_image(
+                                $att['img_id'],
+                                'medium_large',
+                                false,
+                                [
+                                    'class'     => 'tta-popup-img',
+                                    'data-full' => wp_get_attachment_image_url( $att['img_id'], 'large' ),
+                                ]
+                            );
                         } else {
-                            echo '<img src="' . esc_url( $placeholder ) . '" alt="">';
+                            echo '<img src="' . esc_url( $placeholder ) . '" alt="" class="tta-popup-img" data-full="' . esc_url( $placeholder ) . '">';
                         }
                         if ( ! empty( $att['is_host'] ) ) {
                             echo '<span class="tta-attendee-role">' . esc_html__( 'Host', 'tta' ) . '</span>';
@@ -1083,6 +1087,21 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
           <?php echo $event['mapiframe']; ?>
         </div>
       <?php endif; ?>
+    </aside>
+    </div><!-- .tta-event-columns -->
+
+    <aside class="tta-event-right">
+      <div class="tta-events-ad">
+        <?php $ad = tta_get_random_ad(); ?>
+        <?php if ( $ad ) : ?>
+          <?php $img = wp_get_attachment_image( intval( $ad['image_id'] ), 'medium' ); ?>
+          <?php if ( $ad['url'] ) : ?><a href="<?php echo esc_url( $ad['url'] ); ?>"><?php endif; ?>
+          <?php echo $img ? $img : '<img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ) . '" alt="">'; ?>
+          <?php if ( $ad['url'] ) : ?></a><?php endif; ?>
+        <?php else : ?>
+          <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder1.svg' ); ?>" alt="Ad" />
+        <?php endif; ?>
+      </div>
     </aside>
     </div><!-- .tta-event-columns -->
 
