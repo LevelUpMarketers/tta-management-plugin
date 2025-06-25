@@ -79,6 +79,22 @@ class TTA_Assets {
                 true
             );
 
+            // Image popup used for event images
+            wp_enqueue_style(
+                'tta-popup-css',
+                TTA_PLUGIN_URL . 'assets/css/frontend/profile-popup.css',
+                [],
+                TTA_PLUGIN_VERSION
+            );
+
+            wp_enqueue_script(
+                'tta-popup-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/profile-popup.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+
             wp_enqueue_script(
                 'tta-checkout-js',
                 TTA_PLUGIN_URL . 'assets/js/frontend/checkout-expiration-mask.js',

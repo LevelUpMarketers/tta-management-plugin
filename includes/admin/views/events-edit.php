@@ -544,7 +544,12 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
         <!-- Event Description (TinyMCE) -->
         <tr style="width:100%;">
           <th>
-            <h2>Event Description</h2>
+            <h2>
+              <span class="tta-tooltip-icon" data-tooltip="Describe the event details shown on the public page.">
+                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+              </span>
+              <?php esc_html_e( 'Event Description', 'tta' ); ?>
+            </h2>
           </th>
           <td style="width:100vw;">
             <?php

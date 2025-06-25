@@ -1714,6 +1714,14 @@ function tta_admin_preview_image( $attachment_id, array $size, array $attrs = []
         return '';
     }
 
+    $full = wp_get_attachment_image_url( $attachment_id, 'large' );
+    if ( ! $full ) {
+        $full = $url;
+    }
+
+    $attrs['class'] = isset( $attrs['class'] ) ? $attrs['class'] . ' tta-popup-img' : 'tta-popup-img';
+    $attrs['data-full'] = $full;
+
     $attr_str = '';
     foreach ( $attrs as $key => $val ) {
         $attr_str .= sprintf( ' %s="%s"', esc_attr( $key ), esc_attr( $val ) );

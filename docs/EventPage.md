@@ -49,6 +49,7 @@ Logged-in members instead see links to profile info, upcoming events, past event
 ## Image Gallery
 
 Events can include additional photos displayed in an expandable gallery. The gallery uses a masonry-style layout so images of varying dimensions fit nicely together with minimal gaps.
+Each thumbnail uses the same popup script as attendee photos—clicking an image opens a larger version in an overlay.
 
 ## Archived Events
 

@@ -803,8 +803,16 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
                   <div class="tta-gallery-item">
                     <?php
                       // use a medium-large size for good resolution;
-                      // WP will crop/scale as needed
-                      echo wp_get_attachment_image( $img_id, 'medium_large' );
+                      $full = wp_get_attachment_image_url( $img_id, 'large' );
+                      echo wp_get_attachment_image(
+                        $img_id,
+                        'medium_large',
+                        false,
+                        [
+                          'class'     => 'tta-popup-img',
+                          'data-full' => $full ? $full : wp_get_attachment_url( $img_id ),
+                        ]
+                      );
                     ?>
                   </div>
                 <?php endforeach; ?>

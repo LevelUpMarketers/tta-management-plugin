@@ -475,33 +475,36 @@ wp_enqueue_media();
                     $opt_event_update_sms      = intval( $member['opt_in_event_update_sms'] );
                     ?>
                     <fieldset>
+                        <label>
                             <input type="checkbox" name="opt_in_marketing_email" value="1" <?php checked( $opt_marketing_email, 1 ); ?>>
-                            Marketing Emails
                             <span class="tta-tooltip-icon" data-tooltip="Send promotional emails and newsletters.">
                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                             </span>
-                        <label>
+                            <?php esc_html_e( 'Marketing Emails', 'tta' ); ?>
                         </label><br>
+
+                        <label>
                             <input type="checkbox" name="opt_in_marketing_sms" value="1" <?php checked( $opt_marketing_sms, 1 ); ?>>
-                            Marketing Texts/SMS
                             <span class="tta-tooltip-icon" data-tooltip="Send promotional text messages.">
                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                             </span>
-                        <label>
+                            <?php esc_html_e( 'Marketing Texts/SMS', 'tta' ); ?>
                         </label><br>
+
+                        <label>
                             <input type="checkbox" name="opt_in_event_update_email" value="1" <?php checked( $opt_event_update_email, 1 ); ?>>
-                            Event Update Emails
                             <span class="tta-tooltip-icon" data-tooltip="Send event announcements via email.">
                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                             </span>
-                        <label>
+                            <?php esc_html_e( 'Event Update Emails', 'tta' ); ?>
                         </label><br>
+
+                        <label>
                             <input type="checkbox" name="opt_in_event_update_sms" value="1" <?php checked( $opt_event_update_sms, 1 ); ?>>
-                            Event Update Texts/SMS
                             <span class="tta-tooltip-icon" data-tooltip="Send event announcements via text message.">
                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                             </span>
-                        <label>
+                            <?php esc_html_e( 'Event Update Texts/SMS', 'tta' ); ?>
                         </label>
                     </fieldset>
                 </td>

@@ -13,7 +13,12 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
 ?>
 <div class="tta-member-history-details">
   <h3><?php echo esc_html( $member['first_name'] . ' ' . $member['last_name'] ); ?></h3>
-  <h4><?php esc_html_e( 'Member Summary', 'tta' ); ?></h4>
+  <h4>
+    <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Summary of spending, attendance and notes for this member.', 'tta' ); ?>">
+      <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+    </span>
+    <?php esc_html_e( 'Member Summary', 'tta' ); ?>
+  </h4>
   <table class="widefat striped">
     <thead>
       <tr>

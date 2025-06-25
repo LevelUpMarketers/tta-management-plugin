@@ -160,7 +160,8 @@ class HelpersTest extends TestCase {
     public function test_admin_preview_image_uses_fallback() {
         $html = tta_admin_preview_image(1, [50,50], ['class'=>'x']);
         $this->assertStringContainsString('file1.jpg', $html);
-        $this->assertStringContainsString('class="x"', $html);
+        $this->assertStringContainsString('class="x tta-popup-img"', $html);
+        $this->assertStringContainsString('data-full="file1.jpg"', $html);
     }
 
     public function test_get_member_upcoming_events_queries_tables() {

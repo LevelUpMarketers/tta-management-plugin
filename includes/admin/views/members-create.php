@@ -418,45 +418,36 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </th>
                     <td>
                         <fieldset>
+                            <label>
                                 <input type="checkbox" name="opt_in_marketing_email" value="1">
-                                Marketing Emails
-                                <span class="tta-tooltip-icon"
-                                      data-tooltip="Send promotional emails and newsletters."
-                                      style="margin-left:4px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
-                                         alt="Help">
+                                <span class="tta-tooltip-icon" data-tooltip="Send promotional emails and newsletters." style="margin-left:4px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                                 </span>
-                            <label>
+                                <?php esc_html_e( 'Marketing Emails', 'tta' ); ?>
                             </label><br>
+
+                            <label>
                                 <input type="checkbox" name="opt_in_marketing_sms" value="1">
-                                Marketing Texts/SMS
-                                <span class="tta-tooltip-icon"
-                                      data-tooltip="Send promotional text messages."
-                                      style="margin-left:4px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
-                                         alt="Help">
+                                <span class="tta-tooltip-icon" data-tooltip="Send promotional text messages." style="margin-left:4px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                                 </span>
-                            <label>
+                                <?php esc_html_e( 'Marketing Texts/SMS', 'tta' ); ?>
                             </label><br>
+
+                            <label>
                                 <input type="checkbox" name="opt_in_event_update_email" value="1">
-                                Event Update Emails
-                                <span class="tta-tooltip-icon"
-                                      data-tooltip="Send event announcements via email."
-                                      style="margin-left:4px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
-                                         alt="Help">
+                                <span class="tta-tooltip-icon" data-tooltip="Send event announcements via email." style="margin-left:4px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                                 </span>
-                            <label>
+                                <?php esc_html_e( 'Event Update Emails', 'tta' ); ?>
                             </label><br>
-                                <input type="checkbox" name="opt_in_event_update_sms" value="1">
-                                Event Update Texts/SMS
-                                <span class="tta-tooltip-icon"
-                                      data-tooltip="Send event announcements via text message."
-                                      style="margin-left:4px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
-                                         alt="Help">
-                                </span>
+
                             <label>
+                                <input type="checkbox" name="opt_in_event_update_sms" value="1">
+                                <span class="tta-tooltip-icon" data-tooltip="Send event announcements via text message." style="margin-left:4px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+                                </span>
+                                <?php esc_html_e( 'Event Update Texts/SMS', 'tta' ); ?>
                             </label>
                         </fieldset>
                     </td>
