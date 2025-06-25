@@ -260,8 +260,8 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
     <p><?php esc_html_e( 'No upcoming events found.', 'tta' ); ?></p>
 <?php endif; ?>
     </main>
-    <aside class="tta-events-right tta-stick-on-scroll">
-        <div class="tta-events-ad">
+    <aside class="tta-events-right">
+        <div class="tta-events-ad tta-stick-on-scroll">
             <?php $ad = tta_get_random_ad(); ?>
             <?php if ( $ad ) : ?>
                 <?php $img = wp_get_attachment_image( intval( $ad['image_id'] ), 'medium' ); ?>

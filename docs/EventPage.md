@@ -6,10 +6,12 @@ This document summarizes helper functions and template behavior related to user 
 
 The template now uses a three-column layout, mirroring the Events List Page. A
 random ad image occupies a narrow **right** column and stays visible while
-scrolling. The sticky class is applied directly to this `<aside>` so it scrolls
-independently. The wrapper column stretches to match the main content height so the
-sticky ad behaves properly. The event details sidebar now appears on the left with
-the main content in the center.
+scrolling. A `<div class="tta-events-ad tta-stick-on-scroll">` inside the
+aside handles the sticky behaviour. `sticky-scroll.js` simply adjusts the
+`top` offset for elements with this class so the ad never overlaps the admin
+bar or site header. The wrapper column stretches to match the main content
+height so the sticky ad behaves properly. The event details sidebar now
+appears on the left with the main content in the center.
 
 ## Current User Context Helper
 

@@ -18,12 +18,13 @@ The layout consists of three columns:
    and are right aligned. Below each event name a list of key details appears with
    the same icons used on individual Event Pages.
 3. **Right column** – an advertising slot that displays one random ad image from
-   the Ads admin page. The slot stays fixed via CSS `position: sticky` while
-   `sticky-scroll.js` dynamically sets the top offset to account for the admin
-   bar and site header so the ad never appears underneath them. The wrapper
-   column uses `align-self: stretch` so the sticky element has enough height to
-   scroll correctly. The sticky class now applies to the `<aside>` element so the
-   ad container itself requires no additional wrapper.
+   the Ads admin page. The slot stays fixed via CSS `position: sticky` and
+   `sticky-scroll.js` only updates the `top` offset so the ad never appears
+   underneath the admin bar or site header. The wrapper column uses
+   `align-self: stretch` so the sticky element has enough height to scroll
+   correctly. The sticky class is applied to the inner
+   `<div class="tta-events-ad tta-stick-on-scroll">` so the layout remains
+   stable.
 
 Profile thumbnails within the “Join Your Friends” section open a larger version in a simple popup when clicked. The popup is disabled on very small screens.
 
