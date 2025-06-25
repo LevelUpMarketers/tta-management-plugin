@@ -80,13 +80,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Date -->
             <tr>
                 <th>
-                    <label for="date">Date</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Choose the calendar date for this event."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="date">Date</label>
                 </th>
                 <td>
                     <input type="date" name="date" id="date"
@@ -97,13 +97,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- All-day Event? -->
             <tr>
                 <th>
-                    <label for="all_day_event">All-day Event?</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Check ‘Yes’ if the event spans the entire day."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="all_day_event">All-day Event?</label>
                 </th>
                 <td>
                     <select name="all_day_event" id="all_day_event">
@@ -116,13 +116,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Start Time -->
             <tr>
                 <th>
-                    <label for="start_time">Start Time</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Use the time picker to select the event start time."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="start_time">Start Time</label>
                 </th>
                 <td>
                     <input type="time" name="start_time" id="start_time" class="regular-text"
@@ -133,13 +133,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- End Time -->
             <tr>
                 <th>
-                    <label for="end_time">End Time</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Use the time picker to select the event end time."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="end_time">End Time</label>
                 </th>
                 <td>
                     <input type="time" name="end_time" id="end_time" class="regular-text"
@@ -150,13 +150,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Virtual Event? -->
             <tr>
                 <th>
-                    <label for="virtual_event">Virtual Event?</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Check ‘Yes’ if this is an online-only event."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="virtual_event">Virtual Event?</label>
                 </th>
                 <td>
                     <select name="virtual_event" id="virtual_event">
@@ -175,13 +175,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Street Address -->
             <tr>
                 <th>
-                    <label for="street_address">Street Address</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Enter the primary street address."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="street_address">Street Address</label>
                 </th>
                 <td>
                     <input type="text" name="street_address" id="street_address" class="regular-text"
@@ -192,13 +192,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Address 2 -->
             <tr>
                 <th>
-                    <label for="address_2">Address 2</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Apartment, suite, unit, etc."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="address_2">Address 2</label>
                 </th>
                 <td>
                     <input type="text" name="address_2" id="address_2" class="regular-text"
@@ -209,13 +209,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- City -->
             <tr>
                 <th>
-                    <label for="city">City</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="City name."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="city">City</label>
                 </th>
                 <td>
                     <input type="text" name="city" id="city" class="regular-text"
@@ -226,13 +226,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- State -->
             <tr>
                 <th>
-                    <label for="state">State</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Select the state."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="state">State</label>
                 </th>
                 <td>
                     <?php
@@ -262,13 +262,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- ZIP -->
             <tr>
                 <th>
-                    <label for="zip">ZIP</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Postal code."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="zip">ZIP</label>
                 </th>
                 <td>
                     <input type="text" name="zip" id="zip" class="regular-text"
@@ -279,13 +279,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Venue Name -->
             <tr>
                 <th>
-                    <label for="venuename">Venue Name</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="The name of the Venue"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="venuename">Venue Name</label>
                 </th>
                 <td>
                     <input type="text" name="venuename" id="venuename" class="regular-text"
@@ -296,13 +296,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Venue Link -->
             <tr>
                 <th>
-                    <label for="venueurl">Venue Link</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Link to the venue or event page."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="venueurl">Venue Link</label>
                 </th>
                 <td>
                     <input type="url" name="venueurl" id="venueurl" class="regular-text"
@@ -313,13 +313,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Event Type -->
             <tr>
                 <th>
-                    <label for="type">Event Type</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Select the membership requirement for this event. Open Events are public. Basic Membership Required means attendees must be logged in with at least a Basic membership. Premium Membership Required limits access to Premium members only."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="type">Event Type</label>
                 </th>
                 <td>
                     <select name="type" id="type">
@@ -345,13 +345,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Base Cost -->
             <tr>
                 <th>
-                    <label for="baseeventcost">Base Cost</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Standard ticket price in USD."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="baseeventcost">Base Cost</label>
                 </th>
                 <td>
                     <input type="number" name="baseeventcost" id="baseeventcost" class="regular-text"
@@ -363,13 +363,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Basic Member Cost -->
             <tr>
                 <th>
-                    <label for="discountedmembercost">Basic Member Cost</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Enter the basic member discounted price in USD, with cents."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="discountedmembercost">Basic Member Cost</label>
                 </th>
                 <td>
                     <input type="number" name="discountedmembercost" id="discountedmembercost" class="regular-text"
@@ -381,13 +381,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Premium Member Cost -->
             <tr>
                 <th>
-                    <label for="premiummembercost">Premium Member Cost</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Enter the premium member discounted price in USD, with cents."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="premiummembercost">Premium Member Cost</label>
                 </th>
                 <td>
                     <input type="number" name="premiummembercost" id="premiummembercost" class="regular-text"
@@ -399,13 +399,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Waitlist Available? -->
             <tr>
                 <th>
-                    <label for="waitlistavailable">Waitlist Available?</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Allow joining waitlist when full."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="waitlistavailable">Waitlist Available?</label>
                 </th>
                 <td>
                     <select name="waitlistavailable" id="waitlistavailable">
@@ -418,13 +418,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Refunds Available? -->
             <tr>
                 <th>
-                    <label for="refundsavailable">Refunds Available?</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Allow refund requests."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="refundsavailable">Refunds Available?</label>
                 </th>
                 <td>
                     <select name="refundsavailable" id="refundsavailable">
@@ -437,13 +437,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Discount Code -->
             <tr>
                 <th>
-                    <label for="discountcode">Discount Code</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Promo code & discount details."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="discountcode">Discount Code</label>
                 </th>
                 <td>
                     <input type="text" name="discountcode" id="discountcode" class="regular-text"
@@ -471,13 +471,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <?php for ( $i = 2; $i <= 4; $i++ ) : ?>
             <tr>
                 <th>
-                    <label for="url<?php echo $i; ?>">Extra Event Link <?php echo $i - 1; ?></label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Additional resource link."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="url<?php echo $i; ?>">Extra Event Link <?php echo $i - 1; ?></label>
                 </th>
                 <td>
                     <input type="url" name="url<?php echo $i; ?>" id="url<?php echo $i; ?>" class="regular-text"
@@ -490,10 +490,10 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Event Hosts -->
             <tr>
                 <th>
-                    <label for="hosts">Event Hosts</label>
                     <span class="tta-tooltip-icon" data-tooltip="Add one or more hosts." style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                     </span>
+                    <label for="hosts">Event Hosts</label>
                 </th>
                 <td>
                     <div id="hosts-container">
@@ -513,10 +513,10 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Event Volunteers -->
             <tr>
                 <th>
-                    <label for="volunteers">Event Volunteers</label>
                     <span class="tta-tooltip-icon" data-tooltip="Add volunteers assisting with this event." style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                     </span>
+                    <label for="volunteers">Event Volunteers</label>
                 </th>
                 <td>
                     <div id="volunteers-container">

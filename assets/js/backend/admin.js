@@ -957,7 +957,7 @@ jQuery(function($){
     e.preventDefault();
     var $btn  = $form.find('button[type=submit]').prop('disabled',true),
         $spin = $form.find('.tta-admin-progress-spinner-svg').css({display:'inline-block',opacity:0}).fadeTo(200,1),
-        $resp = $('#tta-subscription-response .tta-admin-progress-response-p').removeClass('updated error').text(''),
+        $resp = $form.find('#tta-subscription-response .tta-admin-progress-response-p').removeClass('updated error').text(''),
         data  = $form.serialize() + '&action=' + action + '&nonce=' + TTA_Ajax.membership_admin_nonce;
     $.post(TTA_Ajax.ajax_url, data, function(res){
       setTimeout(function(){
