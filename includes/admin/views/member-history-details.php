@@ -160,7 +160,10 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
   <form id="tta-admin-reactivate-subscription-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p>
-      <label><?php esc_html_e( 'Monthly Amount', 'tta' ); ?> <input type="number" step="0.01" name="amount" value="<?php echo esc_attr( tta_get_membership_price( $member['membership_level'] ) ); ?>"></label>
+      <label>
+        <?php esc_html_e( 'Monthly Amount', 'tta' ); ?><br />
+        <input type="number" step="0.01" name="amount" value="<?php echo esc_attr( tta_get_membership_price( $member['membership_level'] ) ); ?>" />
+      </label>
     </p>
     <p>
       <label>
@@ -227,13 +230,17 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
   <form id="tta-admin-change-level-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p>
-      <label><?php esc_html_e( 'New Level', 'tta' ); ?>
+      <label>
+        <?php esc_html_e( 'New Level', 'tta' ); ?><br />
         <select name="level">
           <option value="basic">Basic</option>
           <option value="premium">Premium</option>
         </select>
       </label>
-      <label><?php esc_html_e( 'Price Per Month', 'tta' ); ?> <input type="number" step="0.01" name="price" required></label>
+      <label>
+        <?php esc_html_e( 'Price Per Month', 'tta' ); ?><br />
+        <input type="number" step="0.01" name="price" required />
+      </label>
     </p>
     <p class="submit">
       <button type="submit" class="button"><?php esc_html_e( 'Update Membership Level', 'tta' ); ?></button>
