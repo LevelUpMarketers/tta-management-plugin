@@ -579,6 +579,32 @@ function tta_update_user_subscription_status( $wp_user_id, $status ) {
 }
 
 /**
+ * Retrieve the last four digits of a subscription's credit card.
+ *
+ * The data is cached for ten minutes to limit API calls.
+ *
+ * @param string $subscription_id Authorize.Net subscription ID.
+ * @return string Empty string on failure.
+ */
+function tta_get_subscription_card_last4( $subscription_id ) {
+    if ( ! $subscription_id ) {
+        return '';
+    }
+    $cache_key = 'sub_last4_' . $subscription_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+    $api  = new TTA_AuthorizeNet_API();
+    $info = $api->get_subscription_details( $subscription_id );
+    if ( $info['success'] ) {
+        TTA_Cache::set( $cache_key, $info['card_last4'], 600 );
+        return $info['card_last4'];
+    }
+    return '';
+}
+
+/**
  * Format a raw address string from the events table.
  *
  * @param string $raw Raw address ("street - addr2 - city - state - zip").

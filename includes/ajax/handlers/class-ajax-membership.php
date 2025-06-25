@@ -10,6 +10,7 @@ class TTA_Ajax_Membership {
         add_action( 'wp_ajax_tta_remove_membership', [ __CLASS__, 'ajax_remove_membership' ] );
         add_action( 'wp_ajax_nopriv_tta_remove_membership', [ __CLASS__, 'ajax_remove_membership' ] );
         add_action( 'wp_ajax_tta_cancel_membership', [ __CLASS__, 'ajax_cancel_membership' ] );
+        add_action( 'wp_ajax_tta_update_payment', [ __CLASS__, 'ajax_update_payment' ] );
     }
 
     public static function ajax_add_membership() {
@@ -65,6 +66,36 @@ class TTA_Ajax_Membership {
         TTA_Cache::flush();
 
         wp_send_json_success( [ 'message' => __( 'Subscription cancelled.', 'tta' ), 'status' => 'cancelled' ] );
+    }
+
+    public static function ajax_update_payment() {
+        check_ajax_referer( 'tta_member_front_update', 'nonce' );
+        if ( ! is_user_logged_in() ) {
+            wp_send_json_error( [ 'message' => __( 'You must be logged in.', 'tta' ) ] );
+        }
+
+        $user_id = get_current_user_id();
+        $sub_id  = tta_get_user_subscription_id( $user_id );
+        if ( ! $sub_id ) {
+            wp_send_json_error( [ 'message' => __( 'No active subscription found.', 'tta' ) ] );
+        }
+
+        $card_number = isset( $_POST['card_number'] ) ? preg_replace( '/\D/', '', $_POST['card_number'] ) : '';
+        $exp         = isset( $_POST['exp_date'] ) ? sanitize_text_field( $_POST['exp_date'] ) : '';
+        $cvc         = isset( $_POST['card_cvc'] ) ? sanitize_text_field( $_POST['card_cvc'] ) : '';
+        if ( ! $card_number || ! $exp ) {
+            wp_send_json_error( [ 'message' => __( 'Payment details incomplete.', 'tta' ) ] );
+        }
+
+        $api  = new TTA_AuthorizeNet_API();
+        $res  = $api->update_subscription_payment( $sub_id, $card_number, $exp, $cvc );
+        if ( ! $res['success'] ) {
+            wp_send_json_error( [ 'message' => $res['error'] ] );
+        }
+
+        TTA_Cache::delete( 'sub_last4_' . $sub_id );
+
+        wp_send_json_success( [ 'message' => __( 'Payment method updated.', 'tta' ) ] );
     }
 }
 

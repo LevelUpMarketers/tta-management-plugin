@@ -253,4 +253,42 @@ jQuery(function($){
       }, delay);
     });
   });
+
+  // Update payment method form
+  $(document).on('submit', '#tta-update-card-form', function(e){
+    e.preventDefault();
+    var $form = $(this),
+        $btn  = $form.find('button[type="submit"]'),
+        $spin = $form.find('.tta-admin-progress-spinner-svg'),
+        $resp = $form.find('.tta-admin-progress-response-p'),
+        start = Date.now();
+
+    $resp.removeClass('updated error').text('');
+    $btn.prop('disabled', true);
+    $spin.show().css({opacity:0}).fadeTo(200,1);
+
+    $.post(TTA_MemberDashboard.ajax_url, $form.serialize(), function(res){
+      var delay = Math.max(0, 5000 - (Date.now()-start));
+      setTimeout(function(){
+        $spin.fadeOut(200);
+        $btn.prop('disabled', false);
+        if(res.success){
+          $resp.addClass('updated').text(res.data.message);
+          if(res.data.last4){
+            $('#tta-card-last4').text(res.data.last4);
+          }
+          $form[0].reset();
+        }else{
+          $resp.addClass('error').text(res.data.message||'Error');
+        }
+      }, delay);
+    }, 'json').fail(function(){
+      var delay = Math.max(0, 5000 - (Date.now()-start));
+      setTimeout(function(){
+        $spin.fadeOut(200);
+        $btn.prop('disabled', false);
+        $resp.addClass('error').text('Request failed. Please try again.');
+      }, delay);
+    });
+  });
 });

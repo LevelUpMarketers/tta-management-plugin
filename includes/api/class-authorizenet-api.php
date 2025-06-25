@@ -197,4 +197,86 @@ class TTA_AuthorizeNet_API {
             : 'API error';
         return [ 'success' => false, 'error' => $err ];
     }
+
+    /**
+     * Fetch subscription details such as the masked card number.
+     *
+     * @param string $subscription_id Subscription ID.
+     * @return array { success:bool, card_last4?:string, error?:string }
+     */
+    public function get_subscription_details( $subscription_id ) {
+        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
+        }
+
+        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+        $merchantAuthentication->setName( $this->login_id );
+        $merchantAuthentication->setTransactionKey( $this->transaction_key );
+
+        $request = new AnetAPI\ARBGetSubscriptionRequest();
+        $request->setMerchantAuthentication( $merchantAuthentication );
+        $request->setSubscriptionId( $subscription_id );
+
+        $controller = new AnetController\ARBGetSubscriptionController( $request );
+        $response   = $controller->executeWithApiResponse( $this->environment );
+
+        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            $card  = $response->getSubscription()->getPayment()->getCreditCard();
+            $masked = $card ? $card->getCardNumber() : '';
+            $last4  = preg_match( '/(\d{4})$/', $masked, $m ) ? $m[1] : '';
+            return [ 'success' => true, 'card_last4' => $last4 ];
+        }
+
+        $err = $response && $response->getMessages()->getMessage()
+            ? $response->getMessages()->getMessage()[0]->getText()
+            : 'API error';
+        return [ 'success' => false, 'error' => $err ];
+    }
+
+    /**
+     * Update the payment information for a subscription.
+     *
+     * @param string $subscription_id Subscription ID.
+     * @param string $card_number      Credit card number.
+     * @param string $exp_date         Expiration date YYYY-MM.
+     * @param string $card_code        Card code/CVV.
+     * @return array { success:bool, error?:string }
+     */
+    public function update_subscription_payment( $subscription_id, $card_number, $exp_date, $card_code ) {
+        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
+        }
+
+        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+        $merchantAuthentication->setName( $this->login_id );
+        $merchantAuthentication->setTransactionKey( $this->transaction_key );
+
+        $card = new AnetAPI\CreditCardType();
+        $card->setCardNumber( $card_number );
+        $card->setExpirationDate( $exp_date );
+        $card->setCardCode( $card_code );
+
+        $payment = new AnetAPI\PaymentType();
+        $payment->setCreditCard( $card );
+
+        $subscription = new AnetAPI\ARBSubscriptionType();
+        $subscription->setPayment( $payment );
+
+        $request = new AnetAPI\ARBUpdateSubscriptionRequest();
+        $request->setMerchantAuthentication( $merchantAuthentication );
+        $request->setSubscriptionId( $subscription_id );
+        $request->setSubscription( $subscription );
+
+        $controller = new AnetController\ARBUpdateSubscriptionController( $request );
+        $response   = $controller->executeWithApiResponse( $this->environment );
+
+        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            return [ 'success' => true ];
+        }
+
+        $err = $response && $response->getMessages()->getMessage()
+            ? $response->getMessages()->getMessage()[0]->getText()
+            : 'API error';
+        return [ 'success' => false, 'error' => $err ];
+    }
 }
