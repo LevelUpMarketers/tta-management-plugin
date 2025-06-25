@@ -92,6 +92,8 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
         <?php esc_html_e( 'Expiration', 'tta' ); ?><br />
         <input type="text" class="tta-card-exp" name="exp_date" placeholder="MM/YY" required maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" />
       </label>
+    </p>
+    <p>
       <label>
         <?php esc_html_e( 'CVC', 'tta' ); ?><br />
         <input type="text" name="card_cvc" placeholder="123" required />
@@ -102,6 +104,8 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
         <?php esc_html_e( 'Billing First Name', 'tta' ); ?><br />
         <input type="text" name="bill_first" required />
       </label>
+    </p>
+    <p>
       <label>
         <?php esc_html_e( 'Billing Last Name', 'tta' ); ?><br />
         <input type="text" name="bill_last" required />
@@ -118,6 +122,8 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
         <?php esc_html_e( 'City', 'tta' ); ?><br />
         <input type="text" name="bill_city" required />
       </label>
+    </p>
+    <p>
       <label>
         <?php esc_html_e( 'State', 'tta' ); ?><br />
         <select name="bill_state">
@@ -126,6 +132,8 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
           <?php endforeach; ?>
         </select>
       </label>
+    </p>
+    <p>
       <label>
         <?php esc_html_e( 'ZIP', 'tta' ); ?><br />
         <input type="text" name="bill_zip" required />
@@ -176,6 +184,8 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
         <?php esc_html_e( 'Expiration', 'tta' ); ?><br />
         <input type="text" class="tta-card-exp" name="exp_date" placeholder="MM/YY" required maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" />
       </label>
+    </p>
+    <p>
       <label>
         <?php esc_html_e( 'CVC', 'tta' ); ?><br />
         <input type="text" name="card_cvc" placeholder="123" required />
@@ -186,6 +196,8 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
         <?php esc_html_e( 'Billing First Name', 'tta' ); ?><br />
         <input type="text" name="bill_first" required />
       </label>
+    </p>
+    <p>
       <label>
         <?php esc_html_e( 'Billing Last Name', 'tta' ); ?><br />
         <input type="text" name="bill_last" required />
@@ -202,6 +214,8 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
         <?php esc_html_e( 'City', 'tta' ); ?><br />
         <input type="text" name="bill_city" required />
       </label>
+    </p>
+    <p>
       <label>
         <?php esc_html_e( 'State', 'tta' ); ?><br />
         <select name="bill_state">
@@ -210,6 +224,8 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
           <?php endforeach; ?>
         </select>
       </label>
+    </p>
+    <p>
       <label>
         <?php esc_html_e( 'ZIP', 'tta' ); ?><br />
         <input type="text" name="bill_zip" required />
@@ -237,6 +253,8 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
           <option value="premium">Premium</option>
         </select>
       </label>
+    </p>
+    <p>
       <label>
         <?php esc_html_e( 'Price Per Month', 'tta' ); ?><br />
         <input type="number" step="0.01" name="price" required />
