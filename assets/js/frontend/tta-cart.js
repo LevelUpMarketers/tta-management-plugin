@@ -49,8 +49,20 @@ jQuery(function($){
     }, 'json');
   }
 
+  function removeMembership(){
+    $.post( tta_ajax.ajax_url, {
+      action: 'tta_remove_membership',
+      nonce: tta_ajax.nonce
+    }, function(res){
+      if(res.success){
+        window.location.reload();
+      }
+    }, 'json');
+  }
+
   $('#tta-basic-signup').on('click', function(){ sendMembership('basic'); });
   $('#tta-premium-signup').on('click', function(){ sendMembership('premium'); });
+  $(document).on('click', '#tta-remove-membership', function(){ removeMembership(); });
 
   function collectCartData(){
     var data = { cart_qty: {} };

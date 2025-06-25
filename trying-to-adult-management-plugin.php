@@ -20,6 +20,8 @@ define( 'TTA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TTA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'TTA_PLUGIN_VERSION', '0.2.0' );
 define( 'TTA_DB_VERSION', '1.2.0' );
+define( 'TTA_BASIC_MEMBERSHIP_PRICE', 5.00 );
+define( 'TTA_PREMIUM_MEMBERSHIP_PRICE', 10.00 );
 
 require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-debug-logger.php';
 TTA_Debug_Logger::init();

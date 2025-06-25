@@ -468,6 +468,42 @@ function tta_get_membership_label( $level ) {
 }
 
 /**
+ * Get the monthly price for a membership level.
+ *
+ * @param string $level Level slug (basic or premium).
+ * @return float
+ */
+function tta_get_membership_price( $level ) {
+    switch ( strtolower( $level ) ) {
+        case 'premium':
+            return TTA_PREMIUM_MEMBERSHIP_PRICE;
+        case 'basic':
+            return TTA_BASIC_MEMBERSHIP_PRICE;
+        default:
+            return 0;
+    }
+}
+
+/**
+ * Update a member's subscription level.
+ *
+ * @param int    $wp_user_id WordPress user ID.
+ * @param string $level      New membership level.
+ */
+function tta_update_user_membership_level( $wp_user_id, $level ) {
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $level = in_array( $level, [ 'free', 'basic', 'premium' ], true ) ? $level : 'free';
+    $wpdb->update(
+        $members_table,
+        [ 'membership_level' => $level ],
+        [ 'wpuserid' => intval( $wp_user_id ) ],
+        [ '%s' ],
+        [ '%d' ]
+    );
+}
+
+/**
  * Format a raw address string from the events table.
  *
  * @param string $raw Raw address ("street - addr2 - city - state - zip").
@@ -1035,6 +1071,8 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
     ob_start();
     $items = $cart->get_items_with_discounts( $discount_codes );
     $total = $cart->get_total( $discount_codes );
+    $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
+    $has_membership  = in_array( $membership_level, [ 'basic', 'premium' ], true );
     $code_events = [];
     foreach ( $items as $row ) {
         $info = tta_parse_discount_data( $row['discountcode'] );
@@ -1042,7 +1080,7 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
             $code_events[ $info['code'] ] = $row['event_name'];
         }
     }
-    if ( $items ) {
+    if ( $items || $has_membership ) {
         ?>
         <table class="tta-cart-table">
             <thead>
@@ -1137,6 +1175,17 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                         <td><button type="button" data-ticket="<?php echo esc_attr( $it['ticket_id'] ); ?>" class="tta-remove-item" aria-label="Remove"></button></td>
                     </tr>
                 <?php endforeach; ?>
+                <?php if ( $has_membership ) : ?>
+                    <?php $m_price = tta_get_membership_price( $membership_level ); ?>
+                    <tr class="tta-membership-row" data-ticket="0">
+                        <td><?php echo esc_html( ucfirst( $membership_level ) . ' Membership' ); ?></td>
+                        <td></td>
+                        <td>1</td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?></td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?></td>
+                        <td><button type="button" id="tta-remove-membership" class="tta-remove-item" aria-label="Remove"></button></td>
+                    </tr>
+                <?php endif; ?>
             </tbody>
             <tfoot>
                 <tr>
@@ -1182,6 +1231,8 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
     ob_start();
     $items = $cart->get_items_with_discounts( $discount_codes );
     $total = $cart->get_total( $discount_codes );
+    $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
+    $has_membership  = in_array( $membership_level, [ 'basic', 'premium' ], true );
     $code_events = [];
     foreach ( $items as $row ) {
         $info = tta_parse_discount_data( $row['discountcode'] );
@@ -1189,7 +1240,7 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
             $code_events[ $info['code'] ] = $row['event_name'];
         }
     }
-    if ( $items ) {
+    if ( $items || $has_membership ) {
         ?>
         <div id="tta-checkout-container">
         <table class="tta-checkout-summary">
@@ -1274,6 +1325,16 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                         </td>
                     </tr>
                 <?php endforeach; ?>
+                <?php if ( $has_membership ) : ?>
+                    <?php $m_price = tta_get_membership_price( $membership_level ); ?>
+                    <tr class="tta-membership-row" data-ticket="0">
+                        <td><?php echo esc_html( ucfirst( $membership_level ) . ' Membership' ); ?></td>
+                        <td></td>
+                        <td>1</td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?></td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?></td>
+                    </tr>
+                <?php endif; ?>
             </tbody>
             <tfoot>
                 <tr>
