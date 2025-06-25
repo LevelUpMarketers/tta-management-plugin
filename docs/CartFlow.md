@@ -18,7 +18,7 @@ This document summarizes the current logic around the cart and checkout process 
 2. **Viewing the Cart**
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
    - If a visitor selected a membership on the Become a Member page, that membership appears as its own line item in the cart.
-   - Premium members cannot downgrade to a Basic plan. Attempts to add a Basic membership are rejected.
+   - Premium members cannot add another membership at all. Attempts to add Basic or Premium memberships are rejected.
    - When the cart only contains a membership, the table hides the **Ticket Reserved for…** column and the first column heading becomes **Event or Item**. Membership pricing shows "Per Month" in the price and subtotal columns, and the total row also displays "Per Month". Column spans adjust so the table remains aligned without the countdown column.
    - If both a membership and tickets are present, the total row displays the first charge (e.g. `$15.00 today, $5 Per Month`) so customers understand future recurring payments.
    - A dedicated **Ticket Reserved for…** column displays a live five minute countdown for ticket rows.
