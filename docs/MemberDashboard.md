@@ -33,3 +33,8 @@ Subscription metadata is stored in two columns on `tta_members`:
 
 - `subscription_id` – Authorize.Net identifier for the recurring payment
 - `subscription_status` – either `active` or `cancelled`
+
+Below the membership controls is a **Payment History** table. It lists all
+transactions in chronological order including event purchases logged in the
+`tta_transactions` table and monthly membership charges retrieved from the
+Authorize.Net API. Each row displays the date, item name, and amount charged.

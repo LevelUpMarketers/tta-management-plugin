@@ -201,10 +201,11 @@ class TTA_AuthorizeNet_API {
     /**
      * Fetch subscription details such as the masked card number.
      *
-     * @param string $subscription_id Subscription ID.
-     * @return array { success:bool, card_last4?:string, error?:string }
+     * @param string  $subscription_id     Subscription ID.
+     * @param boolean $include_transactions Whether to return the ARB transaction list.
+     * @return array { success:bool, card_last4?:string, transactions?:array, error?:string }
      */
-    public function get_subscription_details( $subscription_id ) {
+    public function get_subscription_details( $subscription_id, $include_transactions = false ) {
         if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
@@ -216,15 +217,38 @@ class TTA_AuthorizeNet_API {
         $request = new AnetAPI\ARBGetSubscriptionRequest();
         $request->setMerchantAuthentication( $merchantAuthentication );
         $request->setSubscriptionId( $subscription_id );
+        if ( $include_transactions ) {
+            $request->setIncludeTransactions( true );
+        }
 
         $controller = new AnetController\ARBGetSubscriptionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
-            $card  = $response->getSubscription()->getPayment()->getCreditCard();
+            $sub    = $response->getSubscription();
+            $card   = $sub->getPayment()->getCreditCard();
             $masked = $card ? $card->getCardNumber() : '';
             $last4  = preg_match( '/(\d{4})$/', $masked, $m ) ? $m[1] : '';
-            return [ 'success' => true, 'card_last4' => $last4 ];
+
+            $data = [ 'success' => true, 'card_last4' => $last4 ];
+
+            if ( $include_transactions ) {
+                $amount   = $sub->getAmount();
+                $txn_list = [];
+                $txns     = $sub->getArbTransactions();
+                if ( $txns ) {
+                    foreach ( $txns->getArbTransaction() as $tx ) {
+                        $txn_list[] = [
+                            'id'    => $tx->getTransId(),
+                            'date'  => $tx->getSubmitTimeUTC(),
+                            'amount'=> $amount,
+                        ];
+                    }
+                }
+                $data['transactions'] = $txn_list;
+            }
+
+            return $data;
         }
 
         $err = $response && $response->getMessages()->getMessage()

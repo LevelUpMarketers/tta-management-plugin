@@ -605,6 +605,32 @@ function tta_get_subscription_card_last4( $subscription_id ) {
 }
 
 /**
+ * Retrieve recent transactions for a subscription.
+ *
+ * @param string $subscription_id Authorize.Net subscription ID.
+ * @return array[] { id:string, date:string, amount:float }
+ */
+function tta_get_subscription_transactions( $subscription_id ) {
+    if ( ! $subscription_id ) {
+        return [];
+    }
+    $cache_key = 'sub_tx_' . $subscription_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    $api  = new TTA_AuthorizeNet_API();
+    $info = $api->get_subscription_details( $subscription_id, true );
+    if ( ! $info['success'] ) {
+        return [];
+    }
+    $txns = $info['transactions'] ?? [];
+    TTA_Cache::set( $cache_key, $txns, 600 );
+    return $txns;
+}
+
+/**
  * Format a raw address string from the events table.
  *
  * @param string $raw Raw address ("street - addr2 - city - state - zip").
@@ -873,6 +899,72 @@ function tta_get_member_history_summary( $member_id ) {
 
     TTA_Cache::set( $cache_key, $summary, 300 );
     return $summary;
+}
+
+/**
+ * Retrieve a member's full billing history including subscription charges.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ * @return array[] { date:string, description:string, amount:float }
+ */
+function tta_get_member_billing_history( $wp_user_id ) {
+    $wp_user_id = intval( $wp_user_id );
+    if ( ! $wp_user_id ) {
+        return [];
+    }
+
+    $cache_key = 'billing_hist_' . $wp_user_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $tx_table = $wpdb->prefix . 'tta_transactions';
+
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT transaction_id, amount, details, created_at FROM {$tx_table} WHERE wpuserid = %d ORDER BY created_at DESC",
+            $wp_user_id
+        ),
+        ARRAY_A
+    );
+
+    $history = [];
+    foreach ( $rows as $row ) {
+        $items = json_decode( $row['details'], true );
+        if ( ! is_array( $items ) ) {
+            continue;
+        }
+        foreach ( $items as $it ) {
+            $name  = $it['event_name'] ?? ( $it['membership'] ?? '' );
+            $price = floatval( $it['final_price'] ?? 0 ) * intval( $it['quantity'] ?? 1 );
+            $history[] = [
+                'date'        => $row['created_at'],
+                'description' => sanitize_text_field( $name ),
+                'amount'      => $price,
+            ];
+        }
+    }
+
+    $sub_id = tta_get_user_subscription_id( $wp_user_id );
+    if ( $sub_id ) {
+        foreach ( tta_get_subscription_transactions( $sub_id ) as $sub_tx ) {
+            $label = __( 'Membership Charge', 'tta' );
+            $history[] = [
+                'date'        => $sub_tx['date'],
+                'description' => $label,
+                'amount'      => floatval( $sub_tx['amount'] ),
+            ];
+        }
+    }
+
+    usort( $history, function ( $a, $b ) {
+        return strtotime( $b['date'] ) - strtotime( $a['date'] );
+    } );
+
+    TTA_Cache::set( $cache_key, $history, 300 );
+    return $history;
 }
 
 /**

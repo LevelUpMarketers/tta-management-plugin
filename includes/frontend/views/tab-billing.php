@@ -58,4 +58,30 @@
       </form>
     <?php endif; ?>
   <?php endif; ?>
+
+  <?php
+  $history = tta_get_member_billing_history( get_current_user_id() );
+  if ( $history ) : ?>
+    <h4><?php esc_html_e( 'Payment History', 'tta' ); ?></h4>
+    <table class="widefat striped tta-billing-history">
+      <thead>
+        <tr>
+          <th><?php esc_html_e( 'Date', 'tta' ); ?></th>
+          <th><?php esc_html_e( 'Item', 'tta' ); ?></th>
+          <th><?php esc_html_e( 'Amount', 'tta' ); ?></th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ( $history as $row ) : ?>
+          <tr>
+            <td><?php echo esc_html( date_i18n( 'F j, Y', strtotime( $row['date'] ) ) ); ?></td>
+            <td><?php echo esc_html( $row['description'] ); ?></td>
+            <td>$<?php echo esc_html( number_format( $row['amount'], 2 ) ); ?></td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  <?php else : ?>
+    <p><?php esc_html_e( 'No transactions found.', 'tta' ); ?></p>
+  <?php endif; ?>
 </div>
