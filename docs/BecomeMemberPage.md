@@ -12,6 +12,7 @@ The **Become a Member** template introduces a front‑end landing page for membe
 - Visitors can complete checkout with just a membership selected—no tickets are required.
 - Only one membership can exist in the cart at a time. Logged-in users who already have a Basic membership cannot add another Basic plan.
 - When only a membership is present in the cart, the subtotal and total rows show the price "Per Month" and table columns remain aligned.
+- When tickets are also in the cart, the total row shows the immediate charge followed by the monthly membership amount (e.g. `$15.00 today, $5 Per Month`).
 
 ## Processing
 Membership purchases are handled separately from one‑off ticket sales. The JavaScript on the page calls the `tta_add_membership` AJAX action which stores the chosen level in the visitor's session. Checkout will display this membership in the cart summary and use `TTA_AuthorizeNet_API::create_subscription()` to create a recurring subscription with Authorize.Net.
