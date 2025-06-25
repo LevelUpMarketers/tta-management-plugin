@@ -44,10 +44,10 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
   </table>
   <?php if ( $billing_history ) : ?>
   <h4>
-    <?php esc_html_e( 'Payment History', 'tta' ); ?>
     <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Full record of all event purchases and membership payments.', 'tta' ); ?>">
       <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
     </span>
+    <?php esc_html_e( 'Payment History', 'tta' ); ?>
   </h4>
     <table class="widefat striped tta-billing-history">
       <thead>
@@ -78,10 +78,10 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
   <?php endif; ?>
 
   <h4>
-    <?php esc_html_e( 'Manage Subscription', 'tta' ); ?>
     <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Update payment methods, cancel, reactivate or change membership level.', 'tta' ); ?>">
       <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
     </span>
+    <?php esc_html_e( 'Manage Subscription', 'tta' ); ?>
   </h4>
 
   <p class="description">
@@ -92,10 +92,10 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
 
   <form id="tta-admin-update-payment-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
     <h5>
-      <?php esc_html_e( 'Update Payment Method', 'tta' ); ?>
       <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Change the card and billing address used for the member\'s recurring payments.', 'tta' ); ?>">
         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
       </span>
+      <?php esc_html_e( 'Update Payment Method', 'tta' ); ?>
     </h5>
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p>
@@ -166,10 +166,10 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
 
   <form id="tta-admin-cancel-subscription-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
     <h5>
-      <?php esc_html_e( 'Cancel Subscription', 'tta' ); ?>
       <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Immediately cancel the member\'s active subscription.', 'tta' ); ?>">
         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
       </span>
+      <?php esc_html_e( 'Cancel Subscription', 'tta' ); ?>
     </h5>
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p class="submit">
@@ -182,10 +182,10 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
 
   <form id="tta-admin-reactivate-subscription-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
     <h5>
-      <?php esc_html_e( 'Reactivate Subscription', 'tta' ); ?>
       <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Restart billing for a cancelled member. A new subscription may be created if needed.', 'tta' ); ?>">
         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
       </span>
+      <?php esc_html_e( 'Reactivate Subscription', 'tta' ); ?>
     </h5>
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p>
@@ -262,10 +262,10 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
 
   <form id="tta-admin-change-level-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
     <h5>
-      <?php esc_html_e( 'Change Membership Level', 'tta' ); ?>
       <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Switch the member between Basic and Premium tiers starting on their next bill.', 'tta' ); ?>">
         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
       </span>
+      <?php esc_html_e( 'Change Membership Level', 'tta' ); ?>
     </h5>
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p>

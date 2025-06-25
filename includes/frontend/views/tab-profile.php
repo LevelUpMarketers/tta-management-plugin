@@ -24,10 +24,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- First Name -->
         <tr class="profile-row">
           <th>
-            <label for="first_name"><?php esc_html_e( 'First Name', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Enter your given first name as you’d like it displayed.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="first_name"><?php esc_html_e( 'First Name', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['first_name'] ); ?></span>
@@ -43,10 +43,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Last Name -->
         <tr class="profile-row">
           <th>
-            <label for="last_name"><?php esc_html_e( 'Last Name', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Enter your family/last name.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="last_name"><?php esc_html_e( 'Last Name', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['last_name'] ); ?></span>

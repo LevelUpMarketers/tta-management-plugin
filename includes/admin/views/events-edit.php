@@ -62,13 +62,13 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Event Name -->
             <tr>
                 <th>
-                    <label for="name">Event Name</label>
                     <span class="tta-tooltip-icon"
                           data-tooltip="Enter the title of the event as it will appear everywhere."
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
+                    <label for="name">Event Name</label>
                 </th>
                 <td>
                     <input type="text" name="name" id="name" class="regular-text"

@@ -47,10 +47,10 @@ wp_enqueue_media();
             <!-- First Name -->
             <tr>
                 <th>
-                    <label for="first_name_edit">First Name</label>
                     <span class="tta-tooltip-icon" data-tooltip="Edit the member’s first name.">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                     </span>
+                    <label for="first_name_edit">First Name</label>
                 </th>
                 <td>
                     <input type="text"
@@ -65,10 +65,10 @@ wp_enqueue_media();
             <!-- Last Name -->
             <tr>
                 <th>
-                    <label for="last_name_edit">Last Name</label>
                     <span class="tta-tooltip-icon" data-tooltip="Edit the member’s last name.">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                     </span>
+                    <label for="last_name_edit">Last Name</label>
                 </th>
                 <td>
                     <input type="text"
@@ -83,10 +83,10 @@ wp_enqueue_media();
             <!-- Email Address -->
             <tr>
                 <th>
-                    <label for="email_edit">Email Address</label>
                     <span class="tta-tooltip-icon" data-tooltip="Edit the member’s email address.">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                     </span>
+                    <label for="email_edit">Email Address</label>
                 </th>
                 <td>
                     <input type="email"
@@ -101,10 +101,10 @@ wp_enqueue_media();
             <!-- Verify Email Address -->
             <tr>
                 <th>
-                    <label for="email_verify_edit">Verify Email Address</label>
                     <span class="tta-tooltip-icon" data-tooltip="Re-enter the same email to confirm.">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                     </span>
+                    <label for="email_verify_edit">Verify Email Address</label>
                 </th>
                 <td>
                     <input type="email"
