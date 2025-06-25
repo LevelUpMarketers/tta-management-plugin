@@ -456,27 +456,3 @@ form p.submit{
 .tta-token-section {
   margin-bottom:8px;
 }
-
-/* Subscription controls on Member History */
-.tta-subscription-forms {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin-bottom: 10px;
-}
-.tta-subscription-forms form {
-  background: #f9f9f9;
-  border: 1px solid #ccd0d4;
-  padding: 10px;
-  border-radius: 4px;
-  flex: 1 1 300px;
-  min-width: 260px;
-}
-.tta-subscription-forms h5 {
-  margin: 0 0 8px;
-}
-@media (max-width: 600px) {
-  .tta-subscription-forms {
-    flex-direction: column;
-  }
-}

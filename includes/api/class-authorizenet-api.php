@@ -266,7 +266,7 @@ class TTA_AuthorizeNet_API {
      * @param string $card_code        Card code/CVV.
      * @return array { success:bool, error?:string }
      */
-    public function update_subscription_payment( $subscription_id, $card_number, $exp_date, $card_code, array $billing = [] ) {
+    public function update_subscription_payment( $subscription_id, $card_number, $exp_date, $card_code ) {
         if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
@@ -285,54 +285,6 @@ class TTA_AuthorizeNet_API {
 
         $subscription = new AnetAPI\ARBSubscriptionType();
         $subscription->setPayment( $payment );
-
-        if ( $billing ) {
-            $bill = new AnetAPI\NameAndAddressType();
-            $bill->setFirstName( $billing['first_name'] ?? '' );
-            $bill->setLastName( $billing['last_name'] ?? '' );
-            $bill->setAddress( $billing['address'] ?? '' );
-            $bill->setCity( $billing['city'] ?? '' );
-            $bill->setState( $billing['state'] ?? '' );
-            $bill->setZip( $billing['zip'] ?? '' );
-            $subscription->setBillTo( $bill );
-        }
-
-        $request = new AnetAPI\ARBUpdateSubscriptionRequest();
-        $request->setMerchantAuthentication( $merchantAuthentication );
-        $request->setSubscriptionId( $subscription_id );
-        $request->setSubscription( $subscription );
-
-        $controller = new AnetController\ARBUpdateSubscriptionController( $request );
-        $response   = $controller->executeWithApiResponse( $this->environment );
-
-        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
-            return [ 'success' => true ];
-        }
-
-        $err = $response && $response->getMessages()->getMessage()
-            ? $response->getMessages()->getMessage()[0]->getText()
-            : 'API error';
-        return [ 'success' => false, 'error' => $err ];
-    }
-
-    /**
-     * Update the monthly amount for an existing subscription.
-     *
-     * @param string $subscription_id Subscription ID.
-     * @param float  $amount          New monthly amount.
-     * @return array { success:bool, error?:string }
-     */
-    public function update_subscription_amount( $subscription_id, $amount ) {
-        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
-            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
-        }
-
-        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-        $merchantAuthentication->setName( $this->login_id );
-        $merchantAuthentication->setTransactionKey( $this->transaction_key );
-
-        $subscription = new AnetAPI\ARBSubscriptionType();
-        $subscription->setAmount( $amount );
 
         $request = new AnetAPI\ARBUpdateSubscriptionRequest();
         $request->setMerchantAuthentication( $merchantAuthentication );
