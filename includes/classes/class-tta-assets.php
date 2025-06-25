@@ -79,6 +79,14 @@ class TTA_Assets {
                 true
             );
 
+            wp_enqueue_script(
+                'tta-checkout-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/checkout-expiration-mask.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+
             // 4) Localize nonces & AJAX URL for our admin JS
             wp_localize_script(
                 'tta-admin-js',

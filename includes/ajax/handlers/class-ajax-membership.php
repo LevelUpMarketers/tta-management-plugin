@@ -87,8 +87,17 @@ class TTA_Ajax_Membership {
             wp_send_json_error( [ 'message' => __( 'Payment details incomplete.', 'tta' ) ] );
         }
 
+        $billing = [
+            'first_name' => sanitize_text_field( $_POST['bill_first'] ?? '' ),
+            'last_name'  => sanitize_text_field( $_POST['bill_last'] ?? '' ),
+            'address'    => sanitize_text_field( $_POST['bill_address'] ?? '' ),
+            'city'       => sanitize_text_field( $_POST['bill_city'] ?? '' ),
+            'state'      => sanitize_text_field( $_POST['bill_state'] ?? '' ),
+            'zip'        => sanitize_text_field( $_POST['bill_zip'] ?? '' ),
+        ];
+
         $api  = new TTA_AuthorizeNet_API();
-        $res  = $api->update_subscription_payment( $sub_id, $card_number, $exp, $cvc );
+        $res  = $api->update_subscription_payment( $sub_id, $card_number, $exp, $cvc, $billing );
         if ( ! $res['success'] ) {
             wp_send_json_error( [ 'message' => $res['error'] ] );
         }

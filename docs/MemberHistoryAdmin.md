@@ -22,3 +22,4 @@ Below the summary is a **Manage Subscription** section. The controls are arrange
 - Change the membership level and specify a custom monthly price. The update attempts to modify the existing subscription via Authorize.Net; on failure a clear error message is returned.
 - All actions share a single response area below the forms so status messages stay in one place.
 - The payment and billing fields only need to be filled out when updating the stored card information, reactivating a cancelled membership or changing levels. Cancelling does not require them.
+The payment form uses the same field layout as the public checkout page so administrators see familiar labels and the expiration field auto‑formats as they type.

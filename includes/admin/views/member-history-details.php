@@ -82,19 +82,54 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
   <form id="tta-admin-update-payment-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p>
-      <label><?php esc_html_e( 'Card Number', 'tta' ); ?> <input type="text" name="card_number" required></label>
-      <label><?php esc_html_e( 'Expiry (YYYY-MM)', 'tta' ); ?> <input type="text" name="exp_date" required></label>
-      <label><?php esc_html_e( 'CVC', 'tta' ); ?> <input type="text" name="card_cvc" size="4"></label>
+      <label>
+        <?php esc_html_e( 'Card Number', 'tta' ); ?><br />
+        <input type="text" name="card_number" placeholder="&#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226;" required />
+      </label>
     </p>
     <p>
-      <label><?php esc_html_e( 'Billing First Name', 'tta' ); ?> <input type="text" name="bill_first"></label>
-      <label><?php esc_html_e( 'Billing Last Name', 'tta' ); ?> <input type="text" name="bill_last"></label>
+      <label>
+        <?php esc_html_e( 'Expiration', 'tta' ); ?><br />
+        <input type="text" class="tta-card-exp" name="exp_date" placeholder="MM/YY" required maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" />
+      </label>
+      <label>
+        <?php esc_html_e( 'CVC', 'tta' ); ?><br />
+        <input type="text" name="card_cvc" placeholder="123" required />
+      </label>
     </p>
     <p>
-      <label><?php esc_html_e( 'Address', 'tta' ); ?> <input type="text" name="bill_address"></label>
-      <label><?php esc_html_e( 'City', 'tta' ); ?> <input type="text" name="bill_city"></label>
-      <label><?php esc_html_e( 'State', 'tta' ); ?> <input type="text" name="bill_state" size="4"></label>
-      <label><?php esc_html_e( 'ZIP', 'tta' ); ?> <input type="text" name="bill_zip" size="8"></label>
+      <label>
+        <?php esc_html_e( 'Billing First Name', 'tta' ); ?><br />
+        <input type="text" name="bill_first" required />
+      </label>
+      <label>
+        <?php esc_html_e( 'Billing Last Name', 'tta' ); ?><br />
+        <input type="text" name="bill_last" required />
+      </label>
+    </p>
+    <p>
+      <label>
+        <?php esc_html_e( 'Street Address', 'tta' ); ?><br />
+        <input type="text" name="bill_address" required />
+      </label>
+    </p>
+    <p>
+      <label>
+        <?php esc_html_e( 'City', 'tta' ); ?><br />
+        <input type="text" name="bill_city" required />
+      </label>
+      <label>
+        <?php esc_html_e( 'State', 'tta' ); ?><br />
+        <select name="bill_state">
+          <?php foreach ( tta_get_us_states() as $abbr => $name ) : ?>
+            <option value="<?php echo esc_attr( $abbr ); ?>"><?php echo esc_html( $name ); ?></option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      <label>
+        <?php esc_html_e( 'ZIP', 'tta' ); ?><br />
+        <input type="text" name="bill_zip" required />
+      </label>
     </p>
     <p class="submit">
       <button type="submit" class="button"><?php esc_html_e( 'Update Payment Method', 'tta' ); ?></button>
@@ -128,19 +163,54 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
       <label><?php esc_html_e( 'Monthly Amount', 'tta' ); ?> <input type="number" step="0.01" name="amount" value="<?php echo esc_attr( tta_get_membership_price( $member['membership_level'] ) ); ?>"></label>
     </p>
     <p>
-      <label><?php esc_html_e( 'Card Number', 'tta' ); ?> <input type="text" name="card_number" required></label>
-      <label><?php esc_html_e( 'Expiry (YYYY-MM)', 'tta' ); ?> <input type="text" name="exp_date" required></label>
-      <label><?php esc_html_e( 'CVC', 'tta' ); ?> <input type="text" name="card_cvc" size="4"></label>
+      <label>
+        <?php esc_html_e( 'Card Number', 'tta' ); ?><br />
+        <input type="text" name="card_number" placeholder="&#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226;" required />
+      </label>
     </p>
     <p>
-      <label><?php esc_html_e( 'Billing First Name', 'tta' ); ?> <input type="text" name="bill_first"></label>
-      <label><?php esc_html_e( 'Billing Last Name', 'tta' ); ?> <input type="text" name="bill_last"></label>
+      <label>
+        <?php esc_html_e( 'Expiration', 'tta' ); ?><br />
+        <input type="text" class="tta-card-exp" name="exp_date" placeholder="MM/YY" required maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" />
+      </label>
+      <label>
+        <?php esc_html_e( 'CVC', 'tta' ); ?><br />
+        <input type="text" name="card_cvc" placeholder="123" required />
+      </label>
     </p>
     <p>
-      <label><?php esc_html_e( 'Address', 'tta' ); ?> <input type="text" name="bill_address"></label>
-      <label><?php esc_html_e( 'City', 'tta' ); ?> <input type="text" name="bill_city"></label>
-      <label><?php esc_html_e( 'State', 'tta' ); ?> <input type="text" name="bill_state" size="4"></label>
-      <label><?php esc_html_e( 'ZIP', 'tta' ); ?> <input type="text" name="bill_zip" size="8"></label>
+      <label>
+        <?php esc_html_e( 'Billing First Name', 'tta' ); ?><br />
+        <input type="text" name="bill_first" required />
+      </label>
+      <label>
+        <?php esc_html_e( 'Billing Last Name', 'tta' ); ?><br />
+        <input type="text" name="bill_last" required />
+      </label>
+    </p>
+    <p>
+      <label>
+        <?php esc_html_e( 'Street Address', 'tta' ); ?><br />
+        <input type="text" name="bill_address" required />
+      </label>
+    </p>
+    <p>
+      <label>
+        <?php esc_html_e( 'City', 'tta' ); ?><br />
+        <input type="text" name="bill_city" required />
+      </label>
+      <label>
+        <?php esc_html_e( 'State', 'tta' ); ?><br />
+        <select name="bill_state">
+          <?php foreach ( tta_get_us_states() as $abbr => $name ) : ?>
+            <option value="<?php echo esc_attr( $abbr ); ?>"><?php echo esc_html( $name ); ?></option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      <label>
+        <?php esc_html_e( 'ZIP', 'tta' ); ?><br />
+        <input type="text" name="bill_zip" required />
+      </label>
     </p>
     <p class="submit">
       <button type="submit" class="button"><?php esc_html_e( 'Reactivate this Member\'s Subscription', 'tta' ); ?></button>
