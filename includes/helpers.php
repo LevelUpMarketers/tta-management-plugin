@@ -490,13 +490,50 @@ function tta_get_membership_price( $level ) {
  * @param int    $wp_user_id WordPress user ID.
  * @param string $level      New membership level.
  */
-function tta_update_user_membership_level( $wp_user_id, $level ) {
+function tta_update_user_membership_level( $wp_user_id, $level, $subscription_id = null ) {
     global $wpdb;
     $members_table = $wpdb->prefix . 'tta_members';
     $level = in_array( $level, [ 'free', 'basic', 'premium' ], true ) ? $level : 'free';
+    $data   = [ 'membership_level' => $level ];
+    $format = [ '%s' ];
+    if ( null !== $subscription_id ) {
+        $data['subscription_id'] = sanitize_text_field( $subscription_id );
+        $format[] = '%s';
+    }
     $wpdb->update(
         $members_table,
-        [ 'membership_level' => $level ],
+        $data,
+        [ 'wpuserid' => intval( $wp_user_id ) ],
+        $format,
+        [ '%d' ]
+    );
+}
+
+/**
+ * Get a member's subscription ID.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ * @return string|null
+ */
+function tta_get_user_subscription_id( $wp_user_id ) {
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $sub = $wpdb->get_var( $wpdb->prepare( "SELECT subscription_id FROM {$members_table} WHERE wpuserid = %d", intval( $wp_user_id ) ) );
+    return $sub ?: null;
+}
+
+/**
+ * Update a member's subscription ID.
+ *
+ * @param int    $wp_user_id WordPress user ID.
+ * @param string $subscription_id Authorize.Net subscription ID.
+ */
+function tta_update_user_subscription_id( $wp_user_id, $subscription_id ) {
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $wpdb->update(
+        $members_table,
+        [ 'subscription_id' => sanitize_text_field( $subscription_id ) ],
         [ 'wpuserid' => intval( $wp_user_id ) ],
         [ '%s' ],
         [ '%d' ]
@@ -1011,7 +1048,8 @@ function tta_get_sample_member() {
  *     first_name:string,
  *     last_name:string,
  *     member:?array,
- *     membership_level:string
+ *     membership_level:string,
+ *     subscription_id:?string
  * }
  */
 function tta_get_current_user_context() {
@@ -1024,6 +1062,7 @@ function tta_get_current_user_context() {
         'last_name'        => '',
         'member'           => null,
         'membership_level' => 'free',
+        'subscription_id'  => null,
     ];
 
     if ( ! $context['is_logged_in'] ) {
@@ -1053,6 +1092,7 @@ function tta_get_current_user_context() {
     if ( is_array( $member ) ) {
         $context['member']           = $member;
         $context['membership_level'] = $member['membership_level'] ?? 'free';
+        $context['subscription_id']  = $member['subscription_id'] ?? null;
     }
 
     return $context;

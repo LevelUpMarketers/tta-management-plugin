@@ -74,7 +74,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
                 $billing
             );
             if ( $sub['success'] ) {
-                tta_update_user_membership_level( get_current_user_id(), $membership_level );
+                tta_update_user_membership_level( get_current_user_id(), $membership_level, $sub['subscription_id'] );
             } else {
                 $checkout_error = $sub['error'];
             }

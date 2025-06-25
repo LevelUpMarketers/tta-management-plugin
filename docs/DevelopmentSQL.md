@@ -227,3 +227,12 @@ Version 1.2.0 introduces an `status` column on `tta_attendees` to record whether
 ALTER TABLE `wp_j9bzlz98u3_tta_attendees`
   ADD COLUMN `status` ENUM('pending','checked_in','no_show') DEFAULT 'pending';
 ```
+
+## Store subscription IDs
+
+Version 1.3.0 adds a `subscription_id` column to `tta_members` so we can track recurring billing subscriptions. Existing installs update automatically but you can run the SQL manually:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_members`
+  ADD COLUMN `subscription_id` VARCHAR(50) DEFAULT NULL AFTER `membership_level`;
+```

@@ -24,3 +24,7 @@ Event thumbnails use the medium image size and are scaled to a consistent width 
 ## Past Events Tab
 
 Past events show the same details as upcoming events. To keep the database small, events more than three days past are moved to an `tta_events_archive` table by a daily cron job. The dashboard transparently queries both the current events table and this archive so members can always view their history.
+
+## Billing & Membership Info
+
+The plugin stores each member's Authorize.Net subscription ID in the `tta_members.subscription_id` column. This identifier will allow members to cancel their plan directly from the dashboard in a future update and enables an admin report of all active subscriptions.
