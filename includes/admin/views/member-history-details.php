@@ -26,7 +26,12 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
     <li><?php printf( esc_html__( 'Total Events Purchased: %d', 'tta' ), $summary['events'] ); ?></li>
   </ul>
   <?php if ( $billing_history ) : ?>
-    <h4><?php esc_html_e( 'Payment History', 'tta' ); ?></h4>
+  <h4>
+    <?php esc_html_e( 'Payment History', 'tta' ); ?>
+    <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Full record of all event purchases and membership payments.', 'tta' ); ?>">
+      <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+    </span>
+  </h4>
     <table class="widefat striped tta-billing-history">
       <thead>
         <tr>
@@ -55,8 +60,21 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
     <p><?php esc_html_e( 'No transactions found.', 'tta' ); ?></p>
   <?php endif; ?>
 
-  <h4><?php esc_html_e( 'Manage Subscription', 'tta' ); ?></h4>
+  <h4>
+    <?php esc_html_e( 'Manage Subscription', 'tta' ); ?>
+    <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Update payment methods, cancel, reactivate or change membership level.', 'tta' ); ?>">
+      <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+    </span>
+  </h4>
 
+  <div class="tta-subscription-forms">
+
+  <h5>
+    <?php esc_html_e( 'Update Payment Method', 'tta' ); ?>
+    <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Change the card and billing address used for the member\'s recurring payments.', 'tta' ); ?>">
+      <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+    </span>
+  </h5>
   <form id="tta-admin-update-payment-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p>
@@ -77,19 +95,29 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
     <p class="submit">
       <button type="submit" class="button"><?php esc_html_e( 'Update Payment Method', 'tta' ); ?></button>
       <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
-      <div class="tta-admin-progress-response-div"><p class="tta-admin-progress-response-p"></p></div>
     </p>
   </form>
 
+  <h5>
+    <?php esc_html_e( 'Cancel Subscription', 'tta' ); ?>
+    <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Immediately cancel the member\'s active subscription.', 'tta' ); ?>">
+      <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+    </span>
+  </h5>
   <form id="tta-admin-cancel-subscription-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p class="submit">
       <button type="submit" class="button"><?php esc_html_e( 'Cancel This Member\'s Subscription', 'tta' ); ?></button>
       <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
-      <div class="tta-admin-progress-response-div"><p class="tta-admin-progress-response-p"></p></div>
     </p>
   </form>
 
+  <h5>
+    <?php esc_html_e( 'Reactivate Subscription', 'tta' ); ?>
+    <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Restart billing for a cancelled member. A new subscription may be created if needed.', 'tta' ); ?>">
+      <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+    </span>
+  </h5>
   <form id="tta-admin-reactivate-subscription-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p>
@@ -113,10 +141,15 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
     <p class="submit">
       <button type="submit" class="button"><?php esc_html_e( 'Reactivate this Member\'s Subscription', 'tta' ); ?></button>
       <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
-      <div class="tta-admin-progress-response-div"><p class="tta-admin-progress-response-p"></p></div>
     </p>
   </form>
 
+  <h5>
+    <?php esc_html_e( 'Change Membership Level', 'tta' ); ?>
+    <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Switch the member between Basic and Premium tiers starting on their next bill.', 'tta' ); ?>">
+      <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+    </span>
+  </h5>
   <form id="tta-admin-change-level-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p>
@@ -131,7 +164,9 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
     <p class="submit">
       <button type="submit" class="button"><?php esc_html_e( 'Update Membership Level', 'tta' ); ?></button>
       <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
-      <div class="tta-admin-progress-response-div"><p class="tta-admin-progress-response-p"></p></div>
     </p>
   </form>
+  </div>
+
+  <div id="tta-subscription-response" class="tta-admin-progress-response-div"><p class="tta-admin-progress-response-p"></p></div>
 </div>

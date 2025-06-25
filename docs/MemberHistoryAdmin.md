@@ -15,8 +15,9 @@ Data is pulled from `tta_memberhistory`, `tta_transactions`, `tta_attendees` (an
 `tta_tickets_archive` to ensure attendance metrics remain accurate even after
 events are removed.
 
-Below the summary is a **Manage Subscription** section. Administrators can:
+Below the summary is a **Manage Subscription** section. The controls are arranged side-by-side for quick access and each heading includes a tooltip describing its purpose. Administrators can:
 
 - Update the stored payment method and billing address for the member's recurring Authorize.Net subscription.
 - Cancel or reactivate the subscription without leaving WordPress.
 - Change the membership level and specify a custom monthly price. The update attempts to modify the existing subscription via Authorize.Net; on failure a clear error message is returned.
+- All actions share a single response area below the forms so status messages stay in one place.
