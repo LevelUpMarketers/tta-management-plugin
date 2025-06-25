@@ -905,7 +905,7 @@ function tta_get_member_history_summary( $member_id ) {
  * Retrieve a member's full billing history including subscription charges.
  *
  * @param int $wp_user_id WordPress user ID.
- * @return array[] { date:string, description:string, amount:float }
+ * @return array[] { date:string, description:string, amount:float, url?:string }
  */
 function tta_get_member_billing_history( $wp_user_id ) {
     $wp_user_id = intval( $wp_user_id );
@@ -937,12 +937,30 @@ function tta_get_member_billing_history( $wp_user_id ) {
             continue;
         }
         foreach ( $items as $it ) {
-            $name  = $it['event_name'] ?? ( $it['membership'] ?? '' );
-            $price = floatval( $it['final_price'] ?? 0 ) * intval( $it['quantity'] ?? 1 );
+            $name    = $it['event_name'] ?? ( $it['membership'] ?? '' );
+            $price   = floatval( $it['final_price'] ?? 0 ) * intval( $it['quantity'] ?? 1 );
+            $page_id = intval( $it['page_id'] ?? 0 );
+            if ( ! $page_id && ! empty( $it['event_ute_id'] ) ) {
+                $events_table  = $wpdb->prefix . 'tta_events';
+                $archive_table = $wpdb->prefix . 'tta_events_archive';
+                $page_id       = (int) $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT page_id FROM {$events_table} WHERE ute_id = %s UNION SELECT page_id FROM {$archive_table} WHERE ute_id = %s LIMIT 1",
+                        $it['event_ute_id'],
+                        $it['event_ute_id']
+                    )
+                );
+            }
+            $url = '';
+            if ( $page_id && function_exists( 'get_permalink' ) ) {
+                $url = get_permalink( $page_id );
+            }
+
             $history[] = [
                 'date'        => $row['created_at'],
                 'description' => sanitize_text_field( $name ),
                 'amount'      => $price,
+                'url'         => $url,
             ];
         }
     }

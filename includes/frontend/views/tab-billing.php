@@ -75,7 +75,15 @@
         <?php foreach ( $history as $row ) : ?>
           <tr>
             <td><?php echo esc_html( date_i18n( 'F j, Y', strtotime( $row['date'] ) ) ); ?></td>
-            <td><?php echo esc_html( $row['description'] ); ?></td>
+            <td>
+              <?php if ( ! empty( $row['url'] ) ) : ?>
+                <a href="<?php echo esc_url( $row['url'] ); ?>">
+                  <?php echo esc_html( $row['description'] ); ?>
+                </a>
+              <?php else : ?>
+                <?php echo esc_html( $row['description'] ); ?>
+              <?php endif; ?>
+            </td>
             <td>$<?php echo esc_html( number_format( $row['amount'], 2 ) ); ?></td>
           </tr>
         <?php endforeach; ?>
