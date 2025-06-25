@@ -79,6 +79,14 @@ class TTA_Assets {
                 true
             );
 
+            wp_enqueue_script(
+                'tta-checkout-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/checkout-expiration-mask.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+
             // 4) Localize nonces & AJAX URL for our admin JS
             wp_localize_script(
                 'tta-admin-js',
@@ -93,6 +101,7 @@ class TTA_Assets {
                     'get_ticket_nonce'    => wp_create_nonce( 'tta_ticket_get_action' ),
                     'save_ticket_nonce'   => wp_create_nonce( 'tta_ticket_save_action' ),
                     'save_comm_nonce'     => wp_create_nonce( 'tta_comms_save_action' ),
+                    'membership_admin_nonce' => wp_create_nonce( 'tta_membership_admin_action' ),
                     'sample_event'        => ( function() {
                         $e = tta_get_next_event();
                         if ( ! $e ) {

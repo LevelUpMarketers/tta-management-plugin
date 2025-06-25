@@ -7,10 +7,19 @@ The **Member History** tab is available under **Members** in the WordPress admin
 - Count of events checked in
 - Count of no‑shows
 - Number of refund or cancellation requests
-- A table of all past event transactions
+- A complete payment history table including event purchases and membership charges
 - Any private notes stored with the member record appear in the expanded detail view rather than as a table column
 
 Data is pulled from `tta_memberhistory`, `tta_transactions`, `tta_attendees` (and
 `tta_attendees_archive`), `tta_events`, `tta_events_archive`, and
 `tta_tickets_archive` to ensure attendance metrics remain accurate even after
 events are removed.
+
+Below the summary is a **Manage Subscription** section. The controls are arranged side-by-side for quick access and each heading includes a tooltip describing its purpose. Administrators can:
+
+- Update the stored payment method and billing address for the member's recurring Authorize.Net subscription.
+- Cancel or reactivate the subscription without leaving WordPress.
+- Change the membership level and specify a custom monthly price. The update attempts to modify the existing subscription via Authorize.Net; on failure a clear error message is returned.
+- All actions share a single response area below the forms so status messages stay in one place.
+- The payment and billing fields only need to be filled out when updating the stored card information, reactivating a cancelled membership or changing levels. Cancelling does not require them.
+The payment form uses the same field layout as the public checkout page so administrators see familiar labels and the expiration field auto‑formats as they type.

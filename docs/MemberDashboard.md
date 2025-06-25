@@ -28,7 +28,7 @@ Past events show the same details as upcoming events. To keep the database small
 ## Billing & Membership Info
 
 The billing tab now displays the member's current plan and subscription status. When a Basic or Premium plan is active, a **Cancel Membership** button appears. Submitting the form calls an AJAX endpoint that shows a loading spinner and returns a success or error message. On success the membership level reverts to **Free**, the status changes to *Cancelled*, and the button disappears.
-If the subscription remains active, the last four digits of the stored payment method are retrieved directly from Authorize.Net and displayed. Members can update the card by submitting a second form which calls `TTA_AuthorizeNet_API::update_subscription_payment()` via AJAX. The plugin never stores any full payment data.
+If the subscription remains active, the last four digits of the stored payment method are retrieved directly from Authorize.Net and displayed. Members can update the card by submitting a second form which calls `TTA_AuthorizeNet_API::update_subscription_payment()` via AJAX. The update form now requires the cardholder's billing address (first name, last name, street, city, state and ZIP) in addition to the card details. The plugin never stores any full payment data.
 Subscription metadata is stored in two columns on `tta_members`:
 
 - `subscription_id` – Authorize.Net identifier for the recurring payment

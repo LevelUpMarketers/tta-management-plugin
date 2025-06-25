@@ -55,6 +55,17 @@ class TTA_Member_Dashboard {
                 $js_ver,
                 true
             );
+
+            $mask_file = TTA_PLUGIN_DIR . 'assets/js/frontend/checkout-expiration-mask.js';
+            $mask_url  = TTA_PLUGIN_URL . 'assets/js/frontend/checkout-expiration-mask.js';
+            $mask_ver  = file_exists( $mask_file ) ? filemtime( $mask_file ) : TTA_PLUGIN_VERSION;
+            wp_enqueue_script(
+                'tta-checkout-js',
+                $mask_url,
+                [ 'jquery' ],
+                $mask_ver,
+                true
+            );
             wp_localize_script(
                 'tta-member-dashboard-js',
                 'TTA_MemberDashboard',

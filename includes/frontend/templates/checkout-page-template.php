@@ -202,7 +202,7 @@ $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
                     <p>
                         <label>
                             <?php esc_html_e( 'Expiration', 'tta' ); ?><br />
-                            <input type="text" id="tta-card-exp" name="card_exp" placeholder="MM/YY" required maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" />
+                            <input type="text" id="tta-card-exp" class="tta-card-exp" name="card_exp" placeholder="MM/YY" required maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" />
                         </label>
                     </p>
                     <p>
