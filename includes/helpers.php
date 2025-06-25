@@ -1069,10 +1069,11 @@ function tta_get_current_user_context() {
 */
 function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $notices = [] ) {
     ob_start();
-    $items = $cart->get_items_with_discounts( $discount_codes );
-    $total = $cart->get_total( $discount_codes );
+    $items            = $cart->get_items_with_discounts( $discount_codes );
+    $total            = $cart->get_total( $discount_codes );
     $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
-    $has_membership  = in_array( $membership_level, [ 'basic', 'premium' ], true );
+    $has_membership   = in_array( $membership_level, [ 'basic', 'premium' ], true );
+    $has_tickets      = ! empty( $items );
     $code_events = [];
     foreach ( $items as $row ) {
         $info = tta_parse_discount_data( $row['discountcode'] );
@@ -1089,14 +1090,16 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                         <span class="tta-tooltip-icon tta-tooltip-right" data-tooltip="<?php echo esc_attr( 'Hover over each event name for a description.' ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
                         </span>
-                        <?php esc_html_e( 'Event', 'tta' ); ?>
+                        <?php esc_html_e( 'Event or Item', 'tta' ); ?>
                     </th>
+                    <?php if ( $has_tickets ) : ?>
                     <th>
                             <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( 'We reserve your ticket for 5 minutes so events don\'t oversell. After 5 minutes it becomes available to others.' ); ?>">
                                 <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
                         </span>
                         <?php esc_html_e( 'Ticket Reserved for…', 'tta' ); ?>
                     </th>
+                    <?php endif; ?>
                     <th>
                         <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( 'Limit of two tickets per event in total.' ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
@@ -1128,7 +1131,7 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                     <?php $sub = $it['quantity'] * $it['final_price']; ?>
                     <?php $expire_at = strtotime( $it['expires_at'] ); ?>
                     <tr data-expire-at="<?php echo esc_attr( $expire_at ); ?>" data-ticket="<?php echo esc_attr( $it['ticket_id'] ); ?>">
-                        <td data-label="<?php echo esc_attr( 'Event' ); ?>">
+                        <td data-label="<?php echo esc_attr( 'Event or Item' ); ?>">
                             <?php
                             $desc = '';
                             if ( $it['page_id'] && function_exists( 'get_post_field' ) ) {
@@ -1146,7 +1149,9 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                             </a><br>
                             <?php echo esc_html( $it['ticket_name'] ); ?>
                         </td>
+                        <?php if ( $has_tickets ) : ?>
                         <td data-label="<?php echo esc_attr( 'Ticket Reserved for…' ); ?>" class="tta-countdown-cell"><span class="tta-countdown"></span></td>
+                        <?php endif; ?>
                         <td data-label="<?php echo esc_attr( 'Quantity' ); ?>">
                             <input type="number" name="cart_qty[<?php echo esc_attr( $it['ticket_id'] ); ?>]" value="<?php echo esc_attr( $it['quantity'] ); ?>" min="0" class="tta-cart-qty">
                             <?php $ntext = $notices[ $it['ticket_id'] ] ?? ''; ?>
@@ -1179,9 +1184,9 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                     <?php $m_price = tta_get_membership_price( $membership_level ); ?>
                     <tr class="tta-membership-row" data-ticket="0">
                         <td><?php echo esc_html( ucfirst( $membership_level ) . ' Membership' ); ?></td>
-                        <td></td>
+                        <?php if ( $has_tickets ) : ?><td></td><?php endif; ?>
                         <td>1</td>
-                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?></td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?> <?php esc_html_e( 'Per Month', 'tta' ); ?></td>
                         <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?></td>
                         <td><button type="button" id="tta-remove-membership" class="tta-remove-item" aria-label="Remove"></button></td>
                     </tr>
@@ -1229,10 +1234,11 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
  */
 function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
     ob_start();
-    $items = $cart->get_items_with_discounts( $discount_codes );
-    $total = $cart->get_total( $discount_codes );
+    $items            = $cart->get_items_with_discounts( $discount_codes );
+    $total            = $cart->get_total( $discount_codes );
     $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
-    $has_membership  = in_array( $membership_level, [ 'basic', 'premium' ], true );
+    $has_membership   = in_array( $membership_level, [ 'basic', 'premium' ], true );
+    $has_tickets      = ! empty( $items );
     $code_events = [];
     foreach ( $items as $row ) {
         $info = tta_parse_discount_data( $row['discountcode'] );
@@ -1250,14 +1256,16 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                         <span class="tta-tooltip-icon tta-tooltip-right" data-tooltip="<?php echo esc_attr( 'Hover over each event name for a description.' ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
                         </span>
-                        <?php esc_html_e( 'Event', 'tta' ); ?>
+                        <?php esc_html_e( 'Event or Item', 'tta' ); ?>
                     </th>
+                    <?php if ( $has_tickets ) : ?>
                     <th>
                         <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( "We reserve your ticket for 5 minutes so events don't oversell. After 5 minutes it becomes available to others." ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
                         </span>
                         <?php esc_html_e( 'Ticket Reserved for…', 'tta' ); ?>
                     </th>
+                    <?php endif; ?>
                     <th>
                         <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( 'Limit of two tickets per event in total.' ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
@@ -1283,7 +1291,7 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                     <?php $sub = $it['quantity'] * $it['final_price']; ?>
                     <?php $expire_at = strtotime( $it['expires_at'] ); ?>
                     <tr data-expire-at="<?php echo esc_attr( $expire_at ); ?>" data-ticket="<?php echo esc_attr( $it['ticket_id'] ); ?>">
-                        <td data-label="<?php echo esc_attr( 'Event' ); ?>">
+                        <td data-label="<?php echo esc_attr( 'Event or Item' ); ?>">
                             <?php
                             $desc = '';
                             if ( $it['page_id'] && function_exists( 'get_post_field' ) ) {
@@ -1301,7 +1309,9 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                             </a><br>
                             <?php echo esc_html( $it['ticket_name'] ); ?>
                         </td>
+                        <?php if ( $has_tickets ) : ?>
                         <td class="tta-countdown-cell" data-label="<?php echo esc_attr( 'Ticket Reserved for…' ); ?>"><span class="tta-countdown"></span></td>
+                        <?php endif; ?>
                         <td data-label="<?php echo esc_attr( 'Qty' ); ?>"><?php echo intval( $it['quantity'] ); ?></td>
                         <td data-label="<?php echo esc_attr( 'Price' ); ?>">
                             <?php
@@ -1329,9 +1339,9 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                     <?php $m_price = tta_get_membership_price( $membership_level ); ?>
                     <tr class="tta-membership-row" data-ticket="0">
                         <td><?php echo esc_html( ucfirst( $membership_level ) . ' Membership' ); ?></td>
-                        <td></td>
+                        <?php if ( $has_tickets ) : ?><td></td><?php endif; ?>
                         <td>1</td>
-                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?></td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?> <?php esc_html_e( 'Per Month', 'tta' ); ?></td>
                         <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?></td>
                     </tr>
                 <?php endif; ?>

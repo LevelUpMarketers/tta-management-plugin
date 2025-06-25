@@ -18,7 +18,8 @@ This document summarizes the current logic around the cart and checkout process 
 2. **Viewing the Cart**
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
    - If a visitor selected a membership on the Become a Member page, that membership appears as its own line item in the cart.
-   - A dedicated **Ticket Reserved for…** column displays a live five minute countdown for each row.
+   - When the cart only contains a membership, the table hides the **Ticket Reserved for…** column and the first column heading becomes **Event or Item**. Membership pricing shows "Per Month" in the price column.
+   - A dedicated **Ticket Reserved for…** column displays a live five minute countdown for ticket rows.
    - The Quantity column enforces a maximum of two tickets per event in total.
    - Discount codes are applied via an **Apply Discount** button. Multiple codes can be active and are split across matching event tickets. Active codes list the related event name in parentheses and appear beneath the cart total for easy removal.
    - The Price column always shows the base cost (e.g. `$20 x 2` when quantity is two). Subtotals strike through the original amount when discounts are applied.
@@ -38,7 +39,7 @@ This document summarizes the current logic around the cart and checkout process 
    - Attendee fields collect a first name, last name, email, and phone for each ticket. A "text me" and "email me" checkbox is included and checked by default. The first ticket autofills with the logged-in member's details. Phone numbers are automatically formatted as the user types.
    - Countdown timers run just like on the cart page. If a timer reaches zero the item is removed and totals update automatically.
    - The `tta_update_cart` AJAX endpoint returns updated markup for both the cart table and checkout summary so timers can refresh either view.
-   - A total is calculated with any discount code applied. Payment details for ticket items are sent to `TTA_AuthorizeNet_API::charge()`. If a membership is in the cart, `TTA_AuthorizeNet_API::create_subscription()` is called to start the recurring payment. Checkout works even when no tickets are present.
+   - A total is calculated with any discount code applied. Payment details for ticket items are sent to `TTA_AuthorizeNet_API::charge()`. If a membership is in the cart, `TTA_AuthorizeNet_API::create_subscription()` is called to start the recurring payment. When tickets and a membership are checked out together, attendee details are still required for the tickets and the subscription is created in the same request. Checkout works even when no tickets are present.
    - On success, `TTA_Cart::finalize_purchase()` logs the transaction, stores each ticket's attendee info in the `tta_attendees` table, clears the cart tables, removes all discount codes, and triggers the `tta_checkout_complete` action. Inventory has already been reserved when items were added.
 
 4. **Cleanup**

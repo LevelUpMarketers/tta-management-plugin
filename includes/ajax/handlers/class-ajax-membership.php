@@ -17,6 +17,10 @@ class TTA_Ajax_Membership {
         if ( ! in_array( $level, [ 'basic', 'premium' ], true ) ) {
             wp_send_json_error( [ 'message' => 'Invalid membership level.' ] );
         }
+        $context = tta_get_current_user_context();
+        if ( 'basic' === strtolower( $context['membership_level'] ) && 'basic' === $level ) {
+            wp_send_json_error( [ 'message' => __( 'You already have a Basic Membership.', 'tta' ) ] );
+        }
         if ( ! session_id() ) {
             session_start();
         }
