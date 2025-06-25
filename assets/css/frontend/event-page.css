@@ -121,10 +121,6 @@
   align-self: stretch;
   order: 3;
 }
-.tta-stick-on-scroll {
-  position: sticky;
-  top: 80px;
-}
 .tta-event-main {
   flex: 1 1 auto;
   padding-right: 30px;
