@@ -160,4 +160,36 @@ class TTA_AuthorizeNet_API {
             : 'API error';
         return [ 'success' => false, 'error' => $err ];
     }
+
+    /**
+     * Cancel an existing subscription.
+     *
+     * @param string $subscription_id Subscription ID returned by Authorize.Net.
+     * @return array { success:bool, error?:string }
+     */
+    public function cancel_subscription( $subscription_id ) {
+        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
+        }
+
+        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+        $merchantAuthentication->setName( $this->login_id );
+        $merchantAuthentication->setTransactionKey( $this->transaction_key );
+
+        $request = new AnetAPI\ARBCancelSubscriptionRequest();
+        $request->setMerchantAuthentication( $merchantAuthentication );
+        $request->setSubscriptionId( $subscription_id );
+
+        $controller = new AnetController\ARBCancelSubscriptionController( $request );
+        $response   = $controller->executeWithApiResponse( $this->environment );
+
+        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            return [ 'success' => true ];
+        }
+
+        $err = $response && $response->getMessages()->getMessage()
+            ? $response->getMessages()->getMessage()[0]->getText()
+            : 'API error';
+        return [ 'success' => false, 'error' => $err ];
+    }
 }

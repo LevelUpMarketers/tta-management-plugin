@@ -27,4 +27,8 @@ Past events show the same details as upcoming events. To keep the database small
 
 ## Billing & Membership Info
 
-The plugin stores each member's Authorize.Net subscription ID in the `tta_members.subscription_id` column. This identifier will allow members to cancel their plan directly from the dashboard in a future update and enables an admin report of all active subscriptions.
+The billing tab now displays the member's current plan and subscription status. When a Basic or Premium plan is active, a **Cancel Membership** button appears. Submitting the form calls an AJAX endpoint that shows a loading spinner and returns a success or error message. On success the membership level reverts to **Free**, the status changes to *Cancelled*, and the button disappears.
+Subscription metadata is stored in two columns on `tta_members`:
+
+- `subscription_id` – Authorize.Net identifier for the recurring payment
+- `subscription_status` – either `active` or `cancelled`

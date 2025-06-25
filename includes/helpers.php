@@ -490,7 +490,7 @@ function tta_get_membership_price( $level ) {
  * @param int    $wp_user_id WordPress user ID.
  * @param string $level      New membership level.
  */
-function tta_update_user_membership_level( $wp_user_id, $level, $subscription_id = null ) {
+function tta_update_user_membership_level( $wp_user_id, $level, $subscription_id = null, $subscription_status = null ) {
     global $wpdb;
     $members_table = $wpdb->prefix . 'tta_members';
     $level = in_array( $level, [ 'free', 'basic', 'premium' ], true ) ? $level : 'free';
@@ -498,6 +498,13 @@ function tta_update_user_membership_level( $wp_user_id, $level, $subscription_id
     $format = [ '%s' ];
     if ( null !== $subscription_id ) {
         $data['subscription_id'] = sanitize_text_field( $subscription_id );
+        $format[] = '%s';
+        if ( null === $subscription_status ) {
+            $subscription_status = 'active';
+        }
+    }
+    if ( null !== $subscription_status ) {
+        $data['subscription_status'] = sanitize_text_field( $subscription_status );
         $format[] = '%s';
     }
     $wpdb->update(
@@ -534,6 +541,37 @@ function tta_update_user_subscription_id( $wp_user_id, $subscription_id ) {
     $wpdb->update(
         $members_table,
         [ 'subscription_id' => sanitize_text_field( $subscription_id ) ],
+        [ 'wpuserid' => intval( $wp_user_id ) ],
+        [ '%s' ],
+        [ '%d' ]
+    );
+}
+
+/**
+ * Get a member's subscription status.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ * @return string|null
+ */
+function tta_get_user_subscription_status( $wp_user_id ) {
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $status = $wpdb->get_var( $wpdb->prepare( "SELECT subscription_status FROM {$members_table} WHERE wpuserid = %d", intval( $wp_user_id ) ) );
+    return $status ?: null;
+}
+
+/**
+ * Update a member's subscription status.
+ *
+ * @param int    $wp_user_id WordPress user ID.
+ * @param string $status     Status string.
+ */
+function tta_update_user_subscription_status( $wp_user_id, $status ) {
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $wpdb->update(
+        $members_table,
+        [ 'subscription_status' => sanitize_text_field( $status ) ],
         [ 'wpuserid' => intval( $wp_user_id ) ],
         [ '%s' ],
         [ '%d' ]
@@ -1049,7 +1087,8 @@ function tta_get_sample_member() {
  *     last_name:string,
  *     member:?array,
  *     membership_level:string,
- *     subscription_id:?string
+ *     subscription_id:?string,
+ *     subscription_status:?string
  * }
  */
 function tta_get_current_user_context() {
@@ -1063,6 +1102,7 @@ function tta_get_current_user_context() {
         'member'           => null,
         'membership_level' => 'free',
         'subscription_id'  => null,
+        'subscription_status' => null,
     ];
 
     if ( ! $context['is_logged_in'] ) {
@@ -1091,8 +1131,9 @@ function tta_get_current_user_context() {
 
     if ( is_array( $member ) ) {
         $context['member']           = $member;
-        $context['membership_level'] = $member['membership_level'] ?? 'free';
-        $context['subscription_id']  = $member['subscription_id'] ?? null;
+        $context['membership_level']  = $member['membership_level'] ?? 'free';
+        $context['subscription_id']   = $member['subscription_id'] ?? null;
+        $context['subscription_status'] = $member['subscription_status'] ?? null;
     }
 
     return $context;

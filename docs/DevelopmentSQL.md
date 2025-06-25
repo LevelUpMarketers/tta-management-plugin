@@ -236,3 +236,12 @@ Version 1.3.0 adds a `subscription_id` column to `tta_members` so we can track r
 ALTER TABLE `wp_j9bzlz98u3_tta_members`
   ADD COLUMN `subscription_id` VARCHAR(50) DEFAULT NULL AFTER `membership_level`;
 ```
+
+## Track subscription status
+
+Version 1.4.0 adds a `subscription_status` column to `tta_members` which stores `active` or `cancelled` for each subscription.
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_members`
+  ADD COLUMN `subscription_status` ENUM('active','cancelled') DEFAULT 'active' AFTER `subscription_id`;
+```

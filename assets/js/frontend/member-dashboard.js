@@ -216,4 +216,41 @@ jQuery(function($){
     var $form = $('.tta-refund-form[data-tx="'+tx+'"]');
     $form.slideToggle(200);
   });
+
+  // Cancel membership form
+  $(document).on('submit', '#tta-cancel-membership-form', function(e){
+    e.preventDefault();
+    var $form = $(this),
+        $btn  = $form.find('button[type="submit"]'),
+        $spin = $form.find('.tta-admin-progress-spinner-svg'),
+        $resp = $form.find('.tta-admin-progress-response-p'),
+        start = Date.now();
+
+    $resp.removeClass('updated error').text('');
+    $btn.prop('disabled', true);
+    $spin.show().css({opacity:0}).fadeTo(200,1);
+
+    var data = $form.serialize();
+    $.post(TTA_MemberDashboard.ajax_url, data, function(res){
+      var delay = Math.max(0, 5000 - (Date.now()-start));
+      setTimeout(function(){
+        $spin.fadeOut(200);
+        $btn.prop('disabled', false);
+        if(res.success){
+          $resp.addClass('updated').text(res.data.message);
+          $('#tta-membership-status').text(res.data.status);
+          $form.hide();
+        }else{
+          $resp.addClass('error').text(res.data.message||'Error');
+        }
+      }, delay);
+    }, 'json').fail(function(){
+      var delay = Math.max(0, 5000 - (Date.now()-start));
+      setTimeout(function(){
+        $spin.fadeOut(200);
+        $btn.prop('disabled', false);
+        $resp.addClass('error').text('Request failed. Please try again.');
+      }, delay);
+    });
+  });
 });
