@@ -21,6 +21,13 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
     $ticket_total     = $cart->get_total( $discount_codes, false );
     $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
     $membership_total = $membership_level ? tta_get_membership_price( $membership_level ) : 0;
+    $context          = tta_get_current_user_context();
+    if ( 'premium' === strtolower( $context['membership_level'] ) && 'basic' === $membership_level ) {
+        unset( $_SESSION['tta_membership_purchase'] );
+        tta_set_cart_notice( __( 'Premium members cannot purchase a Basic Membership.', 'tta' ) );
+        wp_safe_redirect( home_url( '/cart' ) );
+        exit;
+    }
     if ( $cart_changed ) {
         tta_set_cart_notice( __( 'Some tickets in your cart were no longer available and have been removed. Please review the updated cart and try again.', 'tta' ) );
         wp_safe_redirect( home_url( '/cart' ) );
