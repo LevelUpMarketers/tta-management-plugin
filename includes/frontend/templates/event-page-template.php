@@ -621,8 +621,6 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
   <!-- MAIN + SIDEBAR -->
   <div class="tta-event-content-wrap">
     <div class="tta-event-columns">
-
-
       <!-- MAIN CONTENT -->
       <main class="tta-event-main">
 
@@ -1090,6 +1088,7 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
         </div>
       <?php endif; ?>
     </aside>
+    </div><!-- .tta-event-columns -->
 
     <aside class="tta-event-right">
       <div class="tta-events-ad">
