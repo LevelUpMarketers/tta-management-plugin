@@ -13,18 +13,41 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
 ?>
 <div class="tta-member-history-details">
   <h3><?php echo esc_html( $member['first_name'] . ' ' . $member['last_name'] ); ?></h3>
-  <p><?php echo esc_html( $member['email'] ); ?></p>
-  <?php if ( ! empty( $member['notes'] ) ) : ?>
-    <p class="tta-member-notes"><strong><?php esc_html_e( 'Notes:', 'tta' ); ?></strong> <?php echo esc_html( $member['notes'] ); ?></p>
-  <?php endif; ?>
   <h4><?php esc_html_e( 'Member Summary', 'tta' ); ?></h4>
-  <ul>
-    <li><?php printf( esc_html__( 'Total Spent: $%s', 'tta' ), number_format( $summary['total_spent'], 2 ) ); ?></li>
-    <li><?php printf( esc_html__( 'Events Attended: %d', 'tta' ), $summary['attended'] ); ?></li>
-    <li><?php printf( esc_html__( 'No-Shows: %d', 'tta' ), $summary['no_show'] ); ?></li>
-    <li><?php printf( esc_html__( 'Refund/Cancellation Requests: %d', 'tta' ), $summary['refunds'] + $summary['cancellations'] ); ?></li>
-    <li><?php printf( esc_html__( 'Total Events Purchased: %d', 'tta' ), $summary['events'] ); ?></li>
-  </ul>
+  <table class="widefat striped">
+    <tbody>
+      <tr>
+        <th><?php esc_html_e( 'Total Spent', 'tta' ); ?></th>
+        <td>$<?php echo esc_html( number_format( $summary['total_spent'], 2 ) ); ?></td>
+      </tr>
+      <tr>
+        <th><?php esc_html_e( 'Events Attended', 'tta' ); ?></th>
+        <td><?php echo esc_html( $summary['attended'] ); ?></td>
+      </tr>
+      <tr>
+        <th><?php esc_html_e( 'No-Shows', 'tta' ); ?></th>
+        <td><?php echo esc_html( $summary['no_show'] ); ?></td>
+      </tr>
+      <tr>
+        <th><?php esc_html_e( 'Refund/Cancellation Requests', 'tta' ); ?></th>
+        <td><?php echo esc_html( $summary['refunds'] + $summary['cancellations'] ); ?></td>
+      </tr>
+      <tr>
+        <th><?php esc_html_e( 'Total Events Purchased', 'tta' ); ?></th>
+        <td><?php echo esc_html( $summary['events'] ); ?></td>
+      </tr>
+      <tr>
+        <th><?php esc_html_e( 'Email', 'tta' ); ?></th>
+        <td><?php echo esc_html( $member['email'] ); ?></td>
+      </tr>
+      <?php if ( ! empty( $member['notes'] ) ) : ?>
+      <tr>
+        <th><?php esc_html_e( 'Notes', 'tta' ); ?></th>
+        <td><?php echo esc_html( $member['notes'] ); ?></td>
+      </tr>
+      <?php endif; ?>
+    </tbody>
+  </table>
   <?php if ( $billing_history ) : ?>
   <h4>
     <?php esc_html_e( 'Payment History', 'tta' ); ?>

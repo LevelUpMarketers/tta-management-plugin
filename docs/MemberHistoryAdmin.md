@@ -10,6 +10,8 @@ The **Member History** tab is available under **Members** in the WordPress admin
 - A complete payment history table including event purchases and membership charges
 - Any private notes stored with the member record appear in the expanded detail view rather than as a table column
 
+The summary metrics, member email and notes are displayed together in a `widefat` table above the payment history for quick reference.
+
 Data is pulled from `tta_memberhistory`, `tta_transactions`, `tta_attendees` (and
 `tta_attendees_archive`), `tta_events`, `tta_events_archive`, and
 `tta_tickets_archive` to ensure attendance metrics remain accurate even after
