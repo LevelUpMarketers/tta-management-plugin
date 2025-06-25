@@ -11,6 +11,7 @@ The **Become a Member** template introduces a front‑end landing page for membe
 - The page enqueues `tta-cart.js` so the signup buttons behave like adding tickets to the cart and redirect immediately. The cart will show the chosen membership as a line item so visitors can check out normally.
 - Visitors can complete checkout with just a membership selected—no tickets are required.
 - Only one membership can exist in the cart at a time. Logged-in users who already have a Basic membership cannot add another Basic plan.
+- When only a membership is present in the cart, the subtotal and total rows show the price "Per Month" and table columns remain aligned.
 
 ## Processing
 Membership purchases are handled separately from one‑off ticket sales. The JavaScript on the page calls the `tta_add_membership` AJAX action which stores the chosen level in the visitor's session. Checkout will display this membership in the cart summary and use `TTA_AuthorizeNet_API::create_subscription()` to create a recurring subscription with Authorize.Net.

@@ -1187,15 +1187,15 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                         <?php if ( $has_tickets ) : ?><td></td><?php endif; ?>
                         <td>1</td>
                         <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?> <?php esc_html_e( 'Per Month', 'tta' ); ?></td>
-                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?></td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?> <?php esc_html_e( 'Per Month', 'tta' ); ?></td>
                         <td><button type="button" id="tta-remove-membership" class="tta-remove-item" aria-label="Remove"></button></td>
                     </tr>
                 <?php endif; ?>
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="4"><?php esc_html_e( 'Total', 'tta' ); ?></th>
-                    <td colspan="2" class="tta-cart-total">$<?php echo esc_html( number_format( $total, 2 ) ); ?></td>
+                    <th colspan="<?php echo $has_tickets ? 4 : 3; ?>"><?php esc_html_e( 'Total', 'tta' ); ?></th>
+                    <td colspan="2" class="tta-cart-total">$<?php echo esc_html( number_format( $total, 2 ) ); ?><?php if ( $has_membership && ! $has_tickets ) { echo ' ' . esc_html__( 'Per Month', 'tta' ); } ?></td>
                 </tr>
                 <?php if ( $discount_codes ) : ?>
                 <tr class="tta-active-discounts">
@@ -1342,14 +1342,14 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                         <?php if ( $has_tickets ) : ?><td></td><?php endif; ?>
                         <td>1</td>
                         <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?> <?php esc_html_e( 'Per Month', 'tta' ); ?></td>
-                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?></td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?> <?php esc_html_e( 'Per Month', 'tta' ); ?></td>
                     </tr>
                 <?php endif; ?>
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="4"><?php esc_html_e( 'Total', 'tta' ); ?></th>
-                    <td>$<?php echo esc_html( number_format( $total, 2 ) ); ?></td>
+                    <th colspan="<?php echo $has_tickets ? 4 : 3; ?>"><?php esc_html_e( 'Total', 'tta' ); ?></th>
+                    <td>$<?php echo esc_html( number_format( $total, 2 ) ); ?><?php if ( $has_membership && ! $has_tickets ) { echo ' ' . esc_html__( 'Per Month', 'tta' ); } ?></td>
                 </tr>
                 <?php if ( $discount_codes ) : ?>
                 <tr class="tta-active-discounts">

@@ -18,7 +18,7 @@ This document summarizes the current logic around the cart and checkout process 
 2. **Viewing the Cart**
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
    - If a visitor selected a membership on the Become a Member page, that membership appears as its own line item in the cart.
-   - When the cart only contains a membership, the table hides the **Ticket Reserved for…** column and the first column heading becomes **Event or Item**. Membership pricing shows "Per Month" in the price column.
+   - When the cart only contains a membership, the table hides the **Ticket Reserved for…** column and the first column heading becomes **Event or Item**. Membership pricing shows "Per Month" in the price and subtotal columns, and the total row also displays "Per Month". Column spans adjust so the table remains aligned without the countdown column.
    - A dedicated **Ticket Reserved for…** column displays a live five minute countdown for ticket rows.
    - The Quantity column enforces a maximum of two tickets per event in total.
    - Discount codes are applied via an **Apply Discount** button. Multiple codes can be active and are split across matching event tickets. Active codes list the related event name in parentheses and appear beneath the cart total for easy removal.
