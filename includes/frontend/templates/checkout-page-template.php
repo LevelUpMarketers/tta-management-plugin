@@ -16,9 +16,9 @@ $checkout_error = '';
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] ) ) {
     check_admin_referer( 'tta_checkout_action', 'tta_checkout_nonce' );
 
-    $discount_codes = $_SESSION['tta_discount_codes'] ?? [];
-    $cart_changed   = $cart->sync_with_inventory();
-    $ticket_total   = $cart->get_total( $discount_codes, false );
+    $discount_codes   = $_SESSION['tta_discount_codes'] ?? [];
+    $cart_changed     = $cart->sync_with_inventory();
+    $ticket_total     = $cart->get_total( $discount_codes, false );
     $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
     $membership_total = $membership_level ? tta_get_membership_price( $membership_level ) : 0;
     if ( $cart_changed ) {
@@ -99,7 +99,10 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
     }
 }
 
-$discount_codes = $_SESSION['tta_discount_codes'] ?? [];
+
+$discount_codes   = $_SESSION['tta_discount_codes'] ?? [];
+$membership_level = $_SESSION['tta_membership_purchase'] ?? '';
+$has_membership   = in_array( $membership_level, [ 'basic', 'premium' ], true );
 get_header();
 
 $items         = $cart->get_items();
@@ -114,17 +117,19 @@ $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
         <p class="tta-checkout-error">
             <?php echo esc_html( $checkout_error ); ?>
         </p>
-    <?php elseif ( ! $items ) : ?>
+    <?php elseif ( ! $items && ! $has_membership ) : ?>
         <p><?php esc_html_e( 'Your cart is empty.', 'tta' ); ?></p>
     <?php else : ?>
         <form id="tta-checkout-form" method="post">
             <?php wp_nonce_field( 'tta_checkout_action', 'tta_checkout_nonce' ); ?>
             <?php echo tta_render_checkout_summary( $cart, $discount_codes ); ?>
             <div class="tta-checkout-grid">
+                <?php if ( $items ) : ?>
                 <div class="tta-checkout-left">
                     <h3><?php esc_html_e( 'Ticket Details', 'tta' ); ?></h3>
                     <?php echo tta_render_attendee_fields( $cart ); ?>
                 </div>
+                <?php endif; ?>
                 <div class="tta-checkout-right">
                     <h3><?php esc_html_e( 'Billing Details', 'tta' ); ?></h3>
                     <?php $user = wp_get_current_user(); ?>
