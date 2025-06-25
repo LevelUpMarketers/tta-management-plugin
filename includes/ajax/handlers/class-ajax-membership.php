@@ -20,6 +20,9 @@ class TTA_Ajax_Membership {
             wp_send_json_error( [ 'message' => 'Invalid membership level.' ] );
         }
         $context = tta_get_current_user_context();
+        if ( $context['member'] && tta_user_is_banned( $context['wp_user_id'] ) ) {
+            wp_send_json_error( [ 'message' => __( 'You are currently banned from purchasing a membership.', 'tta' ) ] );
+        }
         $current_level = strtolower( $context['membership_level'] );
         if ( 'premium' === $current_level ) {
             wp_send_json_error( [ 'message' => __( 'You already have a Premium Membership.', 'tta' ) ] );

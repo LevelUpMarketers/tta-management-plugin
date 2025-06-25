@@ -126,6 +126,15 @@ class TTA_Member_Dashboard {
         <div class="tta-member-dashboard-wrap">
           <h2><?php echo esc_html( 'Welcome, ' . $member['first_name'] . '!' ); ?></h2>
           <p><?php echo esc_html( 'A Member since ' . date_i18n( 'F j, Y', strtotime( $member['joined_at'] ) ) ); ?></p>
+          <?php if ( ! empty( $member['banned_until'] ) && strtotime( $member['banned_until'] ) > time() ) : ?>
+            <div class="tta-banned-notice">
+              <?php
+              $until_ts = strtotime( $member['banned_until'] );
+              $label    = $until_ts > strtotime( '2099-01-01' ) ? __( 'indefinitely', 'tta' ) : date_i18n( 'F j, Y', $until_ts );
+              printf( esc_html__( 'You are banned from making purchases until %s.', 'tta' ), esc_html( $label ) );
+              ?>
+            </div>
+          <?php endif; ?>
 
           <div class="tta-member-dashboard">
             <div class="tta-dashboard-sidebar">

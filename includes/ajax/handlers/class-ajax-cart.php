@@ -35,6 +35,9 @@ class TTA_Ajax_Cart {
             if ( in_array( $lvl, [ 'basic', 'premium' ], true ) ) {
                 $membership_level = $lvl;
             }
+            if ( tta_user_is_banned( get_current_user_id() ) ) {
+                wp_send_json_error( [ 'message' => __( 'You are currently banned from purchasing tickets.', 'tta' ) ] );
+            }
         }
 
         $cart = new TTA_Cart();

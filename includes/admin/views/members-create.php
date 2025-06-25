@@ -12,13 +12,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- First Name -->
                 <tr>
                     <th>
-                        <label for="first_name">First Name</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Enter the member’s first name."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="first_name">First Name</label>
                     </th>
                     <td>
                         <input type="text" name="first_name" id="first_name" class="regular-text" required>
@@ -28,13 +28,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Last Name -->
                 <tr>
                     <th>
-                        <label for="last_name">Last Name</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Enter the member’s last name."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="last_name">Last Name</label>
                     </th>
                     <td>
                         <input type="text" name="last_name" id="last_name" class="regular-text" required>
@@ -44,13 +44,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Email Address -->
                 <tr>
                     <th>
-                        <label for="email">Email Address</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Enter a valid email address; a verification will follow."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="email">Email Address</label>
                     </th>
                     <td>
                         <input type="email" name="email" id="email" class="regular-text" required>
@@ -60,13 +60,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Verify Email Address -->
                 <tr>
                     <th>
-                        <label for="email_verify">Verify Email Address</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Re-enter the same email address to confirm."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="email_verify">Verify Email Address</label>
                     </th>
                     <td>
                         <input type="email" name="email_verify" id="email_verify" class="regular-text" required>
@@ -76,13 +76,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Street Address -->
                 <tr>
                     <th>
-                        <label for="street_address">Street Address</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Enter the primary street address."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="street_address">Street Address</label>
                     </th>
                     <td>
                         <input type="text" name="street_address" id="street_address" class="regular-text">
@@ -92,13 +92,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Address 2 -->
                 <tr>
                     <th>
-                        <label for="address_2">Address 2</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Apt, Suite, PO Box, etc. (optional)."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="address_2">Address 2</label>
                     </th>
                     <td>
                         <input type="text" name="address_2" id="address_2" class="regular-text">
@@ -108,13 +108,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- City -->
                 <tr>
                     <th>
-                        <label for="city">City</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Enter the city name."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="city">City</label>
                     </th>
                     <td>
                         <input type="text" name="city" id="city" class="regular-text">
@@ -124,13 +124,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- State -->
                 <tr>
                     <th>
-                        <label for="state">State</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Select the state."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="state">State</label>
                     </th>
                     <td>
                         <select name="state" id="state">
@@ -162,13 +162,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- ZIP -->
                 <tr>
                     <th>
-                        <label for="zip">ZIP</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Enter the 5-digit ZIP code."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="zip">ZIP</label>
                     </th>
                     <td>
                         <input type="text" name="zip" id="zip" class="regular-text" maxlength="10">
@@ -178,13 +178,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Phone Number -->
                 <tr>
                     <th>
-                        <label for="phone">Phone Number</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Enter a 10-digit phone number; it will format automatically."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="phone">Phone Number</label>
                     </th>
                     <td>
                         <input type="tel" name="phone" id="phone" class="regular-text" placeholder="e.g. (555) 123-4567">
@@ -194,13 +194,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Date of Birth -->
                 <tr>
                     <th>
-                        <label for="dob">Date of Birth</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Enter the member’s birth date (YYYY-MM-DD)."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="dob">Date of Birth</label>
                     </th>
                     <td>
                         <input type="date" name="dob" id="dob">
@@ -210,13 +210,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Member Type -->
                 <tr>
                     <th>
-                        <label for="member_type">Member Type</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Select the user role for this member."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="member_type">Member Type</label>
                     </th>
                     <td>
                         <select name="member_type" id="member_type">
@@ -231,13 +231,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Membership Level -->
                 <tr>
                     <th>
-                        <label for="membership_level">Membership Level</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Choose the membership tier: Free, Basic, or Premium."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="membership_level">Membership Level</label>
                     </th>
                     <td>
                         <select name="membership_level" id="membership_level">
@@ -251,13 +251,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Facebook URL -->
                 <tr>
                     <th>
-                        <label for="facebook">Facebook URL</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Full URL to the member’s Facebook profile."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="facebook">Facebook URL</label>
                     </th>
                     <td>
                         <input type="url" name="facebook" id="facebook" class="regular-text" placeholder="https://facebook.com/username">
@@ -267,13 +267,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- LinkedIn URL -->
                 <tr>
                     <th>
-                        <label for="linkedin">LinkedIn URL</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Full URL to the member’s LinkedIn profile."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="linkedin">LinkedIn URL</label>
                     </th>
                     <td>
                         <input type="url" name="linkedin" id="linkedin" class="regular-text" placeholder="https://linkedin.com/in/username">
@@ -283,13 +283,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Instagram URL -->
                 <tr>
                     <th>
-                        <label for="instagram">Instagram URL</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Full URL to the member’s Instagram profile."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="instagram">Instagram URL</label>
                     </th>
                     <td>
                         <input type="url" name="instagram" id="instagram" class="regular-text" placeholder="https://instagram.com/username">
@@ -299,13 +299,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- X/Twitter URL -->
                 <tr>
                     <th>
-                        <label for="twitter">X/Twitter URL</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Full URL to the member’s Twitter (X) profile."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="twitter">X/Twitter URL</label>
                     </th>
                     <td>
                         <input type="url" name="twitter" id="twitter" class="regular-text" placeholder="https://twitter.com/username">
@@ -315,13 +315,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Interests -->
                 <tr>
                     <th>
-                        <label for="interests">Interests</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Add one or more interests; click “+ Add Another Interest” to add more."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="interests">Interests</label>
                     </th>
                     <td>
                         <div id="interests-container">
@@ -351,13 +351,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Biography -->
                 <tr>
                     <th>
-                        <label for="biography">Biography</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="A short introduction or bio for this member."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="biography">Biography</label>
                     </th>
                     <td>
                         <textarea name="biography" id="biography" rows="5" class="large-text" placeholder="Tell us about yourself…"></textarea>
@@ -367,13 +367,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Admin Notes -->
                 <tr>
                     <th>
-                        <label for="notes">Admin Notes</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Private notes about this member (not visible to the member)."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label for="notes">Admin Notes</label>
                     </th>
                     <td>
                         <textarea name="notes" id="notes" rows="4" class="large-text" placeholder="Confidential notes…"></textarea>
@@ -383,13 +383,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Profile Image -->
                 <tr>
                     <th>
-                        <label>Profile Image</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Select or upload a profile picture for the member."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label>Profile Image</label>
                     </th>
                     <td>
                         <div class="tta-profile-image-wrapper">
@@ -408,55 +408,46 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Opt-In Preferences -->
                 <tr>
                     <th>
-                        <label>Opt-In Preferences</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Select which communications this member wants to receive."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label>Opt-In Preferences</label>
                     </th>
                     <td>
                         <fieldset>
                             <label>
                                 <input type="checkbox" name="opt_in_marketing_email" value="1">
-                                Marketing Emails
-                                <span class="tta-tooltip-icon"
-                                      data-tooltip="Send promotional emails and newsletters."
-                                      style="margin-left:4px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
-                                         alt="Help">
+                                <span class="tta-tooltip-icon" data-tooltip="Send promotional emails and newsletters." style="margin-left:4px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                                 </span>
+                                <?php esc_html_e( 'Marketing Emails', 'tta' ); ?>
                             </label><br>
+
                             <label>
                                 <input type="checkbox" name="opt_in_marketing_sms" value="1">
-                                Marketing Texts/SMS
-                                <span class="tta-tooltip-icon"
-                                      data-tooltip="Send promotional text messages."
-                                      style="margin-left:4px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
-                                         alt="Help">
+                                <span class="tta-tooltip-icon" data-tooltip="Send promotional text messages." style="margin-left:4px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                                 </span>
+                                <?php esc_html_e( 'Marketing Texts/SMS', 'tta' ); ?>
                             </label><br>
+
                             <label>
                                 <input type="checkbox" name="opt_in_event_update_email" value="1">
-                                Event Update Emails
-                                <span class="tta-tooltip-icon"
-                                      data-tooltip="Send event announcements via email."
-                                      style="margin-left:4px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
-                                         alt="Help">
+                                <span class="tta-tooltip-icon" data-tooltip="Send event announcements via email." style="margin-left:4px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                                 </span>
+                                <?php esc_html_e( 'Event Update Emails', 'tta' ); ?>
                             </label><br>
+
                             <label>
                                 <input type="checkbox" name="opt_in_event_update_sms" value="1">
-                                Event Update Texts/SMS
-                                <span class="tta-tooltip-icon"
-                                      data-tooltip="Send event announcements via text message."
-                                      style="margin-left:4px;">
-                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
-                                         alt="Help">
+                                <span class="tta-tooltip-icon" data-tooltip="Send event announcements via text message." style="margin-left:4px;">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                                 </span>
+                                <?php esc_html_e( 'Event Update Texts/SMS', 'tta' ); ?>
                             </label>
                         </fieldset>
                     </td>
@@ -465,21 +456,42 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <!-- Privacy Options -->
                 <tr>
                     <th>
-                        <label>Privacy Options</label>
                         <span class="tta-tooltip-icon"
                               data-tooltip="Control what information is shown publicly."
                               style="margin-left:4px;">
                             <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                                  alt="Help">
                         </span>
+                        <label>Privacy Options</label>
                     </th>
                     <td>
                         <fieldset>
                             <label>
+                                <span class="tta-tooltip-icon" data-tooltip="Hide this member from public attendee lists.">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+                                </span>
                                 <input type="checkbox" name="hide_event_attendance" value="1">
                                 Hide Event Attendance
                             </label>
                         </fieldset>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        <span class="tta-tooltip-icon" data-tooltip="Prevent this member from making purchases.">
+                            <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+                        </span>
+                        <label for="ban_status">Ban Status</label>
+                    </th>
+                    <td>
+                        <select name="ban_status" id="ban_status">
+                            <option value="none">Not Banned</option>
+                            <option value="indefinite">Banned Indefinitely</option>
+                            <option value="1week">1-Week Ban</option>
+                            <option value="2week">2-Week Ban</option>
+                            <option value="3week">3-Week Ban</option>
+                            <option value="4week">4-Week Ban</option>
+                        </select>
                     </td>
                 </tr>
 

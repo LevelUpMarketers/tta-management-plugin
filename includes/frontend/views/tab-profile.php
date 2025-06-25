@@ -24,10 +24,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- First Name -->
         <tr class="profile-row">
           <th>
-            <label for="first_name"><?php esc_html_e( 'First Name', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Enter your given first name as you’d like it displayed.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="first_name"><?php esc_html_e( 'First Name', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['first_name'] ); ?></span>
@@ -43,10 +43,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Last Name -->
         <tr class="profile-row">
           <th>
-            <label for="last_name"><?php esc_html_e( 'Last Name', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Enter your family/last name.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="last_name"><?php esc_html_e( 'Last Name', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['last_name'] ); ?></span>
@@ -62,10 +62,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Email Address -->
         <tr class="profile-row">
           <th>
-            <label for="email"><?php esc_html_e( 'Email Address', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Primary email where we’ll send confirmations & updates.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="email"><?php esc_html_e( 'Email Address', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['email'] ); ?></span>
@@ -81,10 +81,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Verify Email Address (hidden until edit) -->
         <tr class="profile-row hide-until-edit">
           <th>
-            <label for="email_verify"><?php esc_html_e( 'Verify Email Address', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Re-enter your email to confirm there are no typos.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="email_verify"><?php esc_html_e( 'Verify Email Address', 'tta' ); ?></label>
           </th>
           <td>
             <input class="edit-input regular-text"
@@ -99,10 +99,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Phone Number -->
         <tr class="profile-row">
           <th>
-            <label for="phone"><?php esc_html_e( 'Phone Number', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Your number for SMS/text notifications.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="phone"><?php esc_html_e( 'Phone Number', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['phone'] ?: '—' ); ?></span>
@@ -117,10 +117,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Date of Birth -->
         <tr class="profile-row">
           <th>
-            <label for="dob"><?php esc_html_e( 'Date of Birth', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Used to verify age-restricted events.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="dob"><?php esc_html_e( 'Date of Birth', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['dob'] ?: '—' ); ?></span>
@@ -135,10 +135,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Facebook URL -->
         <tr class="profile-row">
           <th>
-            <label for="facebook"><?php esc_html_e( 'Facebook URL', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Link to your public Facebook profile.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="facebook"><?php esc_html_e( 'Facebook URL', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['facebook'] ?: '—' ); ?></span>
@@ -153,10 +153,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- LinkedIn URL -->
         <tr class="profile-row">
           <th>
-            <label for="linkedin"><?php esc_html_e( 'LinkedIn URL', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Link to your LinkedIn profile.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="linkedin"><?php esc_html_e( 'LinkedIn URL', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['linkedin'] ?: '—' ); ?></span>
@@ -171,10 +171,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Instagram URL -->
         <tr class="profile-row">
           <th>
-            <label for="instagram"><?php esc_html_e( 'Instagram URL', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Link to your Instagram account.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="instagram"><?php esc_html_e( 'Instagram URL', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['instagram'] ?: '—' ); ?></span>
@@ -189,10 +189,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Twitter URL -->
         <tr class="profile-row">
           <th>
-            <label for="twitter"><?php esc_html_e( 'Twitter URL', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Link to your Twitter handle.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="twitter"><?php esc_html_e( 'Twitter URL', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['twitter'] ?: '—' ); ?></span>
@@ -207,10 +207,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Street Address -->
         <tr class="profile-row">
           <th>
-            <label for="street_address"><?php esc_html_e( 'Street Address', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Your primary mailing address.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="street_address"><?php esc_html_e( 'Street Address', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $street_address ?: '—' ); ?></span>
@@ -225,10 +225,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Address Line 2 -->
         <tr class="profile-row">
           <th>
-            <label for="address_2"><?php esc_html_e( 'Address Line 2', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Apt, suite, unit, etc.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="address_2"><?php esc_html_e( 'Address Line 2', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $address_2 ?: '—' ); ?></span>
@@ -243,10 +243,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- City -->
         <tr class="profile-row">
           <th>
-            <label for="city"><?php esc_html_e( 'City', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'City or town.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="city"><?php esc_html_e( 'City', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $city ?: '—' ); ?></span>
@@ -261,10 +261,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- State -->
         <tr class="profile-row">
           <th>
-            <label for="state_fd"><?php esc_html_e( 'State', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Two-letter code (e.g. VA).', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="state_fd"><?php esc_html_e( 'State', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $state ?: '—' ); ?></span>
@@ -289,11 +289,11 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- ZIP Code -->
         <tr class="profile-row">
           <th>
-            <label for="zip"><?php esc_html_e( 'ZIP Code', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( '
 5-digit postal code.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="zip"><?php esc_html_e( 'ZIP Code', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $zip ?: '—' ); ?></span>
@@ -310,10 +310,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Biography -->
         <tr class="profile-row tta-wider-and-bigger-rows">
           <th>
-            <label for="biography"><?php esc_html_e( 'Biography', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Tell us about yourself—background, interests, etc.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="biography"><?php esc_html_e( 'Biography', 'tta' ); ?></label>
           </th>
           <td>
             <p class="view-value"><?php echo esc_html( $bio ?: '—' ); ?></p>
@@ -327,10 +327,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Interests -->
         <tr class="profile-row tta-wider-and-bigger-rows">
           <th>
-            <label for="interests_edit"><?php esc_html_e( 'Interests', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'List your hobbies or areas of interest.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label for="interests_edit"><?php esc_html_e( 'Interests', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value">
@@ -418,10 +418,10 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
         <!-- Profile Image -->
         <tr class="profile-row tta-wider-and-bigger-rows">
           <th>
-            <label class="tta-special-vert-adjust"><?php esc_html_e( 'Profile Image', 'tta' ); ?></label>
             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Upload a picture for your public profile.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
+            <label class="tta-special-vert-adjust"><?php esc_html_e( 'Profile Image', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value">

@@ -579,6 +579,36 @@ function tta_update_user_subscription_status( $wp_user_id, $status ) {
 }
 
 /**
+ * Get the timestamp until which a user is banned.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ * @return string|null MySQL datetime string or null if not banned.
+ */
+function tta_get_user_banned_until( $wp_user_id ) {
+    $cache_key = 'banned_until_' . intval( $wp_user_id );
+    return TTA_Cache::remember( $cache_key, function() use ( $wp_user_id ) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'tta_members';
+        return $wpdb->get_var( $wpdb->prepare( "SELECT banned_until FROM {$table} WHERE wpuserid = %d", intval( $wp_user_id ) ) );
+    }, 300 );
+}
+
+/**
+ * Determine if a user is currently banned.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ * @return bool
+ */
+function tta_user_is_banned( $wp_user_id ) {
+    $until = tta_get_user_banned_until( $wp_user_id );
+    if ( ! $until ) {
+        return false;
+    }
+    $timestamp = strtotime( $until );
+    return $timestamp && $timestamp > time();
+}
+
+/**
  * Retrieve the last four digits of a subscription's credit card.
  *
  * The data is cached for ten minutes to limit API calls.
@@ -1239,6 +1269,7 @@ function tta_get_current_user_context() {
         'membership_level' => 'free',
         'subscription_id'  => null,
         'subscription_status' => null,
+        'banned_until'      => null,
     ];
 
     if ( ! $context['is_logged_in'] ) {
@@ -1270,6 +1301,7 @@ function tta_get_current_user_context() {
         $context['membership_level']  = $member['membership_level'] ?? 'free';
         $context['subscription_id']   = $member['subscription_id'] ?? null;
         $context['subscription_status'] = $member['subscription_status'] ?? null;
+        $context['banned_until']      = $member['banned_until'] ?? null;
     }
 
     return $context;
@@ -1713,6 +1745,14 @@ function tta_admin_preview_image( $attachment_id, array $size, array $attrs = []
     if ( ! $url ) {
         return '';
     }
+
+    $full = wp_get_attachment_image_url( $attachment_id, 'large' );
+    if ( ! $full ) {
+        $full = $url;
+    }
+
+    $attrs['class'] = isset( $attrs['class'] ) ? $attrs['class'] . ' tta-popup-img' : 'tta-popup-img';
+    $attrs['data-full'] = $full;
 
     $attr_str = '';
     foreach ( $attrs as $key => $val ) {
