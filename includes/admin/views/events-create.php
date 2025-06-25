@@ -434,7 +434,12 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             </td>
         </tr>
         <tr>
-            <th><label for="discount_type">Discount Type</label></th>
+            <th>
+                <span class="tta-tooltip-icon" data-tooltip="Select whether the discount is a flat amount or percentage.">
+                    <img src="<?php echo esc_url(TTA_PLUGIN_URL.'assets/images/admin/question.svg');?>" alt="Help">
+                </span>
+                <label for="discount_type">Discount Type</label>
+            </th>
             <td>
                 <select name="discount_type" id="discount_type">
                     <option value="flat" <?php selected($event['discount_type']??'percent','flat'); ?>>Flat $ Amount Off</option>
@@ -443,7 +448,12 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             </td>
         </tr>
         <tr>
-            <th><label for="discount_amount">Discount Amount</label></th>
+            <th>
+                <span class="tta-tooltip-icon" data-tooltip="Numeric amount of the discount. Percentage will use this value as percent.">
+                    <img src="<?php echo esc_url(TTA_PLUGIN_URL.'assets/images/admin/question.svg');?>" alt="Help">
+                </span>
+                <label for="discount_amount">Discount Amount</label>
+            </th>
             <td>
                 <input type="number" name="discount_amount" id="discount_amount" step="0.01" min="0"
                        value="<?php echo esc_attr($event['discount_amount']??0); ?>">

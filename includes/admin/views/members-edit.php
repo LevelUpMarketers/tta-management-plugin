@@ -521,10 +521,48 @@ wp_enqueue_media();
                 <td>
                     <fieldset>
                         <label>
+                            <span class="tta-tooltip-icon" data-tooltip="Hide this member from public attendee lists.">
+                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                            </span>
                             <input type="checkbox" name="hide_event_attendance" value="1" <?php checked( $hide_attendance, 1 ); ?>>
                             Hide Event Attendance
                         </label>
                     </fieldset>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    <span class="tta-tooltip-icon" data-tooltip="Prevent this member from making purchases.">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
+                    </span>
+                    <label for="ban_status">Ban Status</label>
+                </th>
+                <td>
+                    <?php
+                    $ban_opt = 'none';
+                    if ( $member['banned_until'] ) {
+                        $diff = strtotime( $member['banned_until'] ) - time();
+                        if ( $diff > 0 ) {
+                            if ( $diff >= 2419200 ) {
+                                $ban_opt = 'indefinite';
+                            } elseif ( $diff >= 1814400 ) {
+                                $ban_opt = '3week';
+                            } elseif ( $diff >= 1209600 ) {
+                                $ban_opt = '2week';
+                            } elseif ( $diff >= 604800 ) {
+                                $ban_opt = '1week';
+                            }
+                        }
+                    }
+                    ?>
+                    <select name="ban_status" id="ban_status">
+                        <option value="none" <?php selected( $ban_opt, 'none' ); ?>>Not Banned</option>
+                        <option value="indefinite" <?php selected( $ban_opt, 'indefinite' ); ?>>Banned Indefinitely</option>
+                        <option value="1week" <?php selected( $ban_opt, '1week' ); ?>>1-Week Ban</option>
+                        <option value="2week" <?php selected( $ban_opt, '2week' ); ?>>2-Week Ban</option>
+                        <option value="3week" <?php selected( $ban_opt, '3week' ); ?>>3-Week Ban</option>
+                        <option value="4week" <?php selected( $ban_opt, '4week' ); ?>>4-Week Ban</option>
+                    </select>
                 </td>
             </tr>
 

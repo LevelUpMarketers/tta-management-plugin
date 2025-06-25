@@ -5,6 +5,7 @@ if (!defined('ARRAY_A')) { define('ARRAY_A', 'ARRAY_A'); }
 class DummyWpdbHelpers {
     public $prefix = 'wp_';
     public $var_calls = 0;
+    public $var_value = 'ute1';
     public $results_calls = 0;
     public $row_calls = 0;
     public $last_query = '';
@@ -13,7 +14,7 @@ class DummyWpdbHelpers {
 
     public function get_var($query) {
         $this->var_calls++;
-        return 'ute1';
+        return $this->var_value;
     }
 
     public function get_results($query, $output = ARRAY_A) {
@@ -162,6 +163,15 @@ class HelpersTest extends TestCase {
         $this->assertStringContainsString('file1.jpg', $html);
         $this->assertStringContainsString('class="x tta-popup-img"', $html);
         $this->assertStringContainsString('data-full="file1.jpg"', $html);
+    }
+
+    public function test_user_banned_helpers() {
+        global $wpdb;
+        $wpdb->var_calls = 0;
+        $wpdb->var_value = '2099-12-31 23:59:59';
+        $until = tta_get_user_banned_until(1);
+        $this->assertSame('2099-12-31 23:59:59', $until);
+        $this->assertTrue( tta_user_is_banned(1) );
     }
 
     public function test_get_member_upcoming_events_queries_tables() {

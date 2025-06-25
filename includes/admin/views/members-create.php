@@ -467,10 +467,31 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <td>
                         <fieldset>
                             <label>
+                                <span class="tta-tooltip-icon" data-tooltip="Hide this member from public attendee lists.">
+                                    <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+                                </span>
                                 <input type="checkbox" name="hide_event_attendance" value="1">
                                 Hide Event Attendance
                             </label>
                         </fieldset>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        <span class="tta-tooltip-icon" data-tooltip="Prevent this member from making purchases.">
+                            <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+                        </span>
+                        <label for="ban_status">Ban Status</label>
+                    </th>
+                    <td>
+                        <select name="ban_status" id="ban_status">
+                            <option value="none">Not Banned</option>
+                            <option value="indefinite">Banned Indefinitely</option>
+                            <option value="1week">1-Week Ban</option>
+                            <option value="2week">2-Week Ban</option>
+                            <option value="3week">3-Week Ban</option>
+                            <option value="4week">4-Week Ban</option>
+                        </select>
                     </td>
                 </tr>
 

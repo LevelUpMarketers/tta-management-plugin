@@ -51,6 +51,26 @@ class TTA_Ajax_Members {
         $interests     = $interests_arr ? implode( ',', $interests_arr ) : '';
 
         $hide_att      = ! empty( $_POST['hide_event_attendance'] ) ? 1 : 0;
+        $ban_status    = sanitize_text_field( $_POST['ban_status'] ?? 'none' );
+        switch ( $ban_status ) {
+            case 'indefinite':
+                $banned_until = '9999-12-31 23:59:59';
+                break;
+            case '1week':
+                $banned_until = date( 'Y-m-d H:i:s', time() + WEEK_IN_SECONDS );
+                break;
+            case '2week':
+                $banned_until = date( 'Y-m-d H:i:s', time() + 2 * WEEK_IN_SECONDS );
+                break;
+            case '3week':
+                $banned_until = date( 'Y-m-d H:i:s', time() + 3 * WEEK_IN_SECONDS );
+                break;
+            case '4week':
+                $banned_until = date( 'Y-m-d H:i:s', time() + 4 * WEEK_IN_SECONDS );
+                break;
+            default:
+                $banned_until = null;
+        }
 
         $opt_email = ! empty( $_POST['opt_in_marketing_email'] )    ? 1 : 0;
         $opt_sms   = ! empty( $_POST['opt_in_marketing_sms'] )      ? 1 : 0;
@@ -124,6 +144,7 @@ class TTA_Ajax_Members {
                 'opt_in_event_update_email' => $opt_upd_email,
                 'opt_in_event_update_sms'   => $opt_upd_sms,
                 'hide_event_attendance'     => $hide_att,
+                'banned_until'             => $banned_until,
             ],
             [
                 '%d',    // wpuserid
@@ -149,6 +170,7 @@ class TTA_Ajax_Members {
                 '%d',    // opt_in_event_update_email
                 '%d',    // opt_in_event_update_sms
                 '%d',    // hide_event_attendance
+                '%s',    // banned_until
             ]
         );
         $member_id = $wpdb->insert_id;
@@ -267,6 +289,26 @@ class TTA_Ajax_Members {
         $interests         = ! empty( $interests_arr ) ? implode( ',', $interests_arr ) : '';
 
         $hide_att         = ! empty( $_POST['hide_event_attendance'] ) ? 1 : 0;
+        $ban_status       = sanitize_text_field( $_POST['ban_status'] ?? 'none' );
+        switch ( $ban_status ) {
+            case 'indefinite':
+                $banned_until = '9999-12-31 23:59:59';
+                break;
+            case '1week':
+                $banned_until = date( 'Y-m-d H:i:s', time() + WEEK_IN_SECONDS );
+                break;
+            case '2week':
+                $banned_until = date( 'Y-m-d H:i:s', time() + 2 * WEEK_IN_SECONDS );
+                break;
+            case '3week':
+                $banned_until = date( 'Y-m-d H:i:s', time() + 3 * WEEK_IN_SECONDS );
+                break;
+            case '4week':
+                $banned_until = date( 'Y-m-d H:i:s', time() + 4 * WEEK_IN_SECONDS );
+                break;
+            default:
+                $banned_until = null;
+        }
 
         // Opt-ins
         $opt_email         = ! empty( $_POST['opt_in_marketing_email'] )    ? 1 : 0;
@@ -306,6 +348,7 @@ class TTA_Ajax_Members {
             'hide_event_attendance'     => $hide_att,
             'member_type'               => $member_type,
             'membership_level'          => $membership_level,
+            'banned_until'              => $banned_until,
         ];
 
         // Define formats matching update_data order
@@ -314,7 +357,7 @@ class TTA_Ajax_Members {
             '%s','%s','%s','%s','%s',
             '%s','%s','%s','%d','%d',
             '%d','%d','%d','%d','%s',
-            '%s'
+            '%s','%s'
         ];
 
         // Run the update

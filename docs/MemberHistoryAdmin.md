@@ -25,3 +25,5 @@ Below the summary is a **Manage Subscription** section. The controls are arrange
 - Each form displays its own response message directly below the submit button for clearer feedback.
 - The payment and billing fields only need to be filled out when updating the stored card information, reactivating a cancelled membership or changing levels. Cancelling does not require them.
 The payment form uses the same field layout as the public checkout page so administrators see familiar labels and the expiration field auto‑formats as they type.
+
+Each member profile form now includes a **Ban Status** control. Choose "Banned Indefinitely" or a 1‑4 week duration to prevent the member from buying tickets or memberships. A banner on their dashboard shows the ban end date.

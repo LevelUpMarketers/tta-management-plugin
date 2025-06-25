@@ -3,6 +3,8 @@
 The Member Dashboard is accessible at `/member-dashboard/` via the shortcode `[tta_member_dashboard]`.
 It presents four tabs: **Profile Info**, **Your Upcoming Events**, **Your Past Events**, and **Billing & Membership Info**. Tooltip icons now appear before each field label for quicker context.
 
+If a member is banned the dashboard displays a prominent notice at the top explaining the ban duration and purchases are blocked until it expires.
+
 ## Upcoming Events Tab
 
 The **Your Upcoming Events** tab lists future events you have tickets for. Each event
