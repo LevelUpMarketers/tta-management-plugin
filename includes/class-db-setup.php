@@ -120,6 +120,8 @@ class TTA_DB_Setup {
             dob                             DATE DEFAULT NULL,
             member_type                     ENUM('member','volunteer','admin','super_admin') DEFAULT 'member',
             membership_level                ENUM('free','basic','premium') DEFAULT 'free',
+            subscription_id                 VARCHAR(50) DEFAULT NULL,
+            subscription_status            ENUM('active','cancelled') DEFAULT 'active',
             facebook                        VARCHAR(191) DEFAULT NULL,
             linkedin                        VARCHAR(191) DEFAULT NULL,
             instagram                       VARCHAR(191) DEFAULT NULL,

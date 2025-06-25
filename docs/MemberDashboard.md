@@ -24,3 +24,19 @@ Event thumbnails use the medium image size and are scaled to a consistent width 
 ## Past Events Tab
 
 Past events show the same details as upcoming events. To keep the database small, events more than three days past are moved to an `tta_events_archive` table by a daily cron job. The dashboard transparently queries both the current events table and this archive so members can always view their history.
+
+## Billing & Membership Info
+
+The billing tab now displays the member's current plan and subscription status. When a Basic or Premium plan is active, a **Cancel Membership** button appears. Submitting the form calls an AJAX endpoint that shows a loading spinner and returns a success or error message. On success the membership level reverts to **Free**, the status changes to *Cancelled*, and the button disappears.
+If the subscription remains active, the last four digits of the stored payment method are retrieved directly from Authorize.Net and displayed. Members can update the card by submitting a second form which calls `TTA_AuthorizeNet_API::update_subscription_payment()` via AJAX. The plugin never stores any full payment data.
+Subscription metadata is stored in two columns on `tta_members`:
+
+- `subscription_id` – Authorize.Net identifier for the recurring payment
+- `subscription_status` – either `active` or `cancelled`
+
+Below the membership controls is a **Payment History** table. It lists all
+transactions in chronological order including event purchases logged in the
+`tta_transactions` table and monthly membership charges retrieved from the
+Authorize.Net API. Event names link to their event pages even after the
+events move into the archive, and each row displays the date, item name, and
+amount charged.

@@ -468,6 +468,169 @@ function tta_get_membership_label( $level ) {
 }
 
 /**
+ * Get the monthly price for a membership level.
+ *
+ * @param string $level Level slug (basic or premium).
+ * @return float
+ */
+function tta_get_membership_price( $level ) {
+    switch ( strtolower( $level ) ) {
+        case 'premium':
+            return TTA_PREMIUM_MEMBERSHIP_PRICE;
+        case 'basic':
+            return TTA_BASIC_MEMBERSHIP_PRICE;
+        default:
+            return 0;
+    }
+}
+
+/**
+ * Update a member's subscription level.
+ *
+ * @param int    $wp_user_id WordPress user ID.
+ * @param string $level      New membership level.
+ */
+function tta_update_user_membership_level( $wp_user_id, $level, $subscription_id = null, $subscription_status = null ) {
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $level = in_array( $level, [ 'free', 'basic', 'premium' ], true ) ? $level : 'free';
+    $data   = [ 'membership_level' => $level ];
+    $format = [ '%s' ];
+    if ( null !== $subscription_id ) {
+        $data['subscription_id'] = sanitize_text_field( $subscription_id );
+        $format[] = '%s';
+        if ( null === $subscription_status ) {
+            $subscription_status = 'active';
+        }
+    }
+    if ( null !== $subscription_status ) {
+        $data['subscription_status'] = sanitize_text_field( $subscription_status );
+        $format[] = '%s';
+    }
+    $wpdb->update(
+        $members_table,
+        $data,
+        [ 'wpuserid' => intval( $wp_user_id ) ],
+        $format,
+        [ '%d' ]
+    );
+}
+
+/**
+ * Get a member's subscription ID.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ * @return string|null
+ */
+function tta_get_user_subscription_id( $wp_user_id ) {
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $sub = $wpdb->get_var( $wpdb->prepare( "SELECT subscription_id FROM {$members_table} WHERE wpuserid = %d", intval( $wp_user_id ) ) );
+    return $sub ?: null;
+}
+
+/**
+ * Update a member's subscription ID.
+ *
+ * @param int    $wp_user_id WordPress user ID.
+ * @param string $subscription_id Authorize.Net subscription ID.
+ */
+function tta_update_user_subscription_id( $wp_user_id, $subscription_id ) {
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $wpdb->update(
+        $members_table,
+        [ 'subscription_id' => sanitize_text_field( $subscription_id ) ],
+        [ 'wpuserid' => intval( $wp_user_id ) ],
+        [ '%s' ],
+        [ '%d' ]
+    );
+}
+
+/**
+ * Get a member's subscription status.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ * @return string|null
+ */
+function tta_get_user_subscription_status( $wp_user_id ) {
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $status = $wpdb->get_var( $wpdb->prepare( "SELECT subscription_status FROM {$members_table} WHERE wpuserid = %d", intval( $wp_user_id ) ) );
+    return $status ?: null;
+}
+
+/**
+ * Update a member's subscription status.
+ *
+ * @param int    $wp_user_id WordPress user ID.
+ * @param string $status     Status string.
+ */
+function tta_update_user_subscription_status( $wp_user_id, $status ) {
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $wpdb->update(
+        $members_table,
+        [ 'subscription_status' => sanitize_text_field( $status ) ],
+        [ 'wpuserid' => intval( $wp_user_id ) ],
+        [ '%s' ],
+        [ '%d' ]
+    );
+}
+
+/**
+ * Retrieve the last four digits of a subscription's credit card.
+ *
+ * The data is cached for ten minutes to limit API calls.
+ *
+ * @param string $subscription_id Authorize.Net subscription ID.
+ * @return string Empty string on failure.
+ */
+function tta_get_subscription_card_last4( $subscription_id ) {
+    if ( ! $subscription_id ) {
+        return '';
+    }
+    $cache_key = 'sub_last4_' . $subscription_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+    $api  = new TTA_AuthorizeNet_API();
+    $info = $api->get_subscription_details( $subscription_id );
+    if ( $info['success'] ) {
+        TTA_Cache::set( $cache_key, $info['card_last4'], 600 );
+        return $info['card_last4'];
+    }
+    return '';
+}
+
+/**
+ * Retrieve recent transactions for a subscription.
+ *
+ * @param string $subscription_id Authorize.Net subscription ID.
+ * @return array[] { id:string, date:string, amount:float }
+ */
+function tta_get_subscription_transactions( $subscription_id ) {
+    if ( ! $subscription_id ) {
+        return [];
+    }
+    $cache_key = 'sub_tx_' . $subscription_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    $api  = new TTA_AuthorizeNet_API();
+    $info = $api->get_subscription_details( $subscription_id, true );
+    if ( ! $info['success'] ) {
+        return [];
+    }
+    $txns = $info['transactions'] ?? [];
+    TTA_Cache::set( $cache_key, $txns, 600 );
+    return $txns;
+}
+
+/**
  * Format a raw address string from the events table.
  *
  * @param string $raw Raw address ("street - addr2 - city - state - zip").
@@ -739,6 +902,90 @@ function tta_get_member_history_summary( $member_id ) {
 }
 
 /**
+ * Retrieve a member's full billing history including subscription charges.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ * @return array[] { date:string, description:string, amount:float, url?:string }
+ */
+function tta_get_member_billing_history( $wp_user_id ) {
+    $wp_user_id = intval( $wp_user_id );
+    if ( ! $wp_user_id ) {
+        return [];
+    }
+
+    $cache_key = 'billing_hist_' . $wp_user_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $tx_table = $wpdb->prefix . 'tta_transactions';
+
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT transaction_id, amount, details, created_at FROM {$tx_table} WHERE wpuserid = %d ORDER BY created_at DESC",
+            $wp_user_id
+        ),
+        ARRAY_A
+    );
+
+    $history = [];
+    foreach ( $rows as $row ) {
+        $items = json_decode( $row['details'], true );
+        if ( ! is_array( $items ) ) {
+            continue;
+        }
+        foreach ( $items as $it ) {
+            $name    = $it['event_name'] ?? ( $it['membership'] ?? '' );
+            $price   = floatval( $it['final_price'] ?? 0 ) * intval( $it['quantity'] ?? 1 );
+            $page_id = intval( $it['page_id'] ?? 0 );
+            if ( ! $page_id && ! empty( $it['event_ute_id'] ) ) {
+                $events_table  = $wpdb->prefix . 'tta_events';
+                $archive_table = $wpdb->prefix . 'tta_events_archive';
+                $page_id       = (int) $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT page_id FROM {$events_table} WHERE ute_id = %s UNION SELECT page_id FROM {$archive_table} WHERE ute_id = %s LIMIT 1",
+                        $it['event_ute_id'],
+                        $it['event_ute_id']
+                    )
+                );
+            }
+            $url = '';
+            if ( $page_id && function_exists( 'get_permalink' ) ) {
+                $url = get_permalink( $page_id );
+            }
+
+            $history[] = [
+                'date'        => $row['created_at'],
+                'description' => sanitize_text_field( $name ),
+                'amount'      => $price,
+                'url'         => $url,
+            ];
+        }
+    }
+
+    $sub_id = tta_get_user_subscription_id( $wp_user_id );
+    if ( $sub_id ) {
+        foreach ( tta_get_subscription_transactions( $sub_id ) as $sub_tx ) {
+            $label = __( 'Membership Charge', 'tta' );
+            $history[] = [
+                'date'        => $sub_tx['date'],
+                'description' => $label,
+                'amount'      => floatval( $sub_tx['amount'] ),
+            ];
+        }
+    }
+
+    usort( $history, function ( $a, $b ) {
+        return strtotime( $b['date'] ) - strtotime( $a['date'] );
+    } );
+
+    TTA_Cache::set( $cache_key, $history, 300 );
+    return $history;
+}
+
+/**
  * Retrieve the next upcoming event.
  *
  * @return array|null {
@@ -975,7 +1222,9 @@ function tta_get_sample_member() {
  *     first_name:string,
  *     last_name:string,
  *     member:?array,
- *     membership_level:string
+ *     membership_level:string,
+ *     subscription_id:?string,
+ *     subscription_status:?string
  * }
  */
 function tta_get_current_user_context() {
@@ -988,6 +1237,8 @@ function tta_get_current_user_context() {
         'last_name'        => '',
         'member'           => null,
         'membership_level' => 'free',
+        'subscription_id'  => null,
+        'subscription_status' => null,
     ];
 
     if ( ! $context['is_logged_in'] ) {
@@ -1016,7 +1267,9 @@ function tta_get_current_user_context() {
 
     if ( is_array( $member ) ) {
         $context['member']           = $member;
-        $context['membership_level'] = $member['membership_level'] ?? 'free';
+        $context['membership_level']  = $member['membership_level'] ?? 'free';
+        $context['subscription_id']   = $member['subscription_id'] ?? null;
+        $context['subscription_status'] = $member['subscription_status'] ?? null;
     }
 
     return $context;
@@ -1033,8 +1286,11 @@ function tta_get_current_user_context() {
 */
 function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $notices = [] ) {
     ob_start();
-    $items = $cart->get_items_with_discounts( $discount_codes );
-    $total = $cart->get_total( $discount_codes );
+    $items            = $cart->get_items_with_discounts( $discount_codes );
+    $total            = $cart->get_total( $discount_codes );
+    $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
+    $has_membership   = in_array( $membership_level, [ 'basic', 'premium' ], true );
+    $has_tickets      = ! empty( $items );
     $code_events = [];
     foreach ( $items as $row ) {
         $info = tta_parse_discount_data( $row['discountcode'] );
@@ -1042,7 +1298,7 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
             $code_events[ $info['code'] ] = $row['event_name'];
         }
     }
-    if ( $items ) {
+    if ( $items || $has_membership ) {
         ?>
         <table class="tta-cart-table">
             <thead>
@@ -1051,14 +1307,16 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                         <span class="tta-tooltip-icon tta-tooltip-right" data-tooltip="<?php echo esc_attr( 'Hover over each event name for a description.' ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
                         </span>
-                        <?php esc_html_e( 'Event', 'tta' ); ?>
+                        <?php esc_html_e( 'Event or Item', 'tta' ); ?>
                     </th>
+                    <?php if ( $has_tickets ) : ?>
                     <th>
                             <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( 'We reserve your ticket for 5 minutes so events don\'t oversell. After 5 minutes it becomes available to others.' ); ?>">
                                 <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
                         </span>
                         <?php esc_html_e( 'Ticket Reserved for…', 'tta' ); ?>
                     </th>
+                    <?php endif; ?>
                     <th>
                         <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( 'Limit of two tickets per event in total.' ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
@@ -1090,7 +1348,7 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                     <?php $sub = $it['quantity'] * $it['final_price']; ?>
                     <?php $expire_at = strtotime( $it['expires_at'] ); ?>
                     <tr data-expire-at="<?php echo esc_attr( $expire_at ); ?>" data-ticket="<?php echo esc_attr( $it['ticket_id'] ); ?>">
-                        <td data-label="<?php echo esc_attr( 'Event' ); ?>">
+                        <td data-label="<?php echo esc_attr( 'Event or Item' ); ?>">
                             <?php
                             $desc = '';
                             if ( $it['page_id'] && function_exists( 'get_post_field' ) ) {
@@ -1108,7 +1366,9 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                             </a><br>
                             <?php echo esc_html( $it['ticket_name'] ); ?>
                         </td>
+                        <?php if ( $has_tickets ) : ?>
                         <td data-label="<?php echo esc_attr( 'Ticket Reserved for…' ); ?>" class="tta-countdown-cell"><span class="tta-countdown"></span></td>
+                        <?php endif; ?>
                         <td data-label="<?php echo esc_attr( 'Quantity' ); ?>">
                             <input type="number" name="cart_qty[<?php echo esc_attr( $it['ticket_id'] ); ?>]" value="<?php echo esc_attr( $it['quantity'] ); ?>" min="0" class="tta-cart-qty">
                             <?php $ntext = $notices[ $it['ticket_id'] ] ?? ''; ?>
@@ -1137,11 +1397,36 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                         <td><button type="button" data-ticket="<?php echo esc_attr( $it['ticket_id'] ); ?>" class="tta-remove-item" aria-label="Remove"></button></td>
                     </tr>
                 <?php endforeach; ?>
+                <?php if ( $has_membership ) : ?>
+                    <?php $m_price = tta_get_membership_price( $membership_level ); ?>
+                    <tr class="tta-membership-row" data-ticket="0">
+                        <td><?php echo esc_html( ucfirst( $membership_level ) . ' Membership' ); ?></td>
+                        <?php if ( $has_tickets ) : ?><td></td><?php endif; ?>
+                        <td>1</td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?> <?php esc_html_e( 'Per Month', 'tta' ); ?></td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?> <?php esc_html_e( 'Per Month', 'tta' ); ?></td>
+                        <td><button type="button" id="tta-remove-membership" class="tta-remove-item" aria-label="Remove"></button></td>
+                    </tr>
+                <?php endif; ?>
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="4"><?php esc_html_e( 'Total', 'tta' ); ?></th>
-                    <td colspan="2" class="tta-cart-total">$<?php echo esc_html( number_format( $total, 2 ) ); ?></td>
+                    <th colspan="<?php echo $has_tickets ? 4 : 3; ?>"><?php esc_html_e( 'Total', 'tta' ); ?></th>
+                    <?php
+                    $m_total = $has_membership ? tta_get_membership_price( $membership_level ) : 0;
+                    ?>
+                    <td colspan="2" class="tta-cart-total">
+                        $<?php echo esc_html( number_format( $total, 2 ) ); ?>
+                        <?php
+                        if ( $has_membership ) {
+                            if ( $has_tickets ) {
+                                echo ' ' . esc_html__( 'today,', 'tta' ) . ' $' . number_format( $m_total, 2 ) . ' ' . esc_html__( 'Per Month', 'tta' );
+                            } else {
+                                echo ' ' . esc_html__( 'Per Month', 'tta' );
+                            }
+                        }
+                        ?>
+                    </td>
                 </tr>
                 <?php if ( $discount_codes ) : ?>
                 <tr class="tta-active-discounts">
@@ -1180,8 +1465,11 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
  */
 function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
     ob_start();
-    $items = $cart->get_items_with_discounts( $discount_codes );
-    $total = $cart->get_total( $discount_codes );
+    $items            = $cart->get_items_with_discounts( $discount_codes );
+    $total            = $cart->get_total( $discount_codes );
+    $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
+    $has_membership   = in_array( $membership_level, [ 'basic', 'premium' ], true );
+    $has_tickets      = ! empty( $items );
     $code_events = [];
     foreach ( $items as $row ) {
         $info = tta_parse_discount_data( $row['discountcode'] );
@@ -1189,7 +1477,7 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
             $code_events[ $info['code'] ] = $row['event_name'];
         }
     }
-    if ( $items ) {
+    if ( $items || $has_membership ) {
         ?>
         <div id="tta-checkout-container">
         <table class="tta-checkout-summary">
@@ -1199,14 +1487,16 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                         <span class="tta-tooltip-icon tta-tooltip-right" data-tooltip="<?php echo esc_attr( 'Hover over each event name for a description.' ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
                         </span>
-                        <?php esc_html_e( 'Event', 'tta' ); ?>
+                        <?php esc_html_e( 'Event or Item', 'tta' ); ?>
                     </th>
+                    <?php if ( $has_tickets ) : ?>
                     <th>
                         <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( "We reserve your ticket for 5 minutes so events don't oversell. After 5 minutes it becomes available to others." ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
                         </span>
                         <?php esc_html_e( 'Ticket Reserved for…', 'tta' ); ?>
                     </th>
+                    <?php endif; ?>
                     <th>
                         <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( 'Limit of two tickets per event in total.' ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
@@ -1232,7 +1522,7 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                     <?php $sub = $it['quantity'] * $it['final_price']; ?>
                     <?php $expire_at = strtotime( $it['expires_at'] ); ?>
                     <tr data-expire-at="<?php echo esc_attr( $expire_at ); ?>" data-ticket="<?php echo esc_attr( $it['ticket_id'] ); ?>">
-                        <td data-label="<?php echo esc_attr( 'Event' ); ?>">
+                        <td data-label="<?php echo esc_attr( 'Event or Item' ); ?>">
                             <?php
                             $desc = '';
                             if ( $it['page_id'] && function_exists( 'get_post_field' ) ) {
@@ -1250,7 +1540,9 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                             </a><br>
                             <?php echo esc_html( $it['ticket_name'] ); ?>
                         </td>
+                        <?php if ( $has_tickets ) : ?>
                         <td class="tta-countdown-cell" data-label="<?php echo esc_attr( 'Ticket Reserved for…' ); ?>"><span class="tta-countdown"></span></td>
+                        <?php endif; ?>
                         <td data-label="<?php echo esc_attr( 'Qty' ); ?>"><?php echo intval( $it['quantity'] ); ?></td>
                         <td data-label="<?php echo esc_attr( 'Price' ); ?>">
                             <?php
@@ -1274,11 +1566,35 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                         </td>
                     </tr>
                 <?php endforeach; ?>
+                <?php if ( $has_membership ) : ?>
+                    <?php $m_price = tta_get_membership_price( $membership_level ); ?>
+                    <tr class="tta-membership-row" data-ticket="0">
+                        <td><?php echo esc_html( ucfirst( $membership_level ) . ' Membership' ); ?></td>
+                        <?php if ( $has_tickets ) : ?><td></td><?php endif; ?>
+                        <td>1</td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?> <?php esc_html_e( 'Per Month', 'tta' ); ?></td>
+                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?> <?php esc_html_e( 'Per Month', 'tta' ); ?></td>
+                    </tr>
+                <?php endif; ?>
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="4"><?php esc_html_e( 'Total', 'tta' ); ?></th>
-                    <td>$<?php echo esc_html( number_format( $total, 2 ) ); ?></td>
+                    <th colspan="<?php echo $has_tickets ? 4 : 3; ?>"><?php esc_html_e( 'Total', 'tta' ); ?></th>
+                    <?php
+                    $m_total = $has_membership ? tta_get_membership_price( $membership_level ) : 0;
+                    ?>
+                    <td>
+                        $<?php echo esc_html( number_format( $total, 2 ) ); ?>
+                        <?php
+                        if ( $has_membership ) {
+                            if ( $has_tickets ) {
+                                echo ' ' . esc_html__( 'today,', 'tta' ) . ' $' . number_format( $m_total, 2 ) . ' ' . esc_html__( 'Per Month', 'tta' );
+                            } else {
+                                echo ' ' . esc_html__( 'Per Month', 'tta' );
+                            }
+                        }
+                        ?>
+                    </td>
                 </tr>
                 <?php if ( $discount_codes ) : ?>
                 <tr class="tta-active-discounts">

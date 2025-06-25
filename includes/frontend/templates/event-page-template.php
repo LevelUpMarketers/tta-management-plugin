@@ -1088,7 +1088,6 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
         </div>
       <?php endif; ?>
     </aside>
-    </div><!-- .tta-event-columns -->
 
     <aside class="tta-event-right">
       <div class="tta-events-ad">

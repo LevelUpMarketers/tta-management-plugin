@@ -389,10 +389,13 @@ class TTA_Cart {
     return $items;
   }
 
-  public function get_total( $discount_codes = [] ) {
+  public function get_total( $discount_codes = [], $include_membership = true ) {
     $total = 0;
     foreach ( $this->get_items_with_discounts( $discount_codes ) as $it ) {
       $total += $it['final_price'] * $it['quantity'];
+    }
+    if ( $include_membership && ! empty( $_SESSION['tta_membership_purchase'] ) ) {
+      $total += tta_get_membership_price( $_SESSION['tta_membership_purchase'] );
     }
     return $total;
   }
