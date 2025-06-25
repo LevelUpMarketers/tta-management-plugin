@@ -469,11 +469,28 @@ form p.submit{
   border: 1px solid #ccd0d4;
   padding: 10px;
   border-radius: 4px;
-  flex: 1 1 300px;
+  flex: 1 1 100%;
   min-width: 260px;
 }
 .tta-subscription-forms h5 {
   margin: 0 0 8px;
+}
+#tta-admin-update-payment-form p, #tta-admin-reactivate-subscription-form p, #tta-admin-change-level-form p{
+    display: inline-block;
+    margin-bottom: 9px;
+    padding: 5px 10px 0px 0px;
+    line-height: 1.3;
+    vertical-align: middle;
+}
+.tta-submit-history-div{
+    display:block;
+}
+.tta-member-history-details li{
+    display:inline-block;
+}
+
+#tta-admin-update-payment-form input, #tta-admin-update-payment-form select, #tta-admin-reactivate-subscription-form input, #tta-admin-reactivate-subscription-form select, #tta-admin-change-level-form input, #tta-admin-change-level-form select{
+    width:198px;
 }
 @media (max-width: 600px) {
   .tta-subscription-forms {

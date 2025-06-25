@@ -140,8 +140,10 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
       </label>
     </p>
     <p class="submit">
-      <button type="submit" class="button"><?php esc_html_e( 'Update Payment Method', 'tta' ); ?></button>
-      <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
+      <div class="tta-submit-history-div">
+        <button type="submit" class="button"><?php esc_html_e( 'Update Payment Method', 'tta' ); ?></button>
+        <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
+      </div>
     </p>
   </form>
 
@@ -154,8 +156,10 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
     </h5>
     <input type="hidden" name="member_id" value="<?php echo esc_attr( $member_id ); ?>">
     <p class="submit">
-      <button type="submit" class="button"><?php esc_html_e( 'Cancel This Member\'s Subscription', 'tta' ); ?></button>
-      <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
+      <div class="tta-submit-history-div">
+        <button type="submit" class="button"><?php esc_html_e( 'Cancel This Member\'s Subscription', 'tta' ); ?></button>
+        <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
+      </div>
     </p>
   </form>
 
@@ -232,8 +236,10 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
       </label>
     </p>
     <p class="submit">
-      <button type="submit" class="button"><?php esc_html_e( 'Reactivate this Member\'s Subscription', 'tta' ); ?></button>
-      <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
+      <div class="tta-submit-history-div">
+        <button type="submit" class="button"><?php esc_html_e( 'Reactivate this Member\'s Subscription', 'tta' ); ?></button>
+        <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
+      </div>
     </p>
   </form>
 
@@ -261,8 +267,10 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
       </label>
     </p>
     <p class="submit">
-      <button type="submit" class="button"><?php esc_html_e( 'Update Membership Level', 'tta' ); ?></button>
-      <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
+      <div class="tta-submit-history-div">
+        <button type="submit" class="button"><?php esc_html_e( 'Update Membership Level', 'tta' ); ?></button>
+        <div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="" style="display:none;opacity:0"></div>
+      </div>
     </p>
   </form>
   </div>
