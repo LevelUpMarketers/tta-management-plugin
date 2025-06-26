@@ -1,6 +1,6 @@
 /* assets/css/backend/admin.css */
 
-#wpbody-content > div.wrap > form > .form-table > tbody > tr, #tta-event-edit-form table > tbody > tr{
+#wpbody-content > div.wrap > form > .form-table > tbody > tr, #tta-event-edit-form table > tbody > tr, #tta-venue-edit-form table > tbody > tr{
 	display:inline-block;
 	margin-top: 20px;
 	vertical-align: top;
@@ -150,6 +150,7 @@
 }
 
 form p.submit{
+   margin-top:20px;
    display: inline-block; 
 }
 
