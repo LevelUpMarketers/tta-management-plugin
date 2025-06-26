@@ -160,7 +160,8 @@ class TTA_Sample_Data {
                         $items,
                         '',
                         0,
-                        intval( $members[ $index % count( $members ) ]['wpuserid'] )
+                        intval( $members[ $index % count( $members ) ]['wpuserid'] ),
+                        sprintf( '%04d', rand( 1000, 9999 ) )
                     );
                 } else {
                     $txn_row = [
@@ -168,6 +169,8 @@ class TTA_Sample_Data {
                         'member_id'      => 0,
                         'transaction_id' => 'sample_txn_' . $index,
                         'amount'         => floatval( $ticket['baseeventcost'] ) * $att_count,
+                        'refunded'       => 0,
+                        'card_last4'     => sprintf( '%04d', rand( 1000, 9999 ) ),
                         'discount_code'  => '',
                         'discount_saved' => 0,
                         'details'        => '',

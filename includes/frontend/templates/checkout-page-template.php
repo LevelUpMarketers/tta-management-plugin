@@ -100,7 +100,8 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
         }
 
         if ( empty( $checkout_error ) ) {
-            $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees );
+            $last4 = substr( preg_replace( '/\D/', '', $_POST['card_number'] ), -4 );
+            $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4 );
             unset( $_SESSION['tta_membership_purchase'] );
             wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
             exit;

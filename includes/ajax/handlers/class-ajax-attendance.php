@@ -56,11 +56,84 @@ class TTA_Ajax_Attendance {
 
     public static function refund_attendee() {
         check_ajax_referer( 'tta_attendee_admin_action', 'nonce' );
-        $id = intval( $_POST['attendee_id'] ?? 0 );
+
+        $id   = intval( $_POST['attendee_id'] ?? 0 );
+        $mode = sanitize_text_field( $_POST['mode'] ?? 'cancel' );
+        $amount = floatval( $_POST['amount'] ?? 0 );
+
         if ( ! $id ) {
             wp_send_json_error( [ 'message' => 'missing attendee' ] );
         }
-        // Placeholder for real refund logic
+
+        global $wpdb;
+        $att_table   = $wpdb->prefix . 'tta_attendees';
+        $ticket_table = $wpdb->prefix . 'tta_tickets';
+        $tx_table    = $wpdb->prefix . 'tta_transactions';
+        $hist_table  = $wpdb->prefix . 'tta_memberhistory';
+
+        $att = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$att_table} WHERE id = %d", $id ), ARRAY_A );
+        if ( ! $att ) {
+            wp_send_json_error( [ 'message' => 'not found' ] );
+        }
+
+        $tx  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$tx_table} WHERE id = %d", intval( $att['transaction_id'] ) ), ARRAY_A );
+        if ( ! $tx ) {
+            wp_send_json_error( [ 'message' => 'transaction missing' ] );
+        }
+
+        if ( $amount <= 0 ) {
+            $amount = floatval( $tx['amount'] );
+        }
+
+        $api = new TTA_AuthorizeNet_API();
+        $res = $api->refund( $amount, $tx['transaction_id'], $tx['card_last4'] );
+        if ( ! $res['success'] ) {
+            wp_send_json_error( [ 'message' => $res['error'] ] );
+        }
+
+        $wpdb->update(
+            $tx_table,
+            [ 'refunded' => floatval( $tx['refunded'] ) + $amount ],
+            [ 'id' => intval( $tx['id'] ) ],
+            [ '%f' ],
+            [ '%d' ]
+        );
+
+        $ticket = $wpdb->get_row( $wpdb->prepare( "SELECT event_ute_id FROM {$ticket_table} WHERE id = %d", intval( $att['ticket_id'] ) ), ARRAY_A );
+        $event_id = 0;
+        if ( $ticket && ! empty( $ticket['event_ute_id'] ) ) {
+            $event_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}tta_events WHERE ute_id = %s LIMIT 1", $ticket['event_ute_id'] ) );
+        }
+
+        $wpdb->insert(
+            $hist_table,
+            [
+                'member_id'   => intval( $tx['member_id'] ),
+                'wpuserid'    => intval( $tx['wpuserid'] ),
+                'event_id'    => $event_id,
+                'action_type' => 'refund',
+                'action_data' => wp_json_encode([
+                    'amount'         => $amount,
+                    'transaction_id' => $tx['transaction_id'],
+                    'attendee_id'    => $id,
+                    'cancel'         => ( 'cancel' === $mode ) ? 1 : 0,
+                ]),
+            ],
+            [ '%d','%d','%d','%s','%s' ]
+        );
+
+        if ( 'cancel' === $mode ) {
+            $wpdb->delete( $att_table, [ 'id' => $id ], [ '%d' ] );
+            if ( $ticket ) {
+                $wpdb->query( $wpdb->prepare( "UPDATE {$ticket_table} SET ticketlimit = ticketlimit + 1 WHERE id = %d", intval( $att['ticket_id'] ) ) );
+                if ( ! empty( $ticket['event_ute_id'] ) ) {
+                    TTA_Cache::delete( 'tickets_' . $ticket['event_ute_id'] );
+                }
+            }
+        }
+
+        TTA_Cache::flush();
+
         wp_send_json_success( [ 'message' => __( 'Refund processed.', 'tta' ) ] );
     }
 }

@@ -324,11 +324,11 @@ $tickets = $wpdb->get_results(
                       <input type="number" class="tta-refund-amount" step="0.01" style="width:70px" placeholder="<?php esc_attr_e( 'Full', 'tta' ); ?>">
                     </td>
                     <td>
-                      <button type="button" class="tta-refund-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
-                        <?php esc_html_e( 'Refund', 'tta' ); ?>
+                      <button type="button" class="tta-refund-cancel-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
+                        <?php esc_html_e( 'Refund & Cancel Attendance', 'tta' ); ?>
                       </button>
-                      <button type="button" class="tta-remove-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
-                        <?php esc_html_e( 'Cancel', 'tta' ); ?>
+                      <button type="button" class="tta-refund-keep-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
+                        <?php esc_html_e( 'Refund & Keep Attendance', 'tta' ); ?>
                       </button>
                     </td>
                   </tr>
