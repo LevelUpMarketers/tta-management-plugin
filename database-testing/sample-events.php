@@ -31,7 +31,7 @@ $addresses = [
     '77 Pub Ln - - Richmond - Virginia - 23222',
     '88 Sing St - - Richmond - Virginia - 23225',
 ];
-for ($i = 1; $i <= 20; $i++) {
+for ($i = 1; $i <= 24; $i++) {
     $idx   = ($i - 1) % count($names);
     $date  = date('Y-m-d', strtotime('+' . ($i * 3) . ' days', $start));
     $events[] = [

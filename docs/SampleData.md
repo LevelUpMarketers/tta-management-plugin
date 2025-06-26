@@ -1,8 +1,9 @@
 # Sample Database Data
 
-The plugin bundles development data for testing. From the **TTA Settings** admin page you can load twenty fake upcoming events scheduled over the next two months along with matching tickets, members and example transactions. Each sample event is created the same way as a normal event including its WordPress page so calendar links work and attendees are generated for each event. When loading the data the loader attempts to assign a random image from your media library as the featured image for each event.
+The plugin bundles development data for testing. From the **TTA Settings** admin page you can load twenty-four fake upcoming events scheduled over the next two months along with matching tickets, members and example transactions. Each sample event is created the same way as a normal event including its WordPress page so calendar links work and attendees are generated for each event. When loading the data the loader attempts to assign a random image from your media library as the featured image for each event.
 
 Click **Load Sample Data** under `/wp-admin/admin.php?page=tta-settings` to insert the sample rows into the relevant tables (`tta_events`, `tta_tickets`, `tta_members`, `tta_transactions`, `tta_attendees`, `tta_memberhistory`) and automatically generate pages. The loader now creates WordPress user accounts for each sample member so you can log in with them during testing. Sample transactions contain realistic item details, the last four digits of a fake credit card and history entries. Use **Delete Sample Data** on the same screen to remove everything created by the loader. All caches are flushed after each action.
+Each sample event also creates a matching record in the `tta_venues` table so venue autocomplete works during editing.
 
 The raw arrays are stored in `database-testing/sample-events.php`, `database-testing/sample-tickets.php` and `database-testing/sample-members.php`.
 
@@ -28,3 +29,4 @@ plugin records refund amounts and history entries.
 
 Some of the sample members only provide names and emails. The loader now handles
 missing fields like phone numbers so warnings do not appear during installation.
+Every column is filled with placeholder values so member profiles appear complete.

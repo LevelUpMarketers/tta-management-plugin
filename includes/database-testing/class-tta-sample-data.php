@@ -34,6 +34,7 @@ class TTA_Sample_Data {
         $tx_table          = $wpdb->prefix . 'tta_transactions';
         $attendees_table   = $wpdb->prefix . 'tta_attendees';
         $hist_table        = $wpdb->prefix . 'tta_memberhistory';
+        $venues_table      = $wpdb->prefix . 'tta_venues';
 
         foreach ( $members as &$mem ) {
             $user_id = 0;
@@ -88,6 +89,21 @@ class TTA_Sample_Data {
         unset( $mem );
 
         foreach ( $events as $index => $event ) {
+            // Ensure a venue entry exists for this event
+            $venue_exists = $wpdb->get_var( $wpdb->prepare(
+                "SELECT id FROM {$venues_table} WHERE name = %s LIMIT 1",
+                $event['venuename']
+            ) );
+            if ( ! $venue_exists ) {
+                $wpdb->insert( $venues_table, [
+                    'name'     => sanitize_text_field( $event['venuename'] ),
+                    'address'  => sanitize_text_field( $event['address'] ),
+                    'venueurl' => sanitize_text_field( $event['venueurl'] ),
+                    'url2'     => sanitize_text_field( $event['url2'] ),
+                    'url3'     => sanitize_text_field( $event['url3'] ),
+                    'url4'     => sanitize_text_field( $event['url4'] ),
+                ] );
+            }
             $row = [
                 'ute_id'               => sanitize_text_field( $event['ute_id'] ),
                 'name'                 => sanitize_text_field( $event['name'] ),
@@ -290,7 +306,7 @@ class TTA_Sample_Data {
         $members_table   = $wpdb->prefix . 'tta_members';
         $tx_table        = $wpdb->prefix . 'tta_transactions';
         $attendees_table = $wpdb->prefix . 'tta_attendees';
-        $history_table   = $wpdb->prefix . 'tta_memberhistory';
+        $venues_table    = $wpdb->prefix . 'tta_venues';
 
         $page_ids = $wpdb->get_col( "SELECT page_id FROM {$events_table} WHERE ute_id LIKE 'sample_event_%'" );
         foreach ( $page_ids as $pid ) {
@@ -306,6 +322,18 @@ class TTA_Sample_Data {
         $wpdb->query( "DELETE FROM {$tx_table} WHERE transaction_id LIKE 'sample_txn_%'" );
         $wpdb->query( "DELETE FROM {$history_table} WHERE action_data LIKE '%sample_txn_%'" );
         $wpdb->query( "DELETE FROM {$members_table} WHERE email LIKE 'sample_member_%@example.com'" );
+        foreach ( [
+            'Crawleys Diner',
+            'Rollerdome',
+            "King's Korner Catering and Restaurant",
+            'City Museum',
+            'Arts Studio',
+            'Sky Bar',
+            'Corner Pub',
+            'Sing Lounge'
+        ] as $vname ) {
+            $wpdb->delete( $venues_table, [ 'name' => $vname ] );
+        }
 
         if ( function_exists( 'get_user_by' ) && function_exists( 'wp_delete_user' ) ) {
             $emails = [

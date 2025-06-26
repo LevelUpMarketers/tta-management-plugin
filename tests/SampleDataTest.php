@@ -15,6 +15,7 @@ class DummyWpdbSample {
 
     public function esc_like( $str ) { return $str; }
     public function get_col( $query ) { return []; }
+    public function get_var( $query ) { return null; }
     public function prepare( $query, ...$args ) {
         foreach ( $args as $a ) {
             $query = preg_replace('/%s/', $a, $query, 1);
@@ -64,6 +65,7 @@ class DummyWpdbSample {
         }
         return 1;
     }
+    public function delete( $table, $where ) { return 1; }
 }
 
 class SampleDataTest extends TestCase {

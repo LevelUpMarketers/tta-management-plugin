@@ -1,6 +1,6 @@
 <?php
 $tickets = [];
-for ($i = 1; $i <= 20; $i++) {
+for ($i = 1; $i <= 24; $i++) {
     $tickets[] = [
         'event_ute_id'        => 'sample_event_' . $i,
         'event_name'          => 'Sample Event ' . $i,
