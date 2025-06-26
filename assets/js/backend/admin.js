@@ -928,7 +928,7 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
   $(document).on('click', '.tta-remove-attendee', function(e){
     e.preventDefault();
     var id = $(this).data('attendee');
-    var $entry = $(this).closest('.tta-wl-entry');
+    var $entry = $(this).closest('tr[data-attendee-id]');
     $.post(TTA_Ajax.ajax_url, {
       action: 'tta_remove_attendee',
       attendee_id: id,

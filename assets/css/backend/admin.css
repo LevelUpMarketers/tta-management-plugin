@@ -15,7 +15,7 @@
     margin-top: 5px;
 }
 
-#tta-ticket-edit-form > section > details.tta-ticket-attendees > div > div > table > tbody > tr{
+#tta-ticket-edit-form > section > details.tta-ticket-attendees > div > table > tbody > tr{
     display:table-row;
 }
 
