@@ -24,6 +24,24 @@ class TTA_DB_Setup {
         $sql_statements = [];
 
         // ─────────────────────────────────────────────────────────────────
+        // Venues table
+        // ─────────────────────────────────────────────────────────────────
+        $sql_statements[] = "
+        CREATE TABLE {$prefix}venues (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            name VARCHAR(255) NOT NULL,
+            address VARCHAR(500) DEFAULT '',
+            venueurl VARCHAR(255) DEFAULT '',
+            url2 VARCHAR(255) DEFAULT '',
+            url3 VARCHAR(255) DEFAULT '',
+            url4 VARCHAR(255) DEFAULT '',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY name (name)
+        ) $charset_collate";
+
+        // ─────────────────────────────────────────────────────────────────
         // Events table
         // ─────────────────────────────────────────────────────────────────
         $sql_statements[] = "

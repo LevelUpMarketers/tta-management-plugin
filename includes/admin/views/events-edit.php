@@ -10,6 +10,7 @@
 global $wpdb;
 $is_archive = ! empty( $_GET['archive'] );
 $table      = $wpdb->prefix . ( $is_archive ? 'tta_events_archive' : 'tta_events' );
+$venue_table = $wpdb->prefix . 'tta_venues';
 $readonly   = $is_archive;
 $editing    = false;
 $event      = [];
@@ -35,6 +36,7 @@ if ( isset( $_GET['event_id'] ) ) {
 $member_choices = $wpdb->get_col(
     "SELECT CONCAT(first_name,' ',last_name) FROM {$wpdb->prefix}tta_members WHERE member_type IN ('volunteer','admin','super_admin') ORDER BY first_name, last_name"
 );
+$venue_choices = $wpdb->get_results( "SELECT name, address, venueurl, url2, url3, url4 FROM {$venue_table} ORDER BY name", ARRAY_A );
 $hosts      = ! empty( $event['hosts'] ) ? array_map( 'trim', explode( ',', $event['hosts'] ) ) : [''];
 $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',', $event['volunteers'] ) ) : [''];
 ?>
@@ -288,7 +290,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
                     <label for="venuename">Venue Name</label>
                 </th>
                 <td>
-                    <input type="text" name="venuename" id="venuename" class="regular-text"
+                    <input type="text" name="venuename" id="venuename" class="regular-text" list="tta-venue-options"
                            value="<?php echo esc_attr( $event['venuename'] ?? '' ); ?>">
                 </td>
             </tr>
@@ -481,9 +483,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <?php for ( $i = 2; $i <= 4; $i++ ) : ?>
             <tr>
                 <th>
-                    <span class="tta-tooltip-icon"
-                          data-tooltip="Additional resource link."
-                          style="margin-left:4px;">
+                    <span class="tta-tooltip-icon" data-ttakey="extra_link" style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
@@ -548,6 +548,17 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
         <datalist id="tta-member-options">
             <?php foreach ( $member_choices as $name ) : ?>
                 <option value="<?php echo esc_attr( $name ); ?>"></option>
+            <?php endforeach; ?>
+        </datalist>
+
+        <datalist id="tta-venue-options">
+            <?php foreach ( $venue_choices as $v ) : ?>
+                <option value="<?php echo esc_attr( $v['name'] ); ?>"
+                        data-address="<?php echo esc_attr( $v['address'] ); ?>"
+                        data-url="<?php echo esc_attr( $v['venueurl'] ); ?>"
+                        data-url2="<?php echo esc_attr( $v['url2'] ); ?>"
+                        data-url3="<?php echo esc_attr( $v['url3'] ); ?>"
+                        data-url4="<?php echo esc_attr( $v['url4'] ); ?>"></option>
             <?php endforeach; ?>
         </datalist>
 

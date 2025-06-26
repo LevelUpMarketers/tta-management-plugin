@@ -156,11 +156,14 @@
   font-size: 18px;
   font-weight: bold;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  overflow: hidden;
+  max-height: 0;
+  transition: opacity 0.2s ease, max-height 0.3s ease;
 }
 .tta-admin-progress-response-p.updated,
 .tta-admin-progress-response-p.error {
   opacity: 1;
+  max-height: 50px;
 }
 @media (max-width: 600px) {
   .tta-checkout-grid { flex-direction: column; }
