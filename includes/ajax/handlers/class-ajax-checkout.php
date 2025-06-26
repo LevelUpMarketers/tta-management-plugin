@@ -57,7 +57,8 @@ class TTA_Ajax_Checkout {
         }
 
         $attendees = $_POST['attendees'] ?? [];
-        $res = $cart->finalize_purchase( $result['transaction_id'], $amount, $attendees );
+        $last4    = substr( preg_replace( '/\D/', '', $_POST['card_number'] ?? '' ), -4 );
+        $res = $cart->finalize_purchase( $result['transaction_id'], $amount, $attendees, $last4 );
         if ( is_wp_error( $res ) ) {
             wp_send_json_error( [ 'message' => $res->get_error_message() ] );
         }

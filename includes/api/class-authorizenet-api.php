@@ -92,6 +92,60 @@ class TTA_AuthorizeNet_API {
     }
 
     /**
+     * Issue a refund for a previous transaction.
+     *
+     * @param float  $amount        Refund amount.
+     * @param string $transaction_id Original Authorize.Net transaction ID.
+     * @param string $card_last4     Last four digits of the card.
+     * @return array { success:bool, transaction_id?:string, error?:string }
+     */
+    public function refund( $amount, $transaction_id, $card_last4 ) {
+        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
+        }
+
+        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+        $merchantAuthentication->setName( $this->login_id );
+        $merchantAuthentication->setTransactionKey( $this->transaction_key );
+
+        $card = new AnetAPI\CreditCardType();
+        $card->setCardNumber( $card_last4 );
+        $card->setExpirationDate( 'XXXX' );
+
+        $payment = new AnetAPI\PaymentType();
+        $payment->setCreditCard( $card );
+
+        $transactionRequest = new AnetAPI\TransactionRequestType();
+        $transactionRequest->setTransactionType( 'refundTransaction' );
+        $transactionRequest->setAmount( $amount );
+        $transactionRequest->setPayment( $payment );
+        $transactionRequest->setRefTransId( $transaction_id );
+
+        $request = new AnetAPI\CreateTransactionRequest();
+        $request->setMerchantAuthentication( $merchantAuthentication );
+        $request->setTransactionRequest( $transactionRequest );
+
+        $controller = new AnetController\CreateTransactionController( $request );
+        $response   = $controller->executeWithApiResponse( $this->environment );
+
+        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            $tresponse = $response->getTransactionResponse();
+            if ( $tresponse && $tresponse->getResponseCode() === '1' ) {
+                return [ 'success' => true, 'transaction_id' => $tresponse->getTransId() ];
+            }
+            $err = $tresponse && $tresponse->getErrors()
+                ? $tresponse->getErrors()[0]->getErrorText()
+                : 'Refund failed';
+            return [ 'success' => false, 'error' => $err ];
+        }
+
+        $err = $response && $response->getMessages()->getMessage()
+            ? $response->getMessages()->getMessage()[0]->getText()
+            : 'API error';
+        return [ 'success' => false, 'error' => $err ];
+    }
+
+    /**
      * Create a recurring subscription via the Authorize.Net API.
      *
      * @param float  $amount     Monthly charge amount.

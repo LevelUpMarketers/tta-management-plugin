@@ -19,7 +19,7 @@ class TTA_Transaction_Logger {
      * @param float  $discount_saved Total savings from discounts
      * @param int    $user_id        Optional WordPress user ID
      */
-    public static function log( $transaction_id, $amount, array $items, $discount_code = '', $discount_saved = 0, $user_id = 0 ) {
+    public static function log( $transaction_id, $amount, array $items, $discount_code = '', $discount_saved = 0, $user_id = 0, $card_last4 = '' ) {
         global $wpdb;
 
         $user_id = $user_id ?: get_current_user_id();
@@ -42,11 +42,13 @@ class TTA_Transaction_Logger {
                 'member_id'      => $member_id,
                 'transaction_id' => $transaction_id,
                 'amount'         => $amount,
+                'refunded'       => 0,
+                'card_last4'     => sanitize_text_field( $card_last4 ),
                 'discount_code'  => $discount_code,
                 'discount_saved' => $discount_saved,
                 'details'        => wp_json_encode( $items ),
             ],
-            [ '%d', '%d', '%s', '%f', '%s', '%f', '%s' ]
+            [ '%d', '%d', '%s', '%f', '%f', '%s', '%s', '%f', '%s' ]
         );
 
         $txn_id   = $wpdb->insert_id;

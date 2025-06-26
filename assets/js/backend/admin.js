@@ -838,7 +838,6 @@ jQuery(function($){
               + '&action=tta_update_ticket'
               + '&tta_ticket_save_nonce=' + TTA_Ajax.save_ticket_nonce;
 
-              console.log($form);
 
     $.post(TTA_Ajax.ajax_url, data, function(res){
       setTimeout(function(){
@@ -923,41 +922,37 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
 });
 
   // ─────────────────────────────────────────────────────────────────────
-  // Remove a confirmed attendee
+  // Refund an attendee and optionally cancel attendance
   // ─────────────────────────────────────────────────────────────────────
-  $(document).on('click', '.tta-remove-attendee', function(e){
+  function handleRefund(e, mode){
     e.preventDefault();
-    var id = $(this).data('attendee');
-    var $entry = $(this).closest('tr[data-attendee-id]');
-    $.post(TTA_Ajax.ajax_url, {
-      action: 'tta_remove_attendee',
-      attendee_id: id,
-      nonce: TTA_Ajax.attendee_admin_nonce
-    }, function(res){
-      if(res.success){
-        $entry.remove();
-      }else{
-        alert(res.data && res.data.message ? res.data.message : 'Error');
-      }
-    }, 'json');
-  });
-
-  // ─────────────────────────────────────────────────────────────────────
-  // Refund an attendee
-  // ─────────────────────────────────────────────────────────────────────
-  $(document).on('click', '.tta-refund-attendee', function(e){
-    e.preventDefault();
-    var id = $(this).data('attendee');
-    var amount = prompt('Refund amount (leave blank for full refund):','');
-    if(amount === null) return;
+    var id = $(e.currentTarget).data('attendee');
+    var $row = $(e.currentTarget).closest('tr[data-attendee-id]');
+    var amount = $row.find('.tta-refund-amount').val();
     $.post(TTA_Ajax.ajax_url, {
       action: 'tta_refund_attendee',
       attendee_id: id,
       amount: amount,
+      mode: mode,
       nonce: TTA_Ajax.attendee_admin_nonce
     }, function(res){
-      alert(res.data && res.data.message ? res.data.message : (res.success ? 'Refund processed' : 'Error'));
+      if(res.success){
+        if(mode === 'cancel'){
+          $row.remove();
+        }
+        alert(res.data && res.data.message ? res.data.message : 'Refund processed');
+      }else{
+        alert(res.data && res.data.message ? res.data.message : 'Error');
+      }
     }, 'json');
+  }
+
+  $(document).on('click', '.tta-refund-cancel-attendee', function(e){
+    handleRefund(e, 'cancel');
+  });
+
+  $(document).on('click', '.tta-refund-keep-attendee', function(e){
+    handleRefund(e, 'keep');
   });
 
   // Inline edit toggle for Email & SMS templates

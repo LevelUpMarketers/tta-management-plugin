@@ -449,7 +449,7 @@ class TTA_Cart {
    * @param float  $amount         Charged amount.
    * @param array  $attendees      Optional attendee info keyed by ticket ID.
    */
-  public function finalize_purchase( $transaction_id = '', $amount = 0, array $attendees = [] ) {
+  public function finalize_purchase( $transaction_id = '', $amount = 0, array $attendees = [], $card_last4 = '' ) {
     global $wpdb;
 
     $discount_codes = $_SESSION['tta_discount_codes'] ?? [];
@@ -502,7 +502,7 @@ class TTA_Cart {
 
     // Log transaction details
     if ( $transaction_id ) {
-      TTA_Transaction_Logger::log( $transaction_id, $amount, $items, implode( ',', $discount_codes ), $discount_total );
+      TTA_Transaction_Logger::log( $transaction_id, $amount, $items, implode( ',', $discount_codes ), $discount_total, get_current_user_id(), $card_last4 );
     }
 
     $this->empty_cart();

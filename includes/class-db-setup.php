@@ -281,6 +281,8 @@ class TTA_DB_Setup {
             member_id       BIGINT UNSIGNED NULL,
             transaction_id  VARCHAR(50)     NOT NULL,
             amount          DECIMAL(10,2)  NOT NULL,
+            refunded        DECIMAL(10,2)  DEFAULT 0.00,
+            card_last4      VARCHAR(4)     DEFAULT '',
             discount_code   VARCHAR(255)   DEFAULT '',
             discount_saved  DECIMAL(10,2)  DEFAULT 0.00,
             details         TEXT           NULL,
