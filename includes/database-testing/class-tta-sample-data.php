@@ -307,6 +307,7 @@ class TTA_Sample_Data {
         $tx_table        = $wpdb->prefix . 'tta_transactions';
         $attendees_table = $wpdb->prefix . 'tta_attendees';
         $venues_table    = $wpdb->prefix . 'tta_venues';
+        $hist_table      = $wpdb->prefix . 'tta_memberhistory';
 
         $page_ids = $wpdb->get_col( "SELECT page_id FROM {$events_table} WHERE ute_id LIKE 'sample_event_%'" );
         foreach ( $page_ids as $pid ) {
@@ -320,7 +321,7 @@ class TTA_Sample_Data {
         $wpdb->query( "DELETE FROM {$waitlist_table} WHERE event_ute_id LIKE 'sample_event_%'" );
         $wpdb->query( "DELETE FROM {$attendees_table} WHERE transaction_id IN (SELECT id FROM {$tx_table} WHERE transaction_id LIKE 'sample_txn_%')" );
         $wpdb->query( "DELETE FROM {$tx_table} WHERE transaction_id LIKE 'sample_txn_%'" );
-        $wpdb->query( "DELETE FROM {$history_table} WHERE action_data LIKE '%sample_txn_%'" );
+        $wpdb->query( "DELETE FROM {$hist_table} WHERE action_data LIKE '%sample_txn_%'" );
         $wpdb->query( "DELETE FROM {$members_table} WHERE email LIKE 'sample_member_%@example.com'" );
         foreach ( [
             'Crawleys Diner',
