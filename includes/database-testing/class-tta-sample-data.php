@@ -76,8 +76,8 @@ class TTA_Sample_Data {
                 'interests'        => sanitize_text_field( $mem['interests'] ?? '' ),
                 'opt_in_marketing_email' => empty( $mem['opt_in_marketing_email'] ) ? 0 : 1,
                 'opt_in_marketing_sms'   => empty( $mem['opt_in_marketing_sms'] ) ? 0 : 1,
-                'opt_in_event_email'     => empty( $mem['opt_in_event_email'] ) ? 0 : 1,
-                'opt_in_event_sms'       => empty( $mem['opt_in_event_sms'] ) ? 0 : 1,
+                'opt_in_event_update_email' => empty( $mem['opt_in_event_email'] ) ? 0 : 1,
+                'opt_in_event_update_sms'   => empty( $mem['opt_in_event_sms'] ) ? 0 : 1,
                 'hide_event_attendance'  => empty( $mem['hide_event_attendance'] ) ? 0 : 1,
             ];
 
