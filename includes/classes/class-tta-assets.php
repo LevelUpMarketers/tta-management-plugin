@@ -70,15 +70,6 @@ class TTA_Assets {
                 true
             );
 
-            wp_enqueue_script(
-                'tta-tooltips-js',
-                TTA_PLUGIN_URL . 'assets/js/tooltips.js',
-                [ 'jquery' ],
-                TTA_PLUGIN_VERSION,
-                true
-            );
-
-            wp_localize_script( 'tta-tooltips-js', 'TTA_Tooltips', TTA_Tooltips::get_texts() );
 
             // Media uploader helper JS
             wp_enqueue_script(
@@ -160,14 +151,6 @@ class TTA_Assets {
             TTA_PLUGIN_VERSION
         );
 
-        wp_enqueue_script(
-            'tta-tooltips-js',
-            TTA_PLUGIN_URL . 'assets/js/tooltips.js',
-            [ 'jquery' ],
-            TTA_PLUGIN_VERSION,
-            true
-        );
-        wp_localize_script( 'tta-tooltips-js', 'TTA_Tooltips', TTA_Tooltips::get_texts() );
 
         // 2) Only on our “Event Page” template, enqueue event-page.css and cart + event JS
         if ( function_exists( 'is_page_template' ) && is_page_template( 'event-page-template.php' ) ) {

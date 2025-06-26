@@ -29,7 +29,7 @@ if ( isset( $_GET['venue_id'] ) ) {
         <tbody>
         <tr>
             <th>
-                <span class="tta-tooltip-icon" data-tooltip="Name of the venue.">
+                <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::VENUE_NAME ) ); ?>">
                     <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                 </span>
                 <label for="name">Venue Name</label>
@@ -40,7 +40,7 @@ if ( isset( $_GET['venue_id'] ) ) {
         </tr>
         <tr>
             <th>
-                <span class="tta-tooltip-icon" data-tooltip="Main URL for the venue or its homepage.">
+                <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::VENUE_URL ) ); ?>">
                     <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                 </span>
                 <label for="venueurl">Venue Link</label>
@@ -84,7 +84,7 @@ if ( isset( $_GET['venue_id'] ) ) {
         </tr>
         <tr>
             <th>
-                <span class="tta-tooltip-icon" data-tooltip="Primary street address.">
+                <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::STREET_ADDRESS ) ); ?>">
                     <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                 </span>
                 <label for="street_address">Street Address</label>
@@ -95,7 +95,7 @@ if ( isset( $_GET['venue_id'] ) ) {
         </tr>
         <tr>
             <th>
-                <span class="tta-tooltip-icon" data-tooltip="Apartment, suite, etc.">
+                <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::ADDRESS_2 ) ); ?>">
                     <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                 </span>
                 <label for="address_2">Address 2</label>
@@ -106,7 +106,7 @@ if ( isset( $_GET['venue_id'] ) ) {
         </tr>
         <tr>
             <th>
-                <span class="tta-tooltip-icon" data-tooltip="City">
+                <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::CITY ) ); ?>">
                     <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                 </span>
                 <label for="city">City</label>
@@ -117,7 +117,7 @@ if ( isset( $_GET['venue_id'] ) ) {
         </tr>
         <tr>
             <th>
-                <span class="tta-tooltip-icon" data-tooltip="State or region.">
+                <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::STATE ) ); ?>">
                     <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                 </span>
                 <label for="state">State</label>
@@ -128,7 +128,7 @@ if ( isset( $_GET['venue_id'] ) ) {
         </tr>
         <tr>
             <th>
-                <span class="tta-tooltip-icon" data-tooltip="Postal code">
+                <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::ZIP ) ); ?>">
                     <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
                 </span>
                 <label for="zip">ZIP</label>
