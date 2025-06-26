@@ -27,7 +27,7 @@ class TTA_Assets {
      * @param string $hook_suffix The current admin page.
      */
     public static function enqueue_backend_assets( $hook_suffix ) {
-        if ( isset( $_GET['page'] ) && in_array( $_GET['page'], [ 'tta-events', 'tta-members', 'tta-tickets', 'tta-comms', 'tta-ads' ], true ) ) {
+        if ( isset( $_GET['page'] ) && in_array( $_GET['page'], [ 'tta-events','tta-members','tta-tickets','tta-comms','tta-ads','tta-venues' ], true ) ) {
 
             // 1) Make sure the full TinyMCE / Quicktags / editor CSS are loaded:
             if ( function_exists( 'wp_enqueue_editor' ) ) {
@@ -116,6 +116,8 @@ class TTA_Assets {
                     'update_member_nonce' => wp_create_nonce( 'tta_member_update_action' ),
                     'get_ticket_nonce'    => wp_create_nonce( 'tta_ticket_get_action' ),
                     'save_ticket_nonce'   => wp_create_nonce( 'tta_ticket_save_action' ),
+                    'get_venue_nonce'     => wp_create_nonce( 'tta_venue_get_action' ),
+                    'save_venue_nonce'    => wp_create_nonce( 'tta_venue_save_action' ),
                     'save_comm_nonce'     => wp_create_nonce( 'tta_comms_save_action' ),
                     'membership_admin_nonce' => wp_create_nonce( 'tta_membership_admin_action' ),
                     'sample_event'        => ( function() {
