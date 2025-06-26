@@ -174,7 +174,7 @@ class TTA_Sample_Data {
                         'first_name'   => sanitize_text_field( $m['first_name'] ),
                         'last_name'    => sanitize_text_field( $m['last_name'] ),
                         'email'        => sanitize_email( $m['email'] ),
-                        'phone'        => sanitize_text_field( $m['phone'] ),
+                        'phone'        => sanitize_text_field( $m['phone'] ?? '' ),
                         'opt_in_sms'   => 1,
                         'opt_in_email' => 1,
                     ];

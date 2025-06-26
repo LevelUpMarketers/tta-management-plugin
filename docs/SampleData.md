@@ -25,3 +25,6 @@ These accounts are also used to populate the rest of the database. Each
 sample event links one of the members above to a transaction containing
 their attendees. Every fifth event logs a refund so you can test how the
 plugin records refund amounts and history entries.
+
+Some of the sample members only provide names and emails. The loader now handles
+missing fields like phone numbers so warnings do not appear during installation.
