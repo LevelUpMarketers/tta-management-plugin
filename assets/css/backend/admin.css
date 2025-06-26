@@ -1,14 +1,22 @@
 /* assets/css/backend/admin.css */
 
-#wpbody-content > div.wrap > form > .form-table > tbody > tr, #tta-event-edit-form table > tbody > tr, #tta-venue-edit-form table > tbody > tr{
-	display:inline-block;
-	margin-top: 20px;
-	vertical-align: top;
+#wpbody-content > div.wrap > form > .form-table > tbody > tr, #tta-event-edit-form table > tbody > tr, #tta-ticket-edit-form table > tbody > tr{
+    display:inline-block;
+    margin-top: 20px;
+    vertical-align: top;
+}
+
+#tta-ticket-edit-form .form-table{
+    margin-bottom:20px;
 }
 
 .regular-text.interest-field{
     display: block;
     margin-top: 5px;
+}
+
+#tta-ticket-edit-form > section > details.tta-ticket-attendees > div > div > table > tbody > tr{
+    display:table-row;
 }
 
 .tta-waitlist-holder-for-css{
@@ -150,7 +158,6 @@
 }
 
 form p.submit{
-   margin-top:20px;
    display: inline-block; 
 }
 
@@ -229,7 +236,7 @@ form p.submit{
 }
 
 #otherimage-preview img, #mainimage-preview img{
-	vertical-align:top;
+    vertical-align:top;
     margin-top:5px;
 } 
 
@@ -292,7 +299,7 @@ form p.submit{
     left: 20px;
 }
 
-.tta-ticket-row .form-table th .tta-tooltip-icon, .tta-ticket-row .tta-ticket-waitlist summary span{
+.tta-ticket-row .form-table th .tta-tooltip-icon, .tta-ticket-row .tta-ticket-attendees summary span, .tta-ticket-row .tta-ticket-waitlist summary span{
     position: absolute;
     display: inline-block;
     vertical-align: middle;
@@ -303,11 +310,11 @@ form p.submit{
     top: 3px;
 }
 
-.tta-ticket-row .tta-ticket-waitlist summary span{
+.tta-ticket-row .tta-ticket-waitlist summary span, .tta-ticket-row .tta-ticket-attendees summary span{
     left: -22px;
 }
 
-.tta-ticket-waitlist summary{
+.tta-ticket-waitlist summary, .tta-ticket-attendees summary{
     font-weight: 600;
     color: #1d2327;
     font-size: 14px;
