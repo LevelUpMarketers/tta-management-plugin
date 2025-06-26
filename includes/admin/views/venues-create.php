@@ -18,6 +18,9 @@ if ( isset($_POST['tta_venue_save']) && check_admin_referer('tta_venue_save_acti
     $data = [
         'name'     => tta_sanitize_text_field($_POST['name']),
         'venueurl' => tta_esc_url_raw($_POST['venueurl']),
+        'url2'     => tta_esc_url_raw($_POST['url2']),
+        'url3'     => tta_esc_url_raw($_POST['url3']),
+        'url4'     => tta_esc_url_raw($_POST['url4']),
         'address'  => $address,
     ];
     if($editing){
@@ -39,6 +42,12 @@ if ( isset($_POST['tta_venue_save']) && check_admin_referer('tta_venue_save_acti
 <td><input type="text" name="name" id="name" class="regular-text" value="<?php echo esc_attr($venue['name'] ?? ''); ?>"></td></tr>
 <tr><th><label for="venueurl">Venue URL</label></th>
 <td><input type="url" name="venueurl" id="venueurl" class="regular-text" value="<?php echo esc_attr($venue['venueurl'] ?? ''); ?>"></td></tr>
+<tr><th><label for="url2">Extra Event Link 1</label></th>
+<td><input type="url" name="url2" id="url2" class="regular-text" value="<?php echo esc_attr($venue['url2'] ?? ''); ?>"></td></tr>
+<tr><th><label for="url3">Extra Event Link 2</label></th>
+<td><input type="url" name="url3" id="url3" class="regular-text" value="<?php echo esc_attr($venue['url3'] ?? ''); ?>"></td></tr>
+<tr><th><label for="url4">Extra Event Link 3</label></th>
+<td><input type="url" name="url4" id="url4" class="regular-text" value="<?php echo esc_attr($venue['url4'] ?? ''); ?>"></td></tr>
 <tr><th><label for="street_address">Street Address</label></th>
 <td><input type="text" name="street_address" id="street_address" class="regular-text" value="<?php echo esc_attr(explode(' - ',$venue['address'] ?? '')[0] ?? ''); ?>"></td></tr>
 <tr><th><label for="address_2">Address 2</label></th>

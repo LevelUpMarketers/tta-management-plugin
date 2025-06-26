@@ -36,7 +36,7 @@ if ( isset( $_GET['event_id'] ) ) {
 $member_choices = $wpdb->get_col(
     "SELECT CONCAT(first_name,' ',last_name) FROM {$wpdb->prefix}tta_members WHERE member_type IN ('volunteer','admin','super_admin') ORDER BY first_name, last_name"
 );
-$venue_choices = $wpdb->get_results( "SELECT name, address, venueurl FROM {$venue_table} ORDER BY name", ARRAY_A );
+$venue_choices = $wpdb->get_results( "SELECT name, address, venueurl, url2, url3, url4 FROM {$venue_table} ORDER BY name", ARRAY_A );
 $hosts      = ! empty( $event['hosts'] ) ? array_map( 'trim', explode( ',', $event['hosts'] ) ) : [''];
 $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',', $event['volunteers'] ) ) : [''];
 ?>
@@ -555,7 +555,12 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
 
         <datalist id="tta-venue-options">
             <?php foreach ( $venue_choices as $v ) : ?>
-                <option value="<?php echo esc_attr( $v['name'] ); ?>" data-address="<?php echo esc_attr( $v['address'] ); ?>" data-url="<?php echo esc_attr( $v['venueurl'] ); ?>"></option>
+                <option value="<?php echo esc_attr( $v['name'] ); ?>"
+                        data-address="<?php echo esc_attr( $v['address'] ); ?>"
+                        data-url="<?php echo esc_attr( $v['venueurl'] ); ?>"
+                        data-url2="<?php echo esc_attr( $v['url2'] ); ?>"
+                        data-url3="<?php echo esc_attr( $v['url3'] ); ?>"
+                        data-url4="<?php echo esc_attr( $v['url4'] ); ?>"></option>
             <?php endforeach; ?>
         </datalist>
 

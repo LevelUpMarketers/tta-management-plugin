@@ -67,17 +67,20 @@ class TTA_Ajax_Events {
             'volunteers'           => implode( ',', array_filter( array_map( 'sanitize_text_field', $_POST['volunteers'] ?? [] ) ) ),
         ];
 
-        // Save venue if new
-        $venue_name = tta_sanitize_text_field( $_POST['venuename'] ?? '' );
-        $venue_url  = tta_esc_url_raw( $_POST['venueurl'] ?? '' );
+        // Save venue if new when updating
         $venue_table = $wpdb->prefix . 'tta_venues';
+        $venue_name  = tta_sanitize_text_field( $_POST['venuename'] ?? '' );
+        $venue_data  = [
+            'name'     => $venue_name,
+            'address'  => $address,
+            'venueurl' => tta_esc_url_raw( $_POST['venueurl'] ?? '' ),
+            'url2'     => tta_esc_url_raw( $_POST['url2'] ?? '' ),
+            'url3'     => tta_esc_url_raw( $_POST['url3'] ?? '' ),
+            'url4'     => tta_esc_url_raw( $_POST['url4'] ?? '' ),
+        ];
         $exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$venue_table} WHERE name = %s", $venue_name ) );
         if ( ! $exists ) {
-            $wpdb->insert( $venue_table, [
-                'name'     => $venue_name,
-                'address'  => $address,
-                'venueurl' => $venue_url,
-            ] );
+            $wpdb->insert( $venue_table, $venue_data );
         }
 
         // 2) Insert the event record

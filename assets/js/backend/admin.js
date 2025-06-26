@@ -255,6 +255,37 @@ jQuery(function($){
     }, 'json');
   });
 
+  // Inline edit for Venues
+  $(document).on('click', '#tta-venues-manage .widefat tbody tr[data-venue-id]', function(e){
+    if($(e.target).is('a,button,input,textarea,select')) return;
+    var $row=$(this), $arrow=$row.find('.tta-toggle-arrow');
+    var id=$row.data('venue-id'), colspan=$row.find('td').length;
+    var $existing=$row.next('.tta-inline-row');
+    if($existing.length){ $arrow.removeClass('open'); $existing.remove(); return; }
+    $('.tta-inline-row').remove(); $('.tta-toggle-arrow').removeClass('open');
+    $arrow.addClass('open');
+    $.post(TTA_Ajax.ajax_url,{action:'tta_get_venue_form',venue_id:id,get_venue_nonce:TTA_Ajax.get_venue_nonce},function(res){
+      if(!res.success) return;
+      var $new=$('<tr class="tta-inline-row"><td colspan="'+colspan+'"><div class="tta-inline-container" style="display:none;"></div></td></tr>');
+      $row.after($new);
+      var $c=$new.find('.tta-inline-container');
+      $c.html(res.data.html).fadeIn(200); 
+    },'json');
+  });
+
+  $(document).on('submit', '#tta-venue-edit-form', function(e){
+    e.preventDefault();
+    var $form=$(this);
+    $('.tta-admin-progress-spinner-svg').css({opacity:1,display:'inline-block'});
+    $('.tta-admin-progress-response-p').text('');
+    var data=$form.serialize()+'&action=tta_update_venue'+'&tta_venue_save_nonce='+TTA_Ajax.save_venue_nonce;
+    $.post(TTA_Ajax.ajax_url,data,function(res){
+      $('.tta-admin-progress-spinner-svg').fadeOut(200);
+      var $resp=$('.tta-admin-progress-response-p').removeClass('updated error').addClass(res.success?'updated':'error');
+      $resp.text(res.data.message||'Error');
+    },'json');
+  });
+
   //
   // Also open inline edit when clicking the Edit link
   //
@@ -1086,6 +1117,9 @@ jQuery(function($){
     var $opt = $('#tta-venue-options option[value="'+val+'"]');
     if($opt.length){
       $('#venueurl').val($opt.data('url') || '');
+      $('#url2').val($opt.data('url2') || '');
+      $('#url3').val($opt.data('url3') || '');
+      $('#url4').val($opt.data('url4') || '');
       var parts = ($opt.data('address') || '').split(' - ');
       $('#street_address').val(parts[0]||'');
       $('#address_2').val(parts[1]||'');
