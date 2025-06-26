@@ -1,6 +1,6 @@
 # Venue Administration
 
-The plugin tracks event venues in a dedicated table. Administrators can access **Venues** under the WordPress admin menu. The page mirrors the Events screen with two tabs:
+The plugin tracks event venues in a dedicated table. Administrators can access **Venues** under the WordPress admin menu. The page mirrors the Events screen with two tabs and the Add Venue form uses the same tooltip layout as the Events editor.
 
 - **Add Venue** – create a new venue with name, address components and up to three extra links.
 - **Manage Venues** – list existing venues in a table with inline editing using the same toggle/accordion behaviour as the Events manager.

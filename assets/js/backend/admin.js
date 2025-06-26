@@ -1112,7 +1112,7 @@ jQuery(function($){
   });
 
   // Auto-fill venue details when selecting a saved venue
-  $(document).on('change', '#venuename', function(){
+  $(document).on('change input', '#venuename', function(){
     var val = $(this).val();
     var $opt = $('#tta-venue-options option[value="'+val+'"]');
     if($opt.length){
