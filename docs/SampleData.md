@@ -20,3 +20,8 @@ The loader creates a few real WordPress accounts for convenience:
 | Premium          | Admin        | Mariah Payne     | mariah.payne831@gmail.com    | `3grQTvBOODPRtOOQESmS0TXD`     |
 | Premium          | Volunteer    | Cassidy Ryan     | claineryan13@gmail.com       | `^yDYADcss&kcH29yxhdvnJXO`     |
 | Premium          | Volunteer    | Dana Harrell     | dana.p.harrell@gmail.com     | `b0niD@oMxf9wax@n8*@DIYGH`     |
+
+These accounts are also used to populate the rest of the database. Each
+sample event links one of the members above to a transaction containing
+their attendees. Every fifth event logs a refund so you can test how the
+plugin records refund amounts and history entries.

@@ -33,8 +33,9 @@ class TTA_Sample_Data {
         $members_table     = $wpdb->prefix . 'tta_members';
         $tx_table          = $wpdb->prefix . 'tta_transactions';
         $attendees_table   = $wpdb->prefix . 'tta_attendees';
+        $hist_table        = $wpdb->prefix . 'tta_memberhistory';
 
-        foreach ( $members as $mem ) {
+        foreach ( $members as &$mem ) {
             $user_id = 0;
             if ( function_exists( 'username_exists' ) && function_exists( 'wp_insert_user' ) ) {
                 $username = sanitize_user( strstr( $mem['email'], '@', true ) );
@@ -81,7 +82,10 @@ class TTA_Sample_Data {
             ];
 
             $wpdb->insert( $members_table, $row );
+            $mem['wpuserid']  = $user_id;
+            $mem['member_id'] = $wpdb->insert_id;
         }
+        unset( $mem );
 
         foreach ( $events as $index => $event ) {
             $row = [
@@ -204,6 +208,7 @@ class TTA_Sample_Data {
                         intval( $members[ $index % count( $members ) ]['wpuserid'] ),
                         sprintf( '%04d', rand( 1000, 9999 ) )
                     );
+                    $txn_id = $wpdb->insert_id;
                 } else {
                     $txn_row = [
                         'wpuserid'       => intval( $members[ $index % count( $members ) ]['wpuserid'] ),
@@ -232,6 +237,44 @@ class TTA_Sample_Data {
                             'status'         => 'pending',
                         ] );
                     }
+                }
+
+                if ( $txn_id && $index % 5 === 0 ) {
+                    $refund_amount = floatval( $ticket['baseeventcost'] );
+                    $wpdb->update(
+                        $tx_table,
+                        [ 'refunded' => $refund_amount ],
+                        [ 'id' => $txn_id ],
+                        [ '%f' ],
+                        [ '%d' ]
+                    );
+
+                    $att_row = null;
+                    if ( method_exists( $wpdb, 'get_row' ) ) {
+                        $att_row = $wpdb->get_row(
+                            $wpdb->prepare(
+                                "SELECT id FROM {$attendees_table} WHERE transaction_id = %d LIMIT 1",
+                                $txn_id
+                            ),
+                            ARRAY_A
+                        );
+                    }
+                    $wpdb->insert(
+                        $hist_table,
+                        [
+                            'member_id'   => intval( $members[ $index % count( $members ) ]['member_id'] ),
+                            'wpuserid'    => intval( $members[ $index % count( $members ) ]['wpuserid'] ),
+                            'event_id'    => $event_id,
+                            'action_type' => 'refund',
+                            'action_data' => wp_json_encode([
+                                'amount'         => $refund_amount,
+                                'transaction_id' => 'sample_txn_' . $index,
+                                'attendee_id'    => $att_row['id'] ?? 0,
+                                'cancel'         => 0,
+                            ]),
+                        ],
+                        [ '%d','%d','%d','%s','%s' ]
+                    );
                 }
             }
         }
