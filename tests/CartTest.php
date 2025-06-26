@@ -88,6 +88,9 @@ class CartTest extends TestCase {
                 'ticket_name'=>'VIP',
                 'quantity'=>1,
                 'price'=>10,
+                'final_price'=>10,
+                'baseeventcost'=>10,
+                'discountcode'=>'',
                 'event_name'=>'Party',
                 'page_id'=>55,
                 'expires_at'=> date('Y-m-d H:i:s', time()+60)
@@ -183,7 +186,7 @@ class CartTest extends TestCase {
         $wpdb = new class {
             public $prefix = 'wp_';
             public $queries = [];
-            public $insert_id = 1;
+            public $insert_id = 0;
             public $items = [];
             public function get_row($q,$o=ARRAY_A){ $this->queries[]=$q; return null; }
             public function get_var($q){
@@ -196,7 +199,13 @@ class CartTest extends TestCase {
             }
             public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%d/',$v,$q,1); $q=preg_replace('/%s/',$v,$q,1); } return $q; }
             public function query($q){ $this->queries[]=$q; return 1; }
-            public function insert($t,$d,$f){ $this->queries[]='INSERT'; if(isset($d['ticket_id'])){ $this->items[$d['ticket_id']]=$d['quantity']; } }
+            public function insert($t,$d,$f){
+                $this->queries[]='INSERT';
+                $this->insert_id++;
+                if(isset($d['ticket_id'])){
+                    $this->items[$d['ticket_id']]=$d['quantity'];
+                }
+            }
             public function update($t,$d,$w,$f1=null,$f2=null){ $this->queries[]='UPDATE'; if(isset($w['ticket_id'])){ $this->items[$w['ticket_id']]=$d['quantity']; } }
             public function delete($t,$w,$f){ $this->queries[]='DELETE'; unset($this->items[$w['ticket_id']]); }
         };
@@ -220,6 +229,7 @@ class CartTest extends TestCase {
             public $prefix = 'wp_';
             public $queries = [];
             public $items = [];
+            public $insert_id = 0;
             public function get_var($q){
                 if (strpos($q,'event_ute_id')!==false) return 'ev1';
                 if(preg_match('/SELECT quantity FROM (\S+) WHERE cart_id = (\d+) AND ticket_id = (\d+)/',$q,$m)){
@@ -230,7 +240,13 @@ class CartTest extends TestCase {
             public function get_row($q,$o=ARRAY_A){ $this->queries[]=$q; return null; }
             public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%d/',$v,$q,1); $q=preg_replace('/%s/',$v,$q,1);} return $q; }
             public function query($q){ $this->queries[]=$q; return 1; }
-            public function insert($t,$d,$f){ $this->queries[]='INSERT'; if(isset($d['ticket_id'])){ $this->items[$d['ticket_id']]=$d['quantity']; } }
+            public function insert($t,$d,$f){
+                $this->queries[]='INSERT';
+                $this->insert_id++;
+                if(isset($d['ticket_id'])){
+                    $this->items[$d['ticket_id']]=$d['quantity'];
+                }
+            }
             public function update($t,$d,$w,$f1=null,$f2=null){ $this->queries[]='UPDATE'; if(isset($w['ticket_id'])){ $this->items[$w['ticket_id']]=$d['quantity']; } }
             public function delete($t,$w,$f){ $this->queries[]='DELETE'; unset($this->items[$w['ticket_id']]); }
         };
@@ -252,9 +268,10 @@ class CartTest extends TestCase {
         $wpdb = new class {
             public $prefix = 'wp_';
             public $items = [];
-            public $insert_id = 1;
+            public $insert_id = 0;
             public function get_row($q,$o=ARRAY_A){
                 return [
+                    'id'=>1,
                     'event_ute_id'=>'ev1',
                     'baseeventcost'=>10,
                     'discountedmembercost'=>8,
@@ -268,7 +285,12 @@ class CartTest extends TestCase {
             public function get_results($q,$o=ARRAY_A){ return []; }
             public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%d/',$v,$q,1); $q=preg_replace('/%s/',$v,$q,1);} return $q; }
             public function query($q){ return 1; }
-            public function insert($t,$d,$f){ if(isset($d['ticket_id'])){ $this->items[$d['ticket_id']]=$d['quantity']; } }
+            public function insert($t,$d,$f){
+                $this->insert_id++;
+                if(isset($d['ticket_id'])){
+                    $this->items[$d['ticket_id']]=$d['quantity'];
+                }
+            }
             public function update($t,$d,$w,$f1=null,$f2=null){ if(isset($w['ticket_id'])){ $this->items[$w['ticket_id']]=$d['quantity']; } }
             public function delete($t,$w,$f){ }
         };
@@ -298,9 +320,10 @@ class CartTest extends TestCase {
         $wpdb = new class {
             public $prefix = 'wp_';
             public $items = [1 => 1];
-            public $insert_id = 1;
+            public $insert_id = 0;
             public function get_row($q,$o=ARRAY_A){
                 return [
+                    'id'=>1,
                     'event_ute_id'=>'ev1',
                     'baseeventcost'=>10,
                     'discountedmembercost'=>8,
@@ -321,7 +344,12 @@ class CartTest extends TestCase {
             }
             public function prepare($q,...$a){ foreach($a as $v){ $q=preg_replace('/%d/',$v,$q,1); $q=preg_replace('/%s/',$v,$q,1);} return $q; }
             public function query($q){ return 1; }
-            public function insert($t,$d,$f){ if(isset($d['ticket_id'])){ $this->items[$d['ticket_id']]=$d['quantity']; } }
+            public function insert($t,$d,$f){
+                $this->insert_id++;
+                if(isset($d['ticket_id'])){
+                    $this->items[$d['ticket_id']]=$d['quantity'];
+                }
+            }
             public function update($t,$d,$w,$f1=null,$f2=null){ if(isset($w['ticket_id'])){ $this->items[$w['ticket_id']]=$d['quantity']; } }
             public function delete($t,$w,$f){ unset($this->items[$w['ticket_id']]); }
         };
