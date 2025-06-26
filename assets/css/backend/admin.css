@@ -15,6 +15,10 @@
     margin-top: 5px;
 }
 
+#hosts-container .regular-text.host-field, #volunteers-container .regular-text.volunteer-field{
+    width: 166px;
+}
+
 #tta-ticket-edit-form > section > details.tta-ticket-attendees > div > table > tbody > tr{
     display:table-row;
 }
