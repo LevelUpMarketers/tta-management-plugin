@@ -265,42 +265,40 @@ $tickets = $wpdb->get_results(
           (<?php echo $att_count; ?>)
         </summary>
         <?php if ( $attendees ) : ?>
-          <?php foreach ( $attendees as $a ) : ?>
-            <?php
-            $name  = trim( $a['first_name'] . ' ' . $a['last_name'] );
-            $email = $a['email'];
-            $phone = $a['phone'];
-            ?>
-            <div class="tta-wl-entry" data-attendee-id="<?php echo esc_attr( $a['id'] ); ?>">
-              <div class="tta-wl-info-wrapper">
-                <table class="tta-wl-info-table">
-                  <thead>
-                    <tr>
-                      <th><?php esc_html_e( 'Name', 'tta' ); ?></th>
-                      <th><?php esc_html_e( 'Email', 'tta' ); ?></th>
-                      <th><?php esc_html_e( 'Phone', 'tta' ); ?></th>
-                      <th><?php esc_html_e( 'Actions', 'tta' ); ?></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><?php echo esc_html( $name ); ?></td>
-                      <td><?php echo esc_html( $email ); ?></td>
-                      <td><?php echo esc_html( $phone ); ?></td>
-                      <td>
-                        <button type="button" class="tta-refund-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
-                          <?php esc_html_e( 'Refund', 'tta' ); ?>
-                        </button>
-                        <button type="button" class="tta-remove-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
-                          <?php esc_html_e( 'Cancel', 'tta' ); ?>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          <?php endforeach; ?>
+          <div class="tta-wl-info-wrapper">
+            <table class="tta-wl-info-table">
+              <thead>
+                <tr>
+                  <th><?php esc_html_e( 'Name', 'tta' ); ?></th>
+                  <th><?php esc_html_e( 'Email', 'tta' ); ?></th>
+                  <th><?php esc_html_e( 'Phone', 'tta' ); ?></th>
+                  <th><?php esc_html_e( 'Actions', 'tta' ); ?></th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php foreach ( $attendees as $a ) : ?>
+                  <?php
+                  $name  = trim( $a['first_name'] . ' ' . $a['last_name'] );
+                  $email = $a['email'];
+                  $phone = $a['phone'];
+                  ?>
+                  <tr data-attendee-id="<?php echo esc_attr( $a['id'] ); ?>">
+                    <td><?php echo esc_html( $name ); ?></td>
+                    <td><?php echo esc_html( $email ); ?></td>
+                    <td><?php echo esc_html( $phone ); ?></td>
+                    <td>
+                      <button type="button" class="tta-refund-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
+                        <?php esc_html_e( 'Refund', 'tta' ); ?>
+                      </button>
+                      <button type="button" class="tta-remove-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
+                        <?php esc_html_e( 'Cancel', 'tta' ); ?>
+                      </button>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
         <?php else : ?>
           <p class="no-waitlist"><?php esc_html_e( 'No attendees.', 'tta' ); ?></p>
         <?php endif; ?>
