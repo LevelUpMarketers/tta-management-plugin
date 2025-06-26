@@ -24,7 +24,6 @@ if ( isset( $_GET['venue_id'] ) ) {
     <?php if ( $editing ) : ?>
         <input type="hidden" name="venue_id" value="<?php echo esc_attr( $venue['id'] ); ?>">
     <?php endif; ?>
-
     <table class="form-table">
         <tbody>
         <tr>
