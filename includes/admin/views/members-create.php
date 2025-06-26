@@ -135,18 +135,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <td>
                         <select name="state" id="state">
                             <?php
-                            // You can customize this list if you already have a states schema.
-                            $states = [
-                                '' => '— Select State —',
-                                'AL' => 'Alabama',
-                                'AK' => 'Alaska',
-                                'AZ' => 'Arizona',
-                                // … (add all 50 states as needed) …
-                                'VA' => 'Virginia',
-                                'WV' => 'West Virginia',
-                                'WI' => 'Wisconsin',
-                                'WY' => 'Wyoming',
-                            ];
+                            $states = [ '' => '— Select State —' ] + tta_get_us_states();
                             foreach ( $states as $abbr => $label ) {
                                 printf(
                                     '<option value="%s">%s</option>',

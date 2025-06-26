@@ -19,6 +19,8 @@ if ( isset( $_GET['venue_id'] ) ) {
     }
 }
 
+$addr_parts = tta_parse_address( $venue['address'] ?? '' );
+
 if ( isset( $_POST['tta_venue_save'] ) && check_admin_referer( 'tta_venue_save_action', 'tta_venue_save_nonce' ) ) {
     $address = implode( ' - ', array_filter( [
         tta_sanitize_text_field( $_POST['street_address'] ),
@@ -119,7 +121,7 @@ if ( isset( $_POST['tta_venue_save'] ) && check_admin_referer( 'tta_venue_save_a
                 <label for="street_address">Street Address</label>
             </th>
             <td>
-                <input type="text" name="street_address" id="street_address" class="regular-text" value="<?php echo esc_attr( explode( ' - ', $venue['address'] ?? '' )[0] ?? '' ); ?>">
+                <input type="text" name="street_address" id="street_address" class="regular-text" value="<?php echo esc_attr( $addr_parts['street'] ); ?>">
             </td>
         </tr>
         <tr>
@@ -130,7 +132,7 @@ if ( isset( $_POST['tta_venue_save'] ) && check_admin_referer( 'tta_venue_save_a
                 <label for="address_2">Address 2</label>
             </th>
             <td>
-                <input type="text" name="address_2" id="address_2" class="regular-text" value="<?php echo esc_attr( explode( ' - ', $venue['address'] ?? '' )[1] ?? '' ); ?>">
+                <input type="text" name="address_2" id="address_2" class="regular-text" value="<?php echo esc_attr( $addr_parts['address2'] ); ?>">
             </td>
         </tr>
         <tr>
@@ -141,7 +143,7 @@ if ( isset( $_POST['tta_venue_save'] ) && check_admin_referer( 'tta_venue_save_a
                 <label for="city">City</label>
             </th>
             <td>
-                <input type="text" name="city" id="city" class="regular-text" value="<?php echo esc_attr( explode( ' - ', $venue['address'] ?? '' )[2] ?? '' ); ?>">
+                <input type="text" name="city" id="city" class="regular-text" value="<?php echo esc_attr( $addr_parts['city'] ); ?>">
             </td>
         </tr>
         <tr>
@@ -152,7 +154,7 @@ if ( isset( $_POST['tta_venue_save'] ) && check_admin_referer( 'tta_venue_save_a
                 <label for="state">State</label>
             </th>
             <td>
-                <input type="text" name="state" id="state" class="regular-text" value="<?php echo esc_attr( explode( ' - ', $venue['address'] ?? '' )[3] ?? '' ); ?>">
+                <input type="text" name="state" id="state" class="regular-text" value="<?php echo esc_attr( $addr_parts['state'] ); ?>">
             </td>
         </tr>
         <tr>
@@ -163,7 +165,7 @@ if ( isset( $_POST['tta_venue_save'] ) && check_admin_referer( 'tta_venue_save_a
                 <label for="zip">ZIP</label>
             </th>
             <td>
-                <input type="text" name="zip" id="zip" class="regular-text" value="<?php echo esc_attr( explode( ' - ', $venue['address'] ?? '' )[4] ?? '' ); ?>">
+                <input type="text" name="zip" id="zip" class="regular-text" value="<?php echo esc_attr( $addr_parts['zip'] ); ?>">
             </td>
         </tr>
         </tbody>

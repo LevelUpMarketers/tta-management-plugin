@@ -19,19 +19,19 @@ $wp_user_id   = intval( $member['wpuserid'] );
 $profileimgid = $member['profileimgid'];
 $hide_attendance = intval( $member['hide_event_attendance'] );
 
-// Parse address into components using “ – ” (en-dash) as delimiter
+// Parse address components
 $street_address = '';
 $address_2      = '';
 $city           = '';
 $state          = '';
 $zip            = '';
 if ( ! empty( $member['address'] ) ) {
-    $parts = array_map( 'trim', explode( ' – ', $member['address'] ) );
-    $street_address = $parts[0] ?? '';
-    $address_2      = $parts[1] ?? '';
-    $city           = $parts[2] ?? '';
-    $state          = $parts[3] ?? '';
-    $zip            = $parts[4] ?? '';
+    $addr            = tta_parse_address( $member['address'] );
+    $street_address  = $addr['street'];
+    $address_2       = $addr['address2'];
+    $city            = $addr['city'];
+    $state           = $addr['state'];
+    $zip             = $addr['zip'];
 }
 
 // Ensure media uploader can work:

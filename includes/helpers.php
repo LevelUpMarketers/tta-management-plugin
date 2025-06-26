@@ -755,6 +755,27 @@ function tta_format_address( $raw ) {
 }
 
 /**
+ * Parse a raw address string into components.
+ *
+ * The database stores addresses separated by either a hyphen or an en dash.
+ * This helper splits on both characters so older rows continue to load
+ * correctly.
+ *
+ * @param string $raw Raw address string.
+ * @return array{street:string,address2:string,city:string,state:string,zip:string}
+ */
+function tta_parse_address( $raw ) {
+    $parts = preg_split( '/\s*[-–]\s*/u', $raw );
+    return [
+        'street'   => trim( $parts[0] ?? '' ),
+        'address2' => trim( $parts[1] ?? '' ),
+        'city'     => trim( $parts[2] ?? '' ),
+        'state'    => trim( $parts[3] ?? '' ),
+        'zip'      => trim( $parts[4] ?? '' ),
+    ];
+}
+
+/**
  * Retrieve upcoming events purchased by a user.
  *
  * @param int $wp_user_id WordPress user ID.
