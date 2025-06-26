@@ -1,6 +1,7 @@
 <?php
 global $wpdb;
 $table   = $wpdb->prefix . 'tta_events';
+$venue_table = $wpdb->prefix . 'tta_venues';
 $editing = false;
 $event   = [];
 
@@ -65,6 +66,18 @@ if ( isset( $_POST['tta_event_save'] ) && check_admin_referer(
         'volunteers'            => implode( ',', array_filter( array_map( 'sanitize_text_field', $_POST['volunteers'] ?? [] ) ) ),
     ];
 
+    // Store venue if new
+    $venue_name = tta_sanitize_text_field( $_POST['venuename'] );
+    $venue_url  = tta_esc_url_raw( $_POST['venueurl'] );
+    $exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$venue_table} WHERE name = %s", $venue_name ) );
+    if ( ! $exists ) {
+        $wpdb->insert( $venue_table, [
+            'name'     => $venue_name,
+            'address'  => $address,
+            'venueurl' => $venue_url,
+        ] );
+    }
+
     if ( $editing ) {
         $wpdb->update( $table, $data, [ 'id' => intval( $_POST['tta_event_id'] ) ] );
         echo '<div class="updated"><p>Event updated!</p></div>';
@@ -99,6 +112,7 @@ if ( isset( $_POST['tta_event_save'] ) && check_admin_referer(
 $member_choices = $wpdb->get_col(
     "SELECT CONCAT(first_name,' ',last_name) FROM {$wpdb->prefix}tta_members WHERE member_type IN ('volunteer','admin','super_admin') ORDER BY first_name, last_name"
 );
+$venue_choices = $wpdb->get_results( "SELECT name, address, venueurl FROM {$venue_table} ORDER BY name", ARRAY_A );
 $hosts      = ! empty( $event['hosts'] ) ? array_map( 'trim', explode( ',', $event['hosts'] ) ) : [''];
 $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',', $event['volunteers'] ) ) : [''];
 ?>
@@ -299,7 +313,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
                 <label for="venuename">Venue Name</label>
             </th>
             <td>
-                <input type="text" name="venuename" id="venuename" class="regular-text"
+                <input type="text" name="venuename" id="venuename" class="regular-text" list="tta-venue-options"
                        value="<?php echo esc_attr($event['venuename'] ?? ''); ?>">
             </td>
         </tr>
@@ -586,6 +600,12 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
     <datalist id="tta-member-options">
         <?php foreach ( $member_choices as $name ) : ?>
             <option value="<?php echo esc_attr( $name ); ?>"></option>
+        <?php endforeach; ?>
+    </datalist>
+
+    <datalist id="tta-venue-options">
+        <?php foreach ( $venue_choices as $v ) : ?>
+            <option value="<?php echo esc_attr( $v['name'] ); ?>" data-address="<?php echo esc_attr( $v['address'] ); ?>" data-url="<?php echo esc_attr( $v['venueurl'] ); ?>"></option>
         <?php endforeach; ?>
     </datalist>
 

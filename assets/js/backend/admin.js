@@ -1080,6 +1080,21 @@ jQuery(function($){
     renderPreview($(this));
   });
 
+  // Auto-fill venue details when selecting a saved venue
+  $(document).on('change', '#venuename', function(){
+    var val = $(this).val();
+    var $opt = $('#tta-venue-options option[value="'+val+'"]');
+    if($opt.length){
+      $('#venueurl').val($opt.data('url') || '');
+      var parts = ($opt.data('address') || '').split(' - ');
+      $('#street_address').val(parts[0]||'');
+      $('#address_2').val(parts[1]||'');
+      $('#city').val(parts[2]||'');
+      $('#state').val(parts[3]||'');
+      $('#zip').val(parts[4]||'');
+    }
+  });
+
 
 
 

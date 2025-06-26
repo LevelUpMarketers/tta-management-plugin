@@ -43,6 +43,12 @@
   margin-right: 0.25em;
   vertical-align: middle;
 }
+.tta-share-link:hover,
+.tta-share-link img:hover {
+  text-decoration: none;
+  opacity: 1;
+  transform: none;
+}
 .tta-event-meta .tta-event-date,
 .tta-event-meta .tta-event-price,
 .tta-event-meta .tta-event-type-meta {

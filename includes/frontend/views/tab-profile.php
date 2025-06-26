@@ -186,13 +186,13 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
           </td>
         </tr>
 
-        <!-- Twitter URL -->
+        <!-- X/Twitter URL -->
         <tr class="profile-row">
           <th>
-            <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Link to your Twitter handle.', 'tta' ); ?>">
+            <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Link to your Twitter (X) handle.', 'tta' ); ?>">
               <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' ); ?>" alt="Help">
             </span>
-            <label for="twitter"><?php esc_html_e( 'Twitter URL', 'tta' ); ?></label>
+            <label for="twitter"><?php esc_html_e( 'X/Twitter URL', 'tta' ); ?></label>
           </th>
           <td>
             <span class="view-value"><?php echo esc_html( $member['twitter'] ?: '—' ); ?></span>

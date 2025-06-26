@@ -95,6 +95,7 @@ require_once TTA_PLUGIN_DIR . 'includes/waitlist/class-waitlist.php';
 require_once TTA_PLUGIN_DIR . 'includes/ajax/class-ajax-handler.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-members-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-events-admin.php';
+require_once TTA_PLUGIN_DIR . 'includes/admin/class-venues-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-tickets-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-settings-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-comms-admin.php';
