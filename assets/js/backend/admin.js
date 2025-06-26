@@ -838,7 +838,6 @@ jQuery(function($){
               + '&action=tta_update_ticket'
               + '&tta_ticket_save_nonce=' + TTA_Ajax.save_ticket_nonce;
 
-              console.log($form);
 
     $.post(TTA_Ajax.ajax_url, data, function(res){
       setTimeout(function(){

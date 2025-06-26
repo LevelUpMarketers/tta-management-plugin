@@ -35,10 +35,51 @@ class TTA_Sample_Data {
         $attendees_table   = $wpdb->prefix . 'tta_attendees';
 
         foreach ( $members as $mem ) {
-            $row = [];
-            foreach ( $mem as $k => $v ) {
-                $row[ $k ] = is_string( $v ) ? sanitize_text_field( $v ) : $v;
+            $user_id = 0;
+            if ( function_exists( 'username_exists' ) && function_exists( 'wp_insert_user' ) ) {
+                $username = sanitize_user( strstr( $mem['email'], '@', true ) );
+                $user_id  = username_exists( $username );
+                if ( ! $user_id ) {
+                    $userdata = [
+                        'user_login' => $username,
+                        'user_pass'  => $mem['password'] ?? wp_generate_password( 12 ),
+                        'user_email' => sanitize_email( $mem['email'] ),
+                        'first_name' => sanitize_text_field( $mem['first_name'] ),
+                        'last_name'  => sanitize_text_field( $mem['last_name'] ),
+                    ];
+                    $maybe = wp_insert_user( $userdata );
+                    if ( ! is_wp_error( $maybe ) ) {
+                        $user_id = $maybe;
+                    }
+                }
             }
+
+            $row = [
+                'wpuserid'         => intval( $user_id ),
+                'first_name'       => sanitize_text_field( $mem['first_name'] ),
+                'last_name'        => sanitize_text_field( $mem['last_name'] ),
+                'email'            => sanitize_email( $mem['email'] ),
+                'profileimgid'     => intval( $mem['profileimgid'] ?? 0 ),
+                'joined_at'        => isset( $mem['joined_at'] ) ? sanitize_text_field( $mem['joined_at'] ) : current_time( 'mysql' ),
+                'address'          => sanitize_text_field( $mem['address'] ?? '' ),
+                'phone'            => sanitize_text_field( $mem['phone'] ?? '' ),
+                'dob'              => isset( $mem['dob'] ) ? sanitize_text_field( $mem['dob'] ) : null,
+                'member_type'      => sanitize_text_field( $mem['member_type'] ?? 'member' ),
+                'membership_level' => sanitize_text_field( $mem['membership_level'] ?? 'basic' ),
+                'facebook'         => sanitize_text_field( $mem['facebook'] ?? '' ),
+                'linkedin'         => sanitize_text_field( $mem['linkedin'] ?? '' ),
+                'instagram'        => sanitize_text_field( $mem['instagram'] ?? '' ),
+                'twitter'          => sanitize_text_field( $mem['twitter'] ?? '' ),
+                'biography'        => function_exists( 'sanitize_textarea_field' ) ? sanitize_textarea_field( $mem['biography'] ?? '' ) : sanitize_text_field( $mem['biography'] ?? '' ),
+                'notes'            => function_exists( 'sanitize_textarea_field' ) ? sanitize_textarea_field( $mem['notes'] ?? '' ) : sanitize_text_field( $mem['notes'] ?? '' ),
+                'interests'        => sanitize_text_field( $mem['interests'] ?? '' ),
+                'opt_in_marketing_email' => empty( $mem['opt_in_marketing_email'] ) ? 0 : 1,
+                'opt_in_marketing_sms'   => empty( $mem['opt_in_marketing_sms'] ) ? 0 : 1,
+                'opt_in_event_email'     => empty( $mem['opt_in_event_email'] ) ? 0 : 1,
+                'opt_in_event_sms'       => empty( $mem['opt_in_event_sms'] ) ? 0 : 1,
+                'hide_event_attendance'  => empty( $mem['hide_event_attendance'] ) ? 0 : 1,
+            ];
+
             $wpdb->insert( $members_table, $row );
         }
 
@@ -222,6 +263,35 @@ class TTA_Sample_Data {
         $wpdb->query( "DELETE FROM {$tx_table} WHERE transaction_id LIKE 'sample_txn_%'" );
         $wpdb->query( "DELETE FROM {$history_table} WHERE action_data LIKE '%sample_txn_%'" );
         $wpdb->query( "DELETE FROM {$members_table} WHERE email LIKE 'sample_member_%@example.com'" );
+
+        if ( function_exists( 'get_user_by' ) && function_exists( 'wp_delete_user' ) ) {
+            $emails = [
+                'tilypoquh@mailinator.com',
+                'sicuzymyt@mailinator.com',
+                'tryingtoadultrva@gmail.com',
+                'eippih@gmail.com',
+                'foreunner1618@gmail.com',
+                'mariah.payne831@gmail.com',
+                'claineryan13@gmail.com',
+                'dana.p.harrell@gmail.com',
+            ];
+            foreach ( $emails as $em ) {
+                $u = get_user_by( 'email', $em );
+                if ( $u ) {
+                    wp_delete_user( $u->ID );
+                }
+            }
+
+            if ( function_exists( 'get_users' ) ) {
+                $users = get_users([
+                    'search'         => 'sample_member_%@example.com',
+                    'search_columns' => [ 'user_email' ],
+                ]);
+                foreach ( $users as $u ) {
+                    wp_delete_user( $u->ID );
+                }
+            }
+        }
 
         TTA_Cache::flush();
     }

@@ -1,11 +1,77 @@
 <?php
-$members = [];
+$members = [
+    [
+        'first_name'       => 'Stacy',
+        'last_name'        => 'Harper',
+        'email'            => 'tilypoquh@mailinator.com',
+        'password'         => '##ALNEE#DLI)wZHvOp14A8Tp',
+        'member_type'      => 'member',
+        'membership_level' => 'basic',
+    ],
+    [
+        'first_name'       => 'Tucker',
+        'last_name'        => 'Copeland',
+        'email'            => 'sicuzymyt@mailinator.com',
+        'password'         => '^$^^6@TyiDpiL72B3rZ7v*tY',
+        'member_type'      => 'member',
+        'membership_level' => 'premium',
+    ],
+    [
+        'first_name'       => 'Sam',
+        'last_name'        => 'Lydard',
+        'email'            => 'tryingtoadultrva@gmail.com',
+        'password'         => 'bNe#JO#h)uyP30oAdcZkrQfi',
+        'member_type'      => 'super_admin',
+        'membership_level' => 'premium',
+    ],
+    [
+        'first_name'       => 'Julie',
+        'last_name'        => 'Marsh',
+        'email'            => 'eippih@gmail.com',
+        'password'         => 'a14B%(T*UXk1auRFd)#ZNw)g',
+        'member_type'      => 'super_admin',
+        'membership_level' => 'premium',
+    ],
+    [
+        'first_name'       => 'Adam',
+        'last_name'        => 'Peoples',
+        'email'            => 'foreunner1618@gmail.com',
+        'password'         => '3grQTvBOODPRtOOQESmS0TXD',
+        'member_type'      => 'admin',
+        'membership_level' => 'premium',
+    ],
+    [
+        'first_name'       => 'Mariah',
+        'last_name'        => 'Payne',
+        'email'            => 'mariah.payne831@gmail.com',
+        'password'         => '3grQTvBOODPRtOOQESmS0TXD',
+        'member_type'      => 'admin',
+        'membership_level' => 'premium',
+    ],
+    [
+        'first_name'       => 'Cassidy',
+        'last_name'        => 'Ryan',
+        'email'            => 'claineryan13@gmail.com',
+        'password'         => '^yDYADcss&kcH29yxhdvnJXO',
+        'member_type'      => 'volunteer',
+        'membership_level' => 'premium',
+    ],
+    [
+        'first_name'       => 'Dana',
+        'last_name'        => 'Harrell',
+        'email'            => 'dana.p.harrell@gmail.com',
+        'password'         => 'b0niD@oMxf9wax@n8*@DIYGH',
+        'member_type'      => 'volunteer',
+        'membership_level' => 'premium',
+    ],
+];
+
 for ($i = 1; $i <= 10; $i++) {
     $members[] = [
-        'wpuserid'              => $i,
         'first_name'            => 'Member' . $i,
         'last_name'             => 'Example',
         'email'                 => 'sample_member_' . $i . '@example.com',
+        'password'              => 'password',
         'profileimgid'          => 0,
         'joined_at'             => date('Y-m-d H:i:s', strtotime('-' . ($i * 3) . ' days')),
         'address'               => $i . ' Main St - - Richmond - VA - 2323' . $i,
@@ -27,4 +93,5 @@ for ($i = 1; $i <= 10; $i++) {
         'hide_event_attendance' => 0,
     ];
 }
+
 return $members;
