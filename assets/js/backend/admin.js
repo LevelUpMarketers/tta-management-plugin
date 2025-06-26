@@ -948,8 +948,7 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
   $(document).on('click', '.tta-refund-attendee', function(e){
     e.preventDefault();
     var id = $(this).data('attendee');
-    var amount = prompt('Refund amount (leave blank for full refund):','');
-    if(amount === null) return;
+    var amount = $(this).closest('tr').find('.tta-refund-amount').val();
     $.post(TTA_Ajax.ajax_url, {
       action: 'tta_refund_attendee',
       attendee_id: id,

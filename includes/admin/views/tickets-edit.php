@@ -272,7 +272,9 @@ $tickets = $wpdb->get_results(
                   <th><?php esc_html_e( 'Name', 'tta' ); ?></th>
                   <th><?php esc_html_e( 'Email', 'tta' ); ?></th>
                   <th><?php esc_html_e( 'Phone', 'tta' ); ?></th>
+                  <th><?php esc_html_e( 'Paid', 'tta' ); ?></th>
                   <th><?php esc_html_e( 'Actions', 'tta' ); ?></th>
+                  <th><?php esc_html_e( 'Refund $', 'tta' ); ?></th>
                 </tr>
               </thead>
               <tbody>
@@ -281,11 +283,13 @@ $tickets = $wpdb->get_results(
                   $name  = trim( $a['first_name'] . ' ' . $a['last_name'] );
                   $email = $a['email'];
                   $phone = $a['phone'];
+                  $paid  = floatval( $a['amount_paid'] );
                   ?>
                   <tr data-attendee-id="<?php echo esc_attr( $a['id'] ); ?>">
                     <td><?php echo esc_html( $name ); ?></td>
                     <td><?php echo esc_html( $email ); ?></td>
                     <td><?php echo esc_html( $phone ); ?></td>
+                    <td><?php echo $paid ? sprintf( esc_html__( '$%s', 'tta' ), number_format_i18n( $paid, 2 ) ) : '&ndash;'; ?></td>
                     <td>
                       <button type="button" class="tta-refund-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
                         <?php esc_html_e( 'Refund', 'tta' ); ?>
@@ -293,6 +297,9 @@ $tickets = $wpdb->get_results(
                       <button type="button" class="tta-remove-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
                         <?php esc_html_e( 'Cancel', 'tta' ); ?>
                       </button>
+                    </td>
+                    <td>
+                      <input type="number" class="tta-refund-amount" step="0.01" style="width:70px" placeholder="<?php esc_attr_e( 'Full', 'tta' ); ?>">
                     </td>
                   </tr>
                 <?php endforeach; ?>

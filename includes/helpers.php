@@ -323,12 +323,45 @@ function tta_get_ticket_attendees( $ticket_id ) {
 
     $rows = $wpdb->get_results( $wpdb->prepare( $sql, $ticket_id, $ticket_id ), ARRAY_A );
 
+    $txn_ids = [];
+    foreach ( $rows as $r ) {
+        $txn_ids[] = intval( $r['transaction_id'] );
+    }
+    $txn_ids = array_unique( array_filter( $txn_ids ) );
+
+    $price_map = [];
+    if ( $txn_ids ) {
+        $placeholders = implode( ',', array_fill( 0, count( $txn_ids ), '%d' ) );
+        $txn_rows     = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT id, details FROM {$wpdb->prefix}tta_transactions WHERE id IN ($placeholders)",
+                $txn_ids
+            ),
+            ARRAY_A
+        );
+
+        foreach ( $txn_rows as $tx ) {
+            $details = json_decode( $tx['details'], true );
+            if ( ! is_array( $details ) ) {
+                continue;
+            }
+            foreach ( $details as $item ) {
+                if ( intval( $item['ticket_id'] ?? 0 ) === $ticket_id ) {
+                    $price_map[ intval( $tx['id'] ) ] = floatval( $item['final_price'] ?? 0 );
+                    break;
+                }
+            }
+        }
+    }
+
     foreach ( $rows as &$r ) {
         $r['id']         = intval( $r['id'] );
         $r['first_name'] = sanitize_text_field( $r['first_name'] );
         $r['last_name']  = sanitize_text_field( $r['last_name'] );
         $r['email']      = sanitize_email( $r['email'] );
         $r['phone']      = sanitize_text_field( $r['phone'] );
+        $txid            = intval( $r['transaction_id'] );
+        $r['amount_paid'] = $price_map[ $txid ] ?? 0;
     }
 
     $ttl = empty( $rows ) ? 60 : 300;
