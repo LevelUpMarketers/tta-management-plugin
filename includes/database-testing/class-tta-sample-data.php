@@ -119,36 +119,75 @@ class TTA_Sample_Data {
                 }
             }
 
-            // Create a sample transaction with attendees
-            $txn_id = null;
+            // Create a sample transaction with attendees and member history
             if ( $ticket_id ) {
-                $txn_row = [
-                    'wpuserid'       => intval( $members[ $index % count( $members ) ]['wpuserid'] ),
-                    'member_id'      => 0,
-                    'transaction_id' => 'sample_txn_' . $index,
-                    'amount'         => floatval( $ticket['baseeventcost'] ),
-                    'discount_code'  => '',
-                    'discount_saved' => 0,
-                    'details'        => '',
-                ];
-                $wpdb->insert( $tx_table, $txn_row );
-                $txn_id = $wpdb->insert_id;
-
                 $att_count = rand( 1, 3 );
+                $attendees = [];
                 for ( $a = 0; $a < $att_count; $a++ ) {
-                    $m = $members[ ( $index + $a ) % count( $members ) ];
-                    $wpdb->insert( $attendees_table, [
-                        'transaction_id' => $txn_id,
-                        'ticket_id'      => $ticket_id,
-                        'first_name'     => sanitize_text_field( $m['first_name'] ),
-                        'last_name'      => sanitize_text_field( $m['last_name'] ),
-                        'email'          => sanitize_email( $m['email'] ),
-                        'phone'          => sanitize_text_field( $m['phone'] ),
-                        'opt_in_sms'     => 1,
-                        'opt_in_email'   => 1,
-                        'is_member'      => 1,
-                        'status'         => 'pending',
-                    ] );
+                    $m          = $members[ ( $index + $a ) % count( $members ) ];
+                    $attendees[] = [
+                        'first_name'   => sanitize_text_field( $m['first_name'] ),
+                        'last_name'    => sanitize_text_field( $m['last_name'] ),
+                        'email'        => sanitize_email( $m['email'] ),
+                        'phone'        => sanitize_text_field( $m['phone'] ),
+                        'opt_in_sms'   => 1,
+                        'opt_in_email' => 1,
+                    ];
+                }
+
+                if ( class_exists( 'TTA_Transaction_Logger' ) ) {
+                    $items = [
+                        [
+                            'event_ute_id'    => $event['ute_id'],
+                            'event_name'      => $event['name'],
+                            'ticket_id'       => $ticket_id,
+                            'ticket_name'     => $ticket_row['ticket_name'],
+                            'quantity'        => $att_count,
+                            'price'           => floatval( $ticket['baseeventcost'] ),
+                            'final_price'     => floatval( $ticket['baseeventcost'] ),
+                            'baseeventcost'   => floatval( $ticket['baseeventcost'] ),
+                            'discount_applied'=> false,
+                            'discount_used'   => 0,
+                            'discount_saved'  => 0,
+                            'attendees'       => $attendees,
+                        ],
+                    ];
+
+                    $amount = floatval( $ticket['baseeventcost'] ) * $att_count;
+                    TTA_Transaction_Logger::log(
+                        'sample_txn_' . $index,
+                        $amount,
+                        $items,
+                        '',
+                        0,
+                        intval( $members[ $index % count( $members ) ]['wpuserid'] )
+                    );
+                } else {
+                    $txn_row = [
+                        'wpuserid'       => intval( $members[ $index % count( $members ) ]['wpuserid'] ),
+                        'member_id'      => 0,
+                        'transaction_id' => 'sample_txn_' . $index,
+                        'amount'         => floatval( $ticket['baseeventcost'] ) * $att_count,
+                        'discount_code'  => '',
+                        'discount_saved' => 0,
+                        'details'        => '',
+                    ];
+                    $wpdb->insert( $tx_table, $txn_row );
+                    $txn_id = $wpdb->insert_id;
+                    foreach ( $attendees as $att ) {
+                        $wpdb->insert( $attendees_table, [
+                            'transaction_id' => $txn_id,
+                            'ticket_id'      => $ticket_id,
+                            'first_name'     => $att['first_name'],
+                            'last_name'      => $att['last_name'],
+                            'email'          => $att['email'],
+                            'phone'          => $att['phone'],
+                            'opt_in_sms'     => 1,
+                            'opt_in_email'   => 1,
+                            'is_member'      => 1,
+                            'status'         => 'pending',
+                        ] );
+                    }
                 }
             }
         }
@@ -164,6 +203,7 @@ class TTA_Sample_Data {
         $members_table   = $wpdb->prefix . 'tta_members';
         $tx_table        = $wpdb->prefix . 'tta_transactions';
         $attendees_table = $wpdb->prefix . 'tta_attendees';
+        $history_table   = $wpdb->prefix . 'tta_memberhistory';
 
         $page_ids = $wpdb->get_col( "SELECT page_id FROM {$events_table} WHERE ute_id LIKE 'sample_event_%'" );
         foreach ( $page_ids as $pid ) {
@@ -177,6 +217,7 @@ class TTA_Sample_Data {
         $wpdb->query( "DELETE FROM {$waitlist_table} WHERE event_ute_id LIKE 'sample_event_%'" );
         $wpdb->query( "DELETE FROM {$attendees_table} WHERE transaction_id IN (SELECT id FROM {$tx_table} WHERE transaction_id LIKE 'sample_txn_%')" );
         $wpdb->query( "DELETE FROM {$tx_table} WHERE transaction_id LIKE 'sample_txn_%'" );
+        $wpdb->query( "DELETE FROM {$history_table} WHERE action_data LIKE '%sample_txn_%'" );
         $wpdb->query( "DELETE FROM {$members_table} WHERE email LIKE 'sample_member_%@example.com'" );
 
         TTA_Cache::flush();
