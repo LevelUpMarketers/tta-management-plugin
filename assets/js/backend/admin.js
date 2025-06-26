@@ -916,10 +916,48 @@ jQuery(function($){
   // ─────────────────────────────────────────────────────────────────────
   // Remove a waitlist entry in the Tickets edit form
   // ─────────────────────────────────────────────────────────────────────
-  $(document).on('click', '.tta-remove-waitlist-entry', function(e){
+$(document).on('click', '.tta-remove-waitlist-entry', function(e){
+  e.preventDefault();
+  // simply drop the entire entry block
+  $(this).closest('.tta-wl-entry').remove();
+});
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Remove a confirmed attendee
+  // ─────────────────────────────────────────────────────────────────────
+  $(document).on('click', '.tta-remove-attendee', function(e){
     e.preventDefault();
-    // simply drop the entire entry block
-    $(this).closest('.tta-wl-entry').remove();
+    var id = $(this).data('attendee');
+    var $entry = $(this).closest('.tta-wl-entry');
+    $.post(TTA_Ajax.ajax_url, {
+      action: 'tta_remove_attendee',
+      attendee_id: id,
+      nonce: TTA_Ajax.attendee_admin_nonce
+    }, function(res){
+      if(res.success){
+        $entry.remove();
+      }else{
+        alert(res.data && res.data.message ? res.data.message : 'Error');
+      }
+    }, 'json');
+  });
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Refund an attendee
+  // ─────────────────────────────────────────────────────────────────────
+  $(document).on('click', '.tta-refund-attendee', function(e){
+    e.preventDefault();
+    var id = $(this).data('attendee');
+    var amount = prompt('Refund amount (leave blank for full refund):','');
+    if(amount === null) return;
+    $.post(TTA_Ajax.ajax_url, {
+      action: 'tta_refund_attendee',
+      attendee_id: id,
+      amount: amount,
+      nonce: TTA_Ajax.attendee_admin_nonce
+    }, function(res){
+      alert(res.data && res.data.message ? res.data.message : (res.success ? 'Refund processed' : 'Error'));
+    }, 'json');
   });
 
   // Inline edit toggle for Email & SMS templates

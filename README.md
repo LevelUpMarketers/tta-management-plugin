@@ -26,6 +26,7 @@ If these constants are not defined, checkout will fail and an admin notice will 
 - [Member History Admin](docs/MemberHistoryAdmin.md)
 - [Event Check-In Page](docs/EventCheckInAdmin.md)
 - [Venue Administration](docs/VenuesAdmin.md)
+- [Ticket Attendees](docs/TicketAttendees.md)
 - [Events List Page](docs/EventsListPage.md)
 - [Profile Image Popup](docs/ProfilePopup.md)
 - [Event Sharing](docs/EventShare.md)

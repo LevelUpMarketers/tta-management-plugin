@@ -37,6 +37,10 @@ $tickets = $wpdb->get_results(
 
     $existing_userids_for_count = trim( $existing_userids );
 
+    // Fetch confirmed attendees for this ticket
+    $attendees     = tta_get_ticket_attendees( $tid );
+    $att_count     = count( $attendees );
+
     // 1) Is it empty?
     $is_empty = ( $existing_userids_for_count === '' );
 
@@ -249,6 +253,56 @@ $tickets = $wpdb->get_results(
           <?php endforeach; endforeach; ?>
         <?php else : ?>
           <p class="no-waitlist"><?php esc_html_e( 'No waitlist entries.', 'tta' ); ?></p>
+        <?php endif; ?>
+      </details>
+
+      <details class="tta-ticket-attendees">
+        <summary>
+          <?php esc_html_e( 'Attendees', 'tta' ); ?>
+          <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'People who purchased this ticket.', 'tta' ); ?>">
+            <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+          </span>
+          (<?php echo $att_count; ?>)
+        </summary>
+        <?php if ( $attendees ) : ?>
+          <?php foreach ( $attendees as $a ) : ?>
+            <?php
+            $name  = trim( $a['first_name'] . ' ' . $a['last_name'] );
+            $email = $a['email'];
+            $phone = $a['phone'];
+            ?>
+            <div class="tta-wl-entry" data-attendee-id="<?php echo esc_attr( $a['id'] ); ?>">
+              <div class="tta-wl-info-wrapper">
+                <table class="tta-wl-info-table">
+                  <thead>
+                    <tr>
+                      <th><?php esc_html_e( 'Name', 'tta' ); ?></th>
+                      <th><?php esc_html_e( 'Email', 'tta' ); ?></th>
+                      <th><?php esc_html_e( 'Phone', 'tta' ); ?></th>
+                      <th><?php esc_html_e( 'Actions', 'tta' ); ?></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><?php echo esc_html( $name ); ?></td>
+                      <td><?php echo esc_html( $email ); ?></td>
+                      <td><?php echo esc_html( $phone ); ?></td>
+                      <td>
+                        <button type="button" class="tta-refund-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
+                          <?php esc_html_e( 'Refund', 'tta' ); ?>
+                        </button>
+                        <button type="button" class="tta-remove-attendee" data-attendee="<?php echo esc_attr( $a['id'] ); ?>">
+                          <?php esc_html_e( 'Cancel', 'tta' ); ?>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        <?php else : ?>
+          <p class="no-waitlist"><?php esc_html_e( 'No attendees.', 'tta' ); ?></p>
         <?php endif; ?>
       </details>
 
