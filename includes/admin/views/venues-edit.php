@@ -18,6 +18,8 @@ if ( isset( $_GET['venue_id'] ) ) {
         $editing = true;
     }
 }
+
+$addr_parts = tta_parse_address( $venue['address'] ?? '' );
 ?>
 <form method="post" id="tta-venue-edit-form">
     <?php wp_nonce_field( 'tta_venue_save_action', 'tta_venue_save_nonce' ); ?>
@@ -89,7 +91,7 @@ if ( isset( $_GET['venue_id'] ) ) {
                 <label for="street_address">Street Address</label>
             </th>
             <td>
-                <input type="text" name="street_address" id="street_address" class="regular-text" value="<?php echo esc_attr( explode( ' - ', $venue['address'] ?? '' )[0] ?? '' ); ?>">
+                <input type="text" name="street_address" id="street_address" class="regular-text" value="<?php echo esc_attr( $addr_parts['street'] ); ?>">
             </td>
         </tr>
         <tr>
@@ -100,7 +102,7 @@ if ( isset( $_GET['venue_id'] ) ) {
                 <label for="address_2">Address 2</label>
             </th>
             <td>
-                <input type="text" name="address_2" id="address_2" class="regular-text" value="<?php echo esc_attr( explode( ' - ', $venue['address'] ?? '' )[1] ?? '' ); ?>">
+                <input type="text" name="address_2" id="address_2" class="regular-text" value="<?php echo esc_attr( $addr_parts['address2'] ); ?>">
             </td>
         </tr>
         <tr>
@@ -111,7 +113,7 @@ if ( isset( $_GET['venue_id'] ) ) {
                 <label for="city">City</label>
             </th>
             <td>
-                <input type="text" name="city" id="city" class="regular-text" value="<?php echo esc_attr( explode( ' - ', $venue['address'] ?? '' )[2] ?? '' ); ?>">
+                <input type="text" name="city" id="city" class="regular-text" value="<?php echo esc_attr( $addr_parts['city'] ); ?>">
             </td>
         </tr>
         <tr>
@@ -122,7 +124,7 @@ if ( isset( $_GET['venue_id'] ) ) {
                 <label for="state">State</label>
             </th>
             <td>
-                <input type="text" name="state" id="state" class="regular-text" value="<?php echo esc_attr( explode( ' - ', $venue['address'] ?? '' )[3] ?? '' ); ?>">
+                <input type="text" name="state" id="state" class="regular-text" value="<?php echo esc_attr( $addr_parts['state'] ); ?>">
             </td>
         </tr>
         <tr>
@@ -133,7 +135,7 @@ if ( isset( $_GET['venue_id'] ) ) {
                 <label for="zip">ZIP</label>
             </th>
             <td>
-                <input type="text" name="zip" id="zip" class="regular-text" value="<?php echo esc_attr( explode( ' - ', $venue['address'] ?? '' )[4] ?? '' ); ?>">
+                <input type="text" name="zip" id="zip" class="regular-text" value="<?php echo esc_attr( $addr_parts['zip'] ); ?>">
             </td>
         </tr>
         </tbody>

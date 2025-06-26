@@ -113,12 +113,12 @@ class TTA_Member_Dashboard {
         $state          = '';
         $zip            = '';
         if ( ! empty( $member['address'] ) ) {
-            $parts          = array_map( 'trim', explode( ' – ', $member['address'] ) );
-            $street_address = $parts[0] ?? '';
-            $address_2      = $parts[1] ?? '';
-            $city           = $parts[2] ?? '';
-            $state          = $parts[3] ?? '';
-            $zip            = $parts[4] ?? '';
+            $addr            = tta_parse_address( $member['address'] );
+            $street_address  = $addr['street'];
+            $address_2       = $addr['address2'];
+            $city            = $addr['city'];
+            $state           = $addr['state'];
+            $zip             = $addr['zip'];
         }
 
         ob_start();
