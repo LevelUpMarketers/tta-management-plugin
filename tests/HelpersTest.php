@@ -62,7 +62,9 @@ class HelpersTest extends TestCase {
         if (!defined('ABSPATH')) {
             define('ABSPATH', sys_get_temp_dir() . '/wp/');
         }
-        session_start();
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
 
         if (!function_exists('sanitize_text_field')) { function sanitize_text_field($v){ return is_string($v)?trim($v):$v; } }
         if (!function_exists('sanitize_textarea_field')) { function sanitize_textarea_field($v){ return is_string($v)?trim($v):$v; } }
@@ -236,6 +238,12 @@ class HelpersTest extends TestCase {
             'time' => '20:00|22:00',
             'address' => '1 St -  - City - ST - 00000',
             'page_id' => 9,
+            'type' => 'paid',
+            'venuename' => 'Main Hall',
+            'venueurl' => 'https://example.com',
+            'baseeventcost' => 10,
+            'discountedmembercost' => 8,
+            'premiummembercost' => 7,
         ];
         TTA_Cache::delete('tta_next_event');
         $ev1 = tta_get_next_event();

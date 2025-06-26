@@ -4,6 +4,7 @@ if (!defined('ARRAY_A')) { define('ARRAY_A', 'ARRAY_A'); }
 
 class DummyWpdbMembers {
     public $prefix = 'wp_';
+    public $options = 'wp_options';
     public $insert_id = 0;
     public $data = [];
     public $queries = [];

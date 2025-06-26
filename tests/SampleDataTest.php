@@ -3,6 +3,7 @@ use PHPUnit\Framework\TestCase;
 
 class DummyWpdbSample {
     public $prefix = 'wp_';
+    public $options = 'wp_options';
     public $events = [];
     public $tickets = [];
     public $members = [];
