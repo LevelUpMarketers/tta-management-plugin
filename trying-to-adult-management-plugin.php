@@ -29,6 +29,7 @@ define( 'TTA_PREMIUM_SUBSCRIPTION_DESCRIPTION', 'Monthly Premium Membership subs
 
 require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-debug-logger.php';
 TTA_Debug_Logger::init();
+require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-tooltips.php';
 
 // Load Authorize.Net credentials from a config file if present
 $config_file = TTA_PLUGIN_DIR . 'authnet-config.php';

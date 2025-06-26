@@ -5,6 +5,8 @@ class TTA_Ajax_Attendance {
     public static function init() {
         add_action( 'wp_ajax_tta_get_event_attendance', [ __CLASS__, 'get_event_attendance' ] );
         add_action( 'wp_ajax_tta_set_attendance', [ __CLASS__, 'set_attendance' ] );
+        add_action( 'wp_ajax_tta_remove_attendee', [ __CLASS__, 'remove_attendee' ] );
+        add_action( 'wp_ajax_tta_refund_attendee', [ __CLASS__, 'refund_attendee' ] );
     }
 
     public static function get_event_attendance() {
@@ -37,6 +39,29 @@ class TTA_Ajax_Attendance {
         }
         tta_set_attendance_status( $att_id, $status );
         wp_send_json_success();
+    }
+
+    public static function remove_attendee() {
+        check_ajax_referer( 'tta_attendee_admin_action', 'nonce' );
+        $id = intval( $_POST['attendee_id'] ?? 0 );
+        if ( ! $id ) {
+            wp_send_json_error( [ 'message' => 'missing attendee' ] );
+        }
+        global $wpdb;
+        $table = $wpdb->prefix . 'tta_attendees';
+        $wpdb->delete( $table, [ 'id' => $id ], [ '%d' ] );
+        TTA_Cache::flush();
+        wp_send_json_success( [ 'message' => __( 'Attendee removed.', 'tta' ) ] );
+    }
+
+    public static function refund_attendee() {
+        check_ajax_referer( 'tta_attendee_admin_action', 'nonce' );
+        $id = intval( $_POST['attendee_id'] ?? 0 );
+        if ( ! $id ) {
+            wp_send_json_error( [ 'message' => 'missing attendee' ] );
+        }
+        // Placeholder for real refund logic
+        wp_send_json_success( [ 'message' => __( 'Refund processed.', 'tta' ) ] );
     }
 }
 

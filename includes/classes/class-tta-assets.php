@@ -70,6 +70,7 @@ class TTA_Assets {
                 true
             );
 
+
             // Media uploader helper JS
             wp_enqueue_script(
                 'tta-media-js',
@@ -120,6 +121,7 @@ class TTA_Assets {
                     'save_venue_nonce'    => wp_create_nonce( 'tta_venue_save_action' ),
                     'save_comm_nonce'     => wp_create_nonce( 'tta_comms_save_action' ),
                     'membership_admin_nonce' => wp_create_nonce( 'tta_membership_admin_action' ),
+                    'attendee_admin_nonce' => wp_create_nonce( 'tta_attendee_admin_action' ),
                     'sample_event'        => ( function() {
                         $e = tta_get_next_event();
                         if ( ! $e ) {
@@ -149,6 +151,7 @@ class TTA_Assets {
             [],
             TTA_PLUGIN_VERSION
         );
+
 
         // 2) Only on our “Event Page” template, enqueue event-page.css and cart + event JS
         if ( function_exists( 'is_page_template' ) && is_page_template( 'event-page-template.php' ) ) {

@@ -296,6 +296,47 @@ function tta_get_event_attendees_with_status( $event_ute_id ) {
 }
 
 /**
+ * Retrieve attendees for a specific ticket.
+ *
+ * @param int $ticket_id Ticket ID.
+ * @return array[] Array of attendees.
+ */
+function tta_get_ticket_attendees( $ticket_id ) {
+    $ticket_id = intval( $ticket_id );
+    if ( ! $ticket_id ) {
+        return [];
+    }
+
+    $cache_key = 'ticket_attendees_' . $ticket_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $att_table   = $wpdb->prefix . 'tta_attendees';
+    $att_archive = $wpdb->prefix . 'tta_attendees_archive';
+    $sql = "(SELECT * FROM {$att_table} WHERE ticket_id = %d)
+            UNION ALL
+            (SELECT * FROM {$att_archive} WHERE ticket_id = %d)
+            ORDER BY last_name, first_name";
+
+    $rows = $wpdb->get_results( $wpdb->prepare( $sql, $ticket_id, $ticket_id ), ARRAY_A );
+
+    foreach ( $rows as &$r ) {
+        $r['id']         = intval( $r['id'] );
+        $r['first_name'] = sanitize_text_field( $r['first_name'] );
+        $r['last_name']  = sanitize_text_field( $r['last_name'] );
+        $r['email']      = sanitize_email( $r['email'] );
+        $r['phone']      = sanitize_text_field( $r['phone'] );
+    }
+
+    $ttl = empty( $rows ) ? 60 : 300;
+    TTA_Cache::set( $cache_key, $rows, $ttl );
+    return $rows;
+}
+
+/**
  * Update an attendee's status.
  *
  * @param int    $attendee_id Attendee ID.

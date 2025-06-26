@@ -65,7 +65,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Enter the title of the event as it will appear everywhere."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::EVENT_NAME ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -83,7 +83,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Choose the calendar date for this event."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::EVENT_DATE ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -100,7 +100,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Check ‘Yes’ if the event spans the entire day."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::EVENT_ALL_DAY ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -119,7 +119,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Use the time picker to select the event start time."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::START_TIME ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -136,7 +136,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Use the time picker to select the event end time."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::END_TIME ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -153,7 +153,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Check ‘Yes’ if this is an online-only event."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::VIRTUAL_EVENT ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -178,7 +178,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Enter the primary street address."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::STREET_ADDRESS ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -195,7 +195,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Apartment, suite, unit, etc."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::ADDRESS_2 ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -212,7 +212,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="City name."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::CITY ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -229,7 +229,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Select the state."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::STATE ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -265,7 +265,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Postal code."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::ZIP ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -282,7 +282,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="The name of the Venue"
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::VENUE_NAME ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -299,7 +299,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Link to the venue or event page."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::VENUE_URL ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -316,7 +316,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Select the membership requirement for this event. Open Events are public. Basic Membership Required means attendees must be logged in with at least a Basic membership. Premium Membership Required limits access to Premium members only."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::EVENT_TYPE ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -348,7 +348,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Standard ticket price in USD."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::BASE_COST ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -366,7 +366,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Enter the basic member discounted price in USD, with cents."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::BASIC_COST ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -384,7 +384,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Enter the premium member discounted price in USD, with cents."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::PREMIUM_COST ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -402,7 +402,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Allow joining waitlist when full."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::WAITLIST ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -421,7 +421,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Allow refund requests."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::REFUNDS ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -440,7 +440,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <tr>
                 <th>
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Promo code & discount details."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::DISCOUNT_CODE ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -454,7 +454,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             </tr>
             <tr>
                 <th>
-                    <span class="tta-tooltip-icon" data-tooltip="Select whether the discount is a flat amount or percentage.">
+                    <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::DISCOUNT_TYPE ) ); ?>">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                     </span>
                     <label for="discount_type">Discount Type</label>
@@ -468,7 +468,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             </tr>
             <tr>
                 <th>
-                    <span class="tta-tooltip-icon" data-tooltip="Numeric amount of the discount. Percentage will use this value as percent.">
+                    <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::DISCOUNT_AMOUNT ) ); ?>">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                     </span>
                     <label for="discount_amount">Discount Amount</label>
@@ -483,9 +483,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <?php for ( $i = 2; $i <= 4; $i++ ) : ?>
             <tr>
                 <th>
-                    <span class="tta-tooltip-icon"
-                          data-tooltip="Additional resource link."
-                          style="margin-left:4px;">
+                    <span class="tta-tooltip-icon" data-ttakey="extra_link" style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
                     </span>
@@ -502,7 +500,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Event Hosts -->
             <tr>
                 <th>
-                    <span class="tta-tooltip-icon" data-tooltip="Add one or more hosts." style="margin-left:4px;">
+                    <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::HOSTS ) ); ?>" style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                     </span>
                     <label for="hosts">Event Hosts</label>
@@ -525,7 +523,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
             <!-- Event Volunteers -->
             <tr>
                 <th>
-                    <span class="tta-tooltip-icon" data-tooltip="Add volunteers assisting with this event." style="margin-left:4px;">
+                    <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::VOLUNTEERS ) ); ?>" style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help" />
                     </span>
                     <label for="volunteers">Event Volunteers</label>
@@ -568,7 +566,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
         <tr style="width:100%;">
           <th>
             <h2>
-              <span class="tta-tooltip-icon" data-tooltip="Describe the event details shown on the public page.">
+              <span class="tta-tooltip-icon" data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::DESCRIPTION ) ); ?>">
                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
               </span>
               <?php esc_html_e( 'Event Description', 'tta' ); ?>
@@ -620,7 +618,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
                 <th>
                     Main Image
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Select a primary image."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::MAIN_IMAGE ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">
@@ -645,7 +643,7 @@ $volunteers = ! empty( $event['volunteers'] ) ? array_map( 'trim', explode( ',',
                 <th>
                     Gallery Images
                     <span class="tta-tooltip-icon"
-                          data-tooltip="Choose multiple images."
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::GALLERY ) ); ?>"
                           style="margin-left:4px;">
                         <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
                              alt="Help">

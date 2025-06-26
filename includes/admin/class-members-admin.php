@@ -28,7 +28,7 @@ class TTA_Members_Admin {
     public function render_list() {
         // Determine which “tab” is active: create vs. manage
         $allowed = [ 'create', 'manage', 'history' ];
-        $tab = isset( $_GET['tab'] ) && in_array( $_GET['tab'], $allowed, true ) ? $_GET['tab'] : 'manage';
+        $tab = isset( $_GET['tab'] ) && in_array( $_GET['tab'], $allowed, true ) ? $_GET['tab'] : 'create';
 
         // Render horizontal tabs, matching the style of Events
         echo '<div class="wrap">';
