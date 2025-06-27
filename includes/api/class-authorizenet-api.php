@@ -46,7 +46,27 @@ class TTA_AuthorizeNet_API {
         if ( '' === $text ) {
             return $default;
         }
-        return $code ? sprintf( '%s: %s', $code, $text ) : $text;
+        $message = $code ? sprintf( '%s: %s', $code, $text ) : $text;
+        $extra   = $this->error_help( $code );
+        return $extra ? $message . ' (' . $extra . ')' : $message;
+    }
+
+    /**
+     * Provide a human friendly explanation for common API error codes.
+     *
+     * @param string $code Error code returned by the API.
+     * @return string
+     */
+    protected function error_help( $code ) {
+        $map = [
+            'E00001' => 'An unexpected error occurred. Please try again.',
+            'E00002' => 'The login is invalid or the API account is inactive.',
+            'E00003' => 'The referenced record was not found.',
+            'E00007' => 'Credentials are invalid. Check your API Login ID and Transaction Key.',
+            'E00027' => 'The transaction was declined by the processor or card issuer.',
+        ];
+
+        return $map[ $code ] ?? '';
     }
 
     public function __construct( $login_id = null, $transaction_key = null, $sandbox = null ) {

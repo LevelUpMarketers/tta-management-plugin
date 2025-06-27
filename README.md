@@ -16,6 +16,7 @@ If these constants are not defined, checkout will fail and an admin notice will 
 - [Object Caching](docs/ObjectCaching.md)
   - Plugin caches can now be cleared reliably even on hosts with persistent object caching.
 - [Input Sanitization Helpers](docs/InputSanitization.md)
+- [Authorize.Net Error Codes](docs/AuthorizeNetErrors.md)
 - [Address Helper Functions](docs/AddressHelpers.md)
 - [Event Page Context](docs/EventPage.md)
 - [Event Hosts & Volunteers](docs/EventPage.md#event-hosts-and-volunteers)
