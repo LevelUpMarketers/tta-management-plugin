@@ -62,6 +62,14 @@ class TTA_Settings_Admin {
         echo '<p><input type="submit" name="tta_delete_sample_data" class="button button-secondary" value="Delete Sample Data"></p>';
         echo '</form>';
 
+        echo '<div id="tta-authnet-test-wrapper">';
+        echo '<p>';
+        echo '<button id="tta-authnet-test-button" class="button button-secondary">Authorize.net testing</button>';
+        echo '<span class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ) . '" alt="" style="display:none;"></span>';
+        echo '</p>';
+        echo '<p class="tta-admin-progress-response-p"></p>';
+        echo '</div>';
+
         if ( isset( $_POST['tta_clear_log'] ) && check_admin_referer( 'tta_clear_log_action', 'tta_clear_log_nonce' ) ) {
             TTA_Debug_Logger::clear();
             echo '<div class="updated"><p>Debug log cleared.</p></div>';

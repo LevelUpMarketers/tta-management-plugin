@@ -1191,4 +1191,26 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
 
 
 
+  // Authorize.Net test suite button
+  $(document).on('click', '#tta-authnet-test-button', function(e){
+    e.preventDefault();
+    var $btn  = $(this);
+    var $spin = $btn.siblings('.tta-admin-progress-spinner-svg').css({display:'inline-block',opacity:0}).fadeTo(200,1);
+    var $resp = $('#tta-authnet-test-wrapper .tta-admin-progress-response-p').removeClass('updated error').text('');
+    $.post(TTA_Ajax.ajax_url, {
+      action: 'tta_run_authnet_tests',
+      nonce: TTA_Ajax.authnet_test_nonce
+    }, function(res){
+      $spin.fadeOut(200);
+      if (res.success) {
+        $resp.addClass('updated').text(res.data.message);
+      } else {
+        $resp.addClass('error').text(res.data.message || 'Error');
+      }
+    }, 'json').fail(function(){
+      $spin.fadeOut(200);
+      $resp.addClass('error').text('Request failed.');
+    });
+  });
+
 });/* end jQuery(function($) ) */

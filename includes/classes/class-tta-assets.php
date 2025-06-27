@@ -122,6 +122,7 @@ class TTA_Assets {
                     'save_comm_nonce'     => wp_create_nonce( 'tta_comms_save_action' ),
                     'membership_admin_nonce' => wp_create_nonce( 'tta_membership_admin_action' ),
                     'attendee_admin_nonce' => wp_create_nonce( 'tta_attendee_admin_action' ),
+                    'authnet_test_nonce'   => wp_create_nonce( 'tta_authnet_test_action' ),
                     'sample_event'        => ( function() {
                         $e = tta_get_next_event();
                         if ( ! $e ) {
