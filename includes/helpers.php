@@ -1165,6 +1165,71 @@ function tta_get_next_event() {
 }
 
 /**
+ * Retrieve event details for email templates.
+ *
+ * @param string $event_ute_id Event ute_id.
+ * @return array Event data including page_url and costs.
+ */
+function tta_get_event_for_email( $event_ute_id ) {
+    $event_ute_id = sanitize_text_field( $event_ute_id );
+    if ( '' === $event_ute_id ) {
+        return [];
+    }
+
+    $cache_key = 'email_event_' . $event_ute_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $events_table  = $wpdb->prefix . 'tta_events';
+    $archive_table = $wpdb->prefix . 'tta_events_archive';
+
+    $row = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT id, name, date, time, address, page_id, type, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost FROM {$events_table} WHERE ute_id = %s",
+            $event_ute_id
+        ),
+        ARRAY_A
+    );
+
+    if ( ! $row ) {
+        $row = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT id, name, date, time, address, page_id, type, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost FROM {$archive_table} WHERE ute_id = %s",
+                $event_ute_id
+            ),
+            ARRAY_A
+        );
+    }
+
+    if ( ! $row ) {
+        TTA_Cache::set( $cache_key, [], 60 );
+        return [];
+    }
+
+    $event = [
+        'id'           => intval( $row['id'] ),
+        'name'         => sanitize_text_field( $row['name'] ),
+        'date'         => $row['date'],
+        'time'         => $row['time'],
+        'address'      => tta_format_address( $row['address'] ),
+        'page_id'      => intval( $row['page_id'] ),
+        'page_url'     => get_permalink( intval( $row['page_id'] ) ),
+        'type'         => sanitize_text_field( $row['type'] ),
+        'venue_name'   => sanitize_text_field( $row['venuename'] ),
+        'venue_url'    => esc_url_raw( $row['venueurl'] ),
+        'base_cost'    => floatval( $row['baseeventcost'] ),
+        'member_cost'  => floatval( $row['discountedmembercost'] ),
+        'premium_cost' => floatval( $row['premiummembercost'] ),
+    ];
+
+    TTA_Cache::set( $cache_key, $event, 300 );
+    return $event;
+}
+
+/**
  * Get the remaining ticket count for an upcoming event.
  *
  * @param string $event_ute_id Event ute_id.

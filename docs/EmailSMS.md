@@ -98,3 +98,7 @@ Buttons labelled with tokens (e.g. `{event_name}`) insert placeholders into the 
 ```
 
 Use the **Line Break** button to insert a newline. Email previews render these breaks as HTML `<br>` tags so the saved text remains plain.
+
+## Email Delivery
+
+All outgoing messages are dispatched by the `TTA_Email_Handler` class. The handler is loaded on plugin init and is responsible for reading the templates saved on the **Email & SMS** page. After a transaction is recorded, `send_purchase_emails()` groups the purchased items by event and emails the **Successful Event Purchase** template. The purchasing member and every attendee receive their own copy, with one message sent for each event in the cart.
