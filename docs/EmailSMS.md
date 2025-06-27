@@ -25,6 +25,8 @@ Each template stores:
 - **Email Body** – text shown above the automatically generated event details
 - **SMS Text** – short message sent via SMS
 
+All fields are sanitized with the helper functions from `InputSanitization.md`. This strips WordPress slashes so apostrophes display correctly in the admin preview and in the actual emails.
+
 Default values are provided on initial install:
 
 - **Purchase Email Subject**: "Thanks for Registering!"

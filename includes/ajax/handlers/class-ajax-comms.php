@@ -24,9 +24,9 @@ class TTA_Ajax_Comms {
             wp_send_json_error( [ 'message' => 'Template not found.' ] );
         }
 
-        $templates[ $key ]['email_subject'] = sanitize_text_field( $_POST['email_subject'] ?? $templates[$key]['email_subject'] );
-        $templates[ $key ]['email_body']    = sanitize_textarea_field( $_POST['email_body'] ?? $templates[$key]['email_body'] );
-        $templates[ $key ]['sms_text']      = sanitize_textarea_field( $_POST['sms_text'] ?? $templates[$key]['sms_text'] );
+        $templates[ $key ]['email_subject'] = tta_sanitize_text_field( $_POST['email_subject'] ?? $templates[ $key ]['email_subject'] );
+        $templates[ $key ]['email_body']    = tta_sanitize_textarea_field( $_POST['email_body'] ?? $templates[ $key ]['email_body'] );
+        $templates[ $key ]['sms_text']      = tta_sanitize_textarea_field( $_POST['sms_text'] ?? $templates[ $key ]['sms_text'] );
 
         update_option( 'tta_comms_templates', $templates, false );
 

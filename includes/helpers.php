@@ -1941,7 +1941,7 @@ function tta_get_comm_templates() {
         require_once TTA_PLUGIN_DIR . 'includes/admin/class-comms-admin.php';
     }
     $defaults = TTA_Comms_Admin::get_default_templates();
-    $saved    = get_option( 'tta_comms_templates', [] );
+    $saved    = tta_unslash( get_option( 'tta_comms_templates', [] ) );
 
     if ( is_array( $saved ) ) {
         foreach ( $saved as $k => $vals ) {

@@ -132,9 +132,9 @@ class TTA_Comms_Admin {
 
         if ( isset( $_POST['template_key'] ) && isset( $_POST['tta_comms_save_nonce'] ) && check_admin_referer( 'tta_comms_save_action', 'tta_comms_save_nonce' ) ) {
             $key       = sanitize_key( $_POST['template_key'] );
-            $templates[ $key ]['email_subject'] = sanitize_text_field( $_POST['email_subject'] ?? $templates[$key]['email_subject'] );
-            $templates[ $key ]['email_body']    = sanitize_textarea_field( $_POST['email_body'] ?? $templates[$key]['email_body'] );
-            $templates[ $key ]['sms_text']      = sanitize_textarea_field( $_POST['sms_text'] ?? $templates[$key]['sms_text'] );
+            $templates[ $key ]['email_subject'] = tta_sanitize_text_field( $_POST['email_subject'] ?? $templates[ $key ]['email_subject'] );
+            $templates[ $key ]['email_body']    = tta_sanitize_textarea_field( $_POST['email_body'] ?? $templates[ $key ]['email_body'] );
+            $templates[ $key ]['sms_text']      = tta_sanitize_textarea_field( $_POST['sms_text'] ?? $templates[ $key ]['sms_text'] );
             update_option( 'tta_comms_templates', $templates, false );
             echo '<div class="updated"><p>'.esc_html__( 'Template saved.', 'tta' ).'</p></div>';
         }
