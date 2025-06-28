@@ -77,6 +77,7 @@ class HelpersTest extends TestCase {
         if (!function_exists('wp_get_current_user')) { function wp_get_current_user(){ return (object)['ID'=>1,'user_email'=>'u@e.com','user_login'=>'user','first_name'=>'First','last_name'=>'Last']; } }
         if (!function_exists('wp_get_attachment_image_url')) { function wp_get_attachment_image_url($id,$size){ return $id===1?false:'img'.$id.'.jpg'; } }
         if (!function_exists('wp_get_attachment_url')) { function wp_get_attachment_url($id){ return 'file'.$id.'.jpg'; } }
+        if (!function_exists('date_i18n')) { function date_i18n($format,$ts){ return date($format,$ts); } }
 
         $GLOBALS['transients'] = [];
         if (!function_exists('get_transient')) { function get_transient($k){ return $GLOBALS['transients'][$k] ?? false; } }
@@ -250,6 +251,8 @@ class HelpersTest extends TestCase {
         $ev2 = tta_get_next_event();
         $this->assertSame($ev1, $ev2);
         $this->assertSame('Soon Event', $ev1['name']);
+        $this->assertSame('February 1st, 2030', $ev1['date_formatted']);
+        $this->assertSame('8:00 - 10:00', $ev1['time_formatted']);
     }
 
     public function test_set_attendance_status_updates_db() {
@@ -372,5 +375,15 @@ class HelpersTest extends TestCase {
 
         $page_id = tta_get_first_event_page_id_for_date(2025, 7, 15);
         $this->assertSame(42, $page_id);
+    }
+
+    public function test_format_event_date_outputs_readable_string() {
+        require_once __DIR__ . '/../includes/helpers.php';
+        $this->assertSame('June 28th, 2025', tta_format_event_date('2025-06-28'));
+    }
+
+    public function test_format_event_time_formats_range() {
+        require_once __DIR__ . '/../includes/helpers.php';
+        $this->assertSame('6:00 - 8:00', tta_format_event_time('18:00|20:00'));
     }
 }

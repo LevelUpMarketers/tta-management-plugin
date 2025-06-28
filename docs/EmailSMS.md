@@ -41,7 +41,7 @@ Links to the member dashboard are relative URLs so they work on any domain. Toke
 
 ## Previews and Tokens
 
-Editing a template shows live **Email Preview** and **SMS Preview** boxes. Values are updated whenever an input field loses focus. For reminder and purchase templates, the preview substitutes details from the next upcoming event in the database.
+Editing a template shows live **Email Preview** and **SMS Preview** boxes. Values are updated whenever an input field loses focus. For reminder and purchase templates, the preview substitutes details from the soonest upcoming event in the database, choosing the earliest date and start time.
 
 SMS previews show a character count. If the text exceeds 160 characters the count turns red to indicate the message may be split by carriers.
 
@@ -66,6 +66,8 @@ Buttons labelled with tokens (e.g. `{event_name}`) insert placeholders into the 
 {member_cost}
 {premium_cost}
 ```
+
+`{event_date}` outputs the event date formatted like "June 28th, 2025". `{event_time}` shows the start and end times in 12‑hour format without am/pm, e.g. "6:00 - 8:00".
 
 ### Member Information
 
@@ -100,6 +102,12 @@ Buttons labelled with tokens (e.g. `{event_name}`) insert placeholders into the 
 ```
 
 Use the **Line Break** button to insert a newline. Email previews render these breaks as HTML `<br>` tags so the saved text remains plain.
+
+### Formatting Helpers
+
+The helpers `tta_format_event_date()` and `tta_format_event_time()` convert raw
+database values into the human-friendly strings shown by `{event_date}` and
+`{event_time}`.
 
 ## Email Delivery
 
