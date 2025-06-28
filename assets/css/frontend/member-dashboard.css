@@ -103,7 +103,7 @@
   background:rgba(0,0,0,0.75); color:#fff;
   padding:6px 8px; border-radius:4px;
   white-space:nowrap; font-size:13px; line-height:1.2;
-  opacity:0; pointer-events:none; transition:opacity .2s ease;
+  visibility:hidden; pointer-events:none;
   z-index:10;
 }
 .tta-tooltip-icon::before {
@@ -111,10 +111,12 @@
   transform:translateX(-50%);
   border-width:6px; border-style:solid;
   border-color:transparent transparent rgba(0,0,0,0.75) transparent;
-  opacity:0; transition:opacity .2s ease; z-index:10;
+  visibility:hidden; z-index:10;
 }
 .tta-tooltip-icon:hover::after,
-.tta-tooltip-icon:hover::before { opacity:1; }
+.tta-tooltip-icon:hover::before {
+  visibility:visible;
+}
 
 /* Form fields & view-mode spans */
 #tab-profile .form-table th { position:relative; width:165px; }
