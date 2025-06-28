@@ -13,6 +13,21 @@ class TTA_AuthorizeNet_API {
     protected $environment;
 
     /**
+     * Log raw API responses to the PHP error log and debug log.
+     *
+     * @param string $context Context label describing the request.
+     * @param mixed  $response Response object returned by the SDK.
+     * @return void
+     */
+    protected function log_response( $context, $response ) {
+        $msg = $context . ': ' . print_r( $response, true );
+        error_log( '[TTA] ' . $msg );
+        if ( class_exists( 'TTA_Debug_Logger' ) ) {
+            TTA_Debug_Logger::log( $msg );
+        }
+    }
+
+    /**
      * Format an error message from an API response.
      *
      * @param mixed $response  Response object returned by the Authorize.Net SDK.
@@ -127,6 +142,8 @@ class TTA_AuthorizeNet_API {
 
         $controller = new AnetController\CreateTransactionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
+        $this->log_response( 'refund', $response );
+        $this->log_response( 'charge', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
             $tresponse = $response->getTransactionResponse();
@@ -269,6 +286,7 @@ class TTA_AuthorizeNet_API {
 
         $controller = new AnetController\ARBCreateSubscriptionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
+        $this->log_response( 'create_subscription', $response );
 
         $result_code  = '';
         $message_code = '';
@@ -323,6 +341,7 @@ class TTA_AuthorizeNet_API {
 
         $controller = new AnetController\ARBCancelSubscriptionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
+        $this->log_response( 'cancel_subscription', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
             return [ 'success' => true ];
@@ -359,6 +378,7 @@ class TTA_AuthorizeNet_API {
 
         $controller = new AnetController\ARBGetSubscriptionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
+        $this->log_response( 'get_subscription_details', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
             $sub    = $response->getSubscription();
@@ -440,6 +460,8 @@ class TTA_AuthorizeNet_API {
 
         $controller = new AnetController\ARBUpdateSubscriptionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
+        $this->log_response( 'update_subscription_amount', $response );
+        $this->log_response( 'update_subscription_payment', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
             return [ 'success' => true ];
