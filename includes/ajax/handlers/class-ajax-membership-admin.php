@@ -114,7 +114,13 @@ class TTA_Ajax_Membership_Admin {
         tta_update_user_membership_level( $member['wpuserid'], $level, $sub['subscription_id'], 'active' );
         TTA_Cache::flush();
 
-        wp_send_json_success( [ 'message' => __( 'Subscription reactivated.', 'tta' ) ] );
+        wp_send_json_success( [
+            'message'        => __( 'Subscription reactivated.', 'tta' ),
+            'subscriptionId' => $sub['subscription_id'],
+            'resultCode'     => $sub['result_code'] ?? '',
+            'messageCode'    => $sub['message_code'] ?? '',
+            'messageText'    => $sub['message_text'] ?? '',
+        ] );
     }
 
     public static function change_level() {

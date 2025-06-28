@@ -79,6 +79,12 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
             );
             if ( $sub['success'] ) {
                 tta_update_user_membership_level( get_current_user_id(), $membership_level, $sub['subscription_id'] );
+                $_SESSION['tta_checkout_sub'] = [
+                    'subscription_id' => $sub['subscription_id'],
+                    'result_code'     => $sub['result_code'] ?? '',
+                    'message_code'    => $sub['message_code'] ?? '',
+                    'message_text'    => $sub['message_text'] ?? '',
+                ];
             } else {
                 $checkout_error = $sub['error'];
             }
@@ -121,11 +127,27 @@ get_header();
 
 $items         = $cart->get_items();
 $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
+$sub_details   = $_SESSION['tta_checkout_sub'] ?? null;
+if ( $checkout_done ) {
+    unset( $_SESSION['tta_checkout_sub'] );
+}
 ?>
 <div class="wrap tta-checkout-page">
     <?php if ( $checkout_done ) : ?>
         <p class="tta-checkout-complete">
-            <?php esc_html_e( 'Thank you for your purchase!', 'tta' ); ?>
+            <?php
+                echo esc_html__( 'Thank you for your purchase!', 'tta' );
+                if ( $sub_details && ! empty( $sub_details['subscription_id'] ) ) {
+                    echo '<br>' . esc_html( sprintf( 'Subscription ID: %s', $sub_details['subscription_id'] ) );
+                    if ( ! empty( $sub_details['result_code'] ) ) {
+                        echo '<br>' . esc_html( sprintf( 'Result Code: %s', $sub_details['result_code'] ) );
+                    }
+                    if ( ! empty( $sub_details['message_code'] ) || ! empty( $sub_details['message_text'] ) ) {
+                        $code = $sub_details['message_code'] ? $sub_details['message_code'] . ': ' : '';
+                        echo '<br>' . esc_html( $code . $sub_details['message_text'] );
+                    }
+                }
+            ?>
         </p>
     <?php elseif ( $checkout_error ) : ?>
         <p class="tta-checkout-error">
