@@ -237,6 +237,11 @@
 .tta-login-accordion .tta-accordion-content.expanded {
   max-height: 400px;
   padding: 20px 0 0;
+  background: #faf8e5;
+}
+
+.login-username label, .login-password label{
+  display: block;
 }
 
 .tta-button-link {

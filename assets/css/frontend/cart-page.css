@@ -27,6 +27,11 @@
   cursor: pointer;
 }
 
+.tta-cart-checkout-button:hover {
+  background-color: #2f516a;
+  text-decoration: none !important;
+}
+
 /* Notice displayed when cart contents change unexpectedly */
 .tta-cart-notice {
   color: #b00;
@@ -147,8 +152,13 @@
 .tta-checkout-right {
   flex: 1;
 }
+
+.tta-checkout-right p{
+  display: inline-block;
+}
+
 .tta-attendee-row { margin-bottom: 10px; }
-.tta-attendee-row label { display: block; margin-bottom: 4px; }
+.tta-attendee-row label { max-width:200px; display: inline-block; margin-bottom: 4px; }
 .tta-ticket-optin { display:block; margin-top:4px; }
 .tta-required { color:red; margin-left:2px; }
 .tta-attendee-note { margin-bottom:10px; font-style:italic; }
