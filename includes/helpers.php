@@ -1172,7 +1172,7 @@ function tta_get_next_event() {
 
     $row = $wpdb->get_row(
         $wpdb->prepare(
-            "SELECT id, name, date, time, address, page_id, type, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost FROM {$events_table} WHERE date >= %s ORDER BY date ASC LIMIT 1",
+            "SELECT id, name, date, time, address, page_id, type, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost FROM {$events_table} WHERE date >= %s ORDER BY date ASC, time ASC LIMIT 1",
             current_time( 'Y-m-d' )
         ),
         ARRAY_A
@@ -1196,6 +1196,8 @@ function tta_get_next_event() {
         'base_cost'          => floatval( $row['baseeventcost'] ),
         'member_cost'        => floatval( $row['discountedmembercost'] ),
         'premium_cost'       => floatval( $row['premiummembercost'] ),
+        'date_formatted'     => tta_format_event_date( $row['date'] ),
+        'time_formatted'     => tta_format_event_time( $row['time'] ),
     ];
 
     TTA_Cache::set( $cache_key, $event, 300 );

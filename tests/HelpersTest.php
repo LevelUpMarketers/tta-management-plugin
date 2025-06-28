@@ -251,6 +251,8 @@ class HelpersTest extends TestCase {
         $ev2 = tta_get_next_event();
         $this->assertSame($ev1, $ev2);
         $this->assertSame('Soon Event', $ev1['name']);
+        $this->assertSame('February 1st, 2030', $ev1['date_formatted']);
+        $this->assertSame('8:00 - 10:00', $ev1['time_formatted']);
     }
 
     public function test_set_attendance_status_updates_db() {
