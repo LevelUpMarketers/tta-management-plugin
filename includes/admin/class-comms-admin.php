@@ -169,8 +169,8 @@ class TTA_Comms_Admin {
             echo '<tr><th scope="row">' . esc_html__( 'Email Body', 'tta' ) . '</th><td><textarea name="email_body" rows="4" class="large-text tta-comm-input">' . esc_textarea( $vals['email_body'] ) . '</textarea></td></tr>';
             echo '<tr><th scope="row">' . esc_html__( 'SMS Text', 'tta' ) . '</th><td><textarea name="sms_text" rows="2" class="large-text tta-comm-input">' . esc_textarea( $vals['sms_text'] ) . '</textarea><br><span class="tta-sms-count">0</span>/160</td></tr>';
             echo '<tr><th scope="row">' . esc_html__( 'Insert Token', 'tta' ) . '</th><td>';
-            echo '<div class="tta-token-section"><strong>' . esc_html__( 'Event Information', 'tta' ) . '</strong> ';
-            echo '<span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Details about the event.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?"></span><br>';
+            echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Details about the event.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?"></span><strong>' . esc_html__( 'Event Information', 'tta' ) . '</strong> ';
+            echo '<span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Details about the event.', 'tta' ) . '"></span><br>';
             echo '<button type="button" class="button tta-insert-token" data-token="{event_name}">{event_name}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{event_address}">{event_address}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{event_link}">{event_link}</button> ';
@@ -187,8 +187,7 @@ class TTA_Comms_Admin {
             echo '<button type="button" class="button tta-insert-token" data-token="{member_cost}">{member_cost}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{premium_cost}">{premium_cost}</button></div>';
 
-            echo '<div class="tta-token-section"><strong>' . esc_html__( 'Member Information', 'tta' ) . '</strong> ';
-            echo '<span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Details from the purchasing member profile.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?"></span><br>';
+            echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Details from the purchasing member profile.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?"></span><strong>' . esc_html__( 'Member Information', 'tta' ) . '</strong><br>';
             echo '<button type="button" class="button tta-insert-token" data-token="{first_name}">{first_name}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{last_name}">{last_name}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{email}">{email}</button> ';
@@ -196,8 +195,7 @@ class TTA_Comms_Admin {
             echo '<button type="button" class="button tta-insert-token" data-token="{membership_level}">{membership_level}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{member_type}">{member_type}</button></div>';
 
-            echo '<div class="tta-token-section"><strong>' . esc_html__( 'Event Attendee Information', 'tta' ) . '</strong> ';
-            echo '<span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Per-ticket attendee details.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?"></span><br>';
+            echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Per-ticket attendee details.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?"></span><strong>' . esc_html__( 'Event Attendee Information', 'tta' ) . '</strong><br>';
             echo '<button type="button" class="button tta-insert-token" data-token="{attendee_first_name}">{attendee_first_name}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{attendee_last_name}">{attendee_last_name}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{attendee_email}">{attendee_email}</button> ';

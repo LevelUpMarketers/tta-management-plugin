@@ -14,7 +14,10 @@
     display: block;
     margin-top: 5px;
 }
-
+.tta-token-section .button.tta-insert-token{
+    width: 190px;
+    margin: 2px;
+}
 #hosts-container .regular-text.host-field, #volunteers-container .regular-text.volunteer-field{
     width: 166px;
 }
