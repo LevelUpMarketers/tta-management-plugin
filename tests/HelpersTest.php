@@ -252,7 +252,7 @@ class HelpersTest extends TestCase {
         $this->assertSame($ev1, $ev2);
         $this->assertSame('Soon Event', $ev1['name']);
         $this->assertSame('February 1st, 2030', $ev1['date_formatted']);
-        $this->assertSame('8:00 pm - 10:00 pm', $ev1['time_formatted']);
+        $this->assertSame('8:00 - 10:00', $ev1['time_formatted']);
     }
 
     public function test_set_attendance_status_updates_db() {
@@ -384,6 +384,6 @@ class HelpersTest extends TestCase {
 
     public function test_format_event_time_formats_range() {
         require_once __DIR__ . '/../includes/helpers.php';
-        $this->assertSame('6:00 pm - 8:00 pm', tta_format_event_time('18:00|20:00'));
+        $this->assertSame('6:00 - 8:00', tta_format_event_time('18:00|20:00'));
     }
 }
