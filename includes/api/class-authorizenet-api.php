@@ -236,7 +236,11 @@ class TTA_AuthorizeNet_API {
         $interval->setLength( 1 );
         $interval->setUnit( 'months' );
         $schedule->setInterval( $interval );
-        $schedule->setStartDate( new DateTime( date( 'Y-m-d' ) ) );
+        $start_date = date( 'Y-m-d' );
+        if ( $this->environment === ANetEnvironment::SANDBOX ) {
+            $start_date = date( 'Y-m-d', strtotime( '-1 day' ) );
+        }
+        $schedule->setStartDate( new DateTime( $start_date ) );
         $schedule->setTotalOccurrences( 9999 );
 
         $subscription = new AnetAPI\ARBSubscriptionType();
