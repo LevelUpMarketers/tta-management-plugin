@@ -114,7 +114,7 @@ class TTA_Comms_Admin {
 
     protected function get_templates(){
         $defaults = self::get_default_templates();
-        $saved    = get_option( 'tta_comms_templates', [] );
+        $saved    = tta_unslash( get_option( 'tta_comms_templates', [] ) );
         if ( ! is_array( $saved ) ) {
             return $defaults;
         }

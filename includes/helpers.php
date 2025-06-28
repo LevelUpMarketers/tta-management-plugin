@@ -751,7 +751,7 @@ function tta_format_address( $raw ) {
     $street_full    = $street . ( $addr2 ? ' ' . $addr2 : '' );
     $city_state_zip = $city . ( $state || $zip ? ', ' : '' ) . $state . ( $zip ? ' ' . $zip : '' );
 
-    return trim( $street_full . ( $street_full && $city_state_zip ? ' – ' : '' ) . $city_state_zip );
+    return trim( $street_full . ( $street_full && $city_state_zip ? ' ' : '' ) . $city_state_zip );
 }
 
 /**
@@ -773,6 +773,44 @@ function tta_parse_address( $raw ) {
         'state'    => trim( $parts[3] ?? '' ),
         'zip'      => trim( $parts[4] ?? '' ),
     ];
+}
+
+/**
+ * Format an event date for display in communications.
+ *
+ * @param string $date Date in YYYY-MM-DD format.
+ * @return string Human readable date.
+ */
+function tta_format_event_date( $date ) {
+    $ts = strtotime( $date );
+    if ( ! $ts ) {
+        return '';
+    }
+    return date_i18n( 'F jS, Y', $ts );
+}
+
+/**
+ * Format an event time range for display in communications.
+ *
+ * @param string $range Time range in "HH:MM|HH:MM" format.
+ * @return string Formatted time range.
+ */
+function tta_format_event_time( $range ) {
+    $parts = explode( '|', $range );
+    $start = trim( $parts[0] ?? '' );
+    $end   = trim( $parts[1] ?? '' );
+
+    $out = '';
+    if ( $start ) {
+        $ts  = strtotime( $start );
+        $out = $ts ? date_i18n( 'g:i', $ts ) : $start;
+    }
+    if ( $end ) {
+        $ts2 = strtotime( $end );
+        $out .= $out ? ' - ' : '';
+        $out .= $ts2 ? date_i18n( 'g:i', $ts2 ) : $end;
+    }
+    return trim( $out );
 }
 
 /**
