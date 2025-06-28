@@ -67,7 +67,7 @@ Buttons labelled with tokens (e.g. `{event_name}`) insert placeholders into the 
 {premium_cost}
 ```
 
-`{event_date}` outputs the event date formatted like "June 28th, 2025". `{event_time}` shows the start and end times in 12‑hour format without am/pm, e.g. "6:00 - 8:00".
+`{event_date}` outputs the event date formatted like "June 28th, 2025". `{event_time}` shows the start and end times in 12‑hour format with am/pm, e.g. "6:00 pm - 8:00 pm".
 
 ### Member Information
 

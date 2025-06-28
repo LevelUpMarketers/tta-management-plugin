@@ -803,12 +803,12 @@ function tta_format_event_time( $range ) {
     $out = '';
     if ( $start ) {
         $ts  = strtotime( $start );
-        $out = $ts ? date_i18n( 'g:i', $ts ) : $start;
+        $out = $ts ? date_i18n( 'g:i a', $ts ) : $start;
     }
     if ( $end ) {
         $ts2 = strtotime( $end );
         $out .= $out ? ' - ' : '';
-        $out .= $ts2 ? date_i18n( 'g:i', $ts2 ) : $end;
+        $out .= $ts2 ? date_i18n( 'g:i a', $ts2 ) : $end;
     }
     return trim( $out );
 }
