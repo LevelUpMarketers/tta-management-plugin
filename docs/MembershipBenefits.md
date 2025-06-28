@@ -28,3 +28,4 @@ Depending on the event type and visitor status, the **Get Your Tickets Now** sec
 | Premium Required | Premium member | "Premium Membership Required - Thanks for being a Premium Member, NAME! Did you know that by referring someone new to Trying to Adult, you can receive a referral bonus, including free events? Click here for more info!" | No |
 
 When controls are disabled, hovering over a quantity field or the **Get Tickets** button shows a tooltip explaining the membership requirement.
+Disabled controls are dimmed with an overlay rather than reduced opacity so these tooltips remain fully visible.

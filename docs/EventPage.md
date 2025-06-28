@@ -59,7 +59,8 @@ When a visitor lands on an event page that no longer exists in the primary
 and retain the attendee gallery. Ticket types come from `tta_tickets_archive`
 and attendee profiles load from `tta_attendees_archive`. The **Get Your Tickets
 Now** section remains in place but all controls are disabled and a tooltip
-explains that ticket sales are closed. The login prompt is suppressed. A small
+explains that ticket sales are closed. Disabled buttons are dimmed with a light
+overlay so the tooltip displays at full opacity. The login prompt is suppressed. A small
 notice appears above the “About This Event” section letting the visitor know the
 event has passed and linking to `/events/` to browse upcoming events.
 
