@@ -65,7 +65,7 @@
 }
 .tta-event-hero-image {
   flex: 0 0 50%;
-  text-align: right;
+  text-align: center;
 }
 .tta-event-hero-img {
   max-width: 100%;
@@ -435,8 +435,16 @@ input[disabled]::before {
   margin-top:0;
 }
 
+.tta-accordion-content::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 60px;
+  pointer-events: none;
+  transition: opacity 0.4s ease;   /* fade animation */
+}
+
 .tta-event-sidebar .tta-accordion-content::after {
-  background: linear-gradient(transparent, #fafafa);
 }
 .tta-event-sidebar .tta-accordion-content{
   padding:0px;
