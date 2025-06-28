@@ -133,6 +133,8 @@ class TTA_Assets {
                         $e['dashboard_upcoming_url'] = home_url( '/member-dashboard/?tab=upcoming', 'relative' );
                         $e['dashboard_past_url']    = home_url( '/member-dashboard/?tab=past', 'relative' );
                         $e['dashboard_billing_url'] = home_url( '/member-dashboard/?tab=billing', 'relative' );
+                        $e['date']                  = $e['date_formatted'];
+                        $e['time']                  = $e['time_formatted'];
                         return $e;
                     } )(),
                     'sample_member'       => tta_get_sample_member(),

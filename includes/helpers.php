@@ -751,7 +751,7 @@ function tta_format_address( $raw ) {
     $street_full    = $street . ( $addr2 ? ' ' . $addr2 : '' );
     $city_state_zip = $city . ( $state || $zip ? ', ' : '' ) . $state . ( $zip ? ' ' . $zip : '' );
 
-    return trim( $street_full . ( $street_full && $city_state_zip ? ' – ' : '' ) . $city_state_zip );
+    return trim( $street_full . ( $street_full && $city_state_zip ? ' ' : '' ) . $city_state_zip );
 }
 
 /**
@@ -773,6 +773,44 @@ function tta_parse_address( $raw ) {
         'state'    => trim( $parts[3] ?? '' ),
         'zip'      => trim( $parts[4] ?? '' ),
     ];
+}
+
+/**
+ * Format an event date for display in communications.
+ *
+ * @param string $date Date in YYYY-MM-DD format.
+ * @return string Human readable date.
+ */
+function tta_format_event_date( $date ) {
+    $ts = strtotime( $date );
+    if ( ! $ts ) {
+        return '';
+    }
+    return date_i18n( 'F jS, Y', $ts );
+}
+
+/**
+ * Format an event time range for display in communications.
+ *
+ * @param string $range Time range in "HH:MM|HH:MM" format.
+ * @return string Formatted time range.
+ */
+function tta_format_event_time( $range ) {
+    $parts = explode( '|', $range );
+    $start = trim( $parts[0] ?? '' );
+    $end   = trim( $parts[1] ?? '' );
+
+    $out = '';
+    if ( $start ) {
+        $ts  = strtotime( $start );
+        $out = $ts ? date_i18n( 'g:i a', $ts ) : $start;
+    }
+    if ( $end ) {
+        $ts2 = strtotime( $end );
+        $out .= $out ? ' - ' : '';
+        $out .= $ts2 ? date_i18n( 'g:i a', $ts2 ) : $end;
+    }
+    return trim( $out );
 }
 
 /**
@@ -1134,7 +1172,7 @@ function tta_get_next_event() {
 
     $row = $wpdb->get_row(
         $wpdb->prepare(
-            "SELECT id, name, date, time, address, page_id, type, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost FROM {$events_table} WHERE date >= %s ORDER BY date ASC LIMIT 1",
+            "SELECT id, name, date, time, address, page_id, type, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost FROM {$events_table} WHERE date >= %s ORDER BY date ASC, time ASC LIMIT 1",
             current_time( 'Y-m-d' )
         ),
         ARRAY_A
@@ -1158,6 +1196,8 @@ function tta_get_next_event() {
         'base_cost'          => floatval( $row['baseeventcost'] ),
         'member_cost'        => floatval( $row['discountedmembercost'] ),
         'premium_cost'       => floatval( $row['premiummembercost'] ),
+        'date_formatted'     => tta_format_event_date( $row['date'] ),
+        'time_formatted'     => tta_format_event_time( $row['time'] ),
     ];
 
     TTA_Cache::set( $cache_key, $event, 300 );

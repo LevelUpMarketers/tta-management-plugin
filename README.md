@@ -36,6 +36,7 @@ If these constants are not defined, checkout will fail and an admin notice will 
 - [Events List Page CSS](assets/css/frontend/events-list.css)
 - [Become a Member Page](docs/BecomeMemberPage.md)
 - [Email and SMS Templates](docs/EmailSMS.md) – manage message text with live previews and token insertion
+- [Recurring Billing](docs/RecurringBilling.md)
 - [Debugging Tools](docs/Debugging.md)
 - [Database Upgrades](docs/DevelopmentSQL.md#automatic-upgrades)
 - [Development SQL Assets](docs/DevelopmentSQL.md)
