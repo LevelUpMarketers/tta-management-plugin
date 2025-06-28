@@ -141,23 +141,74 @@
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
-
+.wrap.tta-cart-page{
+  margin:20px;
+}
+#tta-checkout-response{
+      display: block;
+    margin-top: 10px;
+}
 /* Checkout grid */
 .tta-checkout-grid {
   display: flex;
-  gap: 20px;
+  gap: 0px;
   margin-top: 20px;
+}
+.tta-checkout-grid input[type="text"], .tta-checkout-grid select, .tta-checkout-grid input[type="email"], .tta-checkout-grid input[type="phone"]{
+  width: 175px;
+  height: 36px;
+}
+
+.tta-checkout-grid select{
+  border-radius: 3px;
+    bottom: 1px;
+    position: relative;
 }
 .tta-checkout-left,
 .tta-checkout-right {
   flex: 1;
+  margin:20px;
 }
-
+.tta-billing-details-div-container{
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 20px;
+}
 .tta-checkout-right p{
   display: inline-block;
 }
+.tta-ticket-opt-text{
+  display: inline-block;
+  width: 85%;
+  vertical-align: top;
+}
 
-.tta-attendee-row { margin-bottom: 10px; }
+.tta-ticket-optin label{
+  display:inline-block;
+}
+
+.tta-attendee-row { 
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 20px;
+}
+.tta-attendee-row strong{
+  display:block;
+}
+.tta-event-group{
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 20px;
+}
+.tta-event-group h4, .tta-checkout-right h4{
+  margin-bottom:0px;
+}
+.tta-billing-details-div-container .tta-place-order-button-p{
+  display: block;
+}
 .tta-attendee-row label { max-width:200px; display: inline-block; margin-bottom: 4px; }
 .tta-ticket-optin { display:block; margin-top:4px; }
 .tta-required { color:red; margin-left:2px; }

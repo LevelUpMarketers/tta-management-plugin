@@ -147,78 +147,85 @@ $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
                 <div class="tta-checkout-right">
                     <h3><?php esc_html_e( 'Billing Details', 'tta' ); ?></h3>
                     <?php $user = wp_get_current_user(); ?>
-                    <p>
-                        <label>
-                            <?php esc_html_e( 'First Name', 'tta' ); ?><br />
-                            <input type="text" name="billing_first_name" value="<?php echo esc_attr( $user->first_name ); ?>" required />
-                        </label>
-                    </p>
-                    <p>
-                        <label>
-                            <?php esc_html_e( 'Last Name', 'tta' ); ?><br />
-                            <input type="text" name="billing_last_name" value="<?php echo esc_attr( $user->last_name ); ?>" required />
-                        </label>
-                    </p>
-                    <p>
-                        <label>
-                            <?php esc_html_e( 'Email', 'tta' ); ?><br />
-                            <input type="email" name="billing_email" value="<?php echo esc_attr( $user->user_email ); ?>" required />
-                        </label>
-                    </p>
-                    <p>
-                        <label>
-                            <?php esc_html_e( 'Street Address', 'tta' ); ?><br />
-                            <input type="text" name="billing_street" />
-                        </label>
-                    </p>
-                    <p>
-                        <label>
-                            <?php esc_html_e( 'City', 'tta' ); ?><br />
-                            <input type="text" name="billing_city" />
-                        </label>
-                    </p>
-                    <p>
-                        <label>
-                            <?php esc_html_e( 'State', 'tta' ); ?><br />
-                            <select name="billing_state">
-                                <?php foreach ( tta_get_us_states() as $abbr => $name ) : ?>
-                                    <option value="<?php echo esc_attr( $abbr ); ?>"><?php echo esc_html( $name ); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </label>
-                    </p>
-                    <p>
-                        <label>
-                            <?php esc_html_e( 'ZIP', 'tta' ); ?><br />
-                            <input type="text" name="billing_zip" />
-                        </label>
-                    </p>
-                    <h3><?php esc_html_e( 'Payment Info', 'tta' ); ?></h3>
-                    <p>
-                        <label>
-                            <?php esc_html_e( 'Card Number', 'tta' ); ?><br />
-                            <input type="text" name="card_number" placeholder="&#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226;" required />
-                        </label>
-                    </p>
-                    <p>
-                        <label>
-                            <?php esc_html_e( 'Expiration', 'tta' ); ?><br />
-                            <input type="text" id="tta-card-exp" class="tta-card-exp" name="card_exp" placeholder="MM/YY" required maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" />
-                        </label>
-                    </p>
-                    <p>
-                        <label>
-                            <?php esc_html_e( 'CVC', 'tta' ); ?><br />
-                            <input type="text" name="card_cvc" placeholder="123" required />
-                        </label>
-                    </p>
-                    <p>
-                        <button class="tta-button tta-button-primary" type="submit" name="tta_do_checkout">
-                            <?php esc_html_e( 'Place Order', 'tta' ); ?>
-                        </button>
-                        <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
-                        <span id="tta-checkout-response" class="tta-admin-progress-response-p"></span>
-                    </p>
+                    <div class="tta-billing-details-div-container">
+                         <h4>Billing Address</h4>
+                    <p style="display:block;" class="tta-attendee-note">Please enter the Billing address of the payment method you'll be using.</p>
+                        <p>
+                            <label>
+                                <?php esc_html_e( 'First Name', 'tta' ); ?><br />
+                                <input type="text" name="billing_first_name" value="<?php echo esc_attr( $user->first_name ); ?>" required />
+                            </label>
+                        </p>
+                        <p>
+                            <label>
+                                <?php esc_html_e( 'Last Name', 'tta' ); ?><br />
+                                <input type="text" name="billing_last_name" value="<?php echo esc_attr( $user->last_name ); ?>" required />
+                            </label>
+                        </p>
+                        <p>
+                            <label>
+                                <?php esc_html_e( 'Email', 'tta' ); ?><br />
+                                <input type="email" name="billing_email" value="<?php echo esc_attr( $user->user_email ); ?>" required />
+                            </label>
+                        </p>
+                        <p>
+                            <label>
+                                <?php esc_html_e( 'Street Address', 'tta' ); ?><br />
+                                <input type="text" name="billing_street" />
+                            </label>
+                        </p>
+                        <p>
+                            <label>
+                                <?php esc_html_e( 'City', 'tta' ); ?><br />
+                                <input type="text" name="billing_city" />
+                            </label>
+                        </p>
+                        <p>
+                            <label>
+                                <?php esc_html_e( 'State', 'tta' ); ?><br />
+                                <select name="billing_state">
+                                    <?php foreach ( tta_get_us_states() as $abbr => $name ) : ?>
+                                        <option value="<?php echo esc_attr( $abbr ); ?>"><?php echo esc_html( $name ); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </label>
+                        </p>
+                        <p>
+                            <label>
+                                <?php esc_html_e( 'ZIP', 'tta' ); ?><br />
+                                <input type="text" name="billing_zip" />
+                            </label>
+                        </p>
+                    </div>
+                    <div class="tta-billing-details-div-container">
+                        <h4><?php esc_html_e( 'Payment Info', 'tta' ); ?></h4>
+                        <p style="display:block;" class="tta-attendee-note">Please enter your credit or debit card details below.</p>
+                        <p>
+                            <label>
+                                <?php esc_html_e( 'Card Number', 'tta' ); ?><br />
+                                <input type="text" name="card_number" placeholder="&#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226;" required />
+                            </label>
+                        </p>
+                        <p>
+                            <label>
+                                <?php esc_html_e( 'Expiration', 'tta' ); ?><br />
+                                <input type="text" id="tta-card-exp" class="tta-card-exp" name="card_exp" placeholder="MM/YY" required maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" />
+                            </label>
+                        </p>
+                        <p>
+                            <label>
+                                <?php esc_html_e( 'CVC', 'tta' ); ?><br />
+                                <input type="text" name="card_cvc" placeholder="123" required />
+                            </label>
+                        </p>
+                        <p class="tta-place-order-button-p">
+                            <button class="tta-button tta-button-primary" type="submit" name="tta_do_checkout">
+                                <?php esc_html_e( 'Place Order', 'tta' ); ?>
+                            </button>
+                            <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+                            <span id="tta-checkout-response" class="tta-admin-progress-response-p"></span>
+                        </p>
+                    </div>
                 </div>
             </div>
         </form>

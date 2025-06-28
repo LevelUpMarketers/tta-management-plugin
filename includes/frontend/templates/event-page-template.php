@@ -587,7 +587,7 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
         <div class="tta-event-meta-item">
           <img
             class="tta-event-details-icon"
-            src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/memberlevel.svg' ); ?>"
+            src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/billing.svg' ); ?>"
             alt="<?php esc_attr_e( 'Member level icon', 'tta' ); ?>"
           />
           <span class="tta-event-type-meta"><?php echo esc_html( $event_type_label ); ?></span>
@@ -900,7 +900,7 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
           </li>
           <?php echo $cost_sidebar_row; ?>
           <li>
-            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/memberlevel.svg' ); ?>" alt="Help">
+            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/billing.svg' ); ?>" alt="Help">
             <div class="tta-event-details-icon-after">
               <strong><?php esc_html_e( 'Event Type', 'tta' ); ?>:</strong> <?php
               $etype_text = esc_html( $event_type_label );

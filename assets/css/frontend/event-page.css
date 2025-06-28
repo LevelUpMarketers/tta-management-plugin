@@ -259,6 +259,14 @@
   font-size: 0.9em;
   color: #555;
 }
+#main .tta-event-attendees-section .tta-gallery-grid{
+  column-count:initial;
+}
+
+#main > div > div > div > main > section.tta-event-section.tta-event-image-gallery-accordion.tta-event-attendees-section > div > div > div > div{
+  display:inline-block;
+  margin:10px;
+}
 
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -522,10 +530,13 @@ input[disabled]::before {
   object-fit: cover;
   border-radius: 4px;
 }
+.wrap.tta-cart-page{
+  margin:20px;
+}
 
 .tta-event-attendees-section img {
-    width: 120px;
-    height: 120px;
+    width: 60px;
+    height: 60px;
     object-fit: cover;
     border-radius: 100px;
 }
