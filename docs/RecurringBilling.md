@@ -13,3 +13,8 @@ To verify in the sandbox:
 3. Transaction history will show the initial payment (if the start date is the same day it may post the next business day) followed by monthly charges.
 
 Use the subscription ID stored in the `tta_members` table to manage the plan or cancel it via the admin tools.
+
+After a successful membership checkout the confirmation page now displays the returned
+`subscriptionId` along with the API result code. If the ID is missing, the profile
+was not created and the message will contain the error details reported by
+Authorize.Net.
