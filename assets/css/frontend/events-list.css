@@ -52,6 +52,7 @@
   border: 1px solid #ccc;
   padding: 10px;
   border-radius: 4px;
+  min-height:228px;
 }
 
 .tta-cal-nav {
@@ -157,8 +158,21 @@
 }
 
 .tta-events-pagination {
-  text-align: center;
   margin-top: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tta-events-pagination .page-numbers {
+  display: inline-block;
+  margin: 0 4px;
+}
+
+.tta-pagination-pages {
+  flex: 1;
+  text-align: center;
 }
 
 .tta-member-events,

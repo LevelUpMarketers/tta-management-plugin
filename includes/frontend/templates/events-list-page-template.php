@@ -247,14 +247,40 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
     </ul>
 
     <?php if ( $total_pages > 1 ) : ?>
-    <div class="tta-events-pagination">
         <?php
-        echo paginate_links( [
-            'current' => $paged,
-            'total'   => $total_pages,
+        $links = paginate_links( [
+            'current'   => $paged,
+            'total'     => $total_pages,
+            'mid_size'  => 2,
+            'prev_text' => __( 'Previous Events', 'tta' ),
+            'next_text' => __( 'More Events', 'tta' ),
+            'type'      => 'array',
         ] );
-        ?>
-    </div>
+
+        if ( $links ) :
+            $prev  = '';
+            $next  = '';
+            $pages = [];
+            foreach ( $links as $link ) {
+                if ( false !== strpos( $link, 'prev page-numbers' ) ) {
+                    $prev = $link;
+                } elseif ( false !== strpos( $link, 'next page-numbers' ) ) {
+                    $next = $link;
+                } else {
+                    $pages[] = $link;
+                }
+            }
+            ?>
+            <div class="tta-events-pagination">
+                <?php if ( $prev ) : ?>
+                    <div class="tta-pagination-prev"><?php echo $prev; ?></div>
+                <?php endif; ?>
+                <div class="tta-pagination-pages"><?php echo implode( ' ', $pages ); ?></div>
+                <?php if ( $next ) : ?>
+                    <div class="tta-pagination-next"><?php echo $next; ?></div>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 <?php else : ?>
     <p><?php esc_html_e( 'No upcoming events found.', 'tta' ); ?></p>
