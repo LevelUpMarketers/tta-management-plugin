@@ -12,6 +12,63 @@ class TTA_AuthorizeNet_API {
     protected $transaction_key;
     protected $environment;
 
+    /**
+     * Format an error message from an API response.
+     *
+     * @param mixed $response  Response object returned by the Authorize.Net SDK.
+     * @param mixed $tresponse Optional transaction response.
+     * @param string $default  Fallback message.
+     * @return string
+     */
+    protected function format_error( $response, $tresponse = null, $default = 'Transaction failed' ) {
+        $code = '';
+        $text = '';
+
+        if ( $tresponse && method_exists( $tresponse, 'getErrors' ) && $tresponse->getErrors() ) {
+            $err  = $tresponse->getErrors()[0];
+            $code = method_exists( $err, 'getErrorCode' ) ? $err->getErrorCode() : '';
+            $text = method_exists( $err, 'getErrorText' ) ? $err->getErrorText() : '';
+        }
+
+        if ( '' === $text && $tresponse && method_exists( $tresponse, 'getMessages' ) && $tresponse->getMessages() ) {
+            $msg  = $tresponse->getMessages()[0];
+            $code = method_exists( $msg, 'getCode' ) ? $msg->getCode() : '';
+            $text = method_exists( $msg, 'getDescription' ) ? $msg->getDescription() : '';
+        }
+
+        if ( '' === $text && $response && method_exists( $response, 'getMessages' ) && $response->getMessages()->getMessage() ) {
+            $m    = $response->getMessages()->getMessage()[0];
+            $code = method_exists( $m, 'getCode' ) ? $m->getCode() : '';
+            $text = method_exists( $m, 'getText' ) ? $m->getText() : '';
+        }
+
+        $text = trim( $text );
+        if ( '' === $text ) {
+            return $default;
+        }
+        $message = $code ? sprintf( '%s: %s', $code, $text ) : $text;
+        $extra   = $this->error_help( $code );
+        return $extra ? $message . ' (' . $extra . ')' : $message;
+    }
+
+    /**
+     * Provide a human friendly explanation for common API error codes.
+     *
+     * @param string $code Error code returned by the API.
+     * @return string
+     */
+    protected function error_help( $code ) {
+        $map = [
+            'E00001' => 'An unexpected error occurred. Please try again.',
+            'E00002' => 'The login is invalid or the API account is inactive.',
+            'E00003' => 'The referenced record was not found.',
+            'E00007' => 'Credentials are invalid. Check your API Login ID and Transaction Key.',
+            'E00027' => 'The transaction was declined by the processor or card issuer.',
+        ];
+
+        return $map[ $code ] ?? '';
+    }
+
     public function __construct( $login_id = null, $transaction_key = null, $sandbox = null ) {
         $this->login_id        = $login_id        ?: ( defined( 'TTA_AUTHNET_LOGIN_ID' ) ? TTA_AUTHNET_LOGIN_ID : '' );
         $this->transaction_key = $transaction_key ?: ( defined( 'TTA_AUTHNET_TRANSACTION_KEY' ) ? TTA_AUTHNET_TRANSACTION_KEY : '' );
@@ -75,20 +132,20 @@ class TTA_AuthorizeNet_API {
             $tresponse = $response->getTransactionResponse();
             if ( $tresponse && $tresponse->getResponseCode() === '1' ) {
                 return [
-                    'success'         => true,
-                    'transaction_id'  => $tresponse->getTransId(),
+                    'success'        => true,
+                    'transaction_id' => $tresponse->getTransId(),
                 ];
             }
-            $err = $tresponse && $tresponse->getErrors()
-                ? $tresponse->getErrors()[0]->getErrorText()
-                : 'Transaction failed';
-            return [ 'success' => false, 'error' => $err ];
+            return [
+                'success' => false,
+                'error'   => $this->format_error( $response, $tresponse, 'Transaction failed' ),
+            ];
         }
 
-        $err = $response && $response->getMessages()->getMessage()
-            ? $response->getMessages()->getMessage()[0]->getText()
-            : 'API error';
-        return [ 'success' => false, 'error' => $err ];
+        return [
+            'success' => false,
+            'error'   => $this->format_error( $response, null, 'API error' ),
+        ];
     }
 
     /**
@@ -133,16 +190,16 @@ class TTA_AuthorizeNet_API {
             if ( $tresponse && $tresponse->getResponseCode() === '1' ) {
                 return [ 'success' => true, 'transaction_id' => $tresponse->getTransId() ];
             }
-            $err = $tresponse && $tresponse->getErrors()
-                ? $tresponse->getErrors()[0]->getErrorText()
-                : 'Refund failed';
-            return [ 'success' => false, 'error' => $err ];
+            return [
+                'success' => false,
+                'error'   => $this->format_error( $response, $tresponse, 'Refund failed' ),
+            ];
         }
 
-        $err = $response && $response->getMessages()->getMessage()
-            ? $response->getMessages()->getMessage()[0]->getText()
-            : 'API error';
-        return [ 'success' => false, 'error' => $err ];
+        return [
+            'success' => false,
+            'error'   => $this->format_error( $response, null, 'API error' ),
+        ];
     }
 
     /**
@@ -214,10 +271,10 @@ class TTA_AuthorizeNet_API {
             return [ 'success' => true, 'subscription_id' => $id ];
         }
 
-        $err = $response && $response->getMessages()->getMessage()
-            ? $response->getMessages()->getMessage()[0]->getText()
-            : 'API error';
-        return [ 'success' => false, 'error' => $err ];
+        return [
+            'success' => false,
+            'error'   => $this->format_error( $response, null, 'API error' ),
+        ];
     }
 
     /**
@@ -246,10 +303,10 @@ class TTA_AuthorizeNet_API {
             return [ 'success' => true ];
         }
 
-        $err = $response && $response->getMessages()->getMessage()
-            ? $response->getMessages()->getMessage()[0]->getText()
-            : 'API error';
-        return [ 'success' => false, 'error' => $err ];
+        return [
+            'success' => false,
+            'error'   => $this->format_error( $response, null, 'API error' ),
+        ];
     }
 
     /**
@@ -305,10 +362,10 @@ class TTA_AuthorizeNet_API {
             return $data;
         }
 
-        $err = $response && $response->getMessages()->getMessage()
-            ? $response->getMessages()->getMessage()[0]->getText()
-            : 'API error';
-        return [ 'success' => false, 'error' => $err ];
+        return [
+            'success' => false,
+            'error'   => $this->format_error( $response, null, 'API error' ),
+        ];
     }
 
     /**
@@ -363,10 +420,10 @@ class TTA_AuthorizeNet_API {
             return [ 'success' => true ];
         }
 
-        $err = $response && $response->getMessages()->getMessage()
-            ? $response->getMessages()->getMessage()[0]->getText()
-            : 'API error';
-        return [ 'success' => false, 'error' => $err ];
+        return [
+            'success' => false,
+            'error'   => $this->format_error( $response, null, 'API error' ),
+        ];
     }
 
     /**
@@ -400,9 +457,9 @@ class TTA_AuthorizeNet_API {
             return [ 'success' => true ];
         }
 
-        $err = $response && $response->getMessages()->getMessage()
-            ? $response->getMessages()->getMessage()[0]->getText()
-            : 'API error';
-        return [ 'success' => false, 'error' => $err ];
+        return [
+            'success' => false,
+            'error'   => $this->format_error( $response, null, 'API error' ),
+        ];
     }
 }

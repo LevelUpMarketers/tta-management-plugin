@@ -40,9 +40,9 @@ class CommsTest extends TestCase {
     public function test_ajax_save_template() {
         $_POST = [
             'template_key'      => 'purchase',
-            'email_subject'     => 'New Subj',
-            'email_body'        => 'Body',
-            'sms_text'          => 'SMS',
+            'email_subject'     => 'It\'s New',
+            'email_body'        => 'You\'re invited',
+            'sms_text'          => 'Don\'t forget',
             'tta_comms_save_nonce' => wp_create_nonce('tta_comms_save_action'),
         ];
         // fake WordPress functions
@@ -61,6 +61,22 @@ class CommsTest extends TestCase {
         TTA_Ajax_Comms::save_template();
         $this->assertTrue($GLOBALS['_last_json']['success']);
         $templates = get_option('tta_comms_templates');
-        $this->assertSame('New Subj',$templates['purchase']['email_subject']);
+        $this->assertSame("It's New", $templates['purchase']['email_subject']);
+        $this->assertSame("You're invited", $templates['purchase']['email_body']);
+    }
+
+    public function test_get_comm_templates_unslashes_saved_values() {
+        $stored = [
+            'purchase' => [
+                'email_subject' => 'You\\\'re registered',
+                'email_body'    => 'It\\\'s confirmed',
+                'sms_text'      => ''
+            ]
+        ];
+        update_option('tta_comms_templates', $stored);
+
+        $templates = tta_get_comm_templates();
+        $this->assertSame("You're registered", $templates['purchase']['email_subject']);
+        $this->assertSame("It's confirmed", $templates['purchase']['email_body']);
     }
 }
