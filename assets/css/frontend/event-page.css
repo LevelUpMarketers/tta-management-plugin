@@ -390,10 +390,11 @@ input[disabled]::before {
   min-width: 170px;
   text-align: center;
   margin-bottom: 6px;
-  padding: 6px 8px;
-  background: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  line-height: 1.2;
+  background: rgba(0, 0, 0, 1);
   color: #fff;
-  font-size: 12px;
+  font-size: 15px;
   border-radius: 4px;
   white-space: normal;
   z-index: 9999;
@@ -432,16 +433,6 @@ input[disabled]::before {
 }
 .tta-accordion-content h2{
   margin-top:0;
-}
-
-.tta-accordion-content::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 60px;
-  background: linear-gradient(transparent, #fff);
-  pointer-events: none;
-  transition: opacity 0.4s ease;   /* fade animation */
 }
 
 .tta-event-sidebar .tta-accordion-content::after {
@@ -508,7 +499,6 @@ input[disabled]::before {
 
 /* Gallery grid */
 .tta-gallery-grid {
-  display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1em;
 }
@@ -542,7 +532,6 @@ input[disabled]::before {
 }
 .tta-event-image-gallery-accordion .tta-gallery-item {
   break-inside: avoid;
-  margin-bottom: 0.25em;
 }
 @media (max-width: 600px) {
   .tta-event-image-gallery-accordion .tta-gallery-grid {
