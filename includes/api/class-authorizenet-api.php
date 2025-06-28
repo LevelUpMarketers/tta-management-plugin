@@ -270,14 +270,35 @@ class TTA_AuthorizeNet_API {
         $controller = new AnetController\ARBCreateSubscriptionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
 
-        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+        $result_code  = '';
+        $message_code = '';
+        $message_text = '';
+        if ( $response && $response->getMessages() ) {
+            $result_code = $response->getMessages()->getResultCode();
+            $msg         = $response->getMessages()->getMessage();
+            if ( $msg ) {
+                $message_code = $msg[0]->getCode();
+                $message_text = $msg[0]->getText();
+            }
+        }
+
+        if ( $response && 'Ok' === $result_code ) {
             $id = $response->getSubscriptionId();
-            return [ 'success' => true, 'subscription_id' => $id ];
+            return [
+                'success'        => true,
+                'subscription_id' => $id,
+                'result_code'    => $result_code,
+                'message_code'   => $message_code,
+                'message_text'   => $message_text,
+            ];
         }
 
         return [
-            'success' => false,
-            'error'   => $this->format_error( $response, null, 'API error' ),
+            'success'      => false,
+            'error'        => $this->format_error( $response, null, 'API error' ),
+            'result_code'  => $result_code,
+            'message_code' => $message_code,
+            'message_text' => $message_text,
         ];
     }
 
