@@ -55,10 +55,15 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
         'first_name' => tta_sanitize_text_field( $_POST['billing_first_name'] ),
         'last_name'  => tta_sanitize_text_field( $_POST['billing_last_name'] ),
         'address'    => tta_sanitize_text_field( $_POST['billing_street'] ),
+        'address2'   => tta_sanitize_text_field( $_POST['billing_street_2'] ?? '' ),
         'city'       => tta_sanitize_text_field( $_POST['billing_city'] ),
         'state'      => tta_sanitize_text_field( $_POST['billing_state'] ),
         'zip'        => tta_sanitize_text_field( $_POST['billing_zip'] ),
     ];
+
+    if ( empty( $billing['address'] ) || empty( $billing['city'] ) || empty( $billing['state'] ) || empty( $billing['zip'] ) ) {
+        $checkout_error = __( 'Please complete all required billing address fields.', 'tta' );
+    }
 
     if ( empty( $checkout_error ) ) {
         $api = new TTA_AuthorizeNet_API();
@@ -106,8 +111,15 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
         }
 
         if ( empty( $checkout_error ) ) {
-            $last4 = substr( preg_replace( '/\D/', '', $_POST['card_number'] ), -4 );
+            $last4  = substr( preg_replace( '/\D/', '', $_POST['card_number'] ), -4 );
             $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4 );
+
+            $user   = wp_get_current_user();
+            $emails = array_merge( [ $user->user_email ], array_column( $attendees, 'email' ) );
+            $emails = array_unique( array_filter( array_map( 'sanitize_email', $emails ) ) );
+            $_SESSION['tta_checkout_emails']      = $emails;
+            $_SESSION['tta_checkout_membership']  = $membership_total > 0 ? $membership_level : '';
+
             unset( $_SESSION['tta_membership_purchase'] );
             wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
             exit;
@@ -131,26 +143,71 @@ get_header();
  $user          = wp_get_current_user();
  $is_logged_in  = is_user_logged_in();
 if ( $checkout_done ) {
-    unset( $_SESSION['tta_checkout_sub'] );
+    $sent_emails   = $_SESSION['tta_checkout_emails']     ?? [];
+    $member_level  = $_SESSION['tta_checkout_membership'] ?? '';
+    unset( $_SESSION['tta_checkout_sub'], $_SESSION['tta_checkout_emails'], $_SESSION['tta_checkout_membership'] );
 }
 ?>
 <div class="wrap tta-checkout-page">
     <?php if ( $checkout_done ) : ?>
-        <p class="tta-checkout-complete">
+        <div class="tta-checkout-complete">
             <?php
-                echo esc_html__( 'Thank you for your purchase!', 'tta' );
-                if ( $sub_details && ! empty( $sub_details['subscription_id'] ) ) {
-                    echo '<br>' . esc_html( sprintf( 'Subscription ID: %s', $sub_details['subscription_id'] ) );
-                    if ( ! empty( $sub_details['result_code'] ) ) {
-                        echo '<br>' . esc_html( sprintf( 'Result Code: %s', $sub_details['result_code'] ) );
-                    }
-                    if ( ! empty( $sub_details['message_code'] ) || ! empty( $sub_details['message_text'] ) ) {
-                        $code = $sub_details['message_code'] ? $sub_details['message_code'] . ': ' : '';
-                        echo '<br>' . esc_html( $code . $sub_details['message_text'] );
-                    }
+            if ( $member_level ) {
+                $amount = 'premium' === $member_level ? TTA_PREMIUM_MEMBERSHIP_PRICE : TTA_BASIC_MEMBERSHIP_PRICE;
+                printf(
+                    '<p>%s</p>',
+                    wp_kses_post(
+                        sprintf(
+                            __( "Thanks for becoming a %s Member! There's nothing else for you to do - you'll be automatically billed $%s once monthly, and can cancel anytime on your %s. An email will be sent to %s with your Membership Details. Thanks again, and enjoy your Membership perks!", 'tta' ),
+                            ucfirst( $member_level ),
+                            number_format_i18n( $amount, 0 ),
+                            '<a href="https://trying-to-adult-rva-2025.local/member-dashboard/?tab=billing">' . esc_html__( 'Member Dashboard', 'tta' ) . '</a>',
+                            esc_html( $user->user_email )
+                        )
+                    )
+                );
+
+                if ( 'basic' === $member_level ) {
+                    printf(
+                        '<p>%s</p>',
+                        wp_kses_post(
+                            sprintf(
+                                __( "Did you know that there's even MORE perks and discounts to be had with a Premium Membership? %s", 'tta' ),
+                                '<a href="https://trying-to-adult-rva-2025.local/become-a-member/">' . esc_html__( 'Learn more here.', 'tta' ) . '</a>'
+                            )
+                        )
+                    );
+                } elseif ( 'premium' === $member_level ) {
+                    printf(
+                        '<p>%s <a href="mailto:sam@tryingtoadultrva.com">sam@tryingtoadultrva.com</a> %s</p>',
+                        esc_html__( 'Did you know? You can earn a free event and other perks by referring friends and family! Let us know who you\'ve referred at', 'tta' ),
+                        esc_html__( "and we'll reach out.", 'tta' )
+                    );
                 }
+            }
+
+            if ( ! empty( $sent_emails ) ) {
+                $intro = $member_level ? __( 'Also, thanks for signing up for our upcoming event!', 'tta' ) : __( 'Thanks for signing up!', 'tta' );
+                echo '<p>' . esc_html( $intro ) . ' ' . esc_html__( 'A receipt has been emailed to each of the email addresses below. Please keep these emails to present to the Event Host or Volunteer upon arrival.', 'tta' ) . '</p>';
+                echo '<ul>';
+                foreach ( $sent_emails as $e ) {
+                    echo '<li>' . esc_html( $e ) . '</li>';
+                }
+                echo '</ul>';
+            }
+
+            if ( $sub_details && ! empty( $sub_details['subscription_id'] ) ) {
+                echo '<p>' . esc_html( sprintf( 'Subscription ID: %s', $sub_details['subscription_id'] ) ) . '</p>';
+                if ( ! empty( $sub_details['result_code'] ) ) {
+                    echo '<p>' . esc_html( sprintf( 'Result Code: %s', $sub_details['result_code'] ) ) . '</p>';
+                }
+                if ( ! empty( $sub_details['message_code'] ) || ! empty( $sub_details['message_text'] ) ) {
+                    $code = $sub_details['message_code'] ? $sub_details['message_code'] . ': ' : '';
+                    echo '<p>' . esc_html( $code . $sub_details['message_text'] ) . '</p>';
+                }
+            }
             ?>
-        </p>
+        </div>
     <?php elseif ( $checkout_error ) : ?>
         <p class="tta-checkout-error">
             <?php echo esc_html( $checkout_error ); ?>
@@ -256,19 +313,25 @@ if ( $checkout_done ) {
                         <p>
                             <label>
                                 <?php esc_html_e( 'Street Address', 'tta' ); ?><br />
-                                <input type="text" name="billing_street" <?php disabled( ! $is_logged_in ); ?> />
+                                <input type="text" name="billing_street" required <?php disabled( ! $is_logged_in ); ?> />
+                            </label>
+                        </p>
+                        <p>
+                            <label>
+                                <?php esc_html_e( 'Address Line 2', 'tta' ); ?><br />
+                                <input type="text" name="billing_street_2" <?php disabled( ! $is_logged_in ); ?> />
                             </label>
                         </p>
                         <p>
                             <label>
                                 <?php esc_html_e( 'City', 'tta' ); ?><br />
-                                <input type="text" name="billing_city" <?php disabled( ! $is_logged_in ); ?> />
+                                <input type="text" name="billing_city" required <?php disabled( ! $is_logged_in ); ?> />
                             </label>
                         </p>
                         <p>
                             <label>
                                 <?php esc_html_e( 'State', 'tta' ); ?><br />
-                                <select name="billing_state" <?php disabled( ! $is_logged_in ); ?> >
+                                <select name="billing_state" required <?php disabled( ! $is_logged_in ); ?> >
                                     <?php foreach ( tta_get_us_states() as $abbr => $name ) : ?>
                                         <option value="<?php echo esc_attr( $abbr ); ?>"><?php echo esc_html( $name ); ?></option>
                                     <?php endforeach; ?>
@@ -278,7 +341,7 @@ if ( $checkout_done ) {
                         <p>
                             <label>
                                 <?php esc_html_e( 'ZIP', 'tta' ); ?><br />
-                                <input type="text" name="billing_zip" <?php disabled( ! $is_logged_in ); ?> />
+                                <input type="text" name="billing_zip" required <?php disabled( ! $is_logged_in ); ?> />
                             </label>
                         </p>
                     </div>
