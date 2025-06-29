@@ -72,14 +72,20 @@ class HelpersTest extends TestCase {
         if (!function_exists('sanitize_user')) { function sanitize_user($v){ return preg_replace('/[^A-Za-z0-9]/','',$v); } }
         if (!function_exists('wp_unslash')) { function wp_unslash($v){ return is_array($v)?array_map('wp_unslash',$v):str_replace('\\','',$v); } }
         if (!function_exists('esc_url')) { function esc_url($v){ return $v; } }
+        if (!function_exists('esc_url_raw')) { function esc_url_raw($v){ return $v; } }
         if (!function_exists('esc_attr')) { function esc_attr($v){ return $v; } }
         if (!function_exists('is_user_logged_in')) { function is_user_logged_in(){ return true; } }
         if (!function_exists('wp_get_current_user')) { function wp_get_current_user(){ return (object)['ID'=>1,'user_email'=>'u@e.com','user_login'=>'user','first_name'=>'First','last_name'=>'Last']; } }
         if (!function_exists('wp_get_attachment_image_url')) { function wp_get_attachment_image_url($id,$size){ return $id===1?false:'img'.$id.'.jpg'; } }
         if (!function_exists('wp_get_attachment_url')) { function wp_get_attachment_url($id){ return 'file'.$id.'.jpg'; } }
         if (!function_exists('date_i18n')) { function date_i18n($format,$ts){ return date($format,$ts); } }
+        if (!function_exists('wp_json_encode')) { function wp_json_encode($data, $options = 0, $depth = 512){ return json_encode($data, $options, $depth); } }
+        if (!function_exists('current_time')) { function current_time($type = 'mysql'){ return date('Y-m-d H:i:s'); } }
+        if (!function_exists('get_option')) { function get_option($k,$d=null){ return $GLOBALS['options'][$k] ?? $d; } }
+        if (!function_exists('update_option')) { function update_option($k,$v,$autoload=true){ $GLOBALS['options'][$k]=$v; } }
 
         $GLOBALS['transients'] = [];
+        $GLOBALS['options'] = [];
         if (!function_exists('get_transient')) { function get_transient($k){ return $GLOBALS['transients'][$k] ?? false; } }
         if (!function_exists('set_transient')) { function set_transient($k,$v,$t=0){ $GLOBALS['transients'][$k]=$v; } }
         if (!function_exists('delete_transient')) { function delete_transient($k){ unset($GLOBALS['transients'][$k]); } }
@@ -94,6 +100,7 @@ class HelpersTest extends TestCase {
     protected function tearDown(): void {
         $_SESSION = [];
         $GLOBALS['transients'] = [];
+        $GLOBALS['options'] = [];
     }
 
     public function test_parse_discount_data_handles_legacy_string() {
@@ -252,7 +259,7 @@ class HelpersTest extends TestCase {
         $this->assertSame($ev1, $ev2);
         $this->assertSame('Soon Event', $ev1['name']);
         $this->assertSame('February 1st, 2030', $ev1['date_formatted']);
-        $this->assertSame('8:00 - 10:00', $ev1['time_formatted']);
+        $this->assertSame('8:00 pm - 10:00 pm', $ev1['time_formatted']);
     }
 
     public function test_set_attendance_status_updates_db() {
@@ -384,6 +391,6 @@ class HelpersTest extends TestCase {
 
     public function test_format_event_time_formats_range() {
         require_once __DIR__ . '/../includes/helpers.php';
-        $this->assertSame('6:00 - 8:00', tta_format_event_time('18:00|20:00'));
+        $this->assertSame('6:00 pm - 8:00 pm', tta_format_event_time('18:00|20:00'));
     }
 }
