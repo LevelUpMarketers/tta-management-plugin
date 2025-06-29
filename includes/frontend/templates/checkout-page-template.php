@@ -125,9 +125,11 @@ $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
 $has_membership   = in_array( $membership_level, [ 'basic', 'premium' ], true );
 get_header();
 
-$items         = $cart->get_items();
-$checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
-$sub_details   = $_SESSION['tta_checkout_sub'] ?? null;
+ $items         = $cart->get_items();
+ $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
+ $sub_details   = $_SESSION['tta_checkout_sub'] ?? null;
+ $user          = wp_get_current_user();
+ $is_logged_in  = is_user_logged_in();
 if ( $checkout_done ) {
     unset( $_SESSION['tta_checkout_sub'] );
 }
@@ -169,8 +171,7 @@ if ( $checkout_done ) {
                 <div class="tta-checkout-right">
                     <h3><?php esc_html_e( 'Billing Details', 'tta' ); ?></h3>
                     <?php
-                    $user         = wp_get_current_user();
-                    $is_logged_in = is_user_logged_in();
+                    // Variables defined above
                     ?>
                     <?php if ( ! $is_logged_in ) : ?>
                     <div class="tta-billing-details-div-container">
