@@ -653,23 +653,48 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
               <?php
               printf(
                 /* translators: 1: opening login button, 2: closing login button, 3: opening registration link, 4: closing registration link */
-                esc_html__( 'Ticket discounts may be available! %1$s to check. Don\'t have an account? %3$sCreate one here%4$s.', 'tta' ),
-                '<button type="button" class="tta-button-link tta-accordion-toggle-login">' . esc_html__( 'Log in here', 'tta' ) . '</button>',
-                '',
-                '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
-                '</a>'
+                esc_html__( 'Ticket discounts may be available! Log in below to check. Don\'t have an account? Create one below or become a Member today!%1$s', 'tta' ),
+                '<div><a href="#tta-login-message" class="tta-button tta-button-primary">
+          Create Account</a><a href="/become-a-member" class="tta-button tta-button-primary">
+          Become a Member</a></div>',
               );
               ?>
             </p>
             <div class="tta-accordion-content expanded">
               <?php
-              wp_login_form(
-                [
-                  'echo'     => true,
-                  'redirect' => get_permalink(),
-                  'remember' => true,
-                ]
-              );
+             
+// 1. Build the form but DON'T echo it yet
+$form_html = wp_login_form( [
+    'echo'     => false,                // capture the markup
+    'redirect' => get_permalink(),      // where to send the user after login
+    'remember' => true,                 // show “Remember Me”
+] );
+
+// 2. Build the lost-password link
+$lost_pw_url = wp_lostpassword_url( get_permalink() ); // redirect back here after reset
+$lost_pw_html = sprintf(
+    '<p class="login-lost-password"><a href="%s">%s</a></p>',
+    esc_url( $lost_pw_url ),
+    __( 'Forgot your password?', 'textdomain' )
+);
+
+// 3. Output form + link
+echo $form_html . $lost_pw_html;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+             
               ?>
             </div>
           </div>

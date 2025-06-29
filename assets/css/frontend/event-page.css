@@ -63,6 +63,17 @@
   text-decoration: none;
   border-radius: 4px;
 }
+
+.tta-event-main #tta-login-message .tta-button-primary {
+  margin-right:10px;
+}
+
+.tta-event-main #tta-login-message .tta-button-primary:hover {
+  text-decoration:none;
+  background-color:#2f516a;
+}
+
+
 .tta-event-hero-image {
   flex: 0 0 50%;
   text-align: center;
@@ -530,10 +541,6 @@ input[disabled]::before {
   object-fit: cover;
   border-radius: 4px;
 }
-.wrap.tta-cart-page{
-  margin:20px;
-}
-
 .tta-event-attendees-section img {
     width: 60px;
     height: 60px;
