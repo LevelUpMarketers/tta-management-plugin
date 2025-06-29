@@ -27,12 +27,13 @@ class TTA_Member_Dashboard {
      * Enqueue CSS/JS for the dashboard (only if shortcode is in use).
      */
     public function enqueue_assets() {
-        if ( ! is_singular() ) {
+        global $post;
+        $has_shortcode = $post && has_shortcode( $post->post_content, 'tta_member_dashboard' );
+        if ( ! $has_shortcode && ! is_page( 'member-dashboard' ) ) {
             return;
         }
 
-        global $post;
-        if ( has_shortcode( $post->post_content, 'tta_member_dashboard' ) ) {
+        if ( $has_shortcode || is_page( 'member-dashboard' ) ) {
             // CSS
             $css_file = TTA_PLUGIN_DIR . 'assets/css/frontend/member-dashboard.css';
             $css_url  = TTA_PLUGIN_URL . 'assets/css/frontend/member-dashboard.css';
