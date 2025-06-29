@@ -263,7 +263,9 @@ class TTA_AuthorizeNet_API {
         $subscription = new AnetAPI\ARBSubscriptionType();
         $subscription->setName( $name );
         if ( $description ) {
-            $subscription->setDescription( $description );
+            $order = new AnetAPI\OrderType();
+            $order->setDescription( $description );
+            $subscription->setOrder( $order );
         }
         $subscription->setPaymentSchedule( $schedule );
         $subscription->setAmount( $amount );
