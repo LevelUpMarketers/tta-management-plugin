@@ -1855,7 +1855,7 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
  * @param TTA_Cart $cart Cart instance.
  * @return string        HTML markup with attendee fields.
  */
-function tta_render_attendee_fields( TTA_Cart $cart ) {
+function tta_render_attendee_fields( TTA_Cart $cart, $disabled = false ) {
     $items = $cart->get_items();
     if ( ! $items ) {
         return '';
@@ -1878,6 +1878,7 @@ function tta_render_attendee_fields( TTA_Cart $cart ) {
     echo '<div class="tta-attendee-fields">';
     $context      = tta_get_current_user_context();
     $used_default = false;
+    $d_attr = $disabled ? ' disabled' : '';
     foreach ( $groups as $grp ) {
         echo '<div class="tta-event-group">';
         echo '<h4><a href="' . esc_url( get_permalink( $grp['page_id'] ) ) . '">' . esc_html( $grp['event_name'] ) . '</a></h4>';
@@ -1903,15 +1904,15 @@ function tta_render_attendee_fields( TTA_Cart $cart ) {
                 }
                 $img = esc_url( TTA_PLUGIN_URL . 'assets/images/public/question.svg' );
                 echo '<label><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'First name for event check-in.', 'tta' ) . '"><img src="' . $img . '" alt="?"></span>' . esc_html__( 'First Name', 'tta' ) . '<span class="tta-required">*</span><br />';
-                echo '<input type="text" name="' . esc_attr( $base . '[first_name]' ) . '" value="' . $fn_val . '" required></label> ';
+                echo '<input type="text" name="' . esc_attr( $base . '[first_name]' ) . '" value="' . $fn_val . '" required' . $d_attr . '></label> ';
                 echo '<label><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Last name for event check-in.', 'tta' ) . '"><img src="' . $img . '" alt="?"></span>' . esc_html__( 'Last Name', 'tta' ) . '<br />';
-                echo '<input type="text" name="' . esc_attr( $base . '[last_name]' ) . '" value="' . $ln_val . '" required></label> ';
+                echo '<input type="text" name="' . esc_attr( $base . '[last_name]' ) . '" value="' . $ln_val . '" required' . $d_attr . '></label> ';
                 echo '<label><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Email used for ticket confirmation.', 'tta' ) . '"><img src="' . $img . '" alt="?"></span>' . esc_html__( 'Email', 'tta' ) . '<span class="tta-required">*</span><br />';
-                echo '<input type="email" name="' . esc_attr( $base . '[email]' ) . '" value="' . $em_val . '" required></label> ';
+                echo '<input type="email" name="' . esc_attr( $base . '[email]' ) . '" value="' . $em_val . '" required' . $d_attr . '></label> ';
                 echo '<label><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Phone used for event updates or issues.', 'tta' ) . '"><img src="' . $img . '" alt="?"></span>' . esc_html__( 'Phone', 'tta' ) . '<br />';
-                echo '<input type="tel" name="' . esc_attr( $base . '[phone]' ) . '" value="' . $ph_val . '"></label>';
-                echo '<div class="optin-container"><label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_sms]' ) . '" ' . $sms_chk . '> <span class="tta-ticket-opt-text">' . esc_html__( 'text me updates about this event', 'tta' ) . '</span></label>';
-                echo '<label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_email]' ) . '" ' . $em_chk . '><span class="tta-ticket-opt-text">' . esc_html__( 'email me updates about this event', 'tta' ) . '</span></label></div>';
+                echo '<input type="tel" name="' . esc_attr( $base . '[phone]' ) . '" value="' . $ph_val . '"' . $d_attr . '></label>';
+                echo '<div class="optin-container"><label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_sms]' ) . '" ' . $sms_chk . $d_attr . '> <span class="tta-ticket-opt-text">' . esc_html__( 'text me updates about this event', 'tta' ) . '</span></label>';
+                echo '<label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_email]' ) . '" ' . $em_chk . $d_attr . '><span class="tta-ticket-opt-text">' . esc_html__( 'email me updates about this event', 'tta' ) . '</span></label></div>';
                 echo '</div>';
             }
         }

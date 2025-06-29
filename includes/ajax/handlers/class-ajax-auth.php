@@ -29,12 +29,16 @@ class TTA_Ajax_Auth {
     public static function register() {
         check_ajax_referer( 'tta_frontend_nonce', 'nonce' );
 
-        $first = tta_sanitize_text_field( $_POST['first_name'] ?? '' );
-        $last  = tta_sanitize_text_field( $_POST['last_name'] ?? '' );
-        $email = sanitize_email( $_POST['email'] ?? '' );
-        $pass  = $_POST['password'] ?? '';
-        if ( ! $first || ! $last || ! $email || ! $pass ) {
+        $first        = tta_sanitize_text_field( $_POST['first_name']    ?? '' );
+        $last         = tta_sanitize_text_field( $_POST['last_name']     ?? '' );
+        $email        = sanitize_email( $_POST['email']                ?? '' );
+        $email_verify = sanitize_email( $_POST['email_verify']         ?? '' );
+        $pass         = $_POST['password'] ?? '';
+        if ( ! $first || ! $last || ! $email || ! $email_verify || ! $pass ) {
             wp_send_json_error( [ 'message' => __( 'All fields are required.', 'tta' ) ] );
+        }
+        if ( $email !== $email_verify ) {
+            wp_send_json_error( [ 'message' => __( 'Emails do not match.', 'tta' ) ] );
         }
         if ( email_exists( $email ) ) {
             wp_send_json_error( [ 'message' => __( 'Email already in use.', 'tta' ) ] );

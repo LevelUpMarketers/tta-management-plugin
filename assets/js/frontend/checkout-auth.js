@@ -1,41 +1,7 @@
 jQuery(function($){
-  function restoreFields(){
-    var raw = sessionStorage.getItem('tta_checkout_fields');
-    if(!raw) return;
-    sessionStorage.removeItem('tta_checkout_fields');
-    try{
-      var data = JSON.parse(raw);
-      $.each(data, function(name,val){
-        var $el = $('[name="'+name+'"]');
-        if(!$el.length) return;
-        if($el.attr('type') === 'checkbox'){
-          $el.prop('checked', !!val);
-        } else {
-          $el.val(val);
-        }
-      });
-    }catch(e){
-      console.error(e);
-    }
-  }
-
-  function saveFields(){
-    var data = {};
-    $('#tta-checkout-form').find('input,select,textarea').each(function(){
-      var $el = $(this), name = $el.attr('name');
-      if(!name) return;
-      if($el.attr('type') === 'checkbox'){
-        data[name] = $el.prop('checked');
-      } else {
-        data[name] = $el.val();
-      }
-    });
-    sessionStorage.setItem('tta_checkout_fields', JSON.stringify(data));
-  }
-
-  restoreFields();
-  function handleResult(res){
-    var $resp = $('#tta-auth-response');
+  function handleResult($resp, $spin, $btn, res){
+    $spin.fadeOut(200);
+    $btn.prop('disabled', false);
     $resp.removeClass('updated error');
     if(res.success){
       window.location.reload();
@@ -46,29 +12,51 @@ jQuery(function($){
 
   $('#tta-login-form').on('submit', function(e){
     e.preventDefault();
-    saveFields();
+    e.stopPropagation();
+    var $form = $(this);
+    var $btn  = $form.find('button');
+    var $spin = $form.find('.tta-admin-progress-spinner-svg');
+    var $resp = $('#tta-login-response');
+    $resp.text('');
+    $btn.prop('disabled', true);
+    $spin.show().css({opacity:0}).fadeTo(200,1);
     $.post( tta_ajax.ajax_url, {
       action: 'tta_login',
       nonce: tta_ajax.nonce,
-      username: $(this).find('[name="log"]').val(),
-      password: $(this).find('[name="pwd"]').val()
-    }, handleResult, 'json').fail(function(){
-      $('#tta-auth-response').addClass('error').text('Request failed.');
+      username: $form.find('[name="log"]').val(),
+      password: $form.find('[name="pwd"]').val()
+    }, function(res){ handleResult($resp, $spin, $btn, res); }, 'json').fail(function(){
+      handleResult($resp, $spin, $btn, { success:false, data:{ message:'Request failed.' } });
     });
   });
 
   $('#tta-register-form').on('submit', function(e){
     e.preventDefault();
-    saveFields();
+    e.stopPropagation();
+    var $form = $(this);
+    var $btn  = $form.find('button');
+    var $spin = $form.find('.tta-admin-progress-spinner-svg');
+    var $resp = $('#tta-register-response');
+    $resp.text('');
+
+    var email       = $form.find('[name="email"]').val();
+    var emailVerify = $form.find('[name="email_verify"]').val();
+    if(email !== emailVerify){
+      $resp.addClass('error').text('Email addresses do not match.');
+      return;
+    }
+
+    $btn.prop('disabled', true);
+    $spin.show().css({opacity:0}).fadeTo(200,1);
     $.post( tta_ajax.ajax_url, {
       action: 'tta_register',
       nonce: tta_ajax.nonce,
-      first_name: $(this).find('[name="first_name"]').val(),
-      last_name:  $(this).find('[name="last_name"]').val(),
-      email:      $(this).find('[name="email"]').val(),
-      password:   $(this).find('[name="password"]').val()
-    }, handleResult, 'json').fail(function(){
-      $('#tta-auth-response').addClass('error').text('Request failed.');
+      first_name: $form.find('[name="first_name"]').val(),
+      last_name:  $form.find('[name="last_name"]').val(),
+      email:      email,
+      password:   $form.find('[name="password"]').val()
+    }, function(res){ handleResult($resp, $spin, $btn, res); }, 'json').fail(function(){
+      handleResult($resp, $spin, $btn, { success:false, data:{ message:'Request failed.' } });
     });
   });
 });

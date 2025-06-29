@@ -161,9 +161,9 @@ if ( $checkout_done ) {
             <?php echo tta_render_checkout_summary( $cart, $discount_codes ); ?>
             <div class="tta-checkout-grid">
                 <?php if ( $items ) : ?>
-                <div class="tta-checkout-left">
+                <div class="tta-checkout-left<?php echo $is_logged_in ? '' : ' tta-disabled'; ?>">
                     <h3><?php esc_html_e( 'Ticket Details', 'tta' ); ?></h3>
-                    <?php echo tta_render_attendee_fields( $cart ); ?>
+                    <?php echo tta_render_attendee_fields( $cart, ! $is_logged_in ); ?>
                 </div>
                 <?php endif; ?>
                 <div class="tta-checkout-right">
@@ -191,7 +191,10 @@ if ( $checkout_done ) {
                             </p>
                             <p>
                                 <button type="submit" class="tta-button tta-button-primary"><?php esc_html_e( 'Log In', 'tta' ); ?></button>
+                                <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
                             </p>
+                            <p class="tta-login-footer"><a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php esc_html_e( 'Forgot your password?', 'tta' ); ?></a></p>
+                            <span id="tta-login-response" class="tta-admin-progress-response-p"></span>
                         </form>
                         <hr />
                         <form id="tta-register-form">
@@ -211,15 +214,21 @@ if ( $checkout_done ) {
                                 </label>
                             </p>
                             <p>
+                                <label><?php esc_html_e( 'Verify Email', 'tta' ); ?><br />
+                                    <input type="email" name="email_verify" required />
+                                </label>
+                            </p>
+                            <p>
                                 <label><?php esc_html_e( 'Password', 'tta' ); ?><br />
                                     <input type="password" name="password" required />
                                 </label>
                             </p>
                             <p>
                                 <button type="submit" class="tta-button tta-button-primary"><?php esc_html_e( 'Create Account', 'tta' ); ?></button>
+                                <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
                             </p>
+                            <span id="tta-register-response" class="tta-admin-progress-response-p"></span>
                         </form>
-                        <span id="tta-auth-response" class="tta-admin-progress-response-p"></span>
                     </div>
                     <?php endif; ?>
                     <div class="tta-billing-details-div-container<?php echo $is_logged_in ? '' : ' tta-disabled'; ?>">

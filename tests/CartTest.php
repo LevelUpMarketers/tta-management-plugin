@@ -134,7 +134,7 @@ class CartTest extends TestCase {
             ]
         ];
         $cart->method('get_items')->willReturn($items);
-        $html = tta_render_attendee_fields($cart);
+        $html = tta_render_attendee_fields($cart, false);
         $this->assertStringContainsString('attendees[1][0][first_name]', $html);
         $this->assertStringContainsString('attendees[1][0][phone]', $html);
         $this->assertStringContainsString('attendees[1][0][opt_in_sms]', $html);
