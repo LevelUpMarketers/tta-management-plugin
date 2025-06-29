@@ -42,7 +42,7 @@ jQuery(function($){
               html += '<p>Did you know? You can earn a free event and other perks by referring friends and family! Let us know who you\'ve referred at <a href="mailto:sam@tryingtoadultrva.com">sam@tryingtoadultrva.com</a> and we\'ll reach out.</p>';
             }
           }
-          if(res.data.emails && res.data.emails.length){
+          if(res.data.has_tickets){
             var intro = res.data.membership ? 'Also, thanks for signing up for our upcoming event!' : 'Thanks for signing up!';
             html += '<p>'+intro+' A receipt has been emailed to each of the email addresses below. Please keep these emails to present to the Event Host or Volunteer upon arrival.</p><ul>';
             res.data.emails.forEach(function(e){ html += '<li>'+ $('<div>').text(e).html() +'</li>'; });

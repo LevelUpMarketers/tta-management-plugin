@@ -115,10 +115,11 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
             $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4 );
 
             $user   = wp_get_current_user();
-            $emails = array_merge( [ $user->user_email ], array_column( $attendees, 'email' ) );
-            $emails = array_unique( array_filter( array_map( 'sanitize_email', $emails ) ) );
+            $emails      = array_merge( [ $user->user_email ], array_column( $attendees, 'email' ) );
+            $emails      = array_unique( array_filter( array_map( 'sanitize_email', $emails ) ) );
             $_SESSION['tta_checkout_emails']      = $emails;
             $_SESSION['tta_checkout_membership']  = $membership_total > 0 ? $membership_level : '';
+            $_SESSION['tta_checkout_has_tickets'] = ! empty( $attendees );
 
             unset( $_SESSION['tta_membership_purchase'] );
             wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
@@ -139,13 +140,15 @@ get_header();
 
  $items         = $cart->get_items();
  $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
- $sub_details   = $_SESSION['tta_checkout_sub'] ?? null;
- $user          = wp_get_current_user();
- $is_logged_in  = is_user_logged_in();
+$sub_details   = $_SESSION['tta_checkout_sub'] ?? null;
+$user          = wp_get_current_user();
+$is_logged_in  = is_user_logged_in();
+$has_tickets   = false;
 if ( $checkout_done ) {
-    $sent_emails   = $_SESSION['tta_checkout_emails']     ?? [];
-    $member_level  = $_SESSION['tta_checkout_membership'] ?? '';
-    unset( $_SESSION['tta_checkout_sub'], $_SESSION['tta_checkout_emails'], $_SESSION['tta_checkout_membership'] );
+    $sent_emails  = $_SESSION['tta_checkout_emails']     ?? [];
+    $member_level = $_SESSION['tta_checkout_membership'] ?? '';
+    $has_tickets  = ! empty( $_SESSION['tta_checkout_has_tickets'] );
+    unset( $_SESSION['tta_checkout_sub'], $_SESSION['tta_checkout_emails'], $_SESSION['tta_checkout_membership'], $_SESSION['tta_checkout_has_tickets'] );
 }
 ?>
 <div class="wrap tta-checkout-page">
@@ -186,7 +189,7 @@ if ( $checkout_done ) {
                 }
             }
 
-            if ( ! empty( $sent_emails ) ) {
+            if ( $has_tickets && ! empty( $sent_emails ) ) {
                 $intro = $member_level ? __( 'Also, thanks for signing up for our upcoming event!', 'tta' ) : __( 'Thanks for signing up!', 'tta' );
                 echo '<p>' . esc_html( $intro ) . ' ' . esc_html__( 'A receipt has been emailed to each of the email addresses below. Please keep these emails to present to the Event Host or Volunteer upon arrival.', 'tta' ) . '</p>';
                 echo '<ul>';
