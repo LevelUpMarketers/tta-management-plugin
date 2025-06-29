@@ -224,7 +224,7 @@
 .tta-admin-progress-response-p.updated,
 .tta-admin-progress-response-p.error {
   opacity: 1;
-  max-height: 50px;
+  max-height: 200px;
 }
 
 /* Disabled checkout sections */

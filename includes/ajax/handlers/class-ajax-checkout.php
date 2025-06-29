@@ -41,10 +41,15 @@ class TTA_Ajax_Checkout {
             'first_name' => tta_sanitize_text_field( $_POST['billing_first_name'] ?? '' ),
             'last_name'  => tta_sanitize_text_field( $_POST['billing_last_name'] ?? '' ),
             'address'    => tta_sanitize_text_field( $_POST['billing_street'] ?? '' ),
+            'address2'   => tta_sanitize_text_field( $_POST['billing_street_2'] ?? '' ),
             'city'       => tta_sanitize_text_field( $_POST['billing_city'] ?? '' ),
             'state'      => tta_sanitize_text_field( $_POST['billing_state'] ?? '' ),
             'zip'        => tta_sanitize_text_field( $_POST['billing_zip'] ?? '' ),
         ];
+
+        if ( empty( $billing['address'] ) || empty( $billing['city'] ) || empty( $billing['state'] ) || empty( $billing['zip'] ) ) {
+            wp_send_json_error( [ 'message' => __( 'Please complete all required billing address fields.', 'tta' ) ] );
+        }
 
         $api = new TTA_AuthorizeNet_API();
         $transaction_id = '';
@@ -94,7 +99,14 @@ class TTA_Ajax_Checkout {
             wp_send_json_error( [ 'message' => $res->get_error_message() ] );
         }
 
-        wp_send_json_success( [ 'message' => __( 'Thank you for your purchase!', 'tta' ) ] );
+        $user   = wp_get_current_user();
+        $emails = array_merge( [ $user->user_email ], array_column( $attendees, 'email' ) );
+        $emails = array_unique( array_filter( array_map( 'sanitize_email', $emails ) ) );
+        $_SESSION['tta_checkout_emails']     = $emails;
+        $_SESSION['tta_checkout_membership'] = $membership_total > 0 ? $membership_level : '';
+
+        $message = __( 'Thank you for your purchase!', 'tta' );
+        wp_send_json_success( [ 'message' => $message, 'emails' => $emails, 'membership' => $_SESSION['tta_checkout_membership'] ] );
     }
 }
 

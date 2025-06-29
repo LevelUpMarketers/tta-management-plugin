@@ -45,6 +45,7 @@ class TTA_Member_Dashboard {
             );
 
             // JavaScript
+            wp_enqueue_script( 'jquery' );
             $js_file = TTA_PLUGIN_DIR . 'assets/js/frontend/member-dashboard.js';
             $js_url  = TTA_PLUGIN_URL . 'assets/js/frontend/member-dashboard.js';
             $js_ver  = file_exists( $js_file ) ? filemtime( $js_file ) : TTA_PLUGIN_VERSION;
