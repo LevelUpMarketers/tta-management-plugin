@@ -1,6 +1,6 @@
 # Recurring Billing via Authorize.Net
 
-The plugin creates monthly subscriptions using `TTA_AuthorizeNet_API::create_subscription()`. The function builds an `ARBCreateSubscriptionRequest` with a one month interval. When running in the sandbox environment the start date is automatically set to **yesterday** so the first charge processes in the next batch. In production the start date is today.
+The plugin creates monthly subscriptions using `TTA_AuthorizeNet_API::create_subscription()`. The function builds an `ARBCreateSubscriptionRequest` with a one month interval. When running in the sandbox environment the start date is automatically set to **yesterday** so the first charge processes in the next batch. In production the start date is today. Subscriptions are now created during the JavaScript-based checkout flow as well as the non‑JavaScript fallback so the behavior is consistent for all users.
 
 According to Authorize.Net's documentation, the first transaction processed for a new subscription is handled just like any other payment and is **not** flagged as recurring. Subsequent payments are marked as recurring by the gateway. Individual charges are generated automatically after 2 a.m. PST based on the schedule.
 

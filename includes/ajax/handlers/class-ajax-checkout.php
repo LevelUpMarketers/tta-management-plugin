@@ -20,7 +20,10 @@ class TTA_Ajax_Checkout {
             wp_send_json_error( [ 'message' => __( 'Some tickets in your cart were no longer available and have been removed. Please review the updated cart and try again.', 'tta' ) ] );
         }
 
-        $amount = $cart->get_total( $discount_codes );
+        $ticket_total     = $cart->get_total( $discount_codes, false );
+        $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
+        $membership_total = in_array( $membership_level, [ 'basic', 'premium' ], true ) ? tta_get_membership_price( $membership_level ) : 0;
+        $amount           = $ticket_total + $membership_total;
 
         $exp_input  = tta_sanitize_text_field( $_POST['card_exp'] ?? '' );
         $digits     = preg_replace( '/\D/', '', $exp_input );
@@ -43,22 +46,50 @@ class TTA_Ajax_Checkout {
             'zip'        => tta_sanitize_text_field( $_POST['billing_zip'] ?? '' ),
         ];
 
-        $api    = new TTA_AuthorizeNet_API();
-        $result = $api->charge(
-            $amount,
-            preg_replace( '/\D/', '', $_POST['card_number'] ?? '' ),
-            $exp_date,
-            tta_sanitize_text_field( $_POST['card_cvc'] ?? '' ),
-            $billing
-        );
+        $api = new TTA_AuthorizeNet_API();
+        $transaction_id = '';
+        if ( $membership_total > 0 ) {
+            $sub_name = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_NAME : TTA_BASIC_SUBSCRIPTION_NAME;
+            $sub_desc = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_DESCRIPTION : TTA_BASIC_SUBSCRIPTION_DESCRIPTION;
+            $sub      = $api->create_subscription(
+                $membership_total,
+                preg_replace( '/\D/', '', $_POST['card_number'] ?? '' ),
+                $exp_date,
+                tta_sanitize_text_field( $_POST['card_cvc'] ?? '' ),
+                $billing,
+                $sub_name,
+                $sub_desc
+            );
+            if ( ! $sub['success'] ) {
+                wp_send_json_error( [ 'message' => $sub['error'] ] );
+            }
+            tta_update_user_membership_level( get_current_user_id(), $membership_level, $sub['subscription_id'] );
+            $_SESSION['tta_checkout_sub'] = [
+                'subscription_id' => $sub['subscription_id'],
+                'result_code'     => $sub['result_code'] ?? '',
+                'message_code'    => $sub['message_code'] ?? '',
+                'message_text'    => $sub['message_text'] ?? '',
+            ];
+            unset( $_SESSION['tta_membership_purchase'] );
+        }
 
-        if ( ! $result['success'] ) {
-            wp_send_json_error( [ 'message' => $result['error'] ] );
+        if ( $ticket_total > 0 ) {
+            $result = $api->charge(
+                $ticket_total,
+                preg_replace( '/\D/', '', $_POST['card_number'] ?? '' ),
+                $exp_date,
+                tta_sanitize_text_field( $_POST['card_cvc'] ?? '' ),
+                $billing
+            );
+            if ( ! $result['success'] ) {
+                wp_send_json_error( [ 'message' => $result['error'] ] );
+            }
+            $transaction_id = $result['transaction_id'];
         }
 
         $attendees = $_POST['attendees'] ?? [];
         $last4    = substr( preg_replace( '/\D/', '', $_POST['card_number'] ?? '' ), -4 );
-        $res = $cart->finalize_purchase( $result['transaction_id'], $amount, $attendees, $last4 );
+        $res = $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4 );
         if ( is_wp_error( $res ) ) {
             wp_send_json_error( [ 'message' => $res->get_error_message() ] );
         }
