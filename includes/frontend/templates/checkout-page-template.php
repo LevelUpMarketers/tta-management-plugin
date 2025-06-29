@@ -173,7 +173,7 @@ if ( $checkout_done ) {
                     $is_logged_in = is_user_logged_in();
                     ?>
                     <?php if ( ! $is_logged_in ) : ?>
-                    <div class="tta-billing-details-div-container<?php echo $is_logged_in ? '' : ' tta-disabled'; ?>">
+                    <div class="tta-billing-details-div-container">
                         <h4><?php esc_html_e( 'Account Required', 'tta' ); ?></h4>
                         <p class="tta-attendee-note" style="display:block;">
                             <?php esc_html_e( 'Please log in or create a free account to continue.', 'tta' ); ?>
