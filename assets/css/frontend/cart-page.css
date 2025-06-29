@@ -226,6 +226,31 @@
   opacity: 1;
   max-height: 50px;
 }
+
+/* Disabled checkout sections */
+.tta-disabled,
+button[disabled],
+input[disabled],
+select[disabled] {
+  position: relative;
+  pointer-events: auto;
+  cursor: not-allowed;
+}
+
+.tta-disabled::before,
+button[disabled]::before,
+input[disabled]::before,
+select[disabled]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: inherit;
+  pointer-events: none;
+}
 @media (max-width: 600px) {
   .tta-checkout-grid { flex-direction: column; }
 }

@@ -366,6 +366,23 @@ class TTA_Assets {
                 true
             );
 
+            wp_enqueue_script(
+                'tta-checkout-auth',
+                TTA_PLUGIN_URL . 'assets/js/frontend/checkout-auth.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+
+            wp_localize_script(
+                'tta-checkout-auth',
+                'tta_ajax',
+                [
+                    'ajax_url' => admin_url( 'admin-ajax.php' ),
+                    'nonce'    => wp_create_nonce( 'tta_frontend_nonce' ),
+                ]
+            );
+
             wp_localize_script(
                 'tta-checkout-process',
                 'tta_checkout',
