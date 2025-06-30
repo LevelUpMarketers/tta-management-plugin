@@ -10,12 +10,25 @@ class TTA_Cache {
     protected static $prefix = 'tta_cache_';
 
     /**
+     * Determine if caching should be bypassed.
+     *
+     * @return bool
+     */
+    protected static function disabled() {
+        return function_exists( 'is_admin' ) && is_admin() &&
+            function_exists( 'current_user_can' ) && current_user_can( 'manage_options' );
+    }
+
+    /**
      * Fetch a cached value by key.
      *
      * @param string $key
      * @return mixed|false
      */
     public static function get( $key ) {
+        if ( self::disabled() ) {
+            return false;
+        }
         return get_transient( self::$prefix . $key );
     }
 
@@ -28,6 +41,9 @@ class TTA_Cache {
      * @return bool
      */
     public static function set( $key, $value, $ttl = 0 ) {
+        if ( self::disabled() ) {
+            return true;
+        }
         return set_transient( self::$prefix . $key, $value, $ttl );
     }
 
@@ -50,6 +66,9 @@ class TTA_Cache {
      * @return mixed
      */
     public static function remember( $key, callable $callback, $ttl = 0 ) {
+        if ( self::disabled() ) {
+            return call_user_func( $callback );
+        }
         $value = self::get( $key );
         if ( false === $value ) {
             $value = call_user_func( $callback );

@@ -1536,7 +1536,7 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
             <thead>
                 <tr>
                     <th>
-                        <span class="tta-tooltip-icon tta-tooltip-right" data-tooltip="<?php echo esc_attr( 'Hover over each event name for a description.' ); ?>">
+                        <span class="tta-tooltip-icon tta-tooltip-right" data-tooltip="<?php echo esc_attr( 'The name of the Event or Membership you\'re purchasing.' ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
                         </span>
                         <?php esc_html_e( 'Event or Item', 'tta' ); ?>
@@ -1716,7 +1716,7 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
             <thead>
                 <tr>
                     <th>
-                        <span class="tta-tooltip-icon tta-tooltip-right" data-tooltip="<?php echo esc_attr( 'Hover over each event name for a description.' ); ?>">
+                        <span class="tta-tooltip-icon tta-tooltip-right" data-tooltip="<?php echo esc_attr( 'The name of the Event or Membership you\'re purchasing.' ); ?>">
                             <img src="<?php echo esc_url( ( defined( 'TTA_PLUGIN_URL' ) ? TTA_PLUGIN_URL : '' ) . 'assets/images/admin/question.svg' ); ?>" alt="?">
                         </span>
                         <?php esc_html_e( 'Event or Item', 'tta' ); ?>
