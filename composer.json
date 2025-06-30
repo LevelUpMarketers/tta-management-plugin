@@ -1,8 +1,0 @@
-{
-    "require": {
-        "authorizenet/authorizenet": "^2"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^10"
-    }
-}
