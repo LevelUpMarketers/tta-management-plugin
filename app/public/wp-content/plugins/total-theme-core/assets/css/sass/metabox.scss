@@ -1,0 +1,193 @@
+#wpex-metabox {
+
+    .wp-tab-panel {
+        display: none;
+    }
+
+    .wp-tab-panel-active {
+        display: block;
+    }
+
+    .wp-tab-panel {
+        max-height: none !important;
+    }
+
+    ul.wp-tab-bar {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    ul.wp-tab-bar {
+        padding-top: 5px;
+    }
+
+    ul.wp-tab-bar::after {
+        content: "";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+        zoom: 1;
+    }
+
+    ul.wp-tab-bar li {
+        padding: 5px 12px;
+        font-size: 14px;
+    }
+
+    ul.wp-tab-bar li a:focus {
+        box-shadow: none
+    }
+
+    ul.wp-tab-bar li .ticon {
+        margin-right: 6px;
+    }
+
+    /*.inside .form-table label {
+        font-size: 14px;
+        color: #555;
+        font-style: italic;
+    }*/
+
+    .inside .form-table tr:not(:first-child) {
+        border-top: 1px solid #ddd;
+    }
+
+    .inside .form-table th {
+        width: 240px;
+        padding: 10px 30px 10px 0;
+    }
+
+    .inside .form-table td {
+        padding: 10px 0
+    }
+
+    .inside .form-table label.wpex-label {
+        display: block
+    }
+
+    .inside .form-table th label .ticon {
+        margin-right: 10px
+    }
+
+    .wpex-mb-uploader {
+        margin-left: 5px;
+        .rtl & {
+            margin-left: 0;
+            margin-right: 5px;
+        }
+    }
+
+    .inside .form-table th p.wpex-mb-description {
+        font-size: 12px;
+        font-weight: normal;
+        margin: 0;
+        padding: 0;
+        padding-top: 4px;
+    }
+
+    .inside .form-table .wpex-input,
+    .inside .form-table .wpex-mb-textarea-code {
+        width: 50%
+    }
+
+    .inside .form-table textarea {
+        width: 100%
+    }
+
+    .inside .form-table select {
+        width: 50%
+    }
+
+    .wpex-mb-reset {
+        margin-top: 7px
+    }
+
+    .wpex-mb-reset .wpex-reset-btn {
+        display: block;
+        float: left;
+    }
+
+    .wpex-mb-reset .wpex-reset-checkbox {
+        float: left;
+        display: none;
+        margin-left: 10px;
+        padding-top: 5px;
+    }
+
+    .wpex-mb-hidden {
+        display: none;
+    }
+
+    .wpex-mb-btn-group {
+
+        button {
+            display: block;
+            float: left;
+            text-decoration: none;
+            font-size: 13px;
+            line-height: 30px;
+            height: 30px;
+            color: #555;
+            border: 0;
+            background: #f7f7f7;
+            vertical-align: top;
+            margin: 0;
+            padding: 0 10px 1px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            -webkit-appearance: none;
+            white-space: nowrap;
+            -webkit-box-shadow: none;
+            box-shadow: none;
+            &.active,
+            &:focus,
+            &:active {
+                background: #eaeaea;
+                outline: none;
+            }
+            &.wpex-on,
+            &.wpex-off {
+                border-left: 0;
+            }
+            &.wpex-default {
+                border-right: 0;
+                border-top-left-radius: 3px;
+                border-bottom-left-radius: 3px;
+            }
+            &.wpex-on {
+                border-left: 1px solid #ccc;
+                border-right: 1px solid #ccc;
+            }
+            &.wpex-off {
+                border-left: 0;
+                border-top-right-radius: 3px;
+                border-bottom-right-radius: 3px;
+            }
+            &.wpex-on.active {
+                background: #6DAB3C;
+                color: #fff;
+                border-color: transparent;
+            }
+            &.wpex-off.active {
+                background: #e14d43;
+                color: #fff;
+                border-color: transparent;
+            }
+        }
+
+    }
+
+    .wpex-img-holder {
+        padding-top: 6px;
+        img {
+            width: auto;
+            height: 50px;
+        }
+    }
+
+}

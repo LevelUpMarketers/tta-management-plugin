@@ -1,0 +1,73 @@
+/*
+Theme Name: Total Child Theme
+Theme URI: https://your-site.com
+Description: Your site description. Go to Appearance > Editor to modify this file.
+Author: Your Name
+Author URI: https://your-site.com
+Template: Total
+Version: 1.0
+*/
+
+.tribe-common-g-row--gutters article:nth-last-child(-n+) {
+  display: none;
+}
+
+.home .tribe-events-header.tribe-events-header--has-event-search, .home .tribe-events-pro-photo-nav.tribe-events-c-nav, .home .tribe-events-c-subscribe-dropdown__container{
+	display:none!important;
+}
+
+.jre-home-button-new-all-events{
+	width: 225px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 30px;
+}
+
+.home .tribe-common-l-container.tribe-events-l-container{
+	padding-bottom: 0px!important;
+    padding-top: 20px!important;
+}
+
+.home .tribe-common--breakpoint-medium.tribe-events .tribe-events-l-container {
+    min-height: 600px!important;
+}
+
+.home .tribe-common--breakpoint-medium.tribe-events-pro .tribe-events-pro-photo__event {
+    margin-bottom: 50px;
+    width: var(--tec-grid-width-1-of-4);
+}
+
+.tribe-events-c-small-cta.tribe-common-b3 .ribe-events-pro-photo__event-cost a{
+	color: #3a7096;
+}
+
+.tribe-common .tribe-common-cta--thin-alt:hover{
+	color: #2f516a;
+}
+
+.tribe-common .tribe-common-c-btn-border{
+	border: 1px solid #3a7096!important;
+	color: #3a7096!important;
+}
+
+.tribe-common button.tribe-common-c-btn--small, .event-tickets .tribe-tickets__tickets-buy.tribe-common-c-btn:disabled, .event-tickets .tribe-tickets__tickets-buy.tribe-common-c-btn, .tribe-events .tribe-events-c-subscribe-dropdown .tribe-events-c-subscribe-dropdown__button:focus, .tribe-events .tribe-events-c-subscribe-dropdown .tribe-events-c-subscribe-dropdown__button:hover, .tribe-events .tribe-events-c-subscribe-dropdown .tribe-events-c-subscribe-dropdown__button:focus{
+	background-color: #3a7096!important;
+	color: #fff!important;
+}
+
+.page-tribe-attendee-registration .content-right-sidebar #content-wrap #sidebar, .content-right-sidebar #sidebar{
+	display: none;
+}
+
+@media (min-width: 960px){
+	body:not(.has-sidebar) .alignwide {
+	    margin-left: -15px;
+	}
+}
+
+@media screen and (max-width: 959px){
+	.home .owl-stage-outer .owl-stage .active {
+	    width: 79%!important;
+	    margin-bottom: 40px;
+	}
+}

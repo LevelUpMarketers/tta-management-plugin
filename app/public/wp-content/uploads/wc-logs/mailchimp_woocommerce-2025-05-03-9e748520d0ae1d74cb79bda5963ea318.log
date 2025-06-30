@@ -1,0 +1,18 @@
+2025-05-03T17:28:02+00:00 NOTICE handleOrderUpdate :: order_status
+2025-05-03T17:28:02+00:00 NOTICE action_scheduler.queue_job :: MailChimp_WooCommerce_Single_Order starts in 90 seconds :: obj_id 20012 with id 85859
+2025-05-03T17:28:04+00:00 NOTICE action_scheduler.queue_job :: MailChimp_WooCommerce_Single_Order starts in 90 seconds :: obj_id 21828 with id 85860
+2025-05-03T17:28:04+00:00 NOTICE handleOrderUpdate :: order_status
+2025-05-03T17:28:04+00:00 NOTICE handleOrderUpdate :: order_status
+2025-05-03T17:28:04+00:00 NOTICE handleOrderUpdate :: order_status
+2025-05-03T17:28:04+00:00 NOTICE handleOrderUpdate :: order_status
+2025-05-03T17:28:04+00:00 NOTICE handleOrderUpdate :: order_status
+2025-05-03T17:28:04+00:00 NOTICE action_scheduler.queue_job :: MailChimp_WooCommerce_Single_Order starts in 90 seconds :: obj_id 21684 with id 85863
+2025-05-03T17:28:04+00:00 NOTICE handleOrderUpdate :: order_status
+2025-05-03T17:28:04+00:00 NOTICE handleOrderUpdate :: order_status
+2025-05-03T17:28:04+00:00 NOTICE action_scheduler.queue_job :: MailChimp_WooCommerce_Single_Order starts in 90 seconds :: obj_id 21685 with id 85865
+2025-05-03T17:28:04+00:00 NOTICE handleOrderUpdate :: order_status
+2025-05-03T17:29:43+00:00 NOTICE filter :: Order 20012 was skipped by the filter
+2025-05-03T17:29:45+00:00 NOTICE order.member.updated :: Updated amschumacher5@gmail.com subscriber status to subscribedand language to en
+2025-05-03T17:29:45+00:00 NOTICE order_submit.success :: updateStoreOrder :: #21828 :: email: amschumacher5@gmail.com
+2025-05-03T17:29:46+00:00 NOTICE order_submit :: #21684 has a financial status of pending and was skipped.
+2025-05-03T17:29:47+00:00 NOTICE order_submit :: #21685 has a financial status of pending and was skipped.

@@ -1,0 +1,321 @@
+{
+  "data": [
+    {
+      "name": "top_bar",
+      "type": [
+        "customizer"
+      ],
+      "group": "General Options",
+      "target": [
+        "archive",
+        "single"
+      ],
+      "gui": {
+        "display_name": "Top Bar",
+        "type": "select",
+        "values": [
+          {
+            "text": "Enable",
+            "value": 1
+          },
+          {
+            "text": "Disable",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "enable_header",
+      "type": [
+        "customizer"
+      ],
+      "group": "General Options",
+      "target": [
+        "archive",
+        "single"
+      ],
+      "gui": {
+        "display_name": "Site Header",
+        "type": "select",
+        "values": [
+          {
+            "text": "Enable",
+            "value": 1
+          },
+          {
+            "text": "Disable",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "enable_page_header",
+      "type": [
+        "customizer"
+      ],
+      "group": "General Options",
+      "target": [
+        "archive",
+        "single"
+      ],
+      "gui": {
+        "display_name": "Page Header Title",
+        "type": "select",
+        "values": [
+          {
+            "text": "Enable",
+            "value": 1
+          },
+          {
+            "text": "Disable",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "cpt_single_page_header_text",
+      "type": [
+        "customizer"
+      ],
+      "group": "General Options",
+      "target": [
+        "single"
+      ],
+      "gui": {
+        "display_name": "Page Header Title<br />Enter {{title}} to display the current post title",
+        "type": "text"
+      }
+    },
+    {
+      "name": "callout",
+      "type": [
+        "customizer"
+      ],
+      "group": "General Options",
+      "target": [
+        "archive",
+        "single"
+      ],
+      "gui": {
+        "display_name": "Footer Callout",
+        "type": "select",
+        "values": [
+          {
+            "text": "Enable",
+            "value": 1
+          },
+          {
+            "text": "Disable",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "footer_widgets",
+      "type": [
+        "customizer"
+      ],
+      "group": "General Options",
+      "target": [
+        "archive",
+        "single"
+      ],
+      "gui": {
+        "display_name": "Footer Widgets",
+        "type": "select",
+        "values": [
+          {
+            "text": "Enable",
+            "value": 1
+          },
+          {
+            "text": "Disable",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "footer_bottom",
+      "type": [
+        "customizer"
+      ],
+      "group": "General Options",
+      "target": [
+        "archive",
+        "single"
+      ],
+      "gui": {
+        "display_name": "Footer Botom (Copyright)",
+        "type": "select",
+        "values": [
+          {
+            "text": "Enable",
+            "value": 1
+          },
+          {
+            "text": "Disable",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "content_layout",
+      "type": [
+        "customizer"
+      ],
+      "group": "General Options",
+      "target": [
+        "archive",
+        "single"
+      ],
+      "gui": {
+        "display_name": "Layout",
+        "type": "select",
+        "values": [
+          {
+            "text": "Right Sidebar",
+            "value": "right-sidebar"
+          },
+          {
+            "text": "Left Sidebar",
+            "value": "left-sidebar"
+          },
+          {
+            "text": "Full Width",
+            "value": "full-width"
+          },
+          {
+            "text": "Full Screen",
+            "value": "full-screen"
+          }
+        ]
+      }
+    },
+    {
+      "name": "cpt_single_block_media_enabled",
+      "type": [
+        "customizer"
+      ],
+      "group": "Post Blocks",
+      "target": [
+        "single"
+      ],
+      "gui": {
+        "display_name": "Media",
+        "type": "select",
+        "values": [
+          {
+            "text": "Enable",
+            "value": 1
+          },
+          {
+            "text": "Disable",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "cpt_single_block_title_enabled",
+      "type": [
+        "customizer"
+      ],
+      "group": "Post Blocks",
+      "target": [
+        "single"
+      ],
+      "gui": {
+        "display_name": "Title",
+        "type": "select",
+        "values": [
+          {
+            "text": "Enable",
+            "value": 1
+          },
+          {
+            "text": "Disable",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "cpt_single_block_meta_enabled",
+      "type": [
+        "customizer"
+      ],
+      "group": "Post Blocks",
+      "target": [
+        "single"
+      ],
+      "gui": {
+        "display_name": "Meta",
+        "type": "select",
+        "values": [
+          {
+            "text": "Enable",
+            "value": 1
+          },
+          {
+            "text": "Disable",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "cpt_single_block_share_enabled",
+      "type": [
+        "customizer"
+      ],
+      "group": "Post Blocks",
+      "target": [
+        "single"
+      ],
+      "gui": {
+        "display_name": "Social Share",
+        "type": "select",
+        "values": [
+          {
+            "text": "Enable",
+            "value": 1
+          },
+          {
+            "text": "Disable",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "next_prev",
+      "type": [
+        "customizer"
+      ],
+      "group": "Post Blocks",
+      "target": [
+        "single"
+      ],
+      "gui": {
+        "display_name": "Next/Previous Posts",
+        "type": "select",
+        "values": [
+          {
+            "text": "Enable",
+            "value": 1
+          },
+          {
+            "text": "Disable",
+            "value": 0
+          }
+        ]
+      }
+    }
+  ]
+}

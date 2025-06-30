@@ -1,0 +1,439 @@
+$vc_accent: #0473aa;
+
+.clr:after {
+    content: "";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+    zoom: 1;
+}
+
+.vcex-t-exclusive {
+    color:#9d8967;
+    border: 1px solid #ffeccc;
+    background-color:#fff4e2;
+    padding:0.6em;
+}
+
+.vcex-noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none;
+}
+
+.vcex-trbl-param {
+    padding-top: 4px;
+}
+.vcex-trbl-param .vcex-item,
+.vcex-rs-param .vcex-item {
+	position: relative;
+    margin-right: 10px;
+    white-space: nowrap;
+    float: left;
+    display: inline-block;
+    margin-bottom: 6px;
+
+    .rtl & {
+        float: right;
+        margin-right: 0;
+        margin-left: 10px;
+    }
+
+}
+
+.vcex-trbl-param .vcex-icon,
+.vcex-rs-param .vcex-icon {
+    display: block;
+    float: left;
+    width: 36px;
+    height:30px;
+    color: #fff;
+    text-align: center;
+    background: $vc_accent;
+    border-radius: 3px 0 0 3px;
+
+    .rtl & {
+        float: right;
+        border-radius: 0 3px 3px 0;
+    }
+}
+
+.vcex-rs-param .vcex-icon .dashicons {
+    top: 5px;
+    position: relative;
+}
+
+.vcex-apply-all .dashicons,
+.vcex-trbl-param .vcex-icon .dashicons {
+    font-size: 18px;
+    top: 7px;
+    position: relative;
+}
+
+.vcex-rs-param .vcex-flip .dashicons {
+    -ms-transform: rotate( 90deg );
+    -webkit-transform: rotate( 90deg );
+    transform: rotate( 90deg );
+}
+
+.vcex-trbl-param .vcex-input,
+.vcex-rs-param .vcex-input {
+    height: 30px;
+    padding: 0;
+    width: 60px;
+    text-align: center;
+    border-radius: 0 3px 3px 0;
+    .rtl & {
+        border-radius: 3px 0 0 3px;
+    }
+}
+
+.vcex-trbl-param .vcex-hidden,
+.vcex-rs-param .vcex-hidden {
+	display: none;
+}
+
+
+// On off switch
+.vcex-ofswitch {
+    float: left;
+    width: 100px;
+    margin: 6px 0 10px;
+    border-radius: 3px;
+
+    .rtl & {
+       float: right;
+    }
+
+}
+
+.vcex-ofswitch .vcex-btn {
+    display: block;
+    float: left;
+    text-transform: uppercase;
+    background: #dcdcdc;
+    color: #5e5e5e;
+    font-size: 11px;
+    font-weight: 600;
+    width: 50%;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.25s all ease-in-out;
+    line-height: 32px;
+    padding: 0 8px;
+    border: 0;
+
+    .rtl & {
+       float: right;
+    }
+
+    &:hover {
+        outline: none;
+    }
+
+    &.vcex-on {
+        border-radius: 3px 0 0 3px;
+        .rtl & {
+            border-radius: 0 3px 3px 0;
+        }
+    }
+
+    &.vcex-off {
+        border-radius: 0 3px 3px 0;
+        .rtl & {
+            border-radius: 3px 0 0 3px;
+        }
+
+    }
+
+    &.vcex-active {
+        background: #666;
+        color: #fff;
+        outline: none;
+
+        &.vcex-on {
+            background: #6dab3c;
+            color: #fff;
+        }
+
+    }
+
+}
+
+// Custom Selects
+.vcex-select-buttons-param {
+    padding-top: 6px;
+    font-size: 13px;
+
+    .vcex-opt {
+        padding: 0 12px;
+        line-height: 30px;
+        float: left;
+        text-align: center;
+        margin-right: 6px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        color: #32373c;
+        border: 1px solid #7e8993;
+        box-shadow: none;
+        border-radius: 3px;
+        background: none;
+
+        .rtl & {
+            float: right;
+            margin-right: initial;
+            margin-left: 6px;
+        }
+
+
+        .dashicons {
+            line-height: inherit;
+        }
+        &:hover {
+            background: #efefef;
+            outline: none;
+        }
+        &.vcex-active {
+            background: $vc_accent;
+            color: #fff;
+            border-color: transparent;
+            cursor: default;
+            outline: 0;
+            box-shadow: none;
+            -webkit-appearance: none;
+        }
+    }
+
+    &.vcex-no-active-bg .vcex-opt {
+        border-width: 2px;
+        &:hover,
+        &.vcex-active {
+            background: none;
+            border-color: $vc_accent;
+        }
+    }
+
+    .vcex-opt-italic {
+        font-style: italic;
+    }
+
+     .vcex-opt-oblique {
+        font-style: oblique;
+    }
+
+    .vcex-opt-underline {
+        text-decoration: underline;
+    }
+
+    .vcex-opt-overline {
+        text-decoration: overline;
+    }
+
+    .vcex-opt-line-through {
+        text-decoration: line-through;
+    }
+
+}
+
+/* Colors @deprecated in 4.9.6
+.vcex-colors-select-param {
+    padding-top: 6px;
+    .vcex-opt {
+        width: 28px;
+        height: 28px;
+        line-height: 28px;
+        float: left;
+        margin-right: 4px;
+        padding: 0;
+        border: 1px solid #7e8993;
+        border-radius: 3px;
+        cursor: pointer;
+        text-align: center;
+        font-size: 14px;
+        padding: 0;
+        color: #32373c;
+        transition: border-color 0.2s ease;
+        &:hover,
+        &.vcex-active {
+            outline: 0;
+            box-shadow: none;
+            border-color: $vc_accent;
+        }
+
+        .rtl & {
+            float: right;
+            margin-left: initial
+            margin-left: 4px;
+        }
+
+    }
+}*/
+
+// Sorter
+.vcex-sorter-param {
+
+    li {
+        cursor: move;
+        background: #fafafa;
+        color: #23282d;
+        padding: 0 12px;
+        line-height: 36px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid #ccd0d4;
+        box-shadow: 0 1px 1px rgba(0,0,0,.04);
+        overflow: hidden;
+        white-space: nowrap;
+        &:hover {
+            border-color: #999;
+            box-shadow: 0 1px 2px rgba(0,0,0,.1);
+        }
+
+        > a {
+            float: right;
+            font-size: 21px;
+            color: #5cb85c;
+
+            .rtl & {
+                float: left;
+            }
+
+        }
+
+        &.vcex-disabled {
+
+            > a {
+                color: #72777c;
+            }
+
+        }
+
+    }
+
+}
+
+// Custom Alignments
+.vcex-alignments-param {
+    padding-top: 6px;
+
+    .vcex-alignment-opt {
+        width: 50px;
+        line-height: 30px;
+        height: 30px;
+        padding: 0;
+        float: left;
+        border-radius: 3px;
+        text-align: center;
+        border-radius: 4px;
+        border: 1px solid #7e8993;
+        background-color: #fff;
+        color: #32373c;
+        margin-right: 6px;
+        cursor: pointer;
+
+        .rtl & {
+            float: right;
+            margin-right: 0;
+            margin-left: 6px;
+        }
+
+
+        .dashicons {
+            line-height: inherit;
+        }
+        &.vcex-default {
+            padding: 0 10px;
+            width: auto;
+        }
+        &:hover {
+            background: #eee;
+            outline: 0;
+        }
+        &.vcex-active {
+            outline: 0;
+            color: #fff;
+            background: $vc_accent;
+            border-color: transparent;
+        }
+    }
+
+}
+
+// Attach Images
+.wpb_el_type_vcex_attach_images,
+.wpb_el_type_vcex_attach_image {
+
+    // Add new image square button
+    .gallery_widget_add_images {
+        margin-top: 0;
+        display: block;
+        float: left;
+        height: 80px;
+        width: 80px;
+        background: #f5f5f5;
+        border: 1px solid #dfdfdf;
+        font-size: 0;
+        color: #F5F5F5;
+        position: relative;
+
+        &:hover {
+          color: #c8c8c8;
+          border-color: #c8c8c8;
+          text-decoration: none;
+        }
+
+        &:focus {
+          box-shadow: none;
+        }
+
+        .rtl & {
+            float: right;
+        }
+
+    }
+
+    .vc-composer-icon {
+      font-size: 18px;
+      color: #87D148;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .vc_icon-remove {
+        display: block;
+        position: absolute;
+        background: red;
+        height: 15px;
+        width: 15px;
+        top: auto;
+        left: auto;
+        bottom: 0;
+        right: 0;
+
+        &:hover {
+            background: #000;
+        }
+
+        .vc-composer-icon {
+            font-size: 14px;
+            color: #fff;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .rtl & {
+            left: 0;
+            right: auto;
+        }
+
+    }
+
+}

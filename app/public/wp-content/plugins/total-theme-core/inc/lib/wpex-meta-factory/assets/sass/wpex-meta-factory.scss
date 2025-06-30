@@ -1,0 +1,191 @@
+.wpex-mf-metabox {
+
+	table {
+
+		tr:not(:first-child) {
+			border-top: 1px solid #eee;
+		}
+
+		th {
+			width: 240px;
+			padding: 15px 30px 15px 0;
+
+			#side-sortables & {
+				width: auto;
+			}
+
+		}
+
+		td[colspan="2"] {
+			padding: 0;
+		}
+
+		.wpex-mf-label {
+			font-size: 14px;
+    		color: #444;
+    		font-weight: bold;
+		}
+
+	}
+
+	textarea {
+		width: 100%;
+	}
+
+	.wpex-mf-description {
+		color: #666;
+		font-size: 12px;
+		font-weight: normal;
+		margin: 0;
+		padding: 0;
+		padding-top: 4px;
+	}
+
+	.wpex-mf-after-hook {
+		margin-top: 12px;
+	}
+
+	.wpex-mf-hidden {
+		display: none;
+	}
+
+	fieldset {
+		background-color: #fafafa;
+		border: 1px solid #ededed;
+		padding: 10px 15px;
+	}
+
+	// Upload preview
+	.wpex-mf-upload-preview {
+		margin-top: 10px;
+		img {
+			height: 50px;
+			width: auto;
+			max-width: 100%;
+			vertical-align: middle;
+		}
+
+	}
+
+	// Group
+	.wpex-mf-group {
+		border: 1px solid #ddd;
+	}
+
+	.wpex-mf-group-fields {
+		padding: 10px;
+		table {
+			border-collapse: collapse;
+			width: 100%;
+			border: 0;
+			tr {
+				border: 0;
+			}
+			td,th {
+				border: 0;
+				padding: 5px 8px;
+			}
+			th {
+				vertical-align: middle;
+			}
+		}
+	}
+
+	.wpex-mf-group-header {
+		display: flex;
+		justify-content: space-between;
+    	align-items: center;
+    	border-bottom: 1px solid #ddd;
+		padding: 0 0 0 10px;
+		min-height: 36px;
+		font-weight: bold;
+		background-color: #efefef;
+	}
+
+	.wpex-mf-group-header-actions {
+		text-align: right;
+		button {
+			width: 36px;
+			height: 36px;
+			margin: 0;
+			padding: 0;
+			border: 0;
+			background: 0 0;
+			cursor: pointer;
+		}
+	}
+
+	.wpex-mf-group {
+		margin-bottom: 20px;
+	}
+
+	.wpex-mf-remove-group-set[disabled] {
+		display: none !important;
+	}
+
+	.wpex-mf-icon-select-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 99999;
+		background: rgba(0,0,0,0.7);
+		align-items: center;
+		justify-content: center;
+		display: none;
+		&.wpex-mf-active {
+			display: flex !important;
+		}
+		input[type="search"] {
+			width: 100%;
+			margin-bottom: 8px;
+		}
+	}
+
+	.wpex-mf-icon-select-modal-inner {
+		width: 520px;
+		max-width: 100%;
+		background: #fff;
+		padding: 15px;
+		button {
+			float: right;
+		}
+	}
+
+	.wpex-mf-icon-select-modal-choices {
+		height: 348px;
+		max-height: 100%;
+     	overflow-y: scroll;
+		margin-bottom: 12px;
+		padding: 2px; // prevent issues with dropshadow on click.
+	}
+
+	.wpex-mf-icon-select-modal-choices a {
+	    display: block;
+	    float: left;
+	    width: 40px;
+	    height: 40px;
+	    line-height: 40px;
+	    font-size: 24px;
+	    text-align: center;
+	    border: 1px solid #ddd;
+	    margin: 0 8px 8px 0;
+	}
+
+	.wpex-mf-icon-select-modal-choices a:hover {
+	    background: #eee;
+	}
+
+	.wpex-mf-icon-select-preview {
+		margin-top: 10px;
+		> span {
+			font-size: 32px;
+			line-height: auto; // dashicon fix
+			height: auto;     // dashicon fix
+			width: auto;      // dashicon fix
+		}
+	}
+
+}
+

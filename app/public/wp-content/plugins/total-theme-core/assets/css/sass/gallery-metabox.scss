@@ -1,0 +1,123 @@
+$image_dim: 75px;
+
+.wpex_gallery_images {
+
+	.details.attachment {
+		box-shadow: none;
+		-moz-box-shadow: none;
+		-webkit-box-shadow: none;
+	}
+
+	.image > div {
+		width: $image_dim;
+		height: $image_dim;
+		box-shadow: none;
+		-moz-box-shadow: none;
+		-webkit-box-shadow: none;
+	}
+
+	.attachment-preview {
+		position: relative;
+	}
+
+	.attachment-preview .thumbnail {
+		cursor: move;
+	}
+
+	.wpex-metabox-sortable-placeholder{
+		width: $image_dim;
+		height: $image_dim;
+		border: 4px dashed #ddd;
+		background: #f7f7f7;
+		box-sizing: border-box;
+	}
+
+	.wpex-gmb-remove {
+		position: absolute;
+    	top: -8px;
+    	right: -8px;
+    	padding: 2px;
+    	display: none;
+    	height: 1em;
+    	width: 1em;
+    	text-indent: -9999px;
+    	font-size: 1.4em;
+
+    	&::before {
+		    font-family: Dashicons;
+		    speak: none;
+		    font-weight: 400;
+		    text-transform: none;
+		    -webkit-font-smoothing: antialiased;
+		    text-indent: 0px;
+		    position: absolute;
+		    top: 0px;
+		    left: 0px;
+		    text-align: center;
+		    content: "";
+		    color: rgb(153, 153, 153);
+		    height: 1em;
+		    width: 1em;
+		    line-height: 1em;
+		    font-variant: normal;
+		    margin: 0px;
+		    background: rgb(255, 255, 255);
+		    border-radius: 50%;
+		}
+
+		&:hover::before {
+			color: #a00;
+		}
+
+		body.rtl & {
+			right: auto;
+			right: -8px;
+		}
+
+	}
+
+	.image div:hover .wpex-gmb-remove {
+		display: block;
+	}
+
+	> li {
+		float: left;
+		cursor: move;
+		margin: 9px 9px 0 0;
+		border: 1px solid #d5d5d5;
+		width: $image_dim;
+		height: $image_dim;
+		border-radius: 2px;
+		box-sizing: border-box;
+
+		body.rtl & {
+			float: right;
+			margin: 9px 0 0 9px;
+		}
+
+	}
+
+	li.image img {
+		width: $image_dim;
+		height: $image_dim;
+	}
+
+	.attachment-preview:before {
+		display: none !important;
+	}
+
+}
+
+.wpex_gallery_images:after,
+#wpex_gallery_images_container:after {
+	content: "";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+    zoom: 1;
+}
+
+#wpex_gallery_images_container ul {
+	margin: 0 0 9px !important;
+}

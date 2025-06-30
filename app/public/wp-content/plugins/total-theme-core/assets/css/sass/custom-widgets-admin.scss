@@ -1,0 +1,94 @@
+// Social widgets
+.wpex-social-widget-services-list {
+	padding-top: 5px;
+
+	li {
+		cursor: move;
+		background: #f8f9f9;
+		padding: 10px;
+        border: 1px dashed #a2aab2;
+		margin-bottom: 10px;
+
+		p {
+			margin: 0;
+		}
+
+		label {
+			margin-bottom: 3px;
+			display: block;
+			color: #222;
+
+			.ticon {
+				margin-right: 8px;
+			}
+
+		}
+
+	}
+
+	.placeholder {
+		background: transparent !important;
+        border: 1px dashed #aba9a9;
+	}
+
+}
+
+/* Repeatable Field */
+.wpex-widget-settings-form .wpex-rpf-clone {
+    display: none;
+}
+
+.wpex-widget-settings-form .wpex-repeater-field li {
+    cursor: move;
+    background: #eee;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    position: relative;
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.wpex-widget-settings-form .wpex-repeater-field label {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.wpex-widget-settings-form .wpex-repeater-field select,
+.wpex-widget-settings-form .wpex-repeater-field input {
+    width: 100%;
+}
+
+.wpex-widget-settings-form .wpex-repeater-field p {
+    margin: 5px 0;
+}
+
+.wpex-widget-settings-form .wpex-repeater-field .wpex-rpf-remove {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    color: #a00;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.wpex-widget-settings-form li.wpex-rpf-placeholder {
+    background: transparent !important;
+    border: 1px dashed #aba9a9;
+}
+
+.wpex-widget-settings-form .wpex-upload-field,
+.wpex-widget-settings-form .wpex-repeater-field .wpex-upload-field {
+
+    input[type=text] {
+        width: 70%;
+    }
+
+    .button {
+        width: 28%;
+        text-align: center;
+    }
+
+}
+
+

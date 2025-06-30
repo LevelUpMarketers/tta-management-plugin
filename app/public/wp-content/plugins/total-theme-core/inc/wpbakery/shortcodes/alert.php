@@ -1,0 +1,125 @@
+<?php
+/**
+ * Alert Shortcode
+ *
+ * @package TotalThemeCore
+ * @version 1.2
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+if ( ! class_exists( 'VCEX_Alert_Shortcode' ) ) {
+
+	class VCEX_Alert_Shortcode {
+
+		/**
+		 * Define shortcode name.
+		 */
+		public $shortcode = 'vcex_alert';
+
+		/**
+		 * Main constructor.
+		 */
+		public function __construct() {
+			add_shortcode( $this->shortcode, array( $this, 'output' ) );
+
+			if ( function_exists( 'vc_lean_map' ) ) {
+				add_action( 'vc_after_mapping', array( $this, 'vc_after_mapping' ) );
+			}
+
+		}
+
+		/**
+		 * Shortcode output => Get template file and display shortcode.
+		 */
+		public function output( $atts, $content = null ) {
+			ob_start();
+			do_action( 'vcex_shortcode_before', $this->shortcode, $atts );
+			include( vcex_get_shortcode_template( $this->shortcode ) );
+			do_action( 'vcex_shortcode_after', $this->shortcode, $atts );
+			return ob_get_clean();
+		}
+
+		/**
+		 * VC functions.
+		 */
+		public function vc_after_mapping() {
+			vc_lean_map( $this->shortcode, array( $this, 'map' ) );
+		}
+
+		/**
+		 * Map shortcode to VC.
+		 */
+		public function map() {
+			return array(
+				'name'        => esc_html__( 'Alert', 'total-theme-core' ),
+				'description' => esc_html__( 'Simple alert', 'total-theme-core' ),
+				'base'        => $this->shortcode,
+				'icon'        => 'vcex-alert vcex-icon ticon ticon-info-circle',
+				'category'    => vcex_shortcodes_branding(),
+				'params'      => array(
+					array(
+						'type' => 'vcex_select_buttons',
+						'heading' => esc_html__( 'Type', 'total-theme-core' ),
+						'param_name' => 'type',
+						'choices' => 'alert',
+					),
+					array(
+						'type' => 'dropdown',
+						'heading' => esc_html__( 'Bottom Margin', 'total-theme-core' ),
+						'param_name' => 'bottom_margin',
+						'value' => vcex_margin_choices(),
+						'admin_label' => true,
+					),
+					array(
+						'type' => 'textarea_html',
+						'heading' => esc_html__( 'Content', 'total-theme-core' ),
+						'param_name' => 'content',
+						'value' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce laoreet vestibulum elit eget fringilla.',
+						'admin_label' => true,
+					),
+					array(
+						'type' => 'textfield',
+						'heading' => esc_html__( 'Heading', 'total' ),
+						'param_name' => 'heading',
+					),
+					array(
+						'type' => 'dropdown',
+						'heading' => esc_html__( 'Font Size', 'total' ),
+						'param_name' => 'font_size',
+						'value' => vcex_font_size_choices(),
+					),
+					array(
+						'type' => 'dropdown',
+						'heading' => esc_html__( 'Vertical Padding', 'total-theme-core' ),
+						'param_name' => 'padding_y',
+						'value' => vcex_padding_choices(),
+					),
+					array(
+						'type' => 'dropdown',
+						'heading' => esc_html__( 'Shadow', 'total' ),
+						'param_name' => 'shadow',
+						'value' => vcex_shadow_choices(),
+					),
+					array(
+						'type' => 'vcex_visibility',
+						'heading' => esc_html__( 'Visibility', 'total-theme-core' ),
+						'param_name' => 'visibility',
+					),
+					array(
+						'type' => 'textfield',
+						'heading' => esc_html__( 'Extra class name', 'total-theme-core' ),
+						'param_name' => 'el_class',
+						'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS.', 'total-theme-core' ),
+					),
+					vcex_vc_map_add_css_animation(),
+				),
+			);
+		}
+	}
+}
+new VCEX_Alert_Shortcode;
+
+if ( class_exists( 'WPBakeryShortCode' ) && ! class_exists( 'WPBakeryShortCode_vcex_alert' ) ) {
+	class WPBakeryShortCode_vcex_alert extends WPBakeryShortCode {}
+}

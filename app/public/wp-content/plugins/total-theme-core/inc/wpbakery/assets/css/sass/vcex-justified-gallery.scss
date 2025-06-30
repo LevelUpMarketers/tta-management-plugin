@@ -1,0 +1,28 @@
+.vcex-justified-gallery {
+	width: 100%;
+	position: relative;
+	overflow: hidden;
+
+	// Hide items to prevent FOC
+	.vcex-image-grid-entry {
+		position: absolute;
+		display: inline-block;
+		overflow: hidden;
+		/* background: #888888; To have gray placeholders while the gallery is loading with waitThumbnailsLoad = false */
+		opacity: 0;
+		margin: 0;
+		padding: 0;
+	}
+
+	// Display items once justified gallery is created
+	.vcex-image-grid-entry.jg-entry-visible {
+		opacity: 1;
+		background: none;
+	}
+
+	// Force remove bottom margin on images
+	.vcex-image-grid-entry-img {
+		margin: 0;
+	}
+
+}
