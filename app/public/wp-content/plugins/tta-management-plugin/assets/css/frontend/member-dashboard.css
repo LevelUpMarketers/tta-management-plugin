@@ -1,0 +1,256 @@
+/* Hide the file‐input and all sections by default */
+#profile-image-input { display: none; }
+.tta-dashboard-section  { display: none; }
+
+/* Show Profile tab on load */
+#tab-profile { display: block; }
+
+/* Profile Image Preview */
+#profileimage-preview { margin-top: 10px; }
+#profileimage-preview img {
+  width: 85px;
+  height: auto;
+  vertical-align: top;
+}
+
+.tta-member-dashboard-wrap{
+  padding:50px;
+}
+
+/* Interests */
+.interest-item {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+.interest-item .interest-field { flex: 1; }
+.delete-interest {
+  background: none; border: none; cursor: pointer; margin-left: 8px;
+}
+.delete-interest img { width: 16px; height: 16px; }
+#add-interest-edit { margin-top: 8px; }
+
+/* Loading spinner */
+.tta-admin-progress-spinner-svg {
+  display: none; opacity: 0;
+  width: 25px; height: 25px;
+  vertical-align: middle; position: relative; left: 10px;
+  transition: opacity 0.2s ease;
+  animation: tta-spinner-rotate 1s linear infinite;
+}
+@keyframes tta-spinner-rotate {
+  from { transform: rotate(0deg); } to { transform: rotate(360deg); }
+}
+
+/* Response message */
+.tta-admin-progress-response-p {
+  font-size: 30px;
+  font-weight: bold;
+  opacity: 0;
+  overflow: hidden;
+  max-height: 0;
+  transition: opacity 0.2s ease, max-height 0.3s ease;
+}
+.tta-admin-progress-response-p.updated,
+.tta-admin-progress-response-p.error {
+  opacity: 1;
+  max-height: 50px;
+}
+
+/* Two-column layout */
+.tta-member-dashboard {
+  display: flex; flex-wrap: nowrap; margin: 20px 0;
+}
+/* Sidebar */
+.tta-dashboard-sidebar {
+  flex: 0 0 240px;
+  border: 1px solid #ddd;
+  background: #f9f9f9; padding: 20px; box-sizing: border-box;
+}
+/* Tabs */
+.tta-dashboard-tabs { list-style:none; margin:0; padding:0; }
+.tta-dashboard-tabs li {
+  margin-bottom: 12px; padding:10px 14px;
+  border:1px solid #ccc; border-radius:4px;
+  background:#fff; cursor:pointer; text-align:center;
+  transition:background .2s, border-color .2s;
+}
+.tta-dashboard-tabs li.active {
+  background:#eaeaea; border-color:#999; font-weight:bold;
+}
+/* Content */
+.tta-dashboard-content {
+    flex: 1;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: opacity 0.2s ease;
+    background-color: #fbfbfb;
+    border: solid 1px #ddd;
+}
+.tta-dashboard-content.fading { opacity: 0; }
+
+/* Tooltip */
+.tta-tooltip-icon {
+  cursor: help; display:inline-block;
+  position:absolute; top:20px; left:8px;
+}
+.tta-tooltip-icon img { width:15px; }
+.tta-tooltip-icon::after {
+  content: attr(data-tooltip);
+  position: absolute; bottom:100%; left:50%;
+  transform: translateX(-50%);
+  margin-bottom:6px;
+  background:rgba(0,0,0,0.75); color:#fff;
+  padding:6px 8px; border-radius:4px;
+  white-space:nowrap; font-size:13px; line-height:1.2;
+  visibility:hidden; pointer-events:none;
+  z-index:10;
+}
+.tta-tooltip-icon::before {
+  content:''; position:absolute; bottom:100%; left:50%;
+  transform:translateX(-50%);
+  border-width:6px; border-style:solid;
+  border-color:transparent transparent rgba(0,0,0,0.75) transparent;
+  visibility:hidden; z-index:10;
+}
+.tta-tooltip-icon:hover::after,
+.tta-tooltip-icon:hover::before {
+  visibility:visible;
+}
+
+/* Form fields & view-mode spans */
+#tab-profile .form-table th { position:relative; width:165px; }
+#tab-profile .form-table input,
+#tab-profile .form-table select,
+#tab-profile .form-table textarea {
+  width:165px; height:35px;
+}
+#tab-profile .form-table textarea { height:initial; }
+#tab-profile .form-table input[type="checkbox"] { height:initial; }
+#tab-profile .form-table tr {
+  display:inline-block; vertical-align:top; margin:5px;
+}
+#tab-profile .form-table label,
+#tab-profile .form-table .tta-fake-label {
+  position:relative; left:15px;
+}
+#tab-profile .form-table .spacer-row { display:block; }
+.spacer-row td {
+  height:20px; padding:0; border:none;
+}
+.tta-wider-and-bigger-rows { width:32%; }
+#tab-profile .form-table .tta-wider-and-bigger-rows th {
+  width:180px; height:200px;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows td {
+  width:100%;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows label,
+#tab-profile .form-table .tta-wider-and-bigger-rows .tta-fake-label {
+  width:125px; display:block;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows fieldset label {
+  width:100%;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows input[type="text"] {
+  width:100%;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows input[type="checkbox"] {
+  width:initial;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows textarea {
+  width:100%; min-height:155px;
+}
+#biography { vertical-align: top; }
+
+/* View- vs. edit-mode */
+.view-value { display:inline; overflow:hidden;}
+.edit-input { display:none !important; }
+.is-editing .view-value { display:none!important; }
+.is-editing .edit-input  { display:inline-block !important; }
+
+/* Hide row until .is-editing */
+.hide-until-edit { display:none !important; }
+.is-editing .hide-until-edit { display:inline-block !important; }
+
+/* Match view-value to input dimensions */
+.view-value {
+  display:inline-block; box-sizing:border-box;
+  width:165px; height:35px; line-height:35px;
+  padding:0 6px; border:1px solid transparent;
+  background:#fff; vertical-align:middle;
+}
+/* For large biography row */
+#tab-profile .tta-wider-and-bigger-rows .view-value {
+  display:block; box-sizing:border-box;
+  width:100%; min-height:155px; line-height:1.4;
+  padding:6px; border:1px solid transparent;
+  background:#fff;
+}
+
+.is-editing #tab-profile .form-table label, .is-editing #tab-profile .form-table .tta-fake-label { top:7px; }
+
+.is-editing #tab-profile .form-table .tta-wider-and-bigger-rows td, .is-editing #tab-profile .form-table .attachment-thumbnail.size-thumbnail {
+  vertical-align: top;
+}
+
+#tab-profile .form-table .attachment-thumbnail.size-thumbnail {
+  vertical-align: top;
+}
+
+.view-value img{
+  max-height:150px;
+  max-width:150px;
+}
+
+#select-profile-image{
+  margin-top:20px;
+}
+
+/* Upcoming events layout */
+.tta-upcoming-event {
+  display:flex;
+  border-bottom:1px solid #ddd;
+  padding:15px 0;
+  gap:15px;
+}
+.tta-upcoming-thumb img {
+  width:120px;
+  height:auto;
+}
+.tta-ticket-details {
+  margin-left:115px;
+  margin-bottom:10px;
+}
+.tta-ticket-details ul {
+  margin:4px 0 0 20px;
+  list-style:disc;
+}
+
+.tta-refund-link,
+.tta-cancel-link {
+  display:inline-block;
+  margin-top:4px;
+  font-size:14px;
+  text-decoration:underline;
+  cursor:pointer;
+}
+
+.tta-refund-form {
+  display:none;
+  margin-top:6px;
+}
+.tta-refund-form label {
+  font-weight:600;
+  display:block;
+  margin-bottom:4px;
+}
+.tta-refund-form textarea {
+  width:100%;
+  min-height:70px;
+}
+.tta-refund-form .description {
+  font-size:12px;
+  color:#666;
+  margin-bottom:4px;
+}

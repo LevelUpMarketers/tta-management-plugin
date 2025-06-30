@@ -1,0 +1,47 @@
+/* assets/css/frontend/style.css */
+
+/* frontend shortcode styling goes here */
+
+/* arrow toggle for host check-in */
+.tta-toggle-arrow {
+  transition: transform 0.3s ease;
+}
+
+.tta-toggle-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Become a Member page */
+.tta-become-member-wrap {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.tta-membership-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+.tta-membership-table th,
+.tta-membership-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+.tta-membership-table td.check {
+  color: green;
+  font-weight: bold;
+}
+.tta-membership-buttons {
+  margin-top: 20px;
+}
+.tta-membership-buttons .button {
+  display: inline-block;
+  margin-right: 15px;
+  padding: 10px 20px;
+  background: #0073aa;
+  color: #fff;
+  text-decoration: none;
+}
+.tta-membership-buttons .button:hover {
+  background: #005177;
+}
