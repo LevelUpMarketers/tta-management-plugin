@@ -8,3 +8,4 @@ A running list of tasks and reminders for future development.
 - [ ] Implement sending logic for the Email & SMS templates and handle token replacement.
 - [ ] Ensure internal links use relative URLs so deployments work across domains.
 - [ ] Keep `tta_events_archive` schema in sync with `tta_events` whenever changes are made.
+- [ ] Evaluate batched ticket availability lookup in `TTA_Cart` and revert if issues arise.
