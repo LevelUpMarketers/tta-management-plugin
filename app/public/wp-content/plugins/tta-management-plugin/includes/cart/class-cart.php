@@ -110,6 +110,62 @@ class TTA_Cart {
     if ( $event_ute_id ) {
       TTA_Cache::delete( 'tickets_' . $event_ute_id );
     }
+
+    // Clear per-ticket cache used by get_ticket_limits().
+    TTA_Cache::delete( 'ticket_limit_' . $ticket_id );
+  }
+
+  /**
+   * Fetch current ticket limits in a single query with caching.
+   *
+   * @param int[] $ticket_ids Ticket IDs.
+   * @return array<int,int> Map of ticket ID to remaining quantity.
+   */
+  protected function get_ticket_limits( array $ticket_ids ) {
+    $ticket_ids = array_values( array_unique( array_map( 'intval', $ticket_ids ) ) );
+    $limits     = [];
+    $to_fetch   = [];
+
+    foreach ( $ticket_ids as $id ) {
+      $cached = TTA_Cache::get( 'ticket_limit_' . $id );
+      if ( false !== $cached ) {
+        $limits[ $id ] = (int) $cached;
+      } else {
+        $to_fetch[] = $id;
+      }
+    }
+
+    if ( $to_fetch ) {
+      $fetched = [];
+      if ( method_exists( $this->wpdb, 'get_results' ) ) {
+        $placeholders = implode( ',', array_fill( 0, count( $to_fetch ), '%d' ) );
+        $sql          = "SELECT id, ticketlimit FROM {$this->wpdb->prefix}tta_tickets WHERE id IN ($placeholders)";
+        $prepared     = call_user_func_array( [ $this->wpdb, 'prepare' ], array_merge( [ $sql ], $to_fetch ) );
+        $rows         = $this->wpdb->get_results( $prepared, ARRAY_A );
+
+        foreach ( (array) $rows as $row ) {
+          $id             = intval( $row['id'] );
+          $limit          = intval( $row['ticketlimit'] );
+          $limits[ $id ]  = $limit;
+          $fetched[]      = $id;
+          TTA_Cache::set( 'ticket_limit_' . $id, $limit, 30 );
+        }
+      }
+
+      $missing = array_diff( $to_fetch, $fetched );
+      foreach ( $missing as $id ) {
+        $limit         = (int) $this->wpdb->get_var(
+          $this->wpdb->prepare(
+            "SELECT ticketlimit FROM {$this->wpdb->prefix}tta_tickets WHERE id = %d",
+            $id
+          )
+        );
+        $limits[ $id ] = $limit;
+        TTA_Cache::set( 'ticket_limit_' . $id, $limit, 30 );
+      }
+    }
+
+    return $limits;
   }
 
   public function add_item( $ticket_id, $qty, $price ) {
@@ -135,12 +191,7 @@ class TTA_Cart {
       if ( class_exists( 'TTA_Cart_Cleanup' ) ) {
         TTA_Cart_Cleanup::clean_expired_items();
       }
-      $available = (int) $this->wpdb->get_var(
-        $this->wpdb->prepare(
-          "SELECT ticketlimit FROM {$this->wpdb->prefix}tta_tickets WHERE id = %d",
-          $ticket_id
-        )
-      );
+      $available = intval( $this->get_ticket_limits( [ $ticket_id ] )[ $ticket_id ] ?? 0 );
       if ( $available < $diff ) {
         $qty  = $existing_qty + $available;
         $diff = $available;
@@ -218,12 +269,7 @@ class TTA_Cart {
       if ( class_exists( 'TTA_Cart_Cleanup' ) ) {
         TTA_Cart_Cleanup::clean_expired_items();
       }
-      $available = (int) $this->wpdb->get_var(
-        $this->wpdb->prepare(
-          "SELECT ticketlimit FROM {$this->wpdb->prefix}tta_tickets WHERE id = %d",
-          $ticket_id
-        )
-      );
+      $available = intval( $this->get_ticket_limits( [ $ticket_id ] )[ $ticket_id ] ?? 0 );
       if ( $available < $diff ) {
         $qty  = $existing_qty + $available;
         $diff = $available;
@@ -409,23 +455,22 @@ class TTA_Cart {
    * modified in any way.
    */
   public function sync_with_inventory() {
-    global $wpdb;
     $modified = false;
-    foreach ( $this->get_items() as $item ) {
-      $available = (int) $wpdb->get_var(
-        $wpdb->prepare(
-          "SELECT ticketlimit FROM {$wpdb->prefix}tta_tickets WHERE id = %d",
-          intval( $item['ticket_id'] )
-        )
-      );
+    $items    = $this->get_items();
+    $limits   = $this->get_ticket_limits( wp_list_pluck( $items, 'ticket_id' ) );
+
+    foreach ( $items as $item ) {
+      $tid       = intval( $item['ticket_id'] );
+      $available = intval( $limits[ $tid ] ?? 0 );
       if ( $available <= 0 ) {
-        $this->remove_item( $item['ticket_id'] );
+        $this->remove_item( $tid );
         $modified = true;
       } elseif ( $available < intval( $item['quantity'] ) ) {
-        $this->update_quantity( $item['ticket_id'], $available );
+        $this->update_quantity( $tid, $available );
         $modified = true;
       }
     }
+
     return $modified;
   }
 
@@ -474,14 +519,11 @@ class TTA_Cart {
     $total_before   = 0;
     $total_after    = 0;
 
-    // Check availability before attempting updates
+    // Check availability before attempting updates in a single query.
+    $limits = $this->get_ticket_limits( wp_list_pluck( $items, 'ticket_id' ) );
     foreach ( $items as $chk ) {
-      $available = (int) $wpdb->get_var(
-        $wpdb->prepare(
-          "SELECT ticketlimit FROM {$wpdb->prefix}tta_tickets WHERE id = %d",
-          intval( $chk['ticket_id'] )
-        )
-      );
+      $tid       = intval( $chk['ticket_id'] );
+      $available = intval( $limits[ $tid ] ?? 0 );
       if ( $available < intval( $chk['quantity'] ) ) {
         return new WP_Error( 'tta_sold_out', __( 'One or more tickets are no longer available.', 'tta' ) );
       }
