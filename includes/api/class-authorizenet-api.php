@@ -41,6 +41,26 @@ class TTA_AuthorizeNet_API {
 
         $summary = trim( $result . ' ' . $msg_code . ' ' . $msg_text );
         TTA_Debug_Logger::log( $context . ': ' . ( $summary ?: '[no details]' ) );
+
+        if ( method_exists( $response, 'getTransactionResponse' ) && $response->getTransactionResponse() ) {
+            $tresponse = $response->getTransactionResponse();
+            $resp_code = method_exists( $tresponse, 'getResponseCode' ) ? $tresponse->getResponseCode() : '';
+            $code      = '';
+            $text      = '';
+
+            if ( method_exists( $tresponse, 'getErrors' ) && $tresponse->getErrors() ) {
+                $err  = $tresponse->getErrors()[0];
+                $code = method_exists( $err, 'getErrorCode' ) ? $err->getErrorCode() : '';
+                $text = method_exists( $err, 'getErrorText' ) ? $err->getErrorText() : '';
+            } elseif ( method_exists( $tresponse, 'getMessages' ) && $tresponse->getMessages() ) {
+                $msg  = $tresponse->getMessages()[0];
+                $code = method_exists( $msg, 'getCode' ) ? $msg->getCode() : '';
+                $text = method_exists( $msg, 'getDescription' ) ? $msg->getDescription() : '';
+            }
+
+            $trans_summary = trim( $resp_code . ' ' . $code . ' ' . $text );
+            TTA_Debug_Logger::log( $context . ' transaction: ' . ( $trans_summary ?: '[no details]' ) );
+        }
     }
 
     /**
@@ -162,7 +182,6 @@ class TTA_AuthorizeNet_API {
 
         $controller = new AnetController\CreateTransactionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
-        $this->log_response( 'refund', $response );
         $this->log_response( 'charge', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
