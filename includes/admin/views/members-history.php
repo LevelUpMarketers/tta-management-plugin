@@ -42,12 +42,17 @@ $total_members = $wpdb->get_var( "SELECT COUNT(*) FROM {$members_table} {$where_
 // Fetch all rows so we can sort by metrics
 $members = $wpdb->get_results( "SELECT * FROM {$members_table} {$where_sql}", ARRAY_A );
 
-// Attach metrics for sorting
+// Attach metrics only when needed for sorting
 foreach ( $members as &$m ) {
-    $summary                  = tta_get_member_history_summary( $m['id'] );
-    $m['__total_spent']       = $summary['total_spent'];
-    $m['__attended']          = $summary['attended'];
     $m['__membership_length'] = time() - strtotime( $m['joined_at'] );
+    if ( in_array( $orderby, [ 'attended', 'spent' ], true ) ) {
+        $summary            = tta_get_member_history_summary( $m['id'], 'spent' === $orderby );
+        $m['__total_spent'] = $summary['total_spent'];
+        $m['__attended']    = $summary['attended'];
+    } else {
+        $m['__total_spent'] = 0;
+        $m['__attended']    = 0;
+    }
 }
 unset( $m );
 

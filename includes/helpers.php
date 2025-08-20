@@ -2772,10 +2772,11 @@ function tta_get_member_past_events( $wp_user_id ) {
 /**
  * Summarize a member's purchase and attendance history.
  *
- * @param int $member_id Member ID.
+ * @param int  $member_id          Member ID.
+ * @param bool $include_subscription Whether to include subscription charges.
  * @return array Summary data.
- */
-function tta_get_member_history_summary( $member_id ) {
+*/
+function tta_get_member_history_summary( $member_id, $include_subscription = false ) {
     $member_id = intval( $member_id );
     if ( ! $member_id ) {
         return [
@@ -2789,7 +2790,7 @@ function tta_get_member_history_summary( $member_id ) {
         ];
     }
 
-    $cache_key = 'member_hist_sum_' . $member_id;
+    $cache_key = 'member_hist_sum_' . $member_id . '_' . ( $include_subscription ? '1' : '0' );
     $cached    = TTA_Cache::get( $cache_key );
     if ( false !== $cached ) {
         return $cached;
@@ -2922,11 +2923,13 @@ function tta_get_member_history_summary( $member_id ) {
             }
         }
 
-        // Include recurring subscription charges from Authorize.Net
-        $sub_id = tta_get_user_subscription_id( $wp_user_id );
-        if ( $sub_id ) {
-            foreach ( tta_get_subscription_transactions( $sub_id ) as $sub_tx ) {
-                $membership_total += floatval( $sub_tx['amount'] );
+        if ( $include_subscription ) {
+            // Include recurring subscription charges from Authorize.Net
+            $sub_id = tta_get_user_subscription_id( $wp_user_id );
+            if ( $sub_id ) {
+                foreach ( tta_get_subscription_transactions( $sub_id ) as $sub_tx ) {
+                    $membership_total += floatval( $sub_tx['amount'] );
+                }
             }
         }
 
@@ -5960,7 +5963,7 @@ function tta_export_member_metrics_report( $start_date = '', $end_date = '' ) {
 
     $row = 2;
     foreach ( $members as $m ) {
-        $summary = tta_get_member_history_summary( $m['id'] );
+        $summary = tta_get_member_history_summary( $m['id'], true );
 
         foreach ( $remove_cols as $c ) {
             unset( $m[ $c ] );

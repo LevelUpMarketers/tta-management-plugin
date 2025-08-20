@@ -2,7 +2,7 @@
 
 Several admin pages include dropdowns to change the order of list tables. The dropdowns now start with a disabled **Sort By…** option so it’s clear no custom order is active until one is selected. A **Clear Sorting** button beside each dropdown reloads the page without any sorting or pagination parameters.
 
-- **Member History** and **Manage Members** can sort by membership length, total amount spent, events attended, first name, last name or join date.
+- **Member History** and **Manage Members** can sort by membership length, total amount spent, events attended, first name, last name or join date. Sorting uses locally stored data; recurring subscription charges are fetched only when viewing an individual member.
 - **Manage Events** can sort upcoming events first (default) or by date ascending/descending or alphabetically by name.
 - **Archived Events** can sort newest or oldest first or alphabetically by name.
 

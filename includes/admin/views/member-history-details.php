@@ -8,7 +8,7 @@ $members_table = $wpdb->prefix . 'tta_members';
 $member = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$members_table} WHERE id=%d", $member_id ), ARRAY_A );
 if ( ! $member ) { echo '<p>Member not found.</p>'; return; }
 
-$summary = tta_get_member_history_summary( $member_id );
+$summary = tta_get_member_history_summary( $member_id, true );
 $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
 ?>
 <div class="tta-member-history-details">
