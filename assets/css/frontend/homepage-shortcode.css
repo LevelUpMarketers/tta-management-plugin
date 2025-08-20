@@ -1,0 +1,380 @@
+/* Styles for the TTA homepage shortcode layout */
+.tta-home-main{
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.tta-home-main .tta-intro-inner h1{
+    font-size: 4VW;
+    color: #3a7096;
+    margin-top: 0;
+    position: relative;
+    bottom: 0px;
+    font-family: "Teko", sans-serif;
+    FONT-WEIGHT: BOLD;
+    line-height: 1;
+}
+
+.tta-stats, .tta-next-event, .tta-newest-member, .tta-birthdays, .tta-partners{
+    background: #fafafa;
+    padding: 20px;
+}
+
+.tta-home {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 3rem;
+    padding: 2rem;
+    margin: 100px auto;
+}
+
+
+
+
+
+
+
+
+
+
+.tta-home-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+.tta-intro-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+
+
+
+
+
+
+.tta-intro-img {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    margin-left:50px;
+}
+.tta-intro-img img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1s ease, transform 1s ease;
+    border-radius: 4px;
+}
+.tta-intro-img img.active {
+    opacity: 1;
+}
+.tta-intro-img img.exit {
+    transform: translateX(100%);
+    opacity: 0;
+}
+.tta-home-main h2 {
+    margin-top: 0;
+}
+.tta-home-sidebar h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0;
+}
+
+.tta-stats-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.tta-stats-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 0.25rem;
+}
+.tta-counter {
+    font-size: inherit;
+    font-weight: normal;
+}
+.tta-events-grid,
+.tta-past-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    justify-items: center;
+    gap: 1rem;
+}
+.tta-event-card {
+    position: relative;
+    width: 93%;
+    aspect-ratio: 16 / 9;
+    background-size: cover;
+    background-position: center;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* smooth transform & shadow */
+}
+
+.tta-event-card:hover {
+    transform: scale(1.02); /* slightly more noticeable */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* subtle depth on hover */
+}
+
+.tta-event-card__caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    padding: 1rem;
+    font-size: 1.3rem;
+    text-align: center;
+}
+.tta-next-event__img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    display: block;
+}
+.tta-birthday-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 60px);
+    gap: 0.5rem;
+}
+.tta-birthday-grid img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.tta-popup-img {
+    cursor: pointer;
+}
+.tta-partners {
+    margin-top: 2rem;
+}
+.tta-home-main .tta-section {
+    margin-bottom: 100px;
+}
+.tta-section.tta-intro{
+    padding: 0px 28px 0px 28px;
+}
+.tta-home-main .tta-section h2 {
+    margin-bottom: 1rem;
+    font-size: 4VW;
+    color: #3a7096;
+    margin-top: 0;
+    position: relative;
+    bottom: 0px;
+    font-family: "Teko", sans-serif;
+    FONT-WEIGHT: BOLD;
+    line-height: 1;
+}
+.tta-upcoming h2,
+.tta-past h2 {
+    text-align: center;
+}
+.tta-intro h1 {
+    font-size: 2.5rem;
+}
+.tta-intro p {
+    font-size: 18px;
+}
+.tta-section-button {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.tta-event-details-icon {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    position: relative;
+    top: 2px;
+    margin-right: 4px;
+}
+
+.tta-next-event__link .tta-event-details-icon{
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    position: absolute;
+    top: 2px;
+    left: -25px;
+    margin-right: 4px;
+}
+#single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > aside > div.tta-stats > h2 > img{
+    width: 30px;
+    height: 30px;
+    margin-right: 0;
+}
+
+.tta-next-event__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+.tta-next-event__link p {
+    display: flex;
+    align-items: center;
+    margin: 10px 0px 0px 30px;
+    position: relative;
+}
+.tta-newest-member {
+    text-align: center;
+}
+.tta-newest-member__img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto 0.5rem;
+}
+.tta-newest-member__name,
+.tta-newest-member__level {
+    margin: 0;
+}
+
+.tta-events-ad {
+    text-align: left;
+}
+.tta-events-ad a img {
+    border-radius: 4px;
+}
+.tta-events-ad h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0;
+    margin-bottom: 0.5em;
+}
+.tta-events-ad__subtitle {
+    margin-bottom: 1em;
+    font-size: 1em;
+    text-align: left;
+}
+.tta-events-ad__info {
+    margin-top: 1em;
+}
+.tta-events-ad__info-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin-bottom: 0.5em;
+}
+.tta-event-details-icon-after {
+    flex: 1 1 auto;
+    text-align: left;
+}
+
+#single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > div > section.tta-section.tta-intro > div > div:nth-child(1) > p:nth-child(5) > a, #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > div > section.tta-section.tta-upcoming > div.tta-section-button > a, #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > div > section.tta-section.tta-past > div.tta-section-button > a{
+    font-size:16px;
+}
+
+@media (max-width: 1200px) {
+
+    .tta-intro-img{
+        margin-left: 0px;
+    }
+
+    .tta-home-main{
+        order:1;
+        margin-top:100px;
+    }
+
+    .tta-section.tta-intro {
+        padding: 0;
+    }
+
+    .tta-home-sidebar{
+        order:2;
+    }
+
+    .tta-home{
+        grid-template-columns: initial;
+        padding:0px;
+    }
+
+    .tta-intro-inner{
+        grid-template-columns: initial!important;
+        position: relative;
+    }
+
+    .tta-home-main .tta-intro-inner h1{
+        font-size: 48px;
+        position: absolute;
+        top: -115px;
+        left: 0;
+        right: 0;
+        text-align: center;
+    }
+
+    #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > div > section.tta-section.tta-intro > div > div:nth-child(1){
+        order:2;
+    }
+    #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > div > section.tta-section.tta-intro > div > div:nth-child(1) > p:nth-child(5){
+        text-align:center;
+    }
+
+    .tta-events-grid, .tta-past-grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    .tta-home-main .tta-section h2{
+        font-size:48px;
+    }
+
+    .tta-home-main {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .tta-home-sidebar h2 {
+        display: block;
+        text-align: center;
+    }
+    
+    #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > aside > div.tta-stats > h2 > img, #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > aside > div.tta-next-event > h2 > img, #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > aside > div.tta-newest-member > h2 > img, #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > aside > div.tta-birthdays > h2 > img, #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > aside > div.tta-partners > div > h2 > img{
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width:30px;
+        height:30px;
+        margin-bottom:10px;
+    }
+
+    #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.vc_custom_1682889715540.wpex-vc-row-stretched > div > div > div > div > div > div > aside > div.tta-partners > div > h2 > img, #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > aside > div.tta-stats > h2 > img{
+        width:35px;
+        height:35px;
+    }
+
+    #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > aside > div.tta-stats > h2 > img{
+        width:40px;
+        height:40px;
+    }
+
+    #single-blocks > div > div.vc_row.wpb_row.vc_row-fluid.wpex-vc-row-stretched > div > div > div > div > div > div > aside > div.tta-partners > div > a{
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+    }
+
+}
+
+@media (max-width: 768px) {
+    .tta-home {
+        grid-template-columns: 1fr;
+    }
+    .tta-intro-inner {
+        grid-template-columns: 1fr;
+    }
+}

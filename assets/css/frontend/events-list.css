@@ -1,0 +1,773 @@
+/* assets/css/frontend/events-list.css */
+
+.tta-events-list-page {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 60px;
+  padding-bottom:200px;
+  padding-top:100px;
+}
+
+.tta-events-ad{
+  padding-bottom: 100px;
+  text-align: left;
+}
+
+.tta-events-ad a img{
+  border-radius:4px;
+}
+
+.tta-events-ad h2{
+  display:flex;
+  align-items:center;
+  gap:0.25rem;
+  margin-top:0;
+  margin-bottom:0.5em;
+  font-size:1.25em;
+}
+
+#main > div.wrap.tta-events-list-page > div > aside.tta-events-right > div > a{
+  position: relative;
+  display: block;
+}
+
+.tta-events-ad__subtitle{
+  margin-bottom: 1em;
+  font-size: 1em;
+  text-align:left;
+}
+
+.tta-events-ad__info{
+  margin-top:1em;
+}
+
+.tta-events-ad__info-item{
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  margin-bottom:0.5em;
+}
+
+.tta-events-columns {
+  display: flex;
+  gap: 20px;
+}
+li.tta-event-list-item > div > ul > a:hover, li.tta-event-list-item > div > a:hover, li.tta-event-list-item > div > ul > li > div > a:hover{
+  text-decoration:none;
+}
+li.tta-event-list-item > div > a > span:hover{
+  background-color: #2f516a;
+}
+.tta-events-left {
+  flex: 0 0 220px;
+}
+
+.tta-events-center {
+  flex: 1 1 auto;
+}
+
+.tta-event-section.tta-your-events, .tta-join-friends{
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+
+}
+
+.tta-events-left h2 {
+  margin-top: 0;
+}
+.tta-events-left ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tta-events-left li {
+  margin-bottom: .5em;
+  display: flex;
+  align-items: flex-start;
+}
+
+.tta-events-right {
+  flex: 0 0 220px;
+  align-self: stretch;
+  position: relative;
+  bottom: 6px;
+}
+
+
+.tta-join-friends {
+  margin-top: 20px;
+}
+.tta-join-friends h2 {
+  margin: 0 0 4px;
+}
+.tta-join-friends .tta-join-sub {
+  margin: 0 0 8px;
+  font-size: 0.9em;
+  color: #666;
+}
+.tta-friend-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tta-friend-grid .tta-extra-friend { display:none; }
+.tta-friend-grid.expanded .tta-extra-friend { display:inline-block; }
+.tta-friend-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.tta-accordion-content {
+  max-height: 200px;
+  overflow: hidden;
+  position: relative;
+  padding: 20px;
+  border-radius: 4px;
+  transition: max-height 0.4s ease;
+}
+.tta-accordion-content.tta-auto-height {
+  max-height: none;
+}
+.tta-accordion-content.expanded {
+  max-height: 2000px;
+}
+.tta-accordion-toggle-image-gallery {
+  display: block;
+  margin: 0.5em auto;
+  padding: 0.5em 1em;
+  cursor: pointer;
+}
+
+.tta-calendar {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+  min-height:228px;
+}
+
+.tta-cal-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tta-cal-nav a {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.tta-cal-nav span {
+  font-weight: bold;
+}
+
+.tta-cal-disabled {
+  color: #ccc;
+}
+
+.tta-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.tta-cal-label {
+  font-weight: bold;
+}
+
+.tta-cal-day.has-event {
+  background: #dbeafe;
+  border-radius: 3px;
+}
+
+.tta-cal-day.empty {
+  visibility: hidden;
+}
+
+.tta-events-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tta-event-list-item {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 20px;
+}
+
+.tta-event-list-item:last-child {
+  border-bottom: 0;
+}
+
+.tta-price-strike {
+  text-decoration: line-through;
+  color: #a00;
+  margin-right: 4px;
+}
+
+
+.tta-event-thumb {
+  flex: 0 0 150px;
+  margin-right: 20px;
+  width: 150px;
+  height: 150px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 4px;
+}
+
+.tta-event-summary {
+  flex: 1 1 300px;
+}
+
+.tta-event-name {
+  font-size: 1.5em;
+  margin-top: 0;
+}
+
+.tta-event-datetime,
+.tta-event-venue,
+.tta-event-address,
+.tta-event-remaining {
+  margin: 0 0 0.5em 0;
+}
+
+.tta-event-excerpt {
+  margin-bottom: 0.5em;
+}
+
+.tta-event-link {
+  display: inline-block;
+  margin-top: 0.5em;
+  padding: 8px 16px;
+  background: #0073aa;
+  color: #fff;
+  border-radius: 4px;
+}
+
+.tta-events-pagination {
+  margin-top: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tta-events-pagination .page-numbers {
+  display: inline-block;
+  margin: 0 4px;
+}
+
+.tta-pagination-pages {
+  flex: 1;
+  text-align: center;
+}
+
+.tta-member-events,
+.tta-membership-perks {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+}
+.tta-member-events h2,
+.tta-membership-perks h2 {
+  margin-top: 0;
+}
+.tta-member-events ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tta-member-events li {
+  margin-bottom: 6px;
+}
+.tta-membership-perks img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+.login-wrap form {
+  margin-top: 10px;
+}
+
+.tta-event-detail-list {
+  list-style: none;
+  margin: 0 0 0.5em 0;
+  padding: 0;
+}
+.tta-event-detail-list li {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: flex-start;
+}
+.tta-event-details-icon {
+  width: 18px;
+  flex: 0 0 auto;
+  position: relative;
+  top: 2px;
+  margin-right: 4px;
+}
+.tta-event-details-icon-after {
+  flex: 1 1 auto;
+  text-align:left;
+}
+
+.next.page-numbers, .prev.page-numbers{
+  color:#fff;
+}
+
+.tta-pagination-next .page-numbers, .tta-pagination-prev .page-numbers{
+  font-family:inherit!important;
+}/* assets/css/frontend/events-list.css */
+
+.tta-events-ad a img{
+  border-radius:4px;
+}
+
+li.tta-event-list-item > div > ul > a:hover, li.tta-event-list-item > div > a:hover, li.tta-event-list-item > div > ul > li > div > a:hover{
+  text-decoration:none;
+}
+li.tta-event-list-item > div > a > span:hover{
+  background-color: #2f516a;
+}
+.tta-events-left {
+  flex: 0 0 220px;
+}
+
+.tta-events-center {
+  flex: 1 1 auto;
+}
+
+.tta-event-section.tta-your-events, .tta-join-friends{
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+
+}
+
+.tta-events-left h2 {
+  margin-top: 0;
+}
+.tta-events-left ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tta-events-left li {
+  margin-bottom: .5em;
+  display: flex;
+  align-items: flex-start;
+}
+
+.tta-events-right {
+  flex: 0 0 220px;
+  align-self: stretch;
+}
+
+
+.tta-join-friends {
+  margin-top: 20px;
+}
+.tta-join-friends h2 {
+  margin: 0 0 4px;
+}
+.tta-join-friends .tta-join-sub {
+  margin: 0 0 8px;
+  font-size: 0.9em;
+  color: #666;
+}
+.tta-friend-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tta-friend-grid .tta-extra-friend { display:none; }
+.tta-friend-grid.expanded .tta-extra-friend { display:inline-block; }
+.tta-friend-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.tta-accordion-content {
+  max-height: 200px;
+  overflow: hidden;
+  position: relative;
+  padding-bottom: 20px;
+  border-radius: 4px;
+  transition: max-height 0.4s ease;
+}
+.tta-accordion-content.tta-auto-height {
+  max-height: none;
+}
+.tta-accordion-content.expanded {
+  max-height: 2000px;
+}
+.tta-accordion-toggle-image-gallery {
+  display: block;
+  margin: 0.5em auto;
+  padding: 0.5em 1em;
+  cursor: pointer;
+}
+
+.tta-calendar {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+  min-height:228px;
+}
+
+.tta-cal-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tta-cal-nav a {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.tta-cal-nav span {
+  font-weight: bold;
+}
+
+.tta-cal-disabled {
+  color: #ccc;
+}
+
+.tta-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.tta-cal-label {
+  font-weight: bold;
+}
+
+.tta-cal-day.has-event {
+  background: #dbeafe;
+  border-radius: 3px;
+}
+
+.tta-cal-day.empty {
+  visibility: hidden;
+}
+
+.tta-events-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tta-event-list-item {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 20px;
+  max-width:600px;
+}
+
+.tta-event-list-item:last-child {
+  border-bottom: 0;
+}
+
+.tta-price-strike {
+  text-decoration: line-through;
+  color: #a00;
+  margin-right: 4px;
+}
+
+
+.tta-event-thumb {
+  flex: 0 0 150px;
+  margin-right: 20px;
+  width: 150px;
+  height: 150px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 4px;
+}
+
+.tta-event-summary {
+  flex: 1 1 300px;
+}
+
+.tta-event-name {
+  font-size: 1.5em;
+  margin-top: 0;
+}
+
+.tta-event-datetime,
+.tta-event-venue,
+.tta-event-address,
+.tta-event-remaining {
+  margin: 0 0 0.5em 0;
+}
+
+.tta-event-excerpt {
+  margin-bottom: 0.5em;
+}
+
+.tta-event-link {
+  display: inline-block;
+  margin-top: 0.5em;
+  padding: 8px 16px;
+  background: #0073aa;
+  color: #fff;
+  border-radius: 4px;
+}
+
+.tta-events-pagination {
+  margin-top: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tta-events-pagination .page-numbers {
+  display: inline-block;
+  margin: 0 4px;
+}
+
+.tta-pagination-pages {
+  flex: 1;
+  text-align: center;
+}
+
+.tta-member-events,
+.tta-membership-perks {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+}
+.tta-member-events h2,
+.tta-membership-perks h2 {
+  margin-top: 0;
+}
+.tta-member-events ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tta-member-events li {
+  margin-bottom: 6px;
+}
+.tta-membership-perks img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+.login-wrap form {
+  margin-top: 10px;
+}
+
+.tta-event-detail-list {
+  list-style: none;
+  margin: 0 0 0.5em 0;
+  padding: 0;
+}
+.tta-event-detail-list li {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: flex-start;
+}
+.tta-event-details-icon {
+  width: 18px;
+  flex: 0 0 auto;
+  position: relative;
+  top: 2px;
+  margin-right: 4px;
+}
+.tta-event-details-icon-after {
+  flex: 1 1 auto;
+}
+
+#main > div.wrap.tta-events-list-page > div > main > ul > li > div > a > h2{
+  margin-bottom: 10px;
+}
+
+.tta-event-thumb{
+  margin-bottom:10px;
+}
+
+.tta-pagination-next, .tta-pagination-prev{
+    display: inline-block;
+    margin-top: 0.5em;
+    padding: 4px 10px;
+    background: #0073aa;
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+
+  .tta-event-list-item{
+    display: block;
+    text-align: center;
+    max-width:initial;
+  }
+
+  .tta-event-thumb{
+    margin-right:0px;
+    width: 80%;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .tta-events-list-page{
+    padding:20px;
+    padding-top:100px;
+  }
+  .tta-cal-day.has-event {
+      width: 25px;
+      height: 25px;
+      margin-left: auto;
+      margin-right: auto;
+  }
+  .tta-events-right{
+    margin-top: 6px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+  }
+
+  #loginform > p.login-username > label, #loginform > p.login-password > label{
+    display:block;
+  }
+
+  #main > div.wrap.tta-events-list-page > div > aside.tta-events-right > div > div > div > div{
+    text-align: center;
+  }
+
+  .tta-events-ad__subtitle{
+    text-align:center;
+  }
+
+  .tta-events-ad__info-item{
+    display:block;
+  }
+
+  .tta-events-ad {
+    text-align: center;
+    padding-bottom:0;
+  }
+
+  .tta-events-columns {
+    flex-direction: column;
+  }
+  .tta-events-left,
+  .tta-events-right {
+    flex: 1 1 auto;
+  }
+
+  /* center first, left second, right third */
+  .tta-events-center { order: 1; }
+  .tta-events-left   { order: 2; }
+  .tta-events-right  { order: 3; }
+
+  .tta-events-pagination{
+    margin-top: 0 !important;
+    position: relative;
+    bottom: 25px;
+    text-align: center;
+    display: block;
+    margin-bottom: 20px;
+    height: 100px;
+  }
+
+  .tta-pagination-next, .tta-pagination-prev {
+    min-width: 160px;
+  }
+
+  .tta-events-right{
+    text-align:center;
+  }
+
+  .tta-pagination-pages{
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .tta-friend-grid{
+    text-align: center;
+    display: block;
+    margin-top: 20px;
+  }
+
+  .tta-join-friends.tta-event-image-gallery-accordion .tta-accordion-content{
+    padding-left:0px;
+    padding-left:0px;
+  }
+
+  #main > div.wrap.tta-events-list-page > div > aside.tta-events-left > div.tta-membership-perks > a{
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+  }
+
+  #main > div.wrap.tta-events-list-page > div > aside.tta-events-left > div.tta-membership-perks > a > img{
+    display: inline-block;
+  }
+
+  #main > div.wrap.tta-events-list-page > div > aside.tta-events-left > div.tta-membership-perks > p{
+    text-align:center;
+  }
+
+
+}
+
+.next.page-numbers, .prev.page-numbers{
+  color:#fff;
+}
+
+.tta-pagination-next .page-numbers, .tta-pagination-prev .page-numbers{
+  font-family:inherit!important;
+}
+
+.tta-events-pagination a.page-numbers{
+  padding: .615em .769em;
+}
+
+#main > div > div > main > div > div.tta-pagination-next > a, #main > div > div > main > div > div.tta-pagination-prev > a{
+  padding: 4px 10px;
+}
+
+
+
+
+
+.tta-events-pagination a.page-numbers{
+  padding: .615em .769em;
+}
+
+#main > div > div > main > div > div.tta-pagination-next > a, #main > div > div > main > div > div.tta-pagination-prev > a{
+  padding: 4px 10px;
+}
+
+
+

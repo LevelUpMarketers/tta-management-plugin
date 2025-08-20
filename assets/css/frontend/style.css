@@ -1,0 +1,230 @@
+/* assets/css/frontend/style.css */
+
+/* frontend shortcode styling goes here */
+
+/* arrow toggle for host check-in */
+.tta-toggle-arrow {
+  transition: transform 0.3s ease;
+}
+
+.tta-toggle-arrow.open {
+  transform: rotate(180deg);
+}
+
+.tta-toggle-cell{
+  text-align:center;
+  cursor:pointer;
+}
+
+.tta-toggle-text{
+  display:none;
+  font-weight:700;
+}
+
+.tta-alert-overlay{
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  padding:10px;
+  box-sizing:border-box;
+}
+.tta-alert-modal{
+  position:relative;
+  background:#fff;
+  padding:20px;
+  border-radius:4px;
+  max-width:400px;
+  width:100%;
+}
+.tta-alert-close{
+  position:absolute;
+  top:5px;
+  right:10px;
+  background:none;
+  border:0;
+  font-size:20px;
+  cursor:pointer;
+}
+
+
+
+
+
+
+.tta-checkin-wrap{
+    margin-top: 100px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 200px;
+}
+
+.tta-checkin-wrap table td{
+    vertical-align: middle;
+}
+
+.tta-checkin-wrap .tta-attendance-details{
+  margin-left:5px;
+  margin-bottom:10px;
+}
+
+.tta-checkin-wrap .tta-attendance-details p{
+  margin-bottom:0;
+}
+
+.tta-checkin-wrap .tta-attendance-details h4{
+  margin-bottom:0px;
+}
+
+.tta-event-row.open{
+  border-bottom:0;
+}
+
+.tta-event-row.open + .tta-inline-row td{
+  border-top:0;
+}
+
+.tta-event-cell img{
+  display:block;
+}
+.tta-event-name{
+  margin-top:6px;
+  font-weight:600;
+}
+
+.button.tta-mark-attendance{
+  display: block;
+  margin-bottom: 10px;
+  width: 100%;
+  min-width: 150px;
+}
+
+.button.tta-mark-attendance:disabled{
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.tta-info-title{
+  display:none;
+  font-weight:600;
+  margin-right:4px;
+}
+
+.tta-toggle-cell .tta-inline-container{
+  display:none;
+  margin-top:10px;
+}
+
+@media (max-width: 1199px){
+  .tta-checkin-wrap table,
+  .tta-checkin-wrap thead,
+  .tta-checkin-wrap tbody,
+  .tta-checkin-wrap th,
+  .tta-checkin-wrap td,
+  .tta-checkin-wrap tr{
+    display:block;
+  }
+  .tta-checkin-wrap thead{display:none;}
+  .tta-checkin-wrap tr{
+    border:1px solid #ddd;
+    margin-bottom:15px;
+    padding:10px;
+  }
+  .tta-checkin-wrap td{
+    padding:8px 10px;
+    position:relative;
+    text-align: center;
+  }
+  .tta-event-cell img {
+    margin: 0 auto;
+  }
+  .tta-checkin-wrap {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+  .tta-checkin-wrap td[data-label]::before{
+    content:attr(data-label);
+    font-weight:600;
+    display:block;
+    margin-bottom:4px;
+  }
+  .tta-checkin-wrap td.tta-toggle-cell{
+    text-align:center;
+  }
+  .tta-checkin-wrap td.tta-toggle-cell::before{content:'';}
+  .tta-toggle-text{display:block;}
+  .tta-toggle-arrow{display:block;margin:4px auto 0;}
+  .tta-checkin-wrap tr.tta-inline-row{border:none;padding:0;}
+  .tta-checkin-wrap tr.tta-inline-row td{padding:0;}
+  .tta-info-title{display:inline;}
+  .tta-toggle-cell.open .tta-inline-container{display:block;}
+}
+
+@media (max-width: 600px){
+
+  /*  All checkout page css  */
+
+  .tta-checkout-summary td {
+      text-align: right;
+      padding-left: 50%;
+      position: relative;
+      margin-bottom: 10px;
+  }
+
+  #tta-checkout-container .tta-checkout-summary tr {
+      margin-bottom: 60px;
+  }
+
+  #tta-checkout-container > table > tfoot {
+      display: block;
+      width: 100%;
+      margin-top: 70px;
+  }
+
+  #tta-checkout-container > table > tfoot > tr > th{
+      width: 100%;
+      display: block;
+      text-align: center;
+      margin-bottom: 10px;
+  }
+  #tta-checkout-container > table > tfoot > tr > td{
+      padding-left: 8px;
+      text-align: center;
+  }
+  .tta-checkout-grid .tta-checkout-left, .tta-checkout-grid .tta-checkout-right{
+    margin:0;
+  }
+  #tta-checkout-form > div.tta-checkout-grid > div.tta-checkout-left > div > div > div > label, #tta-checkout-form > div.tta-checkout-grid > div.tta-checkout-left > div > div > div > label input{
+    max-width: 100%;
+    width: 100%;
+  }
+  .tta-event-group .tta-attendee-row label {
+    max-width: 100%;
+    width: 100%;
+  }
+  .tta-checkout-right p, #tta-checkout-form .tta-checkout-grid input[type="text"], #tta-checkout-form .tta-checkout-grid input[type="email"], #tta-checkout-form .tta-checkout-grid select{
+    width: 100%;
+  }
+
+  .tta-place-order-button-p button {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      margin-bottom: 20px;
+  }
+  .tta-place-order-button-p {
+      text-align: center;
+      min-height:120px;
+  }
+  #tta-checkout-response > ul{
+    list-style:none;
+  }
+
+
+  /*  All checkout page css  */
+
+}

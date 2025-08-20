@@ -1,0 +1,38 @@
+/* assets/css/backend/tooltips.css */
+
+/* Container around the icon must be position:relative */
+.tta-tooltip-icon {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    cursor: help;
+    width: 15px;
+    top: 2px;
+    right: 2px;
+    margin-left:4px;
+}
+
+/* The tooltip itself via ::after */
+.tta-tooltip-icon::after {
+    content: attr(data-tooltip);
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 170px;
+    text-align: center;
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-size: 12px;
+    border-radius: 4px;
+    white-space: normal;
+    z-index: 9999;
+}
+
+/* Show on hover */
+.tta-tooltip-icon:hover::after {
+  display: block;
+}

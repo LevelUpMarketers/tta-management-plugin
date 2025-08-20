@@ -1,0 +1,595 @@
+/* Hide the file‐input and all sections by default */
+#profile-image-input { display: none; }
+.tta-dashboard-section  { display: none; }
+
+.login-username label, .login-password label{
+      display: block;
+}
+
+/* Login message styles */
+.tta-message-center {
+  background: #faf8e5;
+  border: 1px solid #f0e0b0;
+  border-radius: 4px;
+  padding: 15px 20px;
+  margin: 20px 0;
+}
+.tta-login-accordion .tta-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0;
+  transition: max-height 0.4s ease, padding 0.4s ease;
+}
+.tta-login-accordion .tta-accordion-content.expanded {
+  max-height: 400px;
+  padding: 20px 0 0;
+  background: #faf8e5;
+}
+.tta-login-accordion .tta-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #0073aa;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  margin-right:10px;
+}
+.tta-button-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #0073aa;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Show Profile tab on load */
+#tab-profile { display: block; }
+
+/* Profile Image Preview */
+#profileimage-preview { margin-top: 10px; }
+#profileimage-preview img {
+  width: 85px;
+  height: auto;
+  vertical-align: top;
+}
+
+.tta-member-dashboard-wrap{
+  padding:50px;
+}
+
+/* Interests */
+.interest-item {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+.interest-item .interest-field { flex: 1; }
+.delete-interest {
+  background: none; border: none; cursor: pointer; margin-left: 8px;
+}
+.delete-interest img { width: 16px; height: 16px; }
+#add-interest-edit { margin-top: 8px; }
+
+/* Loading spinner */
+.tta-admin-progress-spinner-svg {
+  display: none; opacity: 0;
+  width: 25px; height: 25px;
+  vertical-align: middle; position: relative; left: 10px;
+  transition: opacity 0.2s ease;
+  animation: tta-spinner-rotate 1s linear infinite;
+}
+@keyframes tta-spinner-rotate {
+  from { transform: rotate(0deg); } to { transform: rotate(360deg); }
+}
+
+/* Response message */
+.tta-admin-progress-response-p {
+  display:block;
+  min-height:1.5em;
+  font-size: 30px;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.tta-admin-progress-response-p.updated,
+.tta-admin-progress-response-p.error {
+  opacity: 1;
+}
+
+/* Two-column layout */
+.tta-member-dashboard {
+  display: flex; flex-wrap: nowrap; margin: 20px 0;
+}
+/* Sidebar */
+.tta-dashboard-sidebar {
+  flex: 0 0 240px;
+  border: 1px solid #ddd;
+  background: #f9f9f9; padding: 20px; box-sizing: border-box;
+}
+/* Tabs */
+.tta-dashboard-tabs { list-style:none; margin:0; padding:0; }
+.tta-dashboard-tabs li {
+  margin-bottom: 12px; padding:10px 14px;
+  border:1px solid #ccc; border-radius:4px;
+  background:#fff; cursor:pointer; text-align:center;
+  transition:background .2s, border-color .2s;
+}
+.tta-dashboard-tabs li.active {
+  background:#eaeaea; border-color:#999; font-weight:bold;
+}
+/* Content */
+.tta-dashboard-content {
+    flex: 1;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: opacity 0.2s ease;
+    background-color: #fefefe;
+    border: solid 1px #ddd;
+}
+
+.tta-dashboard-content #tab-billing h3{
+  margin-bottom:0px;
+}
+#tta-cancel-membership-form .tta-submit-wrap button{
+  margin-top:10px;
+}
+
+#tta-update-card-form .tta-submit-wrap button{
+  margin-top:10px;
+}
+.tta-dashboard-content #tab-billing p{
+  margin-bottom:0px;
+}
+.tta-dashboard-content.fading { opacity: 0; }
+
+/* Tooltip */
+.tta-tooltip-icon {
+  cursor: help; display:inline-block;
+  position:absolute; top:20px; left:8px;
+}
+.tta-tooltip-icon img { width:15px; }
+.is-editing .tta-tooltip-icon img { position:relative;top:8px; }
+
+.is-editing .tta-wider-and-bigger-rows .tta-tooltip-icon img { position:relative;top:0px; }
+
+
+.tta-tooltip-icon::after {
+  content: attr(data-tooltip);
+  position: absolute; bottom:100%; left:50%;
+  transform: translateX(-50%);
+  margin-bottom:6px;
+  background:rgba(0,0,0,0.75); color:#fff;
+  padding:6px 8px; border-radius:4px;
+  white-space:nowrap; font-size:13px; line-height:1.2;
+  visibility:hidden; pointer-events:none;
+  z-index:10;
+}
+.tta-tooltip-icon::before {
+  content:''; position:absolute; bottom:100%; left:50%;
+  transform:translateX(-50%);
+  border-width:6px; border-style:solid;
+  border-color:transparent transparent rgba(0,0,0,0.75) transparent;
+  visibility:hidden; z-index:10;
+}
+.tta-tooltip-icon:hover::after,
+.tta-tooltip-icon:hover::before {
+  visibility:visible;
+}
+
+/* Form fields & view-mode spans */
+#tab-profile .form-table th { position:relative; width:165px; }
+#tab-profile .form-table input,
+#tab-profile .form-table select,
+#tab-profile .form-table textarea {
+  width:165px; height:35px;
+}
+#tab-profile .form-table textarea { height:initial; }
+#tab-profile .form-table input[type="checkbox"] { height:initial; }
+#tab-profile .form-table tr {
+  display:inline-block; vertical-align:top; margin:5px;
+}
+#tab-profile .form-table label,
+#tab-profile .form-table .tta-fake-label {
+  position:relative; left:15px;
+}
+#tab-profile .form-table .spacer-row { display:block; }
+.spacer-row td {
+  height:20px; padding:0; border:none;
+}
+.tta-wider-and-bigger-rows { width:358px; }
+#tab-profile .form-table .tta-wider-and-bigger-rows th {
+  width:180px; height:200px;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows td {
+  width:100%;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows label,
+#tab-profile .form-table .tta-wider-and-bigger-rows .tta-fake-label {
+  width:125px; display:block;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows fieldset label {
+  width:100%;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows input[type="text"] {
+  width:100%;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows input[type="checkbox"] {
+  width:initial;
+}
+#tab-profile .form-table .tta-wider-and-bigger-rows textarea {
+  width:100%; min-height:155px;
+}
+#biography { vertical-align: top; }
+
+/* View- vs. edit-mode */
+.view-value { display:inline; overflow:hidden;}
+.edit-input { display:none !important; }
+.is-editing .view-value { display:none!important; }
+.is-editing .edit-input  { display:inline-block !important; }
+
+/* Hide row until .is-editing */
+.hide-until-edit { display:none !important; }
+.is-editing .hide-until-edit { display:inline-block !important; }
+
+/* Match view-value to input dimensions */
+.view-value {
+  display:inline-block; box-sizing:border-box;
+  width:165px; height:35px; line-height:35px;
+  padding:0 6px; border:1px solid transparent;
+  background:#fff; vertical-align:middle;
+}
+/* For large biography row */
+#tab-profile .tta-wider-and-bigger-rows .view-value {
+  display:block; box-sizing:border-box;
+  width:100%; min-height:155px; line-height:1.4;
+  padding:6px; border:1px solid transparent;
+  background:#fff;
+}
+
+.is-editing #tab-profile .form-table label, .is-editing #tab-profile .form-table .tta-fake-label { top:7px; }
+
+.is-editing #tab-profile .form-table .tta-wider-and-bigger-rows td, .is-editing #tab-profile .form-table .attachment-thumbnail.size-thumbnail {
+  vertical-align: top;
+}
+
+#tab-profile .form-table .attachment-thumbnail.size-thumbnail {
+  vertical-align: top;
+}
+
+.view-value img{
+  max-height:135px;
+  max-width:135px;
+}
+
+#select-profile-image{
+  margin-top:20px;
+}
+.tta-assistance-form label{
+    font-weight: bold;
+    font-size: 16px;
+}
+.tta-upcoming-event-indiv-holder{
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+.tta-assistance-form{
+    margin-top:55px;
+    margin-bottom: 10px;
+}
+/* Upcoming events layout */
+.tta-upcoming-event {
+  display:flex;
+  border-bottom:1px solid #ddd;
+  padding:15px 0;
+  gap:15px;
+  margin-bottom:10px;
+}
+.tta-upcoming-thumb img {
+  width:120px;
+  height:auto;
+  border-radius:4px;
+}
+.tta-upcoming-info h4{
+  margin-top:0px;
+  margin-bottom:5px;
+}
+.tta-upcoming-info p{
+  margin-bottom:0px;
+}
+
+
+.tta-ticket-details {
+  margin: 20px;
+  margin-left:0px;
+  margin-bottom:10px;
+}
+.tta-ticket-details ul {
+  margin:4px 0 0 20px;
+  list-style:disc;
+}
+
+.tta-refund-link,
+.tta-cancel-link {
+  display:inline-block;
+  margin-top:4px;
+  font-size:14px;
+  text-decoration:underline;
+  cursor:pointer;
+}
+
+.tta-refund-form {
+  display:none;
+  margin-top:6px;
+}
+.tta-refund-form label {
+  font-weight:600;
+  display:block;
+  margin-bottom:4px;
+}
+.tta-refund-form textarea {
+  width:100%;
+  min-height:70px;
+}
+.tta-refund-form .description {
+  font-size:12px;
+  color:#666;
+  margin-bottom:4px;
+}
+.tta-refund-wrapper .tta-admin-progress-response-p.updated{
+    max-height: initial;
+    font-size: 20px;
+    margin-top: 20px;
+}
+
+/* Disabled refund controls */
+.tta-refund-form button[disabled],
+.tta-refund-form textarea[disabled] {
+  position: relative;
+  pointer-events: auto;
+  cursor: not-allowed;
+}
+.tta-refund-form button[disabled]::before,
+.tta-refund-form textarea[disabled]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: inherit;
+  pointer-events: none;
+}
+#tta-update-card-form > p{
+  display: inline-block;
+}
+
+#tta-update-card-form > p select{
+  width: 165px;
+  height: 35px;
+}
+
+#tta-update-card-form > .tta-submit-wrap{
+  display:block;
+}
+
+#tta-update-card-form{
+  max-width:700px;
+}
+
+#tta-update-card-form p{
+  margin-right: 20px;
+  margin-top: 10px;
+}
+
+#tab-profile #tta-member-dashboard-form > table > tbody > tr:nth-child(21) > td > span{
+  background:none;
+}
+.tta-subscription-issue-message{
+  margin: 10px 0px;
+  color: red;
+  font-size: 16px;
+  margin-bottom: 10px !important;
+}
+.tta-subscription-issue-message .tta-become-a-member-again{
+  font-weight: bold;
+  text-decoration: underline;
+}
+.tta-bmi-bold{
+  font-weight:bold;
+}
+.tta-attendance-summary-totals{
+  margin-bottom:0px;
+}
+.tta-for-margin-and-nothing-else-ha-ha{
+  display: block;
+  height: 20px;
+}
+.tta-leave-waitlist{
+  margin-top:10px;
+}
+
+.tta-billing-history-mobile {
+  display: none;
+}
+
+/* Responsive mobile layout */
+@media (max-width: 1199px) {
+  .tta-member-dashboard {
+    flex-direction: column;
+  }
+  .tta-dashboard-sidebar {
+    display: none;
+  }
+  .tta-dashboard-content {
+    padding: 0;
+    border: none;
+  }
+  .tta-accordion-tab {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    cursor: pointer;
+  }
+  .tta-accordion-tab.active {
+    background: #eaeaea;
+    font-weight: bold;
+  }
+  .tta-dashboard-section {
+    display: none;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-top: none;
+    box-sizing: border-box;
+  }
+  .tta-dashboard-content{
+    background-color:initial;
+  }
+  #tab-profile, #tab-upcoming, #tab-waitlist, #tab-past, #tab-billing{
+    margin-bottom: 20px;
+    position: relative;
+    bottom: 10px;
+  }
+  #tab-profile .form-table tr {
+    width: 100%;
+  }
+  #tab-profile .form-table th {
+    width: 100%;
+    display: block;
+    text-align: center;
+  }
+  .profile-row td{
+    text-align: center;
+    width: 100%;
+    display: block;
+  }
+  .profile-row .tta-tooltip-icon{
+    display:none;
+  }
+  #tab-profile .form-table label, #tab-profile .form-table .tta-fake-label {
+    position: relative;
+    left: 0px;
+  }
+  #tab-profile .form-table .tta-wider-and-bigger-rows th {
+    width: 100%;
+    height: initial;
+  }
+  #tab-profile .form-table .tta-wider-and-bigger-rows label, #tab-profile .form-table .tta-wider-and-bigger-rows .tta-fake-label {
+    width: initial;
+  }
+  .tta-member-dashboard-wrap {
+    padding: 20px;
+  }
+  #tab-profile .form-table tr {
+    display: inline-block;
+    vertical-align: top;
+    margin: 0px 0px 20px 0px;
+  }
+  #tab-profile .form-table input, #tab-profile .form-table select, #tab-profile .form-table textarea {
+    width: 100%;
+    height: 35px;
+  }
+  .tta-submit-wrap{
+    text-align:center;
+  }
+  .is-editing #interests-container {
+    width: 100%;
+  }
+  #tta-member-dashboard-form > table > tbody > tr > td > fieldset{
+    text-align:left;
+  }
+  .is-editing #tab-profile .form-table label, .is-editing #tab-profile .form-table .tta-fake-label {
+    top: 0px;
+  }
+  #tab-profile .form-table .spacer-row {
+    display: none;
+  }
+  .tta-progress-spinner{
+    display: block;
+    margin-top: 30px;
+    height:30px;
+    text-align:center;
+  }
+  .tta-admin-progress-spinner-svg{
+    left:0;
+  }
+  .tta-admin-progress-response-p{
+    text-align:center;
+  }
+  #tta-update-card-form > p {
+    display: block;
+    width: 100%;
+  }
+  #tta-update-card-form input, #tta-update-card-form select{
+    width:100%!important;
+  }
+  #tta-update-card-form p {
+    margin-right: 0px;
+  }
+  .tta-upcoming-event {
+    display: block;
+    border-bottom: 1px solid #ddd;
+    padding: 15px 0;
+    gap: 15px;
+    margin-bottom: 10px;
+  }
+  .tta-billing-history--desktop {
+    display: none;
+  }
+  .tta-billing-history-mobile {
+    display: block;
+  }
+  .tta-billing-history-mobile-row {
+    border-bottom: 1px solid #ddd;
+    padding: 15px 0;
+    margin-bottom: 10px;
+  }
+  .tta-bhm-field {
+    margin-bottom: 4px;
+  }
+  .tta-bhm-field:last-child {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  #tab-profile > section > div > div.tta-accordion-content.expanded > form > p{
+    width: 100%;
+  }
+  #tab-profile > section > div > div.tta-accordion-content.expanded > form > p:nth-child(7){
+    width: initial;
+  }
+  #tab-profile > section > div > div.tta-accordion-content.expanded > form > p:nth-child(7) a{
+    display: block;
+    margin-top:10px;
+  }
+  .tta-login-accordion .tta-accordion-content.expanded {
+    max-height: 600px;
+    padding: 20px 0 0;
+    background: #faf8e5;
+  }
+  .tta-login-accordion .tta-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #0073aa;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-right: 10px;
+    width: 155px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .tta-register-form input[type="text"], .tta-register-form input[type="email"], .tta-register-form input[type="password"]{
+    width: 100%;
+  }
+    .tta-login-wrap input[type="password"], .tta-login-wrap input[type="text"] {
+        width: 100%;
+    }
+}

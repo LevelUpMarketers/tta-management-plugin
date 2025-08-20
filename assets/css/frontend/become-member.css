@@ -1,0 +1,157 @@
+/* assets/css/frontend/become-member.css */
+
+/* Become a Member page */
+.tta-become-member-wrap {
+  width: 100%;
+  margin: 0 auto;
+  padding-bottom: 200px;
+  padding-top: 100px;
+  padding-left:80px;
+  padding-right:80px;
+}
+
+.tta-membership-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+.tta-membership-table th,
+.tta-membership-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+.tta-membership-table td.check {
+  color: green;
+  font-weight: bold;
+}
+
+.tta-membership-buttons {
+  margin-top: 20px;
+}
+
+.tta-membership-buttons .button {
+  display: inline-block;
+  margin-right: 15px;
+  padding: 10px 20px;
+  background: #0073aa;
+  color: #fff;
+  text-decoration: none;
+}
+
+.tta-membership-buttons .button:hover {
+  background: #005177;
+}
+
+.tta-membership-mobile {
+  display: none;
+}
+
+.tta-tier-card {
+  border: 1px solid #ccc;
+  margin: 20px 0;
+  padding: 15px;
+}
+
+.tta-tier-card h2 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.tta-tier-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.tta-tier-card li {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+}
+
+/* Become a Member intro section */
+.tta-member-intro {
+  padding: 80px;
+}
+
+.tta-member-intro-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.tta-member-intro-gallery {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  margin-left: 50px;
+}
+
+.tta-member-intro-gallery img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1s ease, transform 1s ease;
+  border-radius: 4px;
+}
+
+.tta-membership-table th {
+    font-weight: 600;
+    color: #3a7096;
+    font-size: 30px;
+    font-family: "Teko", sans-serif;
+}
+
+.tta-member-intro-gallery img.active {
+  opacity: 1;
+}
+
+.tta-member-intro-gallery img.exit {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.tta-member-intro h1 {
+  font-size: 4VW;
+  color: #3a7096;
+  margin-top: 0;
+  position: relative;
+  bottom: 0px;
+  font-family: "Teko", sans-serif;
+  FONT-WEIGHT: BOLD;
+  line-height: 1;
+}
+
+.tta-member-intro p {
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .tta-membership-table {
+    display: none;
+  }
+
+  .tta-membership-mobile {
+    display: block;
+  }
+
+  .tta-member-intro-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .tta-member-intro-gallery {
+    margin-left: 0;
+  }
+
+  .tta-member-intro {
+    padding: 0;
+  }
+}
+

@@ -1,0 +1,8 @@
+{
+  "require": {
+    "authorizenet/authorizenet": "^2",
+    "phpoffice/phpspreadsheet": "^4.4",
+    "twilio/sdk": "^7",
+    "maennchen/zipstream-php": "^2.3"
+  }
+}

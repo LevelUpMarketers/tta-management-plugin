@@ -1,0 +1,596 @@
+/* assets/css/backend/admin.css */
+
+#wpbody-content > div.wrap > form > .form-table > tbody > tr, #tta-event-edit-form table > tbody > tr, #tta-ticket-edit-form table > tbody > tr{
+    display:inline-block;
+    margin-top: 20px;
+    vertical-align: top;
+}
+
+#tta-ticket-edit-form .form-table{
+    margin-bottom:20px;
+}
+
+.regular-text.interest-field{
+    display: block;
+    margin-top: 5px;
+}
+.tta-token-section .button.tta-insert-token{
+    width: 190px;
+    margin: 2px;
+}
+#hosts-container .regular-text.host-field, #volunteers-container .regular-text.volunteer-field{
+    width: 166px;
+}
+
+#tta-ticket-edit-form > section > details.tta-ticket-attendees > div > table > tbody > tr{
+    display:table-row;
+}
+
+.tta-waitlist-holder-for-css{
+    background-color: #f7f7f7;
+    padding: 20px;
+    margin: 20px;
+    border: solid 1px #b9b9b9;
+    border-radius: 5px;
+}
+
+#tta-member-edit-form .form-table{
+    width: initial;
+}
+
+#tta-member-edit-form .form-table tr{
+    margin-top: 20px;
+    display: inline-block;
+    vertical-align: top;
+    min-width:220px;
+}
+
+#tta-member-edit-form .form-table textarea{
+    min-height:200px;
+}
+
+#tta-member-edit-form .form-table td{
+    display:block;
+}
+
+#tta-member-edit-form .form-table td, #tta-member-edit-form .form-table textarea, #tta-member-edit-form .form-table input[type="text"], #tta-member-edit-form .form-table select{
+    width:96%;
+}
+
+.tta-edit-link{
+    pointer-events:none;
+}
+
+#tta-members-manage .subtitle{
+    margin-top: 20px;
+    padding-left: 0;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+#tta-members-manage p.search-box{
+    margin:0;
+}
+
+#tta-members-create .form-table{
+    width: initial;
+}
+
+#tta-members-create .form-table tr{
+    margin-top: 20px;
+    display: inline-block;
+    vertical-align: top;
+    min-width:220px;
+}
+
+#tta-members-create .form-table textarea{
+    min-height:200px;
+}
+
+#tta-members-create .form-table td{
+    display:block;
+}
+
+#tta-members-create .form-table td, #tta-members-create .form-table textarea, #tta-members-create .form-table input[type="text"], #tta-members-create .form-table select{
+    width:96%;
+}
+
+/* Email & SMS template forms */
+.tta-comms-form .form-table {
+    width: initial;
+}
+.tta-comms-form .form-table tr {
+    margin-top: 20px;
+    display: inline-block;
+    vertical-align: top;
+    min-width: 220px;
+}
+.tta-comms-form .form-table textarea {
+    min-height: 150px;
+}
+.tta-comms-form .form-table td {
+    display: block;
+}
+.tta-comms-form .form-table td,
+.tta-comms-form .form-table textarea,
+.tta-comms-form .form-table input[type="text"] {
+    width: 96%;
+}
+
+.tta-member-edit-unexpanded-profile-img{
+    max-width: 150px;
+    max-height: 100px;
+}
+
+.tta-member-center-profile-img{
+    text-align: center;
+}
+
+#profileimage-preview img, #profileimage-preview_edit img{
+    max-width:150px;
+    max-height:150px;
+    margin-top:20px;
+}
+
+/* ------------ Spinner Styling ------------ */
+
+/* Container for the spinner: hidden by default (opacity:0). */
+.tta-admin-progress-spinner-div {
+  display: inline-block;
+  transition: opacity 0.3s ease;
+  /* keep it aligned with the button */
+  vertical-align: middle;
+  margin-left: 8px; /* adjust spacing as you wish */
+}
+
+/* The <img> itself continuously spins */
+.tta-admin-progress-spinner-svg {
+  width: 20px;   /* adjust size as needed */
+  height: 20px;
+  animation: spin 1s linear infinite;
+  opacity: 0;
+}
+
+/* Spinner used within table rows when loading details */
+.tta-row-spinner {
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+  vertical-align: middle;
+}
+
+/* Define a simple 0→360° rotation */
+@keyframes spin {
+  from   { transform: rotate(0deg); }
+  to     { transform: rotate(360deg); }
+}
+
+.tta-admin-progress-response-p{
+    display:block;
+    min-height:1.5em;
+    margin-top:0!important;
+    font-weight: bold;
+    font-size: 17px!important;
+    max-width: 800px;
+    opacity:0;
+    transition:opacity .2s ease;
+}
+.tta-admin-progress-response-p.updated,
+.tta-admin-progress-response-p.error{
+    opacity:1;
+}
+
+form p.submit{
+   display: inline-block; 
+}
+
+.tta-waitlist-entry{
+    background-color: #cbcbcb;
+    text-align: center;
+    border-radius: 5px;
+    padding: 10px;
+    margin:10px;
+}
+
+.tta-waitlist-entry th{
+  text-align:center;
+  margin-bottom:10px;
+}
+
+.form-table .tta-waitlist-entry td{
+  width: 200px;
+  padding: 0;
+}
+
+.form-table .tta-remove-waitlist:hover {
+    background: #135e96;
+    border-color: #135e96;
+    color: #fff;
+}
+
+.tta-waitlist-entry img{
+    width: 100px;
+    height: auto;
+    margin-bottom:10px;
+}
+
+.tta-remove-waitlist, .tta-waitlist-entry a{
+    display: block;
+}
+
+.form-table .tta-remove-waitlist{
+    margin-left: auto;
+    margin-right: auto;
+    color: white;
+    background-color: #2271b1;
+    border-color: #2271b1;
+    padding: 0px 5px 3px 5px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.tta-waitlist-entry a{
+    font-size:20px;
+    color:#000;
+}
+
+.tta-events-wrap h1 {
+    color: #2c3e50;
+}
+
+.form-table th {
+    padding: 0;
+    display: block;
+}
+
+.form-table td {
+    margin-bottom: 9px;
+    padding: 5px 10px 0px 0px;
+    line-height: 1.3;
+    vertical-align: middle;
+}
+
+.form-table select, .form-table input[type=date], .form-table input[type=datetime-local], .form-table input[type=datetime], .form-table input[type=email], .form-table input[type=month], .form-table input[type=number], .form-table input[type=password], .form-table input[type=search], .form-table input[type=tel], .form-table input[type=text], .form-table input[type=time], .form-table input[type=url], .form-table input[type=week] {
+    width: 200px;
+}
+
+.toplevel_page_tta-events #wpbody-content > div.wrap > form > table > tbody > tr {
+    vertical-align: top;
+}
+
+#otherimage-preview img, #mainimage-preview img{
+    vertical-align:top;
+    margin-top:5px;
+} 
+
+/* inline edit row styling */
+.tta-inline-row td {
+  animation: tta-fade-slide-down 0.3s ease-out;
+}
+
+.tta-delete-new-ticket img, .tta-delete-ticket img{
+    width: 15px;
+    top: 2px;
+    right: 2px;
+    position: relative;
+}
+
+.tta-delete-new-ticket, .tta-delete-ticket{
+    position:absolute;
+    bottom:0.5em;
+    right:0.5em;
+    background:none;
+    border:none;
+    cursor:pointer;
+}
+
+.tta-delete-new-ticket-span{
+    font-size:14px;
+}
+
+/* Delete‐ticket icon in ticket‐edit rows */
+.tta-delete-ticket-row {
+  padding: 0;
+}
+.tta-delete-ticket-row img {
+  display: block;
+}
+.tta-ticket-row {
+  position: relative;
+  padding-top: 1.5em; /* ensure room for the delete icon */
+}
+
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Waitlist Entries Styling                                                  */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+.tta-ticket-waitlist details {
+  margin-top: 1em;
+}
+
+.tta-ticket-row .form-table{
+    margin-top:1em;
+}
+
+.tta-ticket-row .form-table th{
+    position:relative;
+}
+
+.tta-ticket-row .form-table th label{
+    position:relative;
+    left: 20px;
+}
+
+.tta-ticket-row .form-table th .tta-tooltip-icon, .tta-ticket-row .tta-ticket-attendees summary span, .tta-ticket-row .tta-ticket-waitlist summary span{
+    position: absolute;
+    display: inline-block;
+    vertical-align: middle;
+    cursor: help;
+    width: 15px;
+    margin-left: 4px;
+    left: -2px;
+    top: 3px;
+}
+
+.tta-ticket-row .tta-ticket-waitlist summary span, .tta-ticket-row .tta-ticket-attendees summary span{
+    left: -22px;
+}
+
+.tta-ticket-waitlist summary, .tta-ticket-attendees summary{
+    font-weight: 600;
+    color: #1d2327;
+    font-size: 14px;
+    margin-bottom:20px;
+    left:20px;
+    position: relative;
+    cursor: pointer;
+}
+
+.tta-wl-entry {
+  background: #f9f9f9;
+  padding: 1em;
+  margin-bottom: 1.5em;
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.tta-wl-thumb {
+  margin-right: 1em;
+}
+.tta-wl-thumb-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Make the info table horizontally scrollable on small screens */
+.tta-wl-info-wrapper {
+  overflow-x: auto;
+  flex: 1;
+}
+
+/* Fixed layout table with equal columns */
+.tta-wl-info-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 600px; /* ensure scroll on narrow viewports */
+  table-layout: fixed;
+}
+.tta-wl-info-table th,
+.tta-wl-info-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  vertical-align: top;
+  width: calc(100% / 6);
+  word-wrap: break-word;
+}
+
+/* Bold headings */
+.tta-wl-info-table th {
+  font-weight: bold;
+  background: #efefef;
+}
+
+/* Remove button styling */
+.tta-remove-waitlist-entry {
+  width:100%;
+}
+.tta-remove-waitlist-entry img {
+  width: 16px;
+  height: 16px;
+}
+
+/* Fallback no-entries text */
+.no-waitlist {
+  color: #666;
+  margin-top: 0.5em;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+  .tta-wl-entry {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tta-wl-info-table th,
+  .tta-wl-info-table td {
+    width: auto;
+  }
+}
+
+
+/* keyframes for fade + slide down */
+@keyframes tta-fade-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Arrow styling */
+.tta-toggle-arrow {
+  display: inline-block;
+  /* 1) Scale up 1.5× */
+  transform: rotate(0deg) scale(1.5);
+  /* 2) Point up by default (0° = up if using an “up” arrow icon) */
+  transition: transform 0.3s ease;
+  position: relative;
+ 
+  pointer-events: none;
+}
+
+.tta-toggle-arrow.open {
+  /* Rotate to point down (180°) when open */
+  transform: rotate(180deg) scale(1.5);
+}
+
+/* Simple accordion styling for admin sections */
+.tta-admin-accordion .tta-accordion-content {
+    display: none;
+    margin: 10px 0;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+.tta-admin-accordion .tta-accordion-content.expanded {
+    display: block;
+}
+
+.tta-admin-accordion .tta-accordion-toggle {
+    margin-top: 5px;
+}
+
+.tta-email-preview {
+  background:#f9f9f9;
+  border:1px solid #ccd0d4;
+  padding:10px;
+  margin-top:5px;
+}
+.tta-sms-preview {
+  background:#f1f1f1;
+  border:1px solid #ccd0d4;
+  padding:10px;
+  margin-top:5px;
+}
+.tta-sms-count {
+  font-weight:bold;
+}
+.tta-sms-count.tta-over-limit {
+  color:#b32d2e;
+}
+
+.tta-token-section {
+  margin-bottom:8px;
+}
+
+/* Subscription controls on Member History */
+.tta-subscription-forms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 10px;
+}
+.tta-subscription-forms form {
+  background: #f9f9f9;
+  border: 1px solid #ccd0d4;
+  padding: 10px;
+  border-radius: 4px;
+  flex: 1 1 100%;
+  min-width: 260px;
+}
+.tta-subscription-forms h5 {
+  margin: 0 0 8px;
+}
+#tta-admin-update-payment-form p, #tta-admin-reactivate-subscription-form p, #tta-admin-change-level-form p{
+    display: inline-block;
+    margin-bottom: 9px;
+    padding: 5px 10px 0px 0px;
+    line-height: 1.3;
+    vertical-align: middle;
+}
+#tta-ticket-edit-form > section > details.tta-ticket-waitlist > div > table > tbody > tr{
+    display:table-row;
+}
+#tta-ticket-edit-form > section > details.tta-ticket-waitlist > div > table, #tta-ticket-edit-form > section > details > div > table{
+    margin-bottom:20px;
+}
+.tta-submit-history-div{
+    display:block;
+}
+#tta-ticket-edit-form > section > details.tta-ticket-attendees > div > table > tbody > tr > td > button{
+    width: 100%;
+    margin-bottom:10px;
+}
+.tta-member-history-details li{
+    display:inline-block;
+}
+
+#tta-admin-update-payment-form input, #tta-admin-update-payment-form select, #tta-admin-reactivate-subscription-form input, #tta-admin-reactivate-subscription-form select, #tta-admin-change-level-form input, #tta-admin-change-level-form select{
+    width:198px;
+}
+@media (max-width: 600px) {
+  .tta-subscription-forms {
+    flex-direction: column;
+  }
+}
+
+/* BI Dashboard styling */
+.tta-bi-chart svg {font: 10px sans-serif; margin-bottom:20px;}
+.tta-bi-tooltip {position:absolute; background:#fff; border:1px solid #ccc; padding:4px 8px; font-size:12px; border-radius:4px; pointer-events:none; box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.tta-bi-legend {font-size:12px; margin-top:10px; padding-top:4px;}
+.tta-bi-legend span{display:inline-block;margin-right:10px;}
+
+
+/* Refund Requests page */
+.tta-refund-request summary {
+  font-weight: 600;
+  color: #1d2327;
+  font-size: 14px;
+  margin-top: 1em;
+  cursor: pointer;
+}
+.tta-refund-details {
+  margin-left: 20px;
+  margin-bottom: 1em;
+}
+
+#tta-admin-assign-membership-form > p{
+    display: inline-block;
+    margin-bottom: 9px;
+    padding: 5px 10px 0px 0px;
+    line-height: 1.3;
+    vertical-align: middle;
+}
+
+#tta-admin-assign-membership-form > p input, #tta-admin-assign-membership-form > p select{
+    width:198px;
+}
+
+#tta-members-history > table > tbody > tr.tta-inline-row > td > div > div > h4, #tta-members-history > table > tbody > tr.tta-inline-row > td > div > div > div.tta-subscription-info, #tta-members-history > table > tbody > tr.tta-inline-row > td > div > div > div.tta-subscription-info > p{
+        display:inline-block;
+}
+
+#tta-members-history > table > tbody > tr.tta-inline-row > td > div > div > div.tta-subscription-info > p {
+    margin-left: 20px;
+}
+
+#tta-members-history > table > tbody > tr.tta-inline-row > td > div > div > div.tta-subscription-info > p > strong{
+        font-weight:normal;
+}
+
+#ad_image-preview, #ad_image-preview_edit > img{
+    margin-top:20px;
+}
+
+#tta-ad-edit-form > table > tbody > tr > td{
+    display:block;
+}

@@ -1,0 +1,836 @@
+/* ==========================================================================
+   Event Page Styles
+   ========================================================================== */
+
+/* Hero */
+.tta-event-hero {
+  background: #f5f5f5;
+  padding: 40px 0;
+}
+.tta-events-ad{
+  padding-bottom: 100px;
+  text-align: left;
+}
+
+.tta-events-ad img{
+  border-radius:4px;
+}
+
+.tta-events-ad h2{
+  display:flex;
+  align-items:center;
+  gap:0.25rem;
+  margin-top:0;
+  margin-bottom:0.5em;
+  font-size:1.25em;
+}
+
+#main > div > div > div > aside.tta-event-right > div > a{
+  position: relative;
+  display: block;
+}
+
+.tta-events-ad__subtitle{
+  margin-bottom: 1em;
+  font-size: 1em;
+  text-align:left;
+}
+
+.tta-events-ad__info{
+  margin-top:1em;
+}
+
+.tta-events-ad__info-item{
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  margin-bottom:0.5em;
+}
+
+.tta-event-hero-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;.tta-related-event
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 72%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.tta-event-hero-text {
+  flex: 1 1 400px;
+  padding-right: 20px;
+}
+.tta-event-hero-text .tta-button:hover{
+  background-color:#2f516a;
+  text-decoration:none;
+}
+
+.tta-event-title {
+  font-size: 2.5em;
+  margin-bottom: .5em;
+}
+.tta-event-meta {
+  font-size: 1.1em;
+  margin-bottom: 1em;
+}
+.tta-event-share {
+  margin-bottom: 1em;
+}
+.tta-event-share .tta-share-label {
+  margin-right: 0.5em;
+}
+.tta-event-share img {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.25em;
+  vertical-align: middle;
+}
+.tta-share-link:hover,
+.tta-share-link img:hover {
+  text-decoration: none;
+  opacity: 1;
+  transform: none;
+}
+.tta-event-meta .tta-event-date,
+.tta-event-meta .tta-event-price,
+.tta-event-meta .tta-event-type-meta {
+  display: inline-block;
+  margin-right: 1em;
+}
+.tta-button-primary {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #0073aa;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.tta-button-secondary {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #555;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.tta-button-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: default;
+}
+
+.tta-event-main #tta-login-message .tta-button-primary {
+  margin-right:10px;
+}
+
+.tta-event-main #tta-login-message .tta-button-primary:hover {
+  text-decoration:none;
+  background-color:#2f516a;
+}
+
+
+.tta-event-hero-image {
+  flex: 0 0 50%;
+  text-align: center;
+}
+.tta-event-hero-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Accordion: Event Description */
+.tta-event-description-accordion details {
+  margin: 2em 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1.5em;
+  background: #fafafa;
+}
+.tta-event-description-accordion summary {
+  font-size: 1.75em;
+  font-weight: bold;
+  cursor: pointer;
+  list-style: none;
+  outline: none;
+  position: relative;
+  padding-right: 1.5em;
+}
+.tta-event-description-accordion summary::-webkit-details-marker {
+  display: none;
+}
+.tta-event-description-accordion summary::after {
+  content: "";                        /* empty so no arrow glyph is drawn */
+  display: inline-block;              /* allow width/height */
+  width: 1em;                         /* or the pixel size of your SVG */
+  height: 1em;
+  position: absolute;
+  right: 0;
+  top: 0.2em;
+  background-image: url("../../images/public/circle-arrow.svg");
+  background-repeat: no-repeat;
+  background-size: contain;           /* scale it to fit the box */
+  transition: transform 0.2s ease;
+}
+.tta-event-description-accordion details[open] summary::after {
+  transform: rotate(90deg);
+}
+.tta-event-description-accordion summary + * {
+  margin-top: 0.5em;
+}
+
+/* Main + Sidebar */
+.tta-event-content-wrap {
+  max-width: 1200px;
+  margin: 40px auto;
+}
+.tta-event-columns {
+  display: flex;
+  gap: 20px;
+}
+.tta-event-right {
+  flex: 0 0 220px;
+  align-self: stretch;
+  order: 3;
+  position: relative;
+}
+.tta-event-main {
+  flex: 1 1 auto;
+  padding-right: 30px;
+  order: 2;
+}
+.tta-event-sidebar {
+  flex: 0 0 300px;
+  background: #fafafa;
+  padding: 20px;
+  border-radius: 4px;
+  order: 1;
+}
+.tta-event-details h2 {
+  margin-top: 0;
+}
+.tta-event-details ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tta-event-details li {
+  margin-bottom: .5em;
+  display: flex;
+  align-items: flex-start;
+}
+.tta-event-map iframe {
+  width: 100%;
+  height: 200px;
+  border: 0;
+  border-radius: 4px;
+}
+
+/* Tickets */
+.tta-event-tickets-wrap {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Related Events */
+.tta-related-events {
+  max-width: 1200px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+.tta-related-events-grid {
+  display: flex;
+  gap: 20px;
+}
+.tta-related-event {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  background-color: #fafafa;
+  padding: 20px;
+  border-radius: 4px;
+  min-height: 375px;
+}
+.tta-ticket-waitlist .tta-join-waitlist, .tta-ticket-waitlist .tta-upgrade-btn, .tta-ticket-waitlist .tta-leave-waitlist{
+  padding: 5px 10px;
+  margin-top:10px;
+}
+.tta-ticket-waitlist .tta-upgrade-btn{
+  font-size:.923em;
+}
+.tta-ticket-waitlist .tta-upgrade-btn:hover, .tta-tickets-addtocart-button .tta-upgrade-btn:hover{
+  text-decoration:none;
+  background-color: #2f516a;
+}
+.tta-related-event .tta-event-thumb {
+  width: 100%;
+  height: 225px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 4px;
+  margin-bottom: .5em;
+}
+.tta-related-event h3 {
+  margin: .5em 0 .2em;
+  font-size: 18px;
+}
+.tta-related-event time {
+  font-size: 16px;
+  color: #666;
+}
+
+.tta-event-costmod-class-strikethrough span{
+  text-decoration-line: line-through;
+  text-decoration-style: solid;      /* e.g. solid, double, dotted… */
+  text-decoration-color: currentColor;
+  /* text-decoration-thickness: 2px; */ /* optional if you want to bump up the weight */
+}
+
+.tta-related-event {
+  display: flex;
+  flex-direction: column;
+}
+.tta-related-event-info {
+
+}
+
+/* Message Center */
+.tta-message-center {
+  background: #faf8e5;
+  border: 1px solid #f0e0b0;
+  border-radius: 4px;
+  padding: 15px 20px;
+  margin: 20px 0;
+}
+
+.tta-login-accordion .tta-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0;
+  transition: max-height 0.4s ease, padding 0.4s ease;
+}
+
+.tta-login-accordion .tta-accordion-content.expanded {
+  max-height: 400px;
+  padding: 20px 0 0;
+  background: #faf8e5;
+}
+
+.login-username label, .login-password label{
+  display: block;
+}
+
+.tta-button-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #0073aa;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Ticket context text */
+.tta-ticket-context {
+  margin: 0 0 15px;
+  font-size: 0.9em;
+  color: #555;
+}
+#main .tta-event-attendees-section .tta-gallery-grid{
+  column-count:initial;
+}
+
+#main > div > div > div > main > section.tta-event-section.tta-event-image-gallery-accordion.tta-event-attendees-section > div > div > div > div{
+  display:inline-block;
+  margin:10px;
+  min-width:85px;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Tickets Section
+   ────────────────────────────────────────────────────────────────────────── */
+.tta-event-buy {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  padding: 20px;
+  position: relative;
+}
+.tta-event-buy h2 {
+  margin: 0 0 10px;
+  font-size: 1.5em;
+  font-weight: normal;
+}
+.tta-event-buy hr {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 10px 0 20px;
+}
+
+/* Ticket line */
+.tta-ticket-item {
+  float:right;
+}
+.tta-ticket-item .tta-ticket-price{
+  display:block;
+}
+.tta-ticket-name {
+  font-weight: bold;
+  font-size: 16px;
+}
+.tta-fomo-remaining-styling{
+    color: red;
+    font-style: italic;
+    text-transform: uppercase;
+}
+
+/* Waitlist popup */
+.tta-waitlist-overlay{
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  padding:10px;
+  box-sizing:border-box;
+}
+.tta-waitlist-modal{
+  position:relative;
+  background:#fff;
+  padding:20px;
+  border-radius:4px;
+  max-width:400px;
+  width:100%;
+}
+.tta-waitlist-modal label{
+  display:block;
+  margin-bottom:10px;
+}
+.tta-waitlist-modal input[type="text"],
+.tta-waitlist-modal input[type="email"],
+.tta-waitlist-modal input[type="tel"]{
+  width:100%;
+  padding:6px;
+  box-sizing:border-box;
+}
+.tta-waitlist-close{
+  position:absolute;
+  top:5px;
+  right:5px;
+  background:none;
+  border:none;
+  font-size:20px;
+  cursor:pointer;
+  color:#000;
+  transition:color 0.2s ease;
+}
+.tta-waitlist-close:hover,
+.tta-waitlist-close:focus{
+  color:#fff;
+}
+.tta-admin-progress-spinner-svg {
+  display:none;
+  opacity:0;
+  width:25px;
+  height:25px;
+  vertical-align:middle;
+  transition:opacity 0.2s ease;
+  animation: tta-spinner-rotate 1s linear infinite;
+}
+@keyframes tta-spinner-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.tta-admin-progress-response-p {
+  display:block;
+  min-height:1.5em;
+  font-size:18px;
+  font-weight:bold;
+  opacity:0;
+  transition:opacity 0.2s ease;
+}
+.tta-admin-progress-response-p.updated,
+.tta-admin-progress-response-p.error {
+  opacity:1;
+}
+.tta-ticket-price {
+  margin-left: auto;
+  font-size: 14px;
+  text-align: right;
+}
+.tta-ticket-available {
+  display: block;
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 4px;
+}
+
+.tta-tickets-addtocart-button{
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.tta-upgrade-btn{
+  flex: 0 0 auto;
+}
+
+/* Quantity chooser */
+.tta-top-indiv-wrapper {
+    border-top: solid 1px #eee;
+    border-bottom: solid 1px #eee;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-top:20px;
+}
+.tta-qty-decrease,
+.tta-qty-increase {
+  background-color: #0073aa;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  font-size: 1.2em;
+  line-height: 1;
+  cursor: pointer;
+  text-align: center;
+  padding: 0;
+  padding-bottom: 4px;
+}
+.tta-qty-input {
+  width: 50px;
+  height: 32px;
+  border: 1px solid #ccc;
+  text-align: center;
+  margin: 0 8px;
+  font-size: 1em;
+}
+.tta-ticket-notice {
+  color: #b00;
+  font-size: 0.9em;
+  margin-top: 4px;
+  display: none;
+}
+
+/* Disabled controls */
+.tta-disabled,
+button[disabled],
+input[disabled] {
+  position: relative;
+  pointer-events: auto; /* allow hover for tooltips */
+  cursor: not-allowed;
+}
+
+.tta-disabled::before,
+button[disabled]::before,
+input[disabled]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+#tta-get-tickets:disabled {
+  cursor: not-allowed;
+}
+#tta-join-waitlist:disabled {
+  cursor: not-allowed;
+}
+
+/* Tooltip for disabled elements */
+.tta-tooltip-trigger {
+  position: relative;
+}
+
+.tta-tooltip-trigger[data-tooltip]::after {
+  content: attr(data-tooltip);
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 170px;
+  text-align: center;
+  margin-bottom: 6px;
+  padding: 10px;
+  line-height: 1.2;
+  background: rgba(0, 0, 0, 1);
+  color: #fff;
+  font-size: 15px;
+  border-radius: 4px;
+  white-space: normal;
+  z-index: 9999;
+}
+
+.tta-tooltip-trigger:hover[data-tooltip]::after {
+  display: block;
+}
+
+/* Get Tickets button */
+#tta-get-tickets {
+  display: inline-block;
+  float: right;
+  margin: 0;
+}
+
+
+
+.tta-event-description-accordion .tta-accordion {
+  position: relative;
+  margin-bottom: 2em;
+}
+
+.tta-accordion-content {
+    max-height: 200px;
+    overflow: hidden;
+    position: relative;
+    background: #fafafa;
+    padding: 20px;
+    border-radius: 4px;
+    transition: max-height 0.4s ease;/* animate max-height */
+}
+.tta-event-time, .tta-event-date, .tta-event-type-meta{
+  font-size: 16px;
+  font-weight: bold;
+}
+.tta-accordion-content h2{
+  margin-top:0;
+}
+
+.tta-accordion-content::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 60px;
+  pointer-events: none;
+  transition: opacity 0.4s ease;   /* fade animation */
+}
+
+.tta-accordion button{
+  margin-top:10px;
+}
+
+.tta-event-sidebar .tta-accordion-content::after {
+}
+.tta-event-sidebar .tta-accordion-content{
+  padding:0px;
+}
+
+.tta-eventpage-sidebar-heading{
+  margin-top:20px!important;
+}
+
+.tta-accordion-content.expanded {
+  max-height: 2000px;              /* large enough to fit all content */
+}
+
+.tta-additional-links a:hover{
+  text-decoration:none;
+}
+
+.tta-additional-links img{
+  width: 30px;
+  margin-right: 5px;
+}
+
+/* Your Events section */
+.tta-your-events-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tta-your-events-list li {
+  margin-bottom: .5em;
+  display: flex;
+  align-items: flex-start;
+}
+.tta-your-events-list .logout-icon {
+  transform: rotate(180deg);
+}
+
+.tta-accordion-content.expanded::after {
+  opacity: 0;                      /* hide the fade */
+}
+
+.tta-accordion-toggle, .tta-accordion-toggle-image-gallery {
+  display: block;
+  margin: 0.5em auto;
+  padding: 0.5em 1em;
+  cursor: pointer;
+}
+
+.tta-event-details-icon{
+    width: 18px;
+    flex: 0 0 auto;
+    position: relative;
+    top: 2px;
+    margin-right: 4px;
+}
+
+.tta-event-details-icon-after{
+    flex: 1 1 auto;
+    text-align:left;
+}
+
+/* Gallery grid */
+.tta-gallery-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1em;
+}
+
+.tta-gallery-item img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.tta-event-attendees-section img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 100px;
+}
+
+.tta-event-attendees-section{
+  margin-top:30px;
+}
+
+.tta-event-attendees-section .tta-gallery-grid{
+  text-align: center;
+}
+
+/* Masonry layout for image gallery */
+.tta-event-image-gallery-accordion .tta-gallery-grid {
+  column-count: 3;
+  column-gap: 0.25em;
+}
+.tta-event-image-gallery-accordion .tta-gallery-item {
+  break-inside: avoid;
+}
+@media (max-width: 600px) {
+  .tta-event-image-gallery-accordion .tta-gallery-grid {
+    column-count: 2;
+  }
+}
+
+.tta-attendee-photo-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tta-attendee-role {
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  right:0;
+  background: #0073aa;
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.tta-attendee-level {
+  display: block;
+  font-size: 0.8em;
+  color: #666;
+}
+
+.tta-gallery-item .tta-attendee-name {
+  display: block;
+  margin-top: 0.5em;
+  font-size: 0.9em;
+}
+
+.tta-event-map-embed{
+  margin-top:20px;
+}
+
+/* Accordion fade + transition already in place from your description section */
+
+
+#tta-register-form > p{
+  display:inline-block;
+  margin-right: 10px;
+}
+
+.tta-event-main #tta-login-message #loginform .login-username, .tta-event-main #tta-login-message #loginform .login-password{
+  display:inline-block;
+  margin-right:10px;
+}
+
+
+
+
+@media (max-width: 1112px) {
+  .tta-event-hero-text{
+    order:2;
+  }
+}
+
+.tta-popup-wrap{
+  text-align: center;
+}
+
+
+/* Responsive */
+@media (max-width: 800px) {
+
+
+
+
+  .tta-event-sidebar{
+    margin:10px;
+  }
+
+  .tta-share-label{
+    display: block;
+    font-weight: bold;
+  }
+
+  .tta-event-main{
+    order:1;
+    margin:10px;
+  }
+
+  .tta-events-ad{
+    text-align:left;
+    padding: 20px;
+  }
+
+  .tta-event-columns {
+    flex-direction: column;
+  }
+  .tta-event-right,
+  .tta-event-sidebar {
+    flex: 1 1 auto;
+  }
+  .tta-event-main {
+    padding-right: 0;
+  }
+  .tta-event-hero-inner {
+    flex-direction: column;
+  }
+  .tta-event-hero-image,
+  .tta-event-hero-text {
+    flex: 1 1 100%;
+    text-align: center;
+    padding-right:0px;
+  }
+  .tta-related-events-grid {
+    flex-direction: column;
+  }
+}

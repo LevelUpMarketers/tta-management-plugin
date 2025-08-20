@@ -1,0 +1,31 @@
+#tta-alert-bar{
+	text-align: center;
+	position:fixed;
+	bottom:0;
+	left:0;
+	right:0;
+	z-index:9999;
+	background:#bd0000;
+	color:#fff;
+	padding:10px;
+	justify-content:center;
+	align-items:center;
+	gap:10px;
+}
+#tta-alert-bar .tta-alert-button{
+	background: #fff;
+	color: #333;
+	padding: 5px 10px;
+	text-decoration: none;
+	display: block;
+	width: 180px;
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 10px;
+}
+#tta-alert-bar a{
+	color: #fff;
+	font-weight:bold;
+	text-decoration:underline;
+}
