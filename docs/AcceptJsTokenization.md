@@ -5,6 +5,7 @@ The checkout page now uses [Authorize.Net Accept.js](https://developer.authorize
 ## Assets
 - `Accept.js` is loaded from Authorize.Net's CDN based on the sandbox or live mode.
 - Handler script: `assets/js/frontend/tta-accept-checkout.js` intercepts the checkout form and exchanges card data for an opaque token.
+- If tokenization is unavailable, the script posts the raw card details as a fallback so checkout can continue.
 
 ## AJAX flow
 1. The token and billing details are posted to `admin-ajax.php` via the `tta_process_payment` action.

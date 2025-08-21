@@ -49,12 +49,18 @@ class TTA_Ajax_Payment {
             ];
         }
 
+        $card_number = isset( $data['cardNumber'] ) ? preg_replace( '/\D/', '', $data['cardNumber'] ) : '';
+        $exp_month   = isset( $data['expMonth'] ) ? preg_replace( '/\D/', '', $data['expMonth'] ) : '';
+        $exp_year    = isset( $data['expYear'] ) ? preg_replace( '/\D/', '', $data['expYear'] ) : '';
+        $exp_date    = $exp_year && $exp_month ? sprintf( '%04d-%02d', $exp_year, $exp_month ) : '';
+        $card_code   = isset( $data['cardCode'] ) ? preg_replace( '/\D/', '', $data['cardCode'] ) : '';
+
         $billing_clean['invoice']     = substr( preg_replace( '/[^A-Za-z0-9]/', '', 'TAR-' . time() ), 0, 20 );
         $billing_clean['description'] = 'Trying to Adult RVA – Order';
         $billing_clean['ip']          = self::get_client_ip();
 
         $payments_service = new TTA_AuthorizeNet_API();
-        $result = $payments_service->charge( $amount, '', '', '', $billing_clean );
+        $result = $payments_service->charge( $amount, $card_number, $exp_date, $card_code, $billing_clean );
 
         if ( $result['success'] ) {
             wp_send_json_success( [ 'transaction_id' => $result['transaction_id'] ] );

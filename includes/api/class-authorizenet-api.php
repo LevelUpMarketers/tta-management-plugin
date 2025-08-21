@@ -252,14 +252,22 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         if ( '' === $s ) {
             return '';
         }
-        return substr( $s, 0, 3 ) . str_repeat( '*', max( 0, strlen( $s ) - 6 ) ) . substr( $s, -3 );
+        $len = strlen( $s );
+        if ( $len <= 4 ) {
+            return str_repeat( '*', $len );
+        }
+        return str_repeat( '*', max( 0, $len - 4 ) ) . substr( $s, -4 );
     };
     $mask_secret = function ( $v ) {
         $s = (string) $v;
         if ( '' === $s ) {
             return '';
         }
-        return str_repeat( '*', max( 0, strlen( $s ) - 4 ) ) . substr( $s, -4 );
+        $len = strlen( $s );
+        if ( $len <= 8 ) {
+            return substr( $s, 0, 1 ) . str_repeat( '*', max( 0, $len - 2 ) ) . substr( $s, -1 );
+        }
+        return substr( $s, 0, 4 ) . str_repeat( '*', max( 0, $len - 8 ) ) . substr( $s, -4 );
     };
 
     // ===== YOUR ORIGINAL PRE-CHANGE LOGS (kept) ==================================
@@ -402,7 +410,7 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardNumber'] = $mask($pan);
     }
     if ( isset( $sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardCode'] ) ) {
-        $sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardCode'] = '***';
+        $sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardCode'] = '[omitted]';
     }
     if ( isset( $sanitized[ $root ]['transactionRequest']['payment']['opaqueData']['dataValue'] ) ) {
         $sanitized[ $root ]['transactionRequest']['payment']['opaqueData']['dataValue'] = $mask( (string) $sanitized[ $root ]['transactionRequest']['payment']['opaqueData']['dataValue'] );

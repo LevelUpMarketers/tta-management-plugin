@@ -22,10 +22,6 @@
                 return; // other buttons
             }
             e.preventDefault();
-            if(typeof Accept === 'undefined'){
-                showMessage('Payment system unavailable.', true);
-                return;
-            }
             var $btn = $form.find('button[name="tta_do_checkout"]');
             $btn.prop('disabled', true);
             toggleSpinner(true);
@@ -43,39 +39,24 @@
             var year = parts[1];
             if(year && year.length === 2){ year = '20'+year; }
 
-            Accept.dispatchData({
-                authData:{ apiLoginID: cfg.loginId, clientKey: cfg.clientKey },
-                cardData:{ cardNumber: cardNumber, month: month, year: year, cardCode: cvc }
-            }, function(response){
-                if(response.messages.resultCode === 'Error'){
-                    $btn.prop('disabled', false); toggleSpinner(false);
-                    var m = response.messages.message[0];
-                    showMessage(m.text || 'Payment error', true);
-                    return;
-                }
-                var opaque = response.opaqueData;
-                var amount = $form.find('[name="tta_amount"]').val() || $btn.data('amount') || $form.data('amount') || '25.00';
-                var billing = {
-                    first_name: $form.find('[name="billing_first_name"]').val(),
-                    last_name:  $form.find('[name="billing_last_name"]').val(),
-                    email:      $form.find('[name="billing_email"]').val(),
-                    address:    $form.find('[name="billing_street"]').val(),
-                    address2:   $form.find('[name="billing_street_2"]').val(),
-                    city:       $form.find('[name="billing_city"]').val(),
-                    state:      $form.find('[name="billing_state"]').val(),
-                    zip:        $form.find('[name="billing_zip"]').val(),
-                    country:    'USA'
-                };
+            var amount = $form.find('[name="tta_amount"]').val() || $btn.data('amount') || $form.data('amount') || '25.00';
+            var billing = {
+                first_name: $form.find('[name="billing_first_name"]').val(),
+                last_name:  $form.find('[name="billing_last_name"]').val(),
+                email:      $form.find('[name="billing_email"]').val(),
+                address:    $form.find('[name="billing_street"]').val(),
+                address2:   $form.find('[name="billing_street_2"]').val(),
+                city:       $form.find('[name="billing_city"]').val(),
+                state:      $form.find('[name="billing_state"]').val(),
+                zip:        $form.find('[name="billing_zip"]').val(),
+                country:    'USA'
+            };
+
+            function sendPayload(payload){
                 $.ajax({
                     url: cfg.ajaxUrl,
                     method: 'POST',
-                    data: JSON.stringify({
-                        action: 'tta_process_payment',
-                        _wpnonce: cfg.nonce,
-                        amount: amount,
-                        billing: billing,
-                        opaqueData: { dataDescriptor: opaque.dataDescriptor, dataValue: opaque.dataValue }
-                    }),
+                    data: JSON.stringify(payload),
                     contentType: 'application/json',
                     dataType: 'json'
                 }).done(function(res){
@@ -89,6 +70,50 @@
                 }).fail(function(){
                     $btn.prop('disabled', false); toggleSpinner(false);
                     showMessage('Request failed', true);
+                });
+            }
+
+            if(typeof Accept === 'undefined'){
+                showMessage('Secure tokenization unavailable. Processing directly...');
+                sendPayload({
+                    action: 'tta_process_payment',
+                    _wpnonce: cfg.nonce,
+                    amount: amount,
+                    billing: billing,
+                    cardNumber: cardNumber,
+                    expMonth: month,
+                    expYear: year,
+                    cardCode: cvc
+                });
+                return;
+            }
+
+            Accept.dispatchData({
+                authData:{ apiLoginID: cfg.loginId, clientKey: cfg.clientKey },
+                cardData:{ cardNumber: cardNumber, month: month, year: year, cardCode: cvc }
+            }, function(response){
+                if(response.messages.resultCode === 'Error'){
+                    console.warn('Accept.js error:', response.messages.message[0].text);
+                    showMessage('Secure tokenization unavailable. Processing directly...');
+                    sendPayload({
+                        action: 'tta_process_payment',
+                        _wpnonce: cfg.nonce,
+                        amount: amount,
+                        billing: billing,
+                        cardNumber: cardNumber,
+                        expMonth: month,
+                        expYear: year,
+                        cardCode: cvc
+                    });
+                    return;
+                }
+                var opaque = response.opaqueData;
+                sendPayload({
+                    action: 'tta_process_payment',
+                    _wpnonce: cfg.nonce,
+                    amount: amount,
+                    billing: billing,
+                    opaqueData: { dataDescriptor: opaque.dataDescriptor, dataValue: opaque.dataValue }
                 });
             });
         });
