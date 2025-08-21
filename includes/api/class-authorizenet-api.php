@@ -243,6 +243,8 @@ class TTA_AuthorizeNet_API {
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
 
+        $amount = number_format( (float) $amount, 2, '.', '' );
+
         $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
         $merchantAuthentication->setName( $this->login_id );
         $merchantAuthentication->setTransactionKey( $this->transaction_key );
@@ -262,12 +264,13 @@ class TTA_AuthorizeNet_API {
 
         if ( $billing ) {
             $address = new AnetAPI\CustomerAddressType();
-            $address->setFirstName( $billing['first_name'] ?? '' );
-            $address->setLastName( $billing['last_name'] ?? '' );
-            $address->setAddress( $billing['address'] ?? '' );
-            $address->setCity( $billing['city'] ?? '' );
-            $address->setState( $billing['state'] ?? '' );
-            $address->setZip( $billing['zip'] ?? '' );
+            $address->setFirstName( sanitize_text_field( $billing['first_name'] ?? '' ) );
+            $address->setLastName( sanitize_text_field( $billing['last_name'] ?? '' ) );
+            $address->setAddress( sanitize_text_field( $billing['address'] ?? '' ) );
+            $address->setCity( sanitize_text_field( $billing['city'] ?? '' ) );
+            $address->setState( sanitize_text_field( $billing['state'] ?? '' ) );
+            $address->setZip( sanitize_text_field( $billing['zip'] ?? '' ) );
+            $address->setCountry( sanitize_text_field( $billing['country'] ?? 'USA' ) );
             $transactionRequest->setBillTo( $address );
         }
 
@@ -281,6 +284,9 @@ class TTA_AuthorizeNet_API {
         $sanitized    = $this->sanitize_response_array( json_decode( wp_json_encode( $request_json ), true ) );
         if ( isset( $sanitized[ $root ]['merchantAuthentication']['name'] ) ) {
             $sanitized[ $root ]['merchantAuthentication']['name'] = $this->mask_value( (string) $sanitized[ $root ]['merchantAuthentication']['name'] );
+        }
+        if ( isset( $sanitized[ $root ]['transactionRequest']['amount'] ) ) {
+            $sanitized[ $root ]['transactionRequest']['amount'] = number_format( (float) $sanitized[ $root ]['transactionRequest']['amount'], 2, '.', '' );
         }
         array_walk_recursive( $sanitized, function ( &$v ) {
             if ( is_string( $v ) ) {

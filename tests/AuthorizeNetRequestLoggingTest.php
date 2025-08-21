@@ -90,6 +90,8 @@ class AuthorizeNetRequestLoggingTest extends TestCase {
         $this->assertStringNotContainsString( 'TRANSKEY12345678', $log );
         $this->assertStringContainsString( '************1111', $log );
         $this->assertStringNotContainsString( '4111111111111111', $log );
+        $this->assertStringContainsString( '"amount":"10.00"', $log );
+        $this->assertStringContainsString( '"country":"USA"', $log );
         $this->assertStringContainsString( '[omitted]', $log );
         $this->assertStringNotContainsString( '999', $log );
         $this->assertStringContainsString( 'John', $log );
