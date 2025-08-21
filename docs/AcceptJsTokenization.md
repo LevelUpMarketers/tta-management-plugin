@@ -8,7 +8,7 @@ The checkout page now uses [Authorize.Net Accept.js](https://developer.authorize
 - If tokenization is unavailable, the script posts the raw card details as a fallback so checkout can continue.
 
 ## AJAX flow
-1. The token and billing details are posted to `admin-ajax.php` via the `tta_process_payment` action.
+1. The token and billing details are posted to `admin-ajax.php` via the `tta_process_payment` action (the action is passed in the query string to satisfy WordPress's admin-ajax routing).
 2. The handler sanitizes the request, builds an invoice and description, and calls the existing `TTA_AuthorizeNet_API::charge()` method.
 3. The charge prefers opaque data and falls back to raw PAN only when no token is provided.
 
