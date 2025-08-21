@@ -229,95 +229,270 @@ class TTA_AuthorizeNet_API {
     }
 
     /**
-     * Charge a credit card using the Authorize.Net API.
-     *
-     * @param float $amount
-     * @param string $card_number
-     * @param string $exp_date  Format YYYY-MM
-     * @param string $card_code
-     * @param array $billing
-     * @return array { success:bool, transaction_id?:string, error?:string }
-     */
-    public function charge( $amount, $card_number, $exp_date, $card_code, array $billing = [] ) {
-        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
-            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
-        }
+ * Charge a credit card using the Authorize.Net API (raw PAN, no Accept.js).
+ * Adds very verbose logging for AVS/CVV triage.
+ *
+ * @param float  $amount
+ * @param string $card_number            Digits only (spaces removed automatically)
+ * @param string $exp_date               Format YYYY-MM
+ * @param string $card_code              CVV
+ * @param array  $billing                [
+ *   first_name,last_name,address,city,state,zip,country('USA'),email,invoice,description,ip
+ * ]
+ * @return array { success:bool, transaction_id?:string, error?:string }
+ */
+public function charge( $amount, $card_number, $exp_date, $card_code, array $billing = [] ) {
+    if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+        return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
+    }
 
-        $amount = number_format( (float) $amount, 2, '.', '' );
+    // --- helpers (mask secrets in logs) ------------------------------------------
+    $mask = function ($v) {
+        $s = (string)$v;
+        if ($s === '') return '';
+        return substr($s, 0, 3) . str_repeat('*', max(0, strlen($s)-6)) . substr($s, -3);
+    };
 
-        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-        $merchantAuthentication->setName( $this->login_id );
-        $merchantAuthentication->setTransactionKey( $this->transaction_key );
+    // ===== YOUR ORIGINAL PRE-CHANGE LOGS (kept) ==================================
+    error_log('Before Any Modifications to info below');
+    error_log($amount);
+    error_log(' ----- ');
+    error_log($card_number);
+    error_log(' ----- ');
+    error_log($exp_date);
+    error_log(' ----- ');
+    error_log($card_code);
+    error_log(' ----- ');
+    error_log($billing['first_name'] ?? '');
+    error_log(' ----- ');
+    error_log($billing['last_name'] ?? '');
+    error_log(' ----- ');
+    error_log($billing['address'] ?? '');
+    error_log(' ----- ');
+    error_log($billing['city'] ?? '');
+    error_log(' ----- ');
+    error_log($billing['state'] ?? '');
+    error_log(' ----- ');
+    error_log($billing['zip'] ?? '');
+    error_log(' ----- Login ID Below ----- ');
+    error_log($this->login_id); // NOTE: consider masking in production
+    error_log(' ----- Transaction Key Below ----- ');
+    error_log($this->transaction_key); // NOTE: consider masking in production
+    error_log(' ----- ');
 
-        $creditCard = new AnetAPI\CreditCardType();
-        $creditCard->setCardNumber( $card_number );
-        $creditCard->setExpirationDate( $exp_date );
-        $creditCard->setCardCode( $card_code );
+    // Extra: environment/endpoint awareness (if you track it)
+    if ( property_exists($this, 'environment') ) {
+        error_log('Environment: ' . $this->environment);
+        TTA_Debug_Logger::log('env: ' . $this->environment);
+    }
 
-        $paymentOne = new AnetAPI\PaymentType();
-        $paymentOne->setCreditCard( $creditCard );
+    // --- normalize/clean ---------------------------------------------------------
+    $amount     = number_format( (float) $amount, 2, '.', '' ); // "5.00"
+    $card_number = preg_replace('/\D+/', '', (string)$card_number);
+    $card_code   = preg_replace('/\D+/', '', (string)$card_code);
+    $exp_date    = (string)$exp_date; // expect YYYY-MM
+    $country     = strtoupper( trim( (string)($billing['country'] ?? 'USA') ) );
+    $zip_clean   = preg_replace('/\s+/', '', (string)($billing['zip'] ?? ''));
 
-        $transactionRequest = new AnetAPI\TransactionRequestType();
-        $transactionRequest->setTransactionType( 'authCaptureTransaction' );
-        $transactionRequest->setAmount( $amount );
-        $transactionRequest->setPayment( $paymentOne );
+    // Optional: sanity warnings
+    if ( !preg_match('/^\d{4}-\d{2}$/', $exp_date) ) error_log('WARN: exp_date not YYYY-MM: ' . $exp_date);
+    if ( strlen($card_code) < 3 || strlen($card_code) > 4 ) error_log('WARN: CVV length unusual: ' . strlen($card_code));
 
-        if ( $billing ) {
-            $address = new AnetAPI\CustomerAddressType();
-            $address->setFirstName( sanitize_text_field( $billing['first_name'] ?? '' ) );
-            $address->setLastName( sanitize_text_field( $billing['last_name'] ?? '' ) );
-            $address->setAddress( sanitize_text_field( $billing['address'] ?? '' ) );
-            $address->setCity( sanitize_text_field( $billing['city'] ?? '' ) );
-            $address->setState( sanitize_text_field( $billing['state'] ?? '' ) );
-            $address->setZip( sanitize_text_field( $billing['zip'] ?? '' ) );
-            $address->setCountry( sanitize_text_field( $billing['country'] ?? 'USA' ) );
-            $transactionRequest->setBillTo( $address );
-        }
+    // --- Build API objects -------------------------------------------------------
+    $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+    $merchantAuthentication->setName( $this->login_id );
+    $merchantAuthentication->setTransactionKey( $this->transaction_key );
 
-        $request = new AnetAPI\CreateTransactionRequest();
-        $request->setMerchantAuthentication( $merchantAuthentication );
-        $request->setTransactionRequest( $transactionRequest );
+    $creditCard = new AnetAPI\CreditCardType();
+    $creditCard->setCardNumber( $card_number );
+    $creditCard->setExpirationDate( $exp_date );          // YYYY-MM
+    $creditCard->setCardCode( $card_code );
 
-        $mapper       = \net\authorize\util\Mapper::Instance();
-        $root         = $mapper->getXmlName( ( new \ReflectionClass( $request ) )->getName() );
-        $request_json = [ $root => $request ];
-        $sanitized    = $this->sanitize_response_array( json_decode( wp_json_encode( $request_json ), true ) );
-        if ( isset( $sanitized[ $root ]['merchantAuthentication']['name'] ) ) {
-            $sanitized[ $root ]['merchantAuthentication']['name'] = $this->mask_value( (string) $sanitized[ $root ]['merchantAuthentication']['name'] );
-        }
-        if ( isset( $sanitized[ $root ]['transactionRequest']['amount'] ) ) {
-            $sanitized[ $root ]['transactionRequest']['amount'] = number_format( (float) $sanitized[ $root ]['transactionRequest']['amount'], 2, '.', '' );
-        }
-        array_walk_recursive( $sanitized, function ( &$v ) {
-            if ( is_string( $v ) ) {
-                $v = sanitize_text_field( $v );
+    $paymentOne = new AnetAPI\PaymentType();
+    $paymentOne->setCreditCard( $creditCard );
+
+    // Order (helps issuer risk & matches Woo-style richness)
+    $invoice = preg_replace('/[^A-Za-z0-9\-_.]/', '', (string)($billing['invoice'] ?? ('TAR-'.time())) );
+    $invoice = substr($invoice, 0, 20);
+    $desc    = isset($billing['description']) ? sanitize_text_field($billing['description']) : 'Trying to Adult RVA – Order';
+    $order   = new AnetAPI\OrderType();
+    $order->setInvoiceNumber($invoice);
+    $order->setDescription($desc);
+
+    // Bill-to (AVS)
+    $address = new AnetAPI\CustomerAddressType();
+    $address->setFirstName( sanitize_text_field( $billing['first_name'] ?? '' ) );
+    $address->setLastName( sanitize_text_field( $billing['last_name'] ?? '' ) );
+    $address->setAddress( sanitize_text_field( $billing['address'] ?? '' ) );
+    $address->setCity( sanitize_text_field( $billing['city'] ?? '' ) );
+    $address->setState( sanitize_text_field( $billing['state'] ?? '' ) );
+    $address->setZip( $zip_clean );
+    $address->setCountry( 'USA' );
+
+    // Optional: customer email
+    if ( !empty($billing['email']) ) {
+        $cust = new AnetAPI\CustomerDataType();
+        $cust->setType('individual');
+        $cust->setEmail( sanitize_email($billing['email']) );
+    } else {
+        $cust = null;
+    }
+
+    $transactionRequest = new AnetAPI\TransactionRequestType();
+    $transactionRequest->setTransactionType( 'authOnlyTransaction' );   // change to 'authOnlyTransaction' for tests
+    $transactionRequest->setAmount( "25.00" );
+    $transactionRequest->setPayment( $paymentOne );
+    $transactionRequest->setOrder( $order );
+    $transactionRequest->setBillTo( $address );
+    if ($cust) $transactionRequest->setCustomer($cust);
+
+
+
+    // Mild duplicate window to reduce dup errors on retries
+    $dup = new AnetAPI\SettingType();
+    $dup->setSettingName('duplicateWindow');
+    $dup->setSettingValue('45');
+    $transactionRequest->setTransactionSettings([$dup]);
+
+    $request = new AnetAPI\CreateTransactionRequest();
+    $request->setMerchantAuthentication( $merchantAuthentication );
+    $request->setTransactionRequest( $transactionRequest );
+
+    // ===== YOUR ORIGINAL MIDDLE LOGS (kept & expanded) ===========================
+    error_log( 'Beginning of dumping the entire CreateTransactionRequest()' );
+    error_log( print_r( $request, true ) );
+    error_log( 'End of dumping the entire CreateTransactionRequest()' );
+
+    // Also dump a sanitized JSON view (masks secrets)
+    $mapper       = \net\authorize\util\Mapper::Instance();
+    $root         = $mapper->getXmlName( ( new \ReflectionClass( $request ) )->getName() );
+    $request_json = [ $root => $request ];
+    $sanitized    = $this->sanitize_response_array( json_decode( wp_json_encode( $request_json ), true ) );
+
+    // Extra masking for logs
+    if ( isset( $sanitized[ $root ]['merchantAuthentication']['name'] ) ) {
+        $sanitized[ $root ]['merchantAuthentication']['name'] = $mask( (string) $sanitized[ $root ]['merchantAuthentication']['name'] );
+    }
+    if ( isset( $sanitized[ $root ]['merchantAuthentication']['transactionKey'] ) ) {
+        $sanitized[ $root ]['merchantAuthentication']['transactionKey'] = $mask( (string) $sanitized[ $root ]['merchantAuthentication']['transactionKey'] );
+    }
+    if ( isset( $sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardNumber'] ) ) {
+        $pan = (string)$sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardNumber'];
+        $sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardNumber'] = $mask($pan);
+    }
+    if ( isset( $sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardCode'] ) ) {
+        $sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardCode'] = '***';
+    }
+    if ( isset( $sanitized[ $root ]['transactionRequest']['amount'] ) ) {
+        $sanitized[ $root ]['transactionRequest']['amount'] = number_format( (float) $sanitized[ $root ]['transactionRequest']['amount'], 2, '.', '' );
+    }
+
+    TTA_Debug_Logger::log( 'charge request (' . ($this->environment ?? 'prod') . '): ' . wp_json_encode( $sanitized ) );
+
+    // ===== YOUR ORIGINAL POST-BUILD LOGS (kept) ==================================
+    error_log('After Any Modifications that may have happened to the info below');
+    error_log($amount);
+    error_log(' ----- ');
+    error_log($card_number);
+    error_log(' ----- ');
+    error_log($exp_date);
+    error_log(' ----- ');
+    error_log($card_code);
+    error_log(' ----- ');
+    error_log($billing['first_name'] ?? '');
+    error_log(' ----- ');
+    error_log($billing['last_name'] ?? '');
+    error_log(' ----- ');
+    error_log($billing['address'] ?? '');
+    error_log(' ----- ');
+    error_log($billing['city'] ?? '');
+    error_log(' ----- ');
+    error_log($billing['state'] ?? '');
+    error_log(' ----- ');
+    error_log($billing['zip'] ?? '');
+    error_log(' ----- ');
+
+    // --- Send request -------------------------------------------------------------
+    $controller = new AnetController\CreateTransactionController( $request );
+    $response   = $this->send_request( $controller );
+
+    // Full object dump (your request)
+    error_log('Beginning of dumping the entire $response');
+    error_log( print_r( $response, true ) );
+    error_log('End of dumping the entire $response');
+
+    // Your existing log_response hook
+    $this->log_response( 'charge', $response );
+
+    // Expanded, structured response logging for triage
+    $diag = [
+        'resultCode'     => null,
+        'responseCode'   => null,
+        'transId'        => null,
+        'authCode'       => null,
+        'avsResultCode'  => null,
+        'cvvResultCode'  => null,
+        'accountNumber'  => null,
+        'accountType'    => null,
+        'entryMode'      => null,
+        'errorCode'      => null,
+        'errorText'      => null,
+        'hints'          => [],
+    ];
+
+    if ( $response ) {
+        $diag['resultCode'] = $response->getMessages() ? $response->getMessages()->getResultCode() : null;
+        $tresponse = $response->getTransactionResponse();
+        if ( $tresponse ) {
+            $diag['responseCode']  = $tresponse->getResponseCode();
+            $diag['transId']       = $tresponse->getTransId();
+            $diag['authCode']      = $tresponse->getAuthCode();
+            $diag['avsResultCode'] = $tresponse->getAvsResultCode();
+            $diag['cvvResultCode'] = $tresponse->getCvvResultCode();
+            $diag['accountNumber'] = $tresponse->getAccountNumber();
+            $diag['accountType']   = $tresponse->getAccountType();
+            $diag['entryMode']     = method_exists($tresponse,'getEntryMode') ? $tresponse->getEntryMode() : null;
+
+            if ( $tresponse->getErrors() ) {
+                $e = $tresponse->getErrors()[0];
+                $diag['errorCode'] = $e->getErrorCode();
+                $diag['errorText'] = $e->getErrorText();
             }
-        } );
-        TTA_Debug_Logger::log( 'charge request (' . $this->environment . '): ' . wp_json_encode( $sanitized ) );
 
-        $controller = new AnetController\CreateTransactionController( $request );
-        $response   = $this->send_request( $controller );
-        $this->log_response( 'charge', $response );
-
-        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
-            $tresponse = $response->getTransactionResponse();
-            if ( $tresponse && $tresponse->getResponseCode() === '1' ) {
-                return [
-                    'success'        => true,
-                    'transaction_id' => $tresponse->getTransId(),
-                ];
+            // live diagnostics
+            if ( $diag['responseCode'] === '2' ) {
+                if ( $diag['avsResultCode'] === 'P' ) $diag['hints'][] = 'AVS=P (not processed) → issuer/acquirer did not evaluate AVS for this auth.';
+                if ( empty($diag['cvvResultCode']) ) $diag['hints'][] = 'No CVV result returned → CVV likely not evaluated by issuer.';
+                if ( $diag['avsResultCode'] === 'N' ) $diag['hints'][] = 'AVS=N (no match) and gateway/AFDS may be set to decline N.';
             }
+        }
+    } else {
+        $diag['hints'][] = 'Empty response from gateway (network or endpoint issue).';
+    }
+
+    TTA_Debug_Logger::log( 'charge transactionResponse: ' . wp_json_encode( $diag ) );
+
+    // --- Return results -----------------------------------------------------------
+    if ( $response && 'Ok' === ($response->getMessages() ? $response->getMessages()->getResultCode() : null) ) {
+        $tresponse = $response->getTransactionResponse();
+        if ( $tresponse && $tresponse->getResponseCode() === '1' ) {
             return [
-                'success' => false,
-                'error'   => $this->format_error( $response, $tresponse, 'Transaction failed' ),
+                'success'        => true,
+                'transaction_id' => $tresponse->getTransId(),
             ];
         }
-
         return [
             'success' => false,
-            'error'   => $this->format_error( $response, null, 'API error' ),
+            'error'   => $this->format_error( $response, $tresponse, 'Transaction failed' ),
         ];
     }
+
+    return [
+        'success' => false,
+        'error'   => $this->format_error( $response, null, 'API error' ),
+    ];
+}
+
 
     /**
      * Retry the most recent charge for a subscription using its stored profile.
