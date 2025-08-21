@@ -492,6 +492,40 @@ class TTA_Assets {
                     'user_email' => is_user_logged_in() ? wp_get_current_user()->user_email : '',
                 ]
             );
+
+            $use_sandbox = (bool) get_option( 'tta_authnet_use_sandbox', get_option( 'tta_authnet_sandbox', false ) );
+            $login       = $use_sandbox ? get_option( 'tta_authnet_login_id_sandbox', '' ) : get_option( 'tta_authnet_login_id_live', '' );
+            $client_key  = $use_sandbox ? get_option( 'tta_authnet_public_client_key_sandbox', '' ) : get_option( 'tta_authnet_public_client_key_live', '' );
+            $mode        = $use_sandbox ? 'sandbox' : 'live';
+            $accept_url  = $use_sandbox ? 'https://jstest.authorize.net/v1/Accept.js' : 'https://js.authorize.net/v1/Accept.js';
+
+            wp_enqueue_script(
+                'tta-acceptjs',
+                $accept_url,
+                [],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+
+            wp_enqueue_script(
+                'tta-accept-checkout',
+                TTA_PLUGIN_URL . 'assets/js/frontend/tta-accept-checkout.js',
+                [ 'tta-acceptjs', 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+
+            wp_localize_script(
+                'tta-accept-checkout',
+                'TTA_ACCEPT',
+                [
+                    'loginId'   => $login,
+                    'clientKey' => $client_key,
+                    'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+                    'nonce'     => wp_create_nonce( 'tta_pay_nonce' ),
+                    'mode'      => $mode,
+                ]
+            );
         }
 
         // 5) Host Check-In template assets

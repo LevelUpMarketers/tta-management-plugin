@@ -248,9 +248,18 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
     // --- helpers (mask secrets in logs) ------------------------------------------
     $mask = function ($v) {
-        $s = (string)$v;
-        if ($s === '') return '';
-        return substr($s, 0, 3) . str_repeat('*', max(0, strlen($s)-6)) . substr($s, -3);
+        $s = (string) $v;
+        if ( '' === $s ) {
+            return '';
+        }
+        return substr( $s, 0, 3 ) . str_repeat( '*', max( 0, strlen( $s ) - 6 ) ) . substr( $s, -3 );
+    };
+    $mask_secret = function ( $v ) {
+        $s = (string) $v;
+        if ( '' === $s ) {
+            return '';
+        }
+        return str_repeat( '*', max( 0, strlen( $s ) - 4 ) ) . substr( $s, -4 );
     };
 
     // ===== YOUR ORIGINAL PRE-CHANGE LOGS (kept) ==================================
@@ -275,9 +284,9 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
     error_log(' ----- ');
     error_log($billing['zip'] ?? '');
     error_log(' ----- Login ID Below ----- ');
-    error_log($this->login_id); // NOTE: consider masking in production
+    error_log( $mask_secret( $this->login_id ) );
     error_log(' ----- Transaction Key Below ----- ');
-    error_log($this->transaction_key); // NOTE: consider masking in production
+    error_log( $mask_secret( $this->transaction_key ) );
     error_log(' ----- ');
 
     // Extra: environment/endpoint awareness (if you track it)
@@ -287,29 +296,42 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
     }
 
     // --- normalize/clean ---------------------------------------------------------
-    $amount     = number_format( (float) $amount, 2, '.', '' ); // "5.00"
-    $card_number = preg_replace('/\D+/', '', (string)$card_number);
-    $card_code   = preg_replace('/\D+/', '', (string)$card_code);
-    $exp_date    = (string)$exp_date; // expect YYYY-MM
-    $country     = strtoupper( trim( (string)($billing['country'] ?? 'USA') ) );
-    $zip_clean   = preg_replace('/\s+/', '', (string)($billing['zip'] ?? ''));
+    $amount     = number_format( (float) $amount, 2, '.', '' );
+    $card_number = preg_replace('/\D+/', '', (string) $card_number);
+    $card_code   = preg_replace('/\D+/', '', (string) $card_code);
+    $exp_date    = (string) $exp_date;
+    $country     = strtoupper( trim( (string) ( $billing['country'] ?? 'USA' ) ) );
+    $zip_clean   = preg_replace( '/\s+/', '', (string) ( $billing['zip'] ?? '' ) );
 
-    // Optional: sanity warnings
-    if ( !preg_match('/^\d{4}-\d{2}$/', $exp_date) ) error_log('WARN: exp_date not YYYY-MM: ' . $exp_date);
-    if ( strlen($card_code) < 3 || strlen($card_code) > 4 ) error_log('WARN: CVV length unusual: ' . strlen($card_code));
+    $use_token = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
+
+    if ( ! $use_token ) {
+        if ( ! preg_match( '/^\d{4}-\d{2}$/', $exp_date ) ) {
+            error_log( 'WARN: exp_date not YYYY-MM: ' . $exp_date );
+        }
+        if ( strlen( $card_code ) < 3 || strlen( $card_code ) > 4 ) {
+            error_log( 'WARN: CVV length unusual: ' . strlen( $card_code ) );
+        }
+    }
 
     // --- Build API objects -------------------------------------------------------
     $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
     $merchantAuthentication->setName( $this->login_id );
     $merchantAuthentication->setTransactionKey( $this->transaction_key );
 
-    $creditCard = new AnetAPI\CreditCardType();
-    $creditCard->setCardNumber( $card_number );
-    $creditCard->setExpirationDate( $exp_date );          // YYYY-MM
-    $creditCard->setCardCode( $card_code );
-
     $paymentOne = new AnetAPI\PaymentType();
-    $paymentOne->setCreditCard( $creditCard );
+    if ( $use_token ) {
+        $od = new AnetAPI\OpaqueDataType();
+        $od->setDataDescriptor( sanitize_text_field( $billing['opaqueData']['dataDescriptor'] ) );
+        $od->setDataValue( sanitize_text_field( $billing['opaqueData']['dataValue'] ) );
+        $paymentOne->setOpaqueData( $od );
+    } else {
+        $creditCard = new AnetAPI\CreditCardType();
+        $creditCard->setCardNumber( $card_number );
+        $creditCard->setExpirationDate( $exp_date );
+        $creditCard->setCardCode( $card_code );
+        $paymentOne->setCreditCard( $creditCard );
+    }
 
     // Order (helps issuer risk & matches Woo-style richness)
     $invoice = preg_replace('/[^A-Za-z0-9\-_.]/', '', (string)($billing['invoice'] ?? ('TAR-'.time())) );
@@ -340,11 +362,14 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
     $transactionRequest = new AnetAPI\TransactionRequestType();
     $transactionRequest->setTransactionType( 'authOnlyTransaction' );   // change to 'authOnlyTransaction' for tests
-    $transactionRequest->setAmount( "25.00" );
+    $transactionRequest->setAmount( $amount );
     $transactionRequest->setPayment( $paymentOne );
     $transactionRequest->setOrder( $order );
     $transactionRequest->setBillTo( $address );
     if ($cust) $transactionRequest->setCustomer($cust);
+    if ( ! empty( $billing['ip'] ) && filter_var( $billing['ip'], FILTER_VALIDATE_IP ) && '127.0.0.1' !== $billing['ip'] ) {
+        $transactionRequest->setCustomerIP( $billing['ip'] );
+    }
 
 
 
@@ -359,11 +384,7 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
     $request->setTransactionRequest( $transactionRequest );
 
     // ===== YOUR ORIGINAL MIDDLE LOGS (kept & expanded) ===========================
-    error_log( 'Beginning of dumping the entire CreateTransactionRequest()' );
-    error_log( print_r( $request, true ) );
-    error_log( 'End of dumping the entire CreateTransactionRequest()' );
-
-    // Also dump a sanitized JSON view (masks secrets)
+    // Sanitized JSON view (masks secrets)
     $mapper       = \net\authorize\util\Mapper::Instance();
     $root         = $mapper->getXmlName( ( new \ReflectionClass( $request ) )->getName() );
     $request_json = [ $root => $request ];
@@ -371,10 +392,10 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
     // Extra masking for logs
     if ( isset( $sanitized[ $root ]['merchantAuthentication']['name'] ) ) {
-        $sanitized[ $root ]['merchantAuthentication']['name'] = $mask( (string) $sanitized[ $root ]['merchantAuthentication']['name'] );
+        $sanitized[ $root ]['merchantAuthentication']['name'] = $mask_secret( (string) $sanitized[ $root ]['merchantAuthentication']['name'] );
     }
     if ( isset( $sanitized[ $root ]['merchantAuthentication']['transactionKey'] ) ) {
-        $sanitized[ $root ]['merchantAuthentication']['transactionKey'] = $mask( (string) $sanitized[ $root ]['merchantAuthentication']['transactionKey'] );
+        $sanitized[ $root ]['merchantAuthentication']['transactionKey'] = $mask_secret( (string) $sanitized[ $root ]['merchantAuthentication']['transactionKey'] );
     }
     if ( isset( $sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardNumber'] ) ) {
         $pan = (string)$sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardNumber'];
@@ -382,6 +403,9 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
     }
     if ( isset( $sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardCode'] ) ) {
         $sanitized[ $root ]['transactionRequest']['payment']['creditCard']['cardCode'] = '***';
+    }
+    if ( isset( $sanitized[ $root ]['transactionRequest']['payment']['opaqueData']['dataValue'] ) ) {
+        $sanitized[ $root ]['transactionRequest']['payment']['opaqueData']['dataValue'] = $mask( (string) $sanitized[ $root ]['transactionRequest']['payment']['opaqueData']['dataValue'] );
     }
     if ( isset( $sanitized[ $root ]['transactionRequest']['amount'] ) ) {
         $sanitized[ $root ]['transactionRequest']['amount'] = number_format( (float) $sanitized[ $root ]['transactionRequest']['amount'], 2, '.', '' );
@@ -449,8 +473,10 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             $diag['authCode']      = $tresponse->getAuthCode();
             $diag['avsResultCode'] = $tresponse->getAvsResultCode();
             $diag['cvvResultCode'] = $tresponse->getCvvResultCode();
-            $diag['accountNumber'] = $tresponse->getAccountNumber();
-            $diag['accountType']   = $tresponse->getAccountType();
+            if ( method_exists( $tresponse, 'getAccountNumber' ) ) {
+                $diag['accountNumber'] = $this->mask_card( (string) $tresponse->getAccountNumber() );
+            }
+            $diag['accountType']   = method_exists( $tresponse, 'getAccountType' ) ? $tresponse->getAccountType() : null;
             $diag['entryMode']     = method_exists($tresponse,'getEntryMode') ? $tresponse->getEntryMode() : null;
 
             if ( $tresponse->getErrors() ) {
