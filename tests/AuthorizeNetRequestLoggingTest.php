@@ -30,6 +30,11 @@ class AuthorizeNetRequestLoggingTest extends TestCase {
     protected function make_response() {
         $tresponse = new class {
             public function getResponseCode() { return '2'; }
+            public function getTransId() { return '123456'; }
+            public function getAuthCode() { return 'ABC123'; }
+            public function getAvsResultCode() { return 'N'; }
+            public function getCvvResultCode() { return 'P'; }
+            public function getAccountNumber() { return '4111111111111111'; }
             public function getErrors() {
                 return [ new class {
                     public function getErrorCode() { return '54'; }
@@ -78,7 +83,7 @@ class AuthorizeNetRequestLoggingTest extends TestCase {
         ] );
 
         $log = implode( "\n", TTA_Debug_Logger::get_messages() );
-        $this->assertStringContainsString( 'charge request:', $log );
+        $this->assertStringContainsString( 'charge request', $log );
         $this->assertStringContainsString( 'LOGI', $log );
         $this->assertStringContainsString( '5678', $log );
         $this->assertStringNotContainsString( 'LOGINID123456', $log );

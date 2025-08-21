@@ -27,6 +27,11 @@ class AuthorizeNetLoggingTest extends TestCase {
     protected function make_response() {
         $tresponse = new class {
             public function getResponseCode() { return '2'; }
+            public function getTransId() { return '123456'; }
+            public function getAuthCode() { return 'ABC123'; }
+            public function getAvsResultCode() { return 'N'; }
+            public function getCvvResultCode() { return 'P'; }
+            public function getAccountNumber() { return '4111111111111111'; }
             public function getErrors() {
                 return [ new class {
                     public function getErrorCode() { return '54'; }
@@ -63,8 +68,7 @@ class AuthorizeNetLoggingTest extends TestCase {
         };
         TTA_Debug_Logger::clear();
         $api->log_response_public( 'charge', $response );
-        $msgs = TTA_Debug_Logger::get_messages();
-        $this->assertTrue( $this->contains_decline_detail( $msgs ) );
+        $this->assert_response_logged( TTA_Debug_Logger::get_messages() );
 
         update_option( 'tta_authnet_sandbox', 0 );
         $apiLive = new class extends TTA_AuthorizeNet_API {
@@ -72,17 +76,19 @@ class AuthorizeNetLoggingTest extends TestCase {
         };
         TTA_Debug_Logger::clear();
         $apiLive->log_response_public( 'charge', $response );
-        $msgsLive = TTA_Debug_Logger::get_messages();
-        $this->assertTrue( $this->contains_decline_detail( $msgsLive ) );
+        $this->assert_response_logged( TTA_Debug_Logger::get_messages() );
     }
 
-    protected function contains_decline_detail( array $msgs ) {
-        foreach ( $msgs as $m ) {
-            if ( strpos( $m, '2 54 Card expired' ) !== false ) {
-                return true;
-            }
-        }
-        return false;
+    protected function assert_response_logged( array $msgs ) {
+        $log = implode( "\n", $msgs );
+        $this->assertStringContainsString( '2 54 Card expired', $log );
+        $this->assertStringContainsString( '"transId":"123456"', $log );
+        $this->assertStringContainsString( '"authCode":"ABC123"', $log );
+        $this->assertStringContainsString( '"avsResultCode":"N"', $log );
+        $this->assertStringContainsString( '"cvvResultCode":"P"', $log );
+        $this->assertStringContainsString( '"accountNumber":"************1111"', $log );
+        $this->assertStringContainsString( '"errorCode":"54"', $log );
+        $this->assertStringContainsString( '"errorText":"Card expired"', $log );
     }
 }
 ?>

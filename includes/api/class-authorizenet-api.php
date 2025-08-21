@@ -52,6 +52,8 @@ class TTA_AuthorizeNet_API {
             } else {
                 if ( preg_match( '/cardnumber|accountnumber/i', $key ) ) {
                     $data[ $key ] = $this->mask_card( (string) $value );
+                } elseif ( preg_match( '/cardcode|cvv/i', $key ) ) {
+                    $data[ $key ] = '[omitted]';
                 } elseif ( preg_match( '/login|key/i', $key ) ) {
                     $data[ $key ] = $this->mask_value( (string) $value );
                 }
@@ -124,6 +126,35 @@ class TTA_AuthorizeNet_API {
 
             $trans_summary = trim( $resp_code . ' ' . $code . ' ' . $text );
             TTA_Debug_Logger::log( $context . ' transaction: ' . ( $trans_summary ?: '[no details]' ) );
+
+            $fields = [];
+            $fields['responseCode'] = $resp_code;
+            if ( method_exists( $tresponse, 'getTransId' ) ) {
+                $fields['transId'] = $tresponse->getTransId();
+            }
+            if ( method_exists( $tresponse, 'getAuthCode' ) ) {
+                $fields['authCode'] = $tresponse->getAuthCode();
+            }
+            if ( method_exists( $tresponse, 'getAvsResultCode' ) ) {
+                $fields['avsResultCode'] = $tresponse->getAvsResultCode();
+            }
+            if ( method_exists( $tresponse, 'getCvvResultCode' ) ) {
+                $fields['cvvResultCode'] = $tresponse->getCvvResultCode();
+            }
+            if ( method_exists( $tresponse, 'getAccountNumber' ) ) {
+                $fields['accountNumber'] = $this->mask_card( (string) $tresponse->getAccountNumber() );
+            }
+            if ( method_exists( $tresponse, 'getErrors' ) && $tresponse->getErrors() ) {
+                $err = $tresponse->getErrors()[0];
+                $fields['errors'] = [
+                    'errorCode' => method_exists( $err, 'getErrorCode' ) ? $err->getErrorCode() : '',
+                    'errorText' => method_exists( $err, 'getErrorText' ) ? $err->getErrorText() : '',
+                ];
+            }
+            $fields = array_filter( $fields );
+            if ( $fields ) {
+                TTA_Debug_Logger::log( $context . ' transactionResponse: ' . wp_json_encode( $fields ) );
+            }
         }
     }
 
@@ -244,25 +275,19 @@ class TTA_AuthorizeNet_API {
         $request->setMerchantAuthentication( $merchantAuthentication );
         $request->setTransactionRequest( $transactionRequest );
 
-        $log_request = [
-            'endpoint'        => $this->environment,
-            'api_login_id'    => $this->mask_value( $this->login_id ),
-            'transaction_key' => $this->mask_value( $this->transaction_key ),
-            'amount'          => $amount,
-            'card_number'     => $this->mask_card( $card_number ),
-            'exp_date'        => sanitize_text_field( $exp_date ),
-            'card_code'       => '[omitted]',
-        ];
-
-        if ( $billing ) {
-            foreach ( [ 'first_name', 'last_name', 'address', 'city', 'state', 'zip' ] as $field ) {
-                if ( isset( $billing[ $field ] ) ) {
-                    $log_request['billing'][ $field ] = sanitize_text_field( $billing[ $field ] );
-                }
-            }
+        $mapper       = \net\authorize\util\Mapper::Instance();
+        $root         = $mapper->getXmlName( ( new \ReflectionClass( $request ) )->getName() );
+        $request_json = [ $root => $request ];
+        $sanitized    = $this->sanitize_response_array( json_decode( wp_json_encode( $request_json ), true ) );
+        if ( isset( $sanitized[ $root ]['merchantAuthentication']['name'] ) ) {
+            $sanitized[ $root ]['merchantAuthentication']['name'] = $this->mask_value( (string) $sanitized[ $root ]['merchantAuthentication']['name'] );
         }
-
-        TTA_Debug_Logger::log( 'charge request: ' . wp_json_encode( $log_request ) );
+        array_walk_recursive( $sanitized, function ( &$v ) {
+            if ( is_string( $v ) ) {
+                $v = sanitize_text_field( $v );
+            }
+        } );
+        TTA_Debug_Logger::log( 'charge request (' . $this->environment . '): ' . wp_json_encode( $sanitized ) );
 
         $controller = new AnetController\CreateTransactionController( $request );
         $response   = $this->send_request( $controller );
