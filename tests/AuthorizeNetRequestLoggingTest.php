@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
 
-class AuthorizeNetLoggingTest extends TestCase {
+class AuthorizeNetRequestLoggingTest extends TestCase {
     protected function setUp(): void {
         $GLOBALS['options'] = [];
         if ( ! function_exists( 'get_option' ) ) {
@@ -12,6 +12,9 @@ class AuthorizeNetLoggingTest extends TestCase {
         }
         if ( ! function_exists( 'delete_option' ) ) {
             function delete_option( $k ) { unset( $GLOBALS['options'][ $k ] ); }
+        }
+        if ( ! function_exists( 'sanitize_text_field' ) ) {
+            function sanitize_text_field( $str ) { return is_string( $str ) ? trim( $str ) : $str; }
         }
         if ( ! function_exists( 'wp_json_encode' ) ) {
             function wp_json_encode( $data ) { return json_encode( $data ); }
@@ -54,35 +57,37 @@ class AuthorizeNetLoggingTest extends TestCase {
         };
     }
 
-    public function test_logs_transaction_details_in_sandbox_and_live() {
+    public function test_request_logging_masks_sensitive_data() {
         $response = $this->make_response();
-
-        update_option( 'tta_authnet_sandbox', 1 );
-        $api  = new class extends TTA_AuthorizeNet_API {
-            public function log_response_public( $context, $response ) { $this->log_response( $context, $response ); }
-        };
-        TTA_Debug_Logger::clear();
-        $api->log_response_public( 'charge', $response );
-        $msgs = TTA_Debug_Logger::get_messages();
-        $this->assertTrue( $this->contains_decline_detail( $msgs ) );
-
-        update_option( 'tta_authnet_sandbox', 0 );
-        $apiLive = new class extends TTA_AuthorizeNet_API {
-            public function log_response_public( $context, $response ) { $this->log_response( $context, $response ); }
-        };
-        TTA_Debug_Logger::clear();
-        $apiLive->log_response_public( 'charge', $response );
-        $msgsLive = TTA_Debug_Logger::get_messages();
-        $this->assertTrue( $this->contains_decline_detail( $msgsLive ) );
-    }
-
-    protected function contains_decline_detail( array $msgs ) {
-        foreach ( $msgs as $m ) {
-            if ( strpos( $m, '2 54 Card expired' ) !== false ) {
-                return true;
+        $api = new class( 'LOGINID123456', 'TRANSKEY12345678' ) extends TTA_AuthorizeNet_API {
+            public $fake_response;
+            protected function send_request( $controller ) {
+                return $this->fake_response;
             }
-        }
-        return false;
+        };
+        $api->fake_response = $response;
+
+        TTA_Debug_Logger::clear();
+        $api->charge( 10.0, '4111111111111111', '2025-12', '999', [
+            'first_name' => 'John',
+            'last_name'  => 'Doe',
+            'address'    => '123 St',
+            'city'       => 'Richmond',
+            'state'      => 'VA',
+            'zip'        => '23220',
+        ] );
+
+        $log = implode( "\n", TTA_Debug_Logger::get_messages() );
+        $this->assertStringContainsString( 'charge request:', $log );
+        $this->assertStringContainsString( 'LOGI', $log );
+        $this->assertStringContainsString( '5678', $log );
+        $this->assertStringNotContainsString( 'LOGINID123456', $log );
+        $this->assertStringNotContainsString( 'TRANSKEY12345678', $log );
+        $this->assertStringContainsString( '************1111', $log );
+        $this->assertStringNotContainsString( '4111111111111111', $log );
+        $this->assertStringContainsString( '[omitted]', $log );
+        $this->assertStringNotContainsString( '999', $log );
+        $this->assertStringContainsString( 'John', $log );
+        $this->assertStringContainsString( 'Card expired', $log );
     }
 }
-?>

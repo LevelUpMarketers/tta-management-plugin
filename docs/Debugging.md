@@ -9,3 +9,14 @@ This feature is intended for development only. Before deploying to production, c
 The General Settings tab also provides an **Authorize.net testing** button. Clicking it triggers a series of automated purchases through the plugin's AJAX endpoints using your sandbox credentials. Each scenario (single ticket, multiple tickets, membership only, and membership plus tickets) runs with short delays to avoid API throttling. Progress and results for every step are written to the debug log.
 
 All Authorize.Net API responses are logged to the PHP `error_log`, making it easy to inspect the full payload returned by the gateway after any checkout attempt. The debug log also records key `TransactionResponse` fields—such as the response code and any error messages—so declines clearly show their specific reason in both sandbox and live modes.
+
+## Authorize.Net request/response logging
+
+Every transaction attempt records a sanitized snapshot of the request and response payloads. Sensitive values such as API Login IDs, Transaction Keys, and card numbers are partially masked (only the last four digits of a card are shown) and CVV codes are never logged. Example entry:
+
+```
+charge request: {"api_login_id":"LOGI****3456","card_number":"************1111","card_code":"[omitted]"}
+charge response: {"transactionResponse":{"responseCode":"2","errors":[{"errorCode":"54","errorText":"Card expired"}]}}
+```
+
+Clear the log regularly in production environments to avoid retaining outdated debugging information.

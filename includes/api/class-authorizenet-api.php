@@ -13,6 +13,64 @@ class TTA_AuthorizeNet_API {
     protected $environment;
 
     /**
+     * Mask a value keeping the first and last segments visible.
+     *
+     * @param string $value Original value.
+     * @param int    $start Number of characters to keep at the start.
+     * @param int    $end   Number of characters to keep at the end.
+     * @return string
+     */
+    protected function mask_value( $value, $start = 4, $end = 4 ) {
+        $len = strlen( $value );
+        if ( $len <= $start + $end ) {
+            return str_repeat( '*', $len );
+        }
+        return substr( $value, 0, $start ) . str_repeat( '*', $len - $start - $end ) . substr( $value, -$end );
+    }
+
+    /**
+     * Mask a card number keeping only the last four digits.
+     *
+     * @param string $number Card number.
+     * @return string
+     */
+    protected function mask_card( $number ) {
+        $number = preg_replace( '/\D/', '', $number );
+        return $this->mask_value( $number, 0, 4 );
+    }
+
+    /**
+     * Recursively sanitize a response array, masking any sensitive fields.
+     *
+     * @param array $data Response data.
+     * @return array
+     */
+    protected function sanitize_response_array( array $data ) {
+        foreach ( $data as $key => $value ) {
+            if ( is_array( $value ) ) {
+                $data[ $key ] = $this->sanitize_response_array( $value );
+            } else {
+                if ( preg_match( '/cardnumber|accountnumber/i', $key ) ) {
+                    $data[ $key ] = $this->mask_card( (string) $value );
+                } elseif ( preg_match( '/login|key/i', $key ) ) {
+                    $data[ $key ] = $this->mask_value( (string) $value );
+                }
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * Execute an API request using the provided controller.
+     *
+     * @param object $controller SDK controller instance.
+     * @return mixed
+     */
+    protected function send_request( $controller ) {
+        return $controller->executeWithApiResponse( $this->environment );
+    }
+
+    /**
      * Log raw API responses to the internal debug log.
      *
      * @param string $context  Context label describing the request.
@@ -23,6 +81,12 @@ class TTA_AuthorizeNet_API {
         if ( ! $response ) {
             TTA_Debug_Logger::log( $context . ': [no response]' );
             return;
+        }
+
+        $array = json_decode( json_encode( $response ), true );
+        if ( is_array( $array ) ) {
+            $array = $this->sanitize_response_array( $array );
+            TTA_Debug_Logger::log( $context . ' response: ' . wp_json_encode( $array ) );
         }
 
         $result   = '';
@@ -180,8 +244,28 @@ class TTA_AuthorizeNet_API {
         $request->setMerchantAuthentication( $merchantAuthentication );
         $request->setTransactionRequest( $transactionRequest );
 
+        $log_request = [
+            'endpoint'        => $this->environment,
+            'api_login_id'    => $this->mask_value( $this->login_id ),
+            'transaction_key' => $this->mask_value( $this->transaction_key ),
+            'amount'          => $amount,
+            'card_number'     => $this->mask_card( $card_number ),
+            'exp_date'        => sanitize_text_field( $exp_date ),
+            'card_code'       => '[omitted]',
+        ];
+
+        if ( $billing ) {
+            foreach ( [ 'first_name', 'last_name', 'address', 'city', 'state', 'zip' ] as $field ) {
+                if ( isset( $billing[ $field ] ) ) {
+                    $log_request['billing'][ $field ] = sanitize_text_field( $billing[ $field ] );
+                }
+            }
+        }
+
+        TTA_Debug_Logger::log( 'charge request: ' . wp_json_encode( $log_request ) );
+
         $controller = new AnetController\CreateTransactionController( $request );
-        $response   = $controller->executeWithApiResponse( $this->environment );
+        $response   = $this->send_request( $controller );
         $this->log_response( 'charge', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
