@@ -503,7 +503,7 @@ class TTA_Assets {
                 'tta-acceptjs',
                 $accept_url,
                 [],
-                false,
+                null,
                 true
             );
 
