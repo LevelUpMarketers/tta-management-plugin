@@ -158,12 +158,24 @@ class TTA_Refund_Processor {
             $amount = floatval( $tx['amount'] );
         }
 
-        $api         = new TTA_AuthorizeNet_API();
+        $api        = new TTA_AuthorizeNet_API();
         $status_res = $api->get_transaction_status( $tx['transaction_id'] );
-        $res        = $api->refund( $amount, $tx['transaction_id'], $tx['card_last4'] );
+        $status     = strtolower( $status_res['status'] ?? '' );
+        $pending    = false !== strpos( $status, 'pending' );
+        $full       = abs( floatval( $tx['amount'] ) - $amount ) < 0.01;
+
+        if ( $pending && $full ) {
+            $res = $api->void( $tx['transaction_id'] );
+            if ( ! $res['success'] ) {
+                $res = $api->refund( $amount, $tx['transaction_id'], $tx['card_last4'] );
+            }
+        } else {
+            $res = $api->refund( $amount, $tx['transaction_id'], $tx['card_last4'] );
+        }
+
         if ( ! $res['success'] ) {
             $msg = strtolower( $res['error'] );
-            if ( false !== strpos( $msg, 'not meet the criteria' ) || false !== strpos( $msg, 'not settled' ) || false !== strpos( $msg, 'unsuccessful' ) || false !== strpos( strtolower( $status_res['status'] ?? '' ), 'pending' ) ) {
+            if ( $pending || false !== strpos( $msg, 'not meet the criteria' ) || false !== strpos( $msg, 'not settled' ) || false !== strpos( $msg, 'unsuccessful' ) ) {
                 global $wpdb;
                 $hist_table = $wpdb->prefix . 'tta_memberhistory';
                 if ( ! empty( $req['history_id'] ) ) {
@@ -189,9 +201,7 @@ class TTA_Refund_Processor {
                 tta_decrement_released_refund_count( intval( $req['ticket_id'] ) );
                 return;
             }
-        }
 
-        if ( ! $res['success'] ) {
             return;
         }
 
