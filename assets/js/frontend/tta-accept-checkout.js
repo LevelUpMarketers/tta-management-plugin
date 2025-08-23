@@ -1,125 +1,331 @@
-(function($){
-  function showMessage(msg, isError){
+(function ($) {
+  /**
+   * === TTA Checkout Reporter (console timeline) ==============================
+   * Usage:
+   *   const R = Reporter.start('Checkout');
+   *   R.step('Collected form fields', data);
+   *   R.net('AJAX request', { url, payload });
+   *   R.net('AJAX response', { status, json, xhr });
+   *   R.ok('Approved', summary);
+   *   R.fail('Declined', detail);
+   *   R.done();
+   */
+  const Reporter = (function () {
+    const now = () => new Date();
+    const fmtTime = (d) => d.toISOString();
+    const rand = () => Math.random().toString(36).slice(2, 10);
+
+    function create(label) {
+      const traceId = `TTA-${rand()}-${Date.now()}`;
+      const start = now();
+
+      // Start the top-level group
+      console.groupCollapsed(
+        `%c[TTA Checkout] ${label}  trace=${traceId}  @ ${fmtTime(start)}`,
+        'color:#0A84FF;font-weight:bold'
+      );
+
+      const API = {
+        id: traceId,
+        startedAt: start,
+        step(title, data) {
+          console.groupCollapsed(`%c• ${title}`, 'color:#34C759');
+          if (arguments.length > 1) console.log(data);
+          console.groupEnd();
+          return API;
+        },
+        warn(title, data) {
+          console.groupCollapsed(`%c• ${title}`, 'color:#FFD60A');
+          if (arguments.length > 1) console.warn(data);
+          console.groupEnd();
+          return API;
+        },
+        error(title, data) {
+          console.groupCollapsed(`%c• ${title}`, 'color:#FF453A');
+          if (arguments.length > 1) console.error(data);
+          console.groupEnd();
+          return API;
+        },
+        net(title, data) {
+          console.groupCollapsed(`%c⇄ ${title}`, 'color:#BF5AF2');
+          if (arguments.length > 1) console.log(data);
+          console.groupEnd();
+          return API;
+        },
+        ok(title, data) {
+          console.groupCollapsed(`%c✓ ${title}`, 'color:#32D74B');
+          if (arguments.length > 1) console.log(data);
+          console.groupEnd();
+          return API;
+        },
+        fail(title, data) {
+          console.groupCollapsed(`%c✗ ${title}`, 'color:#FF3B30');
+          if (arguments.length > 1) console.log(data);
+          console.groupEnd();
+          return API;
+        },
+        done(summary) {
+          const end = now();
+          const ms = end - start;
+          console.groupCollapsed(
+            `%c[Done] ${fmtTime(end)}  (${ms} ms)`,
+            'color:#0A84FF'
+          );
+          if (summary) console.log(summary);
+          console.groupEnd();
+          console.groupEnd(); // close top group
+          // Expose last run globally for quick copy
+          window.TTA_LAST_TRACE = window.TTA_LAST_TRACE || {};
+          window.TTA_LAST_TRACE[traceId] = { startedAt: start, endedAt: end, summary: summary || null };
+        }
+      };
+      return API;
+    }
+
+    return { start: create };
+  })();
+
+  function showMessage(msg, isError) {
     var $resp = $('#tta-checkout-response');
     $resp.text(msg);
-    if(isError){
+    if (isError) {
       $resp.addClass('error');
     } else {
       $resp.removeClass('error');
     }
   }
-  $(function(){
+
+  $(function () {
     var cfg = window.TTA_ACCEPT || {};
 
+    // TEMP hard override if needed (dev only)
     if (!cfg.clientKey) {
-      // set it if you really need a hard override (not recommended for prod)
       cfg.clientKey = '3R49F9pXNAKcmqE3932Y9EcV6qDUB7Kj6xudqH5g9Dcr5aAbcXX7MNJTB8n2VVas';
       window.TTA_ACCEPT = cfg;
     }
 
+    // find form that has the place-order button
     var $form = $('form').has('button[name="tta_do_checkout"]');
-    if(!$form.length){ return; }
+    if (!$form.length) return;
 
-    $form.on('submit', function(e){
-        console.log('form submitted!');
-        console.log(window.TTA_ACCEPT);
+    $form.on('submit', function (e) {
+      const R = Reporter.start('Place Order clicked');
 
+      // Identify the intended submitter
       var submitter = e.originalEvent && e.originalEvent.submitter;
-      if(submitter && $(submitter).attr('name') !== 'tta_do_checkout'){
-        console.log('Just about to "return" - not good!');
+      R.step('Initial config', {
+        location: window.location.href,
+        TTA_ACCEPT: window.TTA_ACCEPT,
+        userAgent: navigator.userAgent
+      });
+
+      if (submitter && $(submitter).attr('name') !== 'tta_do_checkout') {
+        R.warn('Submit ignored (not the checkout submit button)', {
+          submitterName: $(submitter).attr('name')
+        });
         return;
       }
+
       e.preventDefault();
       var $btn = $form.find('button[name="tta_do_checkout"]');
       $btn.prop('disabled', true);
       $('.tta-admin-progress-spinner-svg').show();
-      showMessage('Processing payment...');
+      showMessage('Processing payment…');
 
-      if(typeof Accept === 'undefined'){
-        console.log('In "undefined"');
-        showMessage('Payment library not loaded. Please refresh and try again.', true);
-        $('.tta-admin-progress-spinner-svg').hide();
-        $btn.prop('disabled', false);
-        return;
-      }
-
+      // Collect fields
       var cardNumber = $.trim($form.find('[name="card_number"]').val());
       var exp = $.trim($form.find('[name="card_exp"]').val());
       var cvc = $.trim($form.find('[name="card_cvc"]').val());
-      exp = exp.replace(/\s+/g,'');
-      if(/^[0-9]{4}$/.test(exp)){
-        exp = exp.substring(0,2)+'/'+exp.substring(2);
+
+      exp = exp.replace(/\s+/g, '');
+      if (/^[0-9]{4}$/.test(exp)) {
+        exp = exp.substring(0, 2) + '/' + exp.substring(2);
       }
       var parts = exp.split(/[\/\-]/);
       var month = parts[0];
       var year = parts[1];
-      if(year && year.length === 2){ year = '20'+year; }
+      if (year && year.length === 2) year = '20' + year;
 
-      console.log('RIGHT before "Accept.dispatchData"');
-      Accept.dispatchData({
-        authData:{ apiLoginID: cfg.loginId, clientKey: cfg.clientKey },
-        cardData:{ cardNumber: cardNumber, month: month, year: year, cardCode: cvc }
-      }, function(response){
-        console.log('Inside the top of the "Response"');
-        if(response.messages.resultCode === 'Error'){
-          console.log('Inside "Error"');
-          console.warn('Accept.js error:', response.messages.message[0].text);
-          showMessage(response.messages.message[0].text || 'Payment error', true);
-          $('.tta-admin-progress-spinner-svg').hide();
-          $btn.prop('disabled', false);
-          return;
-        }
-        console.log('Right above instantiation of "opaque"');
-        var opaque = response.opaqueData;
-        var payload = {
-          action: 'tta_process_payment',
-          _wpnonce: cfg.nonce,
-          amount: $form.find('[name="tta_amount"]').val() || $btn.data('amount') || $form.data('amount') || '25.00',
-          billing: {
-            first_name: $form.find('[name="billing_first_name"]').val(),
-            last_name:  $form.find('[name="billing_last_name"]').val(),
-            email:      $form.find('[name="billing_email"]').val(),
-            address:    $form.find('[name="billing_street"]').val(),
-            address2:   $form.find('[name="billing_street_2"]').val(),
-            city:       $form.find('[name="billing_city"]').val(),
-            state:      $form.find('[name="billing_state"]').val(),
-            zip:        $form.find('[name="billing_zip"]').val(),
-            country:    'USA'
-          },
-          opaqueData: { dataDescriptor: opaque.dataDescriptor, dataValue: opaque.dataValue }
+      const billing = {
+        first_name: $form.find('[name="billing_first_name"]').val(),
+        last_name: $form.find('[name="billing_last_name"]').val(),
+        email: $form.find('[name="billing_email"]').val(),
+        address: $form.find('[name="billing_street"]').val(),
+        address2: $form.find('[name="billing_street_2"]').val(),
+        city: $form.find('[name="billing_city"]').val(),
+        state: $form.find('[name="billing_state"]').val(),
+        zip: $form.find('[name="billing_zip"]').val(),
+        country: 'USA'
+      };
+
+      const amount = (() => {
+        const clean = s => {
+          const n = parseFloat(String(s || '').trim().replace(/[, ]/g, '').replace(/[^\d.]/g, ''));
+          return isNaN(n) ? null : n.toFixed(2);
         };
+        return (
+          clean($('#tta-final-total').text() || $('#tta-final-total').val()) ||
+          clean($form.find('[name="tta_amount"]').val()) ||
+          clean($btn.data('amount')) ||
+          clean($form.data('amount')) ||
+          '0.00'
+        );
+      })();
 
-        console.log('Right before ajax call');
-        $.ajax({
-          url: cfg.ajaxUrl + '?action=tta_process_payment',
-          method: 'POST',
-          data: JSON.stringify(payload),
-          contentType: 'application/json',
-          dataType: 'json'
-        }).done(function(res){
-            console.log('In the Ajax Repsonse');
-          if(res.success){
-            console.log('In the Ajax Success Repsonse');
-            var last4 = cardNumber.slice(-4);
-            if(typeof window.ttaFinalizeOrder === 'function'){
-              window.ttaFinalizeOrder(res.transaction_id, last4);
-            } else {
-              $('.tta-admin-progress-spinner-svg').hide();
-              $btn.prop('disabled', false);
-              showMessage('Payment processed but checkout handler missing', true);
-            }
-            $form.find('[name="card_number"],[name="card_exp"],[name="card_cvc"]').val('');
-          } else {
+      R.step('Collected form fields', {
+        amount,
+        cardNumber,
+        cardExpMMYY: exp,
+        cardMonth: month,
+        cardYear: year,
+        cardCVC: cvc,
+        billing
+      });
+
+      // Accept.js present?
+      if (typeof Accept === 'undefined') {
+        R.error('Accept.js not loaded', { scriptExpected: (cfg.mode === 'sandbox' ? 'https://jstest.authorize.net/v1/Accept.js' : 'https://js.authorize.net/v1/Accept.js') });
+        showMessage('Payment library not loaded. Please refresh and try again.', true);
+        $('.tta-admin-progress-spinner-svg').hide();
+        $btn.prop('disabled', false);
+        R.done({ outcome: 'client_error', reason: 'acceptjs_missing' });
+        return;
+      }
+
+      // Tokenize
+      R.step('Tokenizing via Accept.dispatchData', {
+        authData: { apiLoginID: cfg.loginId, clientKey: cfg.clientKey },
+        cardData: { cardNumber, month, year, cardCode: cvc }
+      });
+
+      Accept.dispatchData(
+        {
+          authData: { apiLoginID: cfg.loginId, clientKey: cfg.clientKey },
+          cardData: { cardNumber: cardNumber, month: month, year: year, cardCode: cvc }
+        },
+        function (response) {
+          R.step('Accept.js callback raw response', response);
+
+          if (response.messages.resultCode === 'Error') {
+            const errors = (response.messages.message || []).map(function (m) {
+              return m.code + ': ' + m.text;
+            });
+            R.fail('Accept.js tokenization failed', { errors });
+            showMessage(errors.join(' | ') || 'Payment error', true);
             $('.tta-admin-progress-spinner-svg').hide();
             $btn.prop('disabled', false);
-            showMessage(res.error || 'Payment failed', true);
+            R.done({ outcome: 'client_error', reason: 'tokenization_failed', errors });
+            return;
           }
-        }).fail(function(){
-          $('.tta-admin-progress-spinner-svg').hide();
-          $btn.prop('disabled', false);
-          showMessage('Request failed', true);
-        });
-      });
+
+          var opaque = response.opaqueData;
+          R.ok('Token created (opaqueData)', opaque);
+
+          // Build AJAX payload
+          var payload = {
+            action: 'tta_process_payment',
+            _wpnonce: cfg.nonce,
+            amount: amount,
+            billing: billing,
+            opaqueData: { dataDescriptor: opaque.dataDescriptor, dataValue: opaque.dataValue }
+          };
+          const ajaxUrl =
+            cfg.ajaxUrl + (cfg.ajaxUrl.indexOf('?') > -1 ? '&' : '?') + 'action=tta_process_payment';
+
+          R.net('AJAX request → admin-ajax.php', { url: ajaxUrl, method: 'POST', contentType: 'application/json', payload });
+
+          $.ajax({
+            url: ajaxUrl,
+            method: 'POST',
+            data: JSON.stringify(payload),
+            contentType: 'application/json; charset=UTF-8',
+            dataType: 'json'
+          })
+            .done(function (res, textStatus, jqXHR) {
+              R.net('AJAX response (success callback)', {
+                httpStatus: jqXHR.status,
+                textStatus,
+                json: res
+              });
+
+              // Optional server debug printing
+              if (res && res.debug) {
+                R.step('Server debug (AJAX handler)', res.debug);
+              }
+              if (res && res.gateway) {
+                R.step('Gateway debug (charge())', res.gateway);
+              }
+
+              if (res.success) {
+                const summary = {
+                  transaction_id: res.transaction_id || null,
+                  message: 'Approved (server reported success)'
+                };
+                R.ok('Payment approved', summary);
+                showMessage('Payment approved.', false);
+
+                // Clear sensitive fields
+                $form.find('[name="card_number"],[name="card_exp"],[name="card_cvc"]').val('');
+
+                if (typeof window.ttaFinalizeOrder === 'function') {
+                  const last4 = (cardNumber || '').slice(-4);
+                  window.ttaFinalizeOrder(res.transaction_id, last4);
+                } else {
+                  R.warn('Finalize callback missing (window.ttaFinalizeOrder)');
+                }
+              } else {
+                const msg = (res && res.error) ? String(res.error) : 'Payment failed.';
+                R.fail('Server indicated failure', { error: msg });
+                showMessage(msg, true);
+              }
+            })
+            .fail(function (jqXHR, textStatus, errorThrown) {
+              R.net('AJAX response (fail callback)', {
+                httpStatus: jqXHR.status,
+                textStatus,
+                errorThrown,
+                responseText: jqXHR.responseText
+              });
+              showMessage('Request failed', true);
+            })
+            .always(function (dataOrJq, textStatus, jqMaybe) {
+              $('.tta-admin-progress-spinner-svg').hide();
+              $btn.prop('disabled', false);
+
+              // Attempt to surface gateway diagnostics if present in any shape
+              try {
+                const res =
+                  (dataOrJq && dataOrJq.success !== undefined) ? dataOrJq :
+                  (jqMaybe && jqMaybe.responseJSON) ? jqMaybe.responseJSON :
+                  null;
+
+                if (res && res.gateway && res.gateway.diag) {
+                  const d = res.gateway.diag;
+                  const finalSummary = {
+                    responseCode: d.responseCode,
+                    avsResultCode: d.avsResultCode,
+                    cvvResultCode: d.cvvResultCode,
+                    transId: d.transId,
+                    authCode: d.authCode,
+                    hints: d.hints || []
+                  };
+                  if (d.responseCode === '1') {
+                    R.ok('Gateway final summary', finalSummary);
+                    R.done({ outcome: 'approved', summary: finalSummary });
+                  } else {
+                    R.fail('Gateway final summary', finalSummary);
+                    R.done({ outcome: 'declined', summary: finalSummary });
+                  }
+                } else {
+                  R.done({ outcome: 'completed_no_diag' });
+                }
+              } catch (e) {
+                R.warn('Final summarize error', { error: String(e) });
+                R.done({ outcome: 'completed_with_summarize_error' });
+              }
+            });
+        }
+      );
     });
   });
 })(jQuery);

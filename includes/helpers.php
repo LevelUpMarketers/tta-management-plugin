@@ -4485,7 +4485,7 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                     <?php
                     $m_total = $has_membership ? tta_get_membership_price( $membership_level ) : 0;
                     ?>
-                    <td colspan="2" class="tta-cart-total">
+                    <td id="tta-final-total" colspan="2" class="tta-cart-total">
                         $<?php echo esc_html( number_format( $total, 2 ) ); ?>
                         <?php
                         if ( $has_membership ) {
@@ -4656,7 +4656,7 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                     <?php
                     $m_total = $has_membership ? tta_get_membership_price( $membership_level ) : 0;
                     ?>
-                    <td>
+                    <td id="tta-final-total">
                         $<?php echo esc_html( number_format( $total, 2 ) ); ?>
                         <?php
                         if ( $has_membership ) {
