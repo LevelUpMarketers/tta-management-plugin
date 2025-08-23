@@ -5,12 +5,11 @@ jQuery(function($){
   var $container = $('#tta-checkout-container');
   var $left = $('.tta-checkout-left');
   var $right = $('.tta-checkout-right');
-  var $btn  = $form.find('button[type="submit"]');
+  var $btn  = $form.find('button[name="tta_do_checkout"]');
   var $spin = $form.find('.tta-admin-progress-spinner-svg');
   var $resp = $('#tta-checkout-response');
 
-  $form.on('submit', function(e){
-    e.preventDefault();
+  window.ttaFinalizeOrder = function(transactionId, last4){
     $resp.removeClass('updated error').text('');
     var start = Date.now();
 
@@ -18,11 +17,16 @@ jQuery(function($){
     $spin.show().css({opacity:0}).fadeTo(200,1);
     $container.add($left).add($right).fadeTo(200,0.3);
 
-    var data = $form.serialize();
-    data += '&action=tta_do_checkout';
-    data += '&nonce='+tta_checkout.nonce;
+    var dataArr = $form.serializeArray().filter(function(field){
+      return ['card_number','card_exp','card_cvc'].indexOf(field.name) === -1;
+    });
+    dataArr.push({name:'action', value:'tta_do_checkout'});
+    dataArr.push({name:'nonce', value: tta_checkout.nonce});
+    if(transactionId){ dataArr.push({name:'transaction_id', value: transactionId}); }
+    if(last4){ dataArr.push({name:'last4', value: last4}); }
+    var data = $.param(dataArr);
 
-    $.post(tta_checkout.ajax_url, data, function(res){
+    return $.post(tta_checkout.ajax_url, data, function(res){
       var delay = Math.max(0, 5000 - (Date.now()-start));
       setTimeout(function(){
         $spin.fadeOut(200);
@@ -35,10 +39,10 @@ jQuery(function($){
               html += '<p>Thanks for purchasing your Re-Entry Ticket! You can once again register for events. An email will be sent to ' + tta_checkout.user_email + ' for your records. Thanks again, and welcome back!</p>';
             } else {
               var amt = res.data.membership === 'premium' ? 10 : 5;
-              html += '<p>Thanks for becoming a ' + res.data.membership.charAt(0).toUpperCase()+res.data.membership.slice(1) + ' Member! ' +
-                "There's nothing else for you to do - you'll be automatically billed $"+amt+" once monthly, and can cancel anytime on your " +
-                '<a href="https://trying-to-adult-rva-2025.local/member-dashboard/?tab=billing">Member Dashboard</a>. ' +
-                'An email will be sent to ' + tta_checkout.user_email + ' with your Membership Details. Thanks again, and enjoy your Membership perks!</p>';
+              html += '<p>Thanks for becoming a ' + res.data.membership.charAt(0).toUpperCase()+res.data.membership.slice(1) + ' Member! '
+                + "There's nothing else for you to do - you'll be automatically billed $"+amt+" once monthly, and can cancel anytime on your "
+                + '<a href="https://trying-to-adult-rva-2025.local/member-dashboard/?tab=billing">Member Dashboard</a>. '
+                + 'An email will be sent to ' + tta_checkout.user_email + ' with your Membership Details. Thanks again, and enjoy your Membership perks!</p>';
               if(res.data.membership === 'basic'){
                 html += '<p>Did you know that there\'s even MORE perks and discounts to be had with a Premium Membership? <a href="https://trying-to-adult-rva-2025.local/become-a-member/">Learn more here.</a></p>';
               } else if(res.data.membership === 'premium'){
@@ -75,6 +79,5 @@ jQuery(function($){
         $resp.removeClass('updated').addClass('error').text('Request failed. Please try again.');
       }, delay);
     });
-  });
+  };
 });
-
