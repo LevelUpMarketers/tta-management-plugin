@@ -280,6 +280,8 @@
                 const msg = (data && data.error) ? String(data.error) : 'Payment failed.';
                 R.fail('Server indicated failure', { error: msg });
                 showMessage(msg, true);
+                $spin.fadeOut(200);
+                $btn.prop('disabled', false);
               }
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
@@ -290,11 +292,10 @@
                 responseText: jqXHR.responseText
               });
               showMessage('Request failed', true);
-            })
-            .always(function (dataOrJq, textStatus, jqMaybe) {
               $spin.fadeOut(200);
               $btn.prop('disabled', false);
-
+            })
+            .always(function (dataOrJq, textStatus, jqMaybe) {
               // Attempt to surface gateway diagnostics if present in any shape
               try {
                 const raw =

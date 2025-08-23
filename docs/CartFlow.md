@@ -39,7 +39,7 @@ This document summarizes the current logic around the cart and checkout process 
    - The ticket quantity buttons on the event page now verify current stock via AJAX. When the last ticket becomes unavailable in another member's cart, clicking the **+** button shows the same notice inline and the quantity does not increase or redirect to the cart.
 
 3. **Checkout**
-   - The **Checkout Page** template performs checkout via an AJAX request (`tta_do_checkout`). The page fades while a spinner shows and always waits at least five seconds before displaying the result under the **Place Order** button.
+  - The **Checkout Page** template performs checkout via an AJAX request (`tta_do_checkout`). The page fades while a spinner remains visible until the final response and always waits at least five seconds before displaying the result under the **Place Order** button.
    - A matching WPBakery hero banner is displayed at the top of the page.
   - Inventory is reserved when items are added to the cart. Checkout no longer revalidates stock so users can complete a purchase with their held tickets as long as the reservation has not expired.
   - Checkout displays a read-only summary table that mirrors the cart layout with tooltips, countdown timers, and a list of active discount codes below the total.
