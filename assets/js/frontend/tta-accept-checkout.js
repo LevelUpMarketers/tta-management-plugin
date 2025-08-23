@@ -128,8 +128,9 @@
 
       e.preventDefault();
       var $btn = $form.find('button[name="tta_do_checkout"]');
+      var $spin = $form.find('.tta-admin-progress-spinner-svg');
       $btn.prop('disabled', true);
-      $('.tta-admin-progress-spinner-svg').show();
+      $spin.css({ display: 'inline-block', opacity: 0 }).fadeTo(200, 1);
       showMessage('Processing payment…');
 
       // Collect fields
@@ -186,7 +187,7 @@
       if (typeof Accept === 'undefined') {
         R.error('Accept.js not loaded', { scriptExpected: (cfg.mode === 'sandbox' ? 'https://jstest.authorize.net/v1/Accept.js' : 'https://js.authorize.net/v1/Accept.js') });
         showMessage('Payment library not loaded. Please refresh and try again.', true);
-        $('.tta-admin-progress-spinner-svg').hide();
+        $spin.fadeOut(200);
         $btn.prop('disabled', false);
         R.done({ outcome: 'client_error', reason: 'acceptjs_missing' });
         return;
@@ -212,7 +213,7 @@
             });
             R.fail('Accept.js tokenization failed', { errors });
             showMessage(errors.join(' | ') || 'Payment error', true);
-            $('.tta-admin-progress-spinner-svg').hide();
+            $spin.fadeOut(200);
             $btn.prop('disabled', false);
             R.done({ outcome: 'client_error', reason: 'tokenization_failed', errors });
             return;
@@ -291,7 +292,7 @@
               showMessage('Request failed', true);
             })
             .always(function (dataOrJq, textStatus, jqMaybe) {
-              $('.tta-admin-progress-spinner-svg').hide();
+              $spin.fadeOut(200);
               $btn.prop('disabled', false);
 
               // Attempt to surface gateway diagnostics if present in any shape
