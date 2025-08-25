@@ -14,7 +14,9 @@ jQuery(function($){
     var start = Date.now();
 
     $btn.prop('disabled', true);
-    $spin.show().css({opacity:0}).fadeTo(200,1);
+    if(!$spin.is(':visible')){
+      $spin.show().css({opacity:0}).fadeTo(200,1);
+    }
     $container.add($left).add($right).fadeTo(200,0.3);
 
     var dataArr = $form.serializeArray().filter(function(field){

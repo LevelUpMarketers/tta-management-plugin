@@ -128,8 +128,9 @@
 
       e.preventDefault();
       var $btn = $form.find('button[name="tta_do_checkout"]');
+      var $spin = $form.find('.tta-admin-progress-spinner-svg');
       $btn.prop('disabled', true);
-      $('.tta-admin-progress-spinner-svg').show();
+      $spin.css({ display: 'inline-block', opacity: 0 }).fadeTo(200, 1);
       showMessage('Processing payment…');
 
       // Collect fields
@@ -186,7 +187,7 @@
       if (typeof Accept === 'undefined') {
         R.error('Accept.js not loaded', { scriptExpected: (cfg.mode === 'sandbox' ? 'https://jstest.authorize.net/v1/Accept.js' : 'https://js.authorize.net/v1/Accept.js') });
         showMessage('Payment library not loaded. Please refresh and try again.', true);
-        $('.tta-admin-progress-spinner-svg').hide();
+        $spin.fadeOut(200);
         $btn.prop('disabled', false);
         R.done({ outcome: 'client_error', reason: 'acceptjs_missing' });
         return;
@@ -212,7 +213,7 @@
             });
             R.fail('Accept.js tokenization failed', { errors });
             showMessage(errors.join(' | ') || 'Payment error', true);
-            $('.tta-admin-progress-spinner-svg').hide();
+            $spin.fadeOut(200);
             $btn.prop('disabled', false);
             R.done({ outcome: 'client_error', reason: 'tokenization_failed', errors });
             return;
@@ -248,17 +249,19 @@
                 json: res
               });
 
+              var data = res && typeof res === 'object' && res.data ? res.data : res;
+
               // Optional server debug printing
-              if (res && res.debug) {
-                R.step('Server debug (AJAX handler)', res.debug);
+              if (data && data.debug) {
+                R.step('Server debug (AJAX handler)', data.debug);
               }
-              if (res && res.gateway) {
-                R.step('Gateway debug (charge())', res.gateway);
+              if (data && data.gateway) {
+                R.step('Gateway debug (charge())', data.gateway);
               }
 
-              if (res.success) {
+              if (res && res.success) {
                 const summary = {
-                  transaction_id: res.transaction_id || null,
+                  transaction_id: data.transaction_id || null,
                   message: 'Approved (server reported success)'
                 };
                 R.ok('Payment approved', summary);
@@ -269,14 +272,16 @@
 
                 if (typeof window.ttaFinalizeOrder === 'function') {
                   const last4 = (cardNumber || '').slice(-4);
-                  window.ttaFinalizeOrder(res.transaction_id, last4);
+                  window.ttaFinalizeOrder(data.transaction_id, last4);
                 } else {
                   R.warn('Finalize callback missing (window.ttaFinalizeOrder)');
                 }
               } else {
-                const msg = (res && res.error) ? String(res.error) : 'Payment failed.';
+                const msg = (data && data.error) ? String(data.error) : 'Payment failed.';
                 R.fail('Server indicated failure', { error: msg });
                 showMessage(msg, true);
+                $spin.fadeOut(200);
+                $btn.prop('disabled', false);
               }
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
@@ -287,17 +292,17 @@
                 responseText: jqXHR.responseText
               });
               showMessage('Request failed', true);
+              $spin.fadeOut(200);
+              $btn.prop('disabled', false);
             })
             .always(function (dataOrJq, textStatus, jqMaybe) {
-              $('.tta-admin-progress-spinner-svg').hide();
-              $btn.prop('disabled', false);
-
               // Attempt to surface gateway diagnostics if present in any shape
               try {
-                const res =
+                const raw =
                   (dataOrJq && dataOrJq.success !== undefined) ? dataOrJq :
                   (jqMaybe && jqMaybe.responseJSON) ? jqMaybe.responseJSON :
                   null;
+                var res = raw && raw.data ? raw.data : raw;
 
                 if (res && res.gateway && res.gateway.diag) {
                   const d = res.gateway.diag;

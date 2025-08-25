@@ -172,10 +172,22 @@ class TTA_Ajax_Attendance {
 
         $api        = new TTA_AuthorizeNet_API();
         $status_res = $api->get_transaction_status( $tx['transaction_id'] );
-        $res        = $api->refund( $amount, $tx['transaction_id'], $tx['card_last4'] );
+        $status     = strtolower( $status_res['status'] ?? '' );
+        $pending    = false !== strpos( $status, 'pending' );
+        $full       = abs( floatval( $tx['amount'] ) - $amount ) < 0.01;
+
+        if ( $pending && $full ) {
+            $res = $api->void( $tx['transaction_id'] );
+            if ( ! $res['success'] ) {
+                $res = $api->refund( $amount, $tx['transaction_id'], $tx['card_last4'] );
+            }
+        } else {
+            $res = $api->refund( $amount, $tx['transaction_id'], $tx['card_last4'] );
+        }
+
         if ( ! $res['success'] ) {
             $msg = strtolower( $res['error'] );
-            if ( false !== strpos( $msg, 'not meet the criteria' ) || false !== strpos( $msg, 'not settled' ) || false !== strpos( $msg, 'unsuccessful' ) || false !== strpos( strtolower( $status_res['status'] ?? '' ), 'pending' ) ) {
+            if ( $pending || false !== strpos( $msg, 'not meet the criteria' ) || false !== strpos( $msg, 'not settled' ) || false !== strpos( $msg, 'unsuccessful' ) ) {
                 $ticket = $wpdb->get_row( $wpdb->prepare( "SELECT event_ute_id FROM {$ticket_table} WHERE id = %d", intval( $att['ticket_id'] ) ), ARRAY_A );
                 $event_id = 0;
                 if ( $ticket && ! empty( $ticket['event_ute_id'] ) ) {
