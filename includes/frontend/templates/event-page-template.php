@@ -67,11 +67,11 @@ if ( $event ) {
     );
 
     add_action( 'wp_head', function() use ( $page_id, $event, $share_message_meta, $hero_image_url_meta ) {
-        echo '<meta property="og:title" content="' . esc_attr( $event['name'] ) . "" />\n";
-        echo '<meta property="og:description" content="' . esc_attr( $share_message_meta ) . "" />\n";
-        echo '<meta property="og:url" content="' . esc_url( get_permalink( $page_id ) ) . "" />\n";
+        echo '<meta property="og:title" content="' . esc_attr( $event['name'] ) . '" />' . "\n";
+        echo '<meta property="og:description" content="' . esc_attr( $share_message_meta ) . '" />' . "\n";
+        echo '<meta property="og:url" content="' . esc_url( get_permalink( $page_id ) ) . '" />' . "\n";
         if ( $hero_image_url_meta ) {
-            echo '<meta property="og:image" content="' . esc_url( $hero_image_url_meta ) . "" />\n";
+            echo '<meta property="og:image" content="' . esc_url( $hero_image_url_meta ) . '" />' . "\n";
         }
     } );
 }
