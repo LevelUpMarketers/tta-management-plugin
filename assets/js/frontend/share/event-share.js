@@ -3,11 +3,9 @@ jQuery(function($){
     var title = $('.tta-event-title').text().trim();
     var date  = $('.tta-event-date').text().trim();
     var time  = $('.tta-event-time').text().trim();
-    var venue = $('.tta-event-details-icon-after strong:contains("Venue")').next('a').text().trim();
-    var msg = 'Check out this upcoming Trying to Adult event I\'m attending! ' + title;
-    if(date) msg += ' - ' + date;
-    if(time) msg += ' at ' + time;
-    if(venue) msg += ' at ' + venue;
+    var msg   = 'Check out this upcoming Trying To Adult event - ' + title;
+    if(date) msg += ', on ' + date;
+    if(time) msg += ', at ' + time;
     return encodeURIComponent(msg);
   }
 

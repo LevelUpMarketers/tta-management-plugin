@@ -10,20 +10,9 @@ $cart = new TTA_Cart();
 $cart_items = $cart->get_items();
 
 // ───────────────
-// 1) Load custom header (without the page-header block)
-// ───────────────
-$custom_header = plugin_dir_path( __FILE__ ) . 'header-event.php';
-if ( file_exists( $custom_header ) ) {
-    include $custom_header;
-} else {
-    get_header();
-}
-
-global $wpdb, $post;
-
-// ───────────────
 // 2) Fetch the main event record
 // ───────────────
+global $wpdb, $post;
 $page_id      = $post->ID;
 $events_table = $wpdb->prefix . 'tta_events';
 $archive_table = $wpdb->prefix . 'tta_events_archive';
@@ -50,12 +39,59 @@ if ( ! $event ) {
     }, 600 );
     if ( $event ) {
         $is_archived = true;
-    } else {
-        echo '<div class="wrap"><h1>' . esc_html__( 'Event not found.', 'tta' ) . '</h1>'
-           . '<p>' . esc_html__( 'Sorry, this event does not exist.', 'tta' ) . '</p></div>';
-        get_footer();
-        exit;
     }
+}
+
+if ( $event ) {
+    $timestamp     = strtotime( $event['date'] );
+    $date_str_meta = date_i18n( get_option( 'date_format' ), $timestamp );
+    $parts         = array_pad( explode( '|', $event['time'] ), 2, '' );
+    if ( $event['all_day_event'] ) {
+        $time_str_meta = esc_html__( 'All day', 'tta' );
+    } else {
+        $start_fmt    = $parts[0] ? date_i18n( get_option( 'time_format' ), strtotime( $parts[0] ) ) : '';
+        $end_fmt      = $parts[1] ? date_i18n( get_option( 'time_format' ), strtotime( $parts[1] ) ) : '';
+        $time_str_meta = trim( $start_fmt . ( $end_fmt ? ' – ' . $end_fmt : '' ) );
+    }
+
+    $hero_image_url_meta = '';
+    if ( ! empty( $event['mainimageid'] ) ) {
+        $hero_image_url_meta = wp_get_attachment_image_url( intval( $event['mainimageid'] ), 'full' );
+    }
+
+    $share_message_meta = sprintf(
+        'Check out this upcoming Trying To Adult event - %s, on %s, at %s',
+        $event['name'],
+        $date_str_meta,
+        $time_str_meta
+    );
+
+    add_action( 'wp_head', function() use ( $page_id, $event, $share_message_meta, $hero_image_url_meta ) {
+        echo '<meta property="og:title" content="' . esc_attr( $event['name'] ) . "" />\n";
+        echo '<meta property="og:description" content="' . esc_attr( $share_message_meta ) . "" />\n";
+        echo '<meta property="og:url" content="' . esc_url( get_permalink( $page_id ) ) . "" />\n";
+        if ( $hero_image_url_meta ) {
+            echo '<meta property="og:image" content="' . esc_url( $hero_image_url_meta ) . "" />\n";
+        }
+    } );
+}
+
+// ───────────────
+// 1) Load custom header (without the page-header block)
+// ───────────────
+$custom_header = plugin_dir_path( __FILE__ ) . 'header-event.php';
+if ( file_exists( $custom_header ) ) {
+    include $custom_header;
+} else {
+    get_header();
+}
+
+// If no event was found above, show error and exit
+if ( ! $event ) {
+    echo '<div class="wrap"><h1>' . esc_html__( 'Event not found.', 'tta' ) . '</h1>'
+       . '<p>' . esc_html__( 'Sorry, this event does not exist.', 'tta' ) . '</p></div>';
+    get_footer();
+    exit;
 }
 
 $has_waitlist = ( '1' === (string) ( $event['waitlistavailable'] ?? '0' ) );
