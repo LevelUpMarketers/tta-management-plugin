@@ -67,13 +67,14 @@ if ( $event ) {
     );
 
     add_action( 'wp_head', function() use ( $page_id, $event, $share_message_meta, $hero_image_url_meta ) {
+        echo '<meta property="og:type" content="article" />' . "\n";
         echo '<meta property="og:title" content="' . esc_attr( $event['name'] ) . '" />' . "\n";
         echo '<meta property="og:description" content="' . esc_attr( $share_message_meta ) . '" />' . "\n";
         echo '<meta property="og:url" content="' . esc_url( get_permalink( $page_id ) ) . '" />' . "\n";
         if ( $hero_image_url_meta ) {
             echo '<meta property="og:image" content="' . esc_url( $hero_image_url_meta ) . '" />' . "\n";
         }
-    } );
+    }, 1 );
 }
 
 // ───────────────
@@ -704,10 +705,23 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
 
       <div class="tta-event-share">
         <span class="tta-share-label"><?php esc_html_e( 'Share this event', 'tta' ); ?></span>
-        <a href="#" class="tta-share-link" data-platform="facebook">
+        <?php $share_url = get_permalink( $page_id ); ?>
+        <a
+          href="#"
+          class="tta-share-link"
+          data-platform="facebook"
+          data-share-url="<?php echo esc_url( $share_url ); ?>"
+          data-share-message="<?php echo esc_attr( $share_message_meta ); ?>"
+        >
           <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/facebook.svg' ); ?>" alt="Facebook">
         </a>
-        <a href="#" class="tta-share-link" data-platform="instagram">
+        <a
+          href="#"
+          class="tta-share-link"
+          data-platform="instagram"
+          data-share-url="<?php echo esc_url( $share_url ); ?>"
+          data-share-message="<?php echo esc_attr( $share_message_meta ); ?>"
+        >
           <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/instagram.svg' ); ?>" alt="Instagram">
         </a>
       </div>
