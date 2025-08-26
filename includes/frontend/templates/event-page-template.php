@@ -394,6 +394,16 @@ if ( $event['all_day_event'] ) {
     $time_str  = trim( $start_fmt . ( $end_fmt ? ' – ' . $end_fmt : '' ) );
 }
 
+// Compute precise start/end timestamps and whether the event has passed.
+$tz       = wp_timezone();
+$start_dt = date_create_from_format( 'Y-m-d H:i', $event['date'] . ' ' . ( $start ?: '00:00' ), $tz );
+$start_ts = $start_dt ? $start_dt->getTimestamp() : strtotime( $event['date'] . ' ' . ( $start ?: '00:00' ) );
+$end_dt   = $event['all_day_event']
+    ? $start_dt
+    : date_create_from_format( 'Y-m-d H:i', $event['date'] . ' ' . ( $end ?: '00:00' ), $tz );
+$end_ts            = $end_dt ? $end_dt->getTimestamp() : strtotime( $event['date'] . ' ' . ( $end ?: '00:00' ) );
+$event_has_passed  = $is_archived || ( $start_ts <= current_time( 'timestamp' ) );
+
 // ───────────────
 // 8) Hero image (fallback)
 // ───────────────
@@ -562,8 +572,6 @@ if ( $ticket_count > 1 ) {
 // ───────────────
 // 11) Build Event Schema markup
 // ───────────────
-$start_ts  = strtotime( $event['date'] . ' ' . ( $start ?? '00:00' ) );
-$end_ts    = $event['all_day_event'] ? $start_ts : strtotime( $event['date'] . ' ' . ( $end ?? '00:00' ) );
 $schema    = [
     '@context'  => 'https://schema.org',
     '@type'     => 'Event',
@@ -676,7 +684,7 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
         </a>
       </div>
 
-      <?php if ( ! $is_archived && ( ! $all_sold_out || $has_waitlist ) ) : ?>
+      <?php if ( ! $event_has_passed && ( ! $all_sold_out || $has_waitlist ) ) : ?>
         <a href="<?php echo $is_logged_in ? '#tta-event-buy' : '#tta-login-message'; ?>" class="tta-button tta-button-primary<?php echo $is_logged_in ? '' : ' tta-scroll-login'; ?>">
           <?php
           if ( $all_sold_out && $has_waitlist ) {
@@ -723,7 +731,7 @@ echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESC
         </section>
       <?php endif; ?>
 
-      <?php if ( ! $is_logged_in && ! $is_archived ) : ?>
+      <?php if ( ! $is_logged_in && ! $event_has_passed ) : ?>
         <section id="tta-login-message" class="tta-message-center tta-login-accordion">
           <h2><?php esc_html_e( 'Log in or Register Here', 'tta' ); ?></h2>
           <div class="tta-accordion">
@@ -802,6 +810,7 @@ echo '<div id="tta-login-wrap">' . $form_html . $lost_pw_html . '</div>';
         </section>
       <?php endif; ?>
 
+      <?php if ( ! $event_has_passed ) : ?>
       <section id="tta-event-buy" class="tta-event-buy">
         <h2><?php esc_html_e( 'Get Your Tickets Now', 'tta' ); ?></h2>
         <p class="tta-ticket-context">
@@ -925,6 +934,12 @@ echo '<div id="tta-login-wrap">' . $form_html . $lost_pw_html . '</div>';
         </div>
         <?php endif; ?>
       </section>
+      <?php else : ?>
+      <section id="tta-event-buy" class="tta-event-buy tta-disabled tta-tooltip-trigger" data-tooltip="<?php esc_attr_e( 'This event already happened! Look for more events like this soon.', 'tta' ); ?>">
+        <h2><?php esc_html_e( 'Get Your Tickets Now', 'tta' ); ?></h2>
+        <p class="tta-ticket-context"><?php esc_html_e( 'This event already happened! Look for more events like this soon.', 'tta' ); ?></p>
+      </section>
+      <?php endif; ?>
 
       <?php
       // Grab & sanitize gallery IDs
