@@ -214,4 +214,47 @@ class TTA_Email_Handler {
             }
         }
     }
+
+    /**
+     * Send a cancellation confirmation email when a free ticket is released.
+     *
+     * @param array $attendee Attendee details.
+     * @param int   $event_id Event ID.
+     */
+    public function send_cancellation_email( array $attendee, $event_id ) {
+        $templates = tta_get_comm_templates();
+        if ( empty( $templates['cancellation_requested'] ) ) {
+            return;
+        }
+        $tpl = $templates['cancellation_requested'];
+
+        $ute = tta_get_event_ute_id( intval( $event_id ) );
+        if ( ! $ute ) {
+            return;
+        }
+
+        $event = tta_get_event_for_email( $ute );
+        if ( empty( $event ) ) {
+            return;
+        }
+
+        $context = tta_get_current_user_context();
+        $context['first_name'] = sanitize_text_field( $attendee['first_name'] ?? $context['first_name'] );
+        $context['last_name']  = sanitize_text_field( $attendee['last_name'] ?? $context['last_name'] );
+        $context['user_email'] = sanitize_email( $attendee['email'] ?? $context['user_email'] );
+
+        $attendees = [ $attendee ];
+        $tokens      = $this->build_tokens( $event, $context, $attendees );
+        $subject_raw = tta_expand_anchor_tokens( $tpl['email_subject'], $tokens );
+        $subject     = tta_strip_bold( strtr( $subject_raw, $tokens ) );
+        $body_raw    = tta_expand_anchor_tokens( $tpl['email_body'], $tokens );
+        $body_txt    = tta_convert_bold( tta_convert_links( strtr( $body_raw, $tokens ) ) );
+        $body        = nl2br( $body_txt );
+
+        $to      = sanitize_email( $attendee['email'] ?? '' );
+        $headers = [ 'Content-Type: text/html; charset=UTF-8' ];
+        if ( $to ) {
+            wp_mail( $to, $subject, $body, $headers );
+        }
+    }
 }

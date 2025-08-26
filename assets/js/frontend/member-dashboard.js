@@ -381,7 +381,7 @@ jQuery(function($){
         $spin.fadeOut(200);
         $btn.prop('disabled', false);
         if(res.success){
-          $resp.addClass('updated').text(res.data.message);
+          $resp.addClass('updated').html(res.data.message);
           // prevent repeat submissions so the message can be read
           $form.find('textarea').prop('disabled', true);
           $btn.prop('disabled', true);
