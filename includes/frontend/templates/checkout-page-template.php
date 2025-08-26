@@ -379,11 +379,11 @@ if ( $checkout_done ) {
                             </label>
                         </p>
                     </div>
-                    <div class="tta-billing-details-div-container<?php echo ( $is_logged_in && ! $is_free_checkout ) ? '' : ' tta-disabled'; ?>">
+                    <div class="tta-billing-details-div-container<?php echo $is_logged_in ? '' : ' tta-disabled'; ?>">
                         <h4><?php esc_html_e( 'Payment Info', 'tta' ); ?></h4>
                         <p style="display:block;" class="tta-attendee-note">
                             <?php
-                            echo $is_free_checkout ? esc_html__( 'No payment is required for this order.', 'tta' ) : esc_html__( 'Please enter your credit or debit card details below.', 'tta' );
+                            echo $is_free_checkout ? esc_html__( 'No payment is required for this order - simply click the button below to secure your spot!', 'tta' ) : esc_html__( 'Please enter your credit or debit card details below.', 'tta' );
                             ?>
                         </p>
                         <p>
