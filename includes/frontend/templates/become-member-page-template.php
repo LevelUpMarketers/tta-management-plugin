@@ -19,22 +19,15 @@ echo do_shortcode( $header_shortcode );
   <div id="tta-member-intro-inner" class="tta-member-intro-inner">
     <div class="tta-member-intro-text">
       <h1><?php esc_html_e( 'Become a Trying to Adult Member', 'tta' ); ?></h1>
-      <p><?php esc_html_e( 'Ready to turn "we should hang out" into actual plans?', 'tta' ); ?></p>
-
-<p><?php esc_html_e( 'Membership makes it easier - and cheaper - to say yes to social plans throughout the month.', 'tta' ); ?></p>
-
-<p><?php esc_html_e( 'Non-members pay $5 for Classic events and $7 for Special events. Standard Members ($10/mo) get free access passes to 3+ Classic events each month, while Premium Members ($17/mo) get free access to 3+ Classic and 3+ Special events - so your membership pays for itself fast.', 'tta' ); ?></p>
-
-<p><?php esc_html_e( 'Pick your tier, lock in your discounts, and start building your RVA circle today.', 'tta' ); ?></p>
     </div>
     <div id="tta-member-intro-gallery" class="tta-member-intro-gallery">
       <?php
       $carousel_images = [
-        '/wp-content/uploads/2022/12/IMG-1351.jpg',
-        '/wp-content/uploads/2022/12/IMG-4850.jpg',
-        '/wp-content/uploads/2022/12/IMG-1153.jpg',
-        '/wp-content/uploads/2022/12/41657B74-F47D-451A-A99A-0B95C793FFD4-1.jpg',
-        '/wp-content/uploads/2022/12/IMG-7075-1.jpg',
+        '/wp-content/uploads/2025/08/IMG-1351-reduced.jpg',
+        '/wp-content/uploads/2025/08/IMG-4850-reduced.jpg',
+        '/wp-content/uploads/2025/08/IMG-1153-reduced.jpg',
+        '/wp-content/uploads/2025/08/41657B74-F47D-451A-A99A-0B95C793FFD4-1-reduced.jpg',
+        '/wp-content/uploads/2025/08/IMG-7075-1-reduced.jpg',
       ];
       foreach ( $carousel_images as $i => $src ) :
         $class = 0 === $i ? ' class="active"' : '';
@@ -62,39 +55,39 @@ echo do_shortcode( $header_shortcode );
     ),
     'monthly_new_friend_social' => array(
       'label'      => __( 'Monthly New Friend Social', 'tta' ),
-      'non_member' => __( 'N/A', 'tta' ),
-      'basic'      => __( 'N/A', 'tta' ),
-      'premium'    => __( 'N/A', 'tta' ),
+      'non_member' => __( 'Free', 'tta' ),
+      'basic'      => __( 'Free', 'tta' ),
+      'premium'    => __( 'Free', 'tta' ),
     ),
     'classic_events' => array(
       'label'      => __( '3+ Classic Events Monthly', 'tta' ),
-      'non_member' => '$5 ' . __( 'access pass', 'tta' ),
-      'basic'      => __( 'Free access pass', 'tta' ),
-      'premium'    => __( 'Free access pass', 'tta' ),
+      'non_member' => '$5 ' . __( 'access passes', 'tta' ),
+      'basic'      => __( 'Free access passes', 'tta' ),
+      'premium'    => __( 'Free access passes', 'tta' ),
     ),
     'special_events' => array(
       'label'      => __( '3+ Special Events Monthly', 'tta' ),
-      'non_member' => '$7 ' . __( 'access pass', 'tta' ),
-      'basic'      => '$5 ' . __( 'access pass', 'tta' ),
-      'premium'    => __( 'Free access pass', 'tta' ),
+      'non_member' => '$7 ' . __( 'access passes', 'tta' ),
+      'basic'      => '$5 ' . __( 'access passes', 'tta' ),
+      'premium'    => __( 'Free access passes', 'tta' ),
     ),
     'guess_pass' => array(
       'label'      => __( 'Guest Pass', 'tta' ),
-      'non_member' => __( 'N/A', 'tta' ),
-      'basic'      => __( 'N/A', 'tta' ),
-      'premium'    => __( 'N/A', 'tta' ),
+      'non_member' => __( 'No', 'tta' ),
+      'basic'      => __( '1 Pass', 'tta' ),
+      'premium'    => __( '1 Pass', 'tta' ),
     ),
     'waitlist_notice' => array(
       'label'      => __( 'Advanced Notice on Waitlist Openings', 'tta' ),
-      'non_member' => __( 'N/A', 'tta' ),
-      'basic'      => __( 'N/A', 'tta' ),
-      'premium'    => __( 'N/A', 'tta' ),
+      'non_member' => __( 'No', 'tta' ),
+      'basic'      => __( 'Yes', 'tta' ),
+      'premium'    => __( 'Yes', 'tta' ),
     ),
     'special_rates' => array(
       'label'      => __( 'Special Rates for Select Events', 'tta' ),
-      'non_member' => __( 'N/A', 'tta' ),
-      'basic'      => __( 'N/A', 'tta' ),
-      'premium'    => __( 'N/A', 'tta' ),
+      'non_member' => __( 'No', 'tta' ),
+      'basic'      => __( 'No', 'tta' ),
+      'premium'    => __( 'Yes', 'tta' ),
     ),
   );
 ?>
