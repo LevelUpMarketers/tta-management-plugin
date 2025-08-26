@@ -1294,8 +1294,8 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
   function syncLevelPrice($select){
     var level = $select.val();
     var price = '';
-    if(level === 'basic'){ price = '5.00'; }
-    else if(level === 'premium'){ price = '10.00'; }
+    if(level === 'basic'){ price = '10.00'; }
+    else if(level === 'premium'){ price = '17.00'; }
     if(price){
       $select.closest('form').find('input[name="price"], input[name="amount"]').val(price);
     }
