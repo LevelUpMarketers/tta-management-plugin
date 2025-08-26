@@ -33,7 +33,6 @@ echo do_shortcode( $header_shortcode );
         '/wp-content/uploads/2022/12/IMG-1351.jpg',
         '/wp-content/uploads/2022/12/IMG-4850.jpg',
         '/wp-content/uploads/2022/12/IMG-1153.jpg',
-        '/wp-content/uploads/2025/06/unnamed-6.webp',
         '/wp-content/uploads/2022/12/41657B74-F47D-451A-A99A-0B95C793FFD4-1.jpg',
         '/wp-content/uploads/2022/12/IMG-7075-1.jpg',
       ];
