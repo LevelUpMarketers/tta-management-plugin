@@ -19,64 +19,64 @@
       const traceId = `TTA-${rand()}-${Date.now()}`;
       const start = now();
 
-      // Start the top-level group
-      console.groupCollapsed(
-        `%c[TTA Checkout] ${label}  trace=${traceId}  @ ${fmtTime(start)}`,
-        'color:#0A84FF;font-weight:bold'
-      );
+      // Start the top-level group (disabled)
+      // console.groupCollapsed(
+      //   `%c[TTA Checkout] ${label}  trace=${traceId}  @ ${fmtTime(start)}`,
+      //   'color:#0A84FF;font-weight:bold'
+      // );
 
       const API = {
         id: traceId,
         startedAt: start,
         step(title, data) {
-          console.groupCollapsed(`%c• ${title}`, 'color:#34C759');
-          if (arguments.length > 1) console.log(data);
-          console.groupEnd();
+          // console.groupCollapsed(`%c• ${title}`, 'color:#34C759');
+          // if (arguments.length > 1) console.log(data);
+          // console.groupEnd();
           return API;
         },
         warn(title, data) {
-          console.groupCollapsed(`%c• ${title}`, 'color:#FFD60A');
-          if (arguments.length > 1) console.warn(data);
-          console.groupEnd();
+          // console.groupCollapsed(`%c• ${title}`, 'color:#FFD60A');
+          // if (arguments.length > 1) console.warn(data);
+          // console.groupEnd();
           return API;
         },
         error(title, data) {
-          console.groupCollapsed(`%c• ${title}`, 'color:#FF453A');
-          if (arguments.length > 1) console.error(data);
-          console.groupEnd();
+          // console.groupCollapsed(`%c• ${title}`, 'color:#FF453A');
+          // if (arguments.length > 1) console.error(data);
+          // console.groupEnd();
           return API;
         },
         net(title, data) {
-          console.groupCollapsed(`%c⇄ ${title}`, 'color:#BF5AF2');
-          if (arguments.length > 1) console.log(data);
-          console.groupEnd();
+          // console.groupCollapsed(`%c⇄ ${title}`, 'color:#BF5AF2');
+          // if (arguments.length > 1) console.log(data);
+          // console.groupEnd();
           return API;
         },
         ok(title, data) {
-          console.groupCollapsed(`%c✓ ${title}`, 'color:#32D74B');
-          if (arguments.length > 1) console.log(data);
-          console.groupEnd();
+          // console.groupCollapsed(`%c✓ ${title}`, 'color:#32D74B');
+          // if (arguments.length > 1) console.log(data);
+          // console.groupEnd();
           return API;
         },
         fail(title, data) {
-          console.groupCollapsed(`%c✗ ${title}`, 'color:#FF3B30');
-          if (arguments.length > 1) console.log(data);
-          console.groupEnd();
+          // console.groupCollapsed(`%c✗ ${title}`, 'color:#FF3B30');
+          // if (arguments.length > 1) console.log(data);
+          // console.groupEnd();
           return API;
         },
         done(summary) {
           const end = now();
           const ms = end - start;
-          console.groupCollapsed(
-            `%c[Done] ${fmtTime(end)}  (${ms} ms)`,
-            'color:#0A84FF'
-          );
-          if (summary) console.log(summary);
-          console.groupEnd();
-          console.groupEnd(); // close top group
+          // console.groupCollapsed(
+          //   `%c[Done] ${fmtTime(end)}  (${ms} ms)`,
+          //   'color:#0A84FF'
+          // );
+          // if (summary) console.log(summary);
+          // console.groupEnd();
+          // console.groupEnd(); // close top group
           // Expose last run globally for quick copy
-          window.TTA_LAST_TRACE = window.TTA_LAST_TRACE || {};
-          window.TTA_LAST_TRACE[traceId] = { startedAt: start, endedAt: end, summary: summary || null };
+          // window.TTA_LAST_TRACE = window.TTA_LAST_TRACE || {};
+          // window.TTA_LAST_TRACE[traceId] = { startedAt: start, endedAt: end, summary: summary || null };
         }
       };
       return API;

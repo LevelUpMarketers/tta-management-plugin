@@ -20,44 +20,43 @@ class TTA_Ajax_Payment {
     }
 
     public static function process_payment() {
-        // Build a verbose, user-friendly debug bundle we’ll return to the browser
-        $debug = [
-            'stage'        => 'ajax_entry',
-            'server_time'  => gmdate('c'),
-            'php_version'  => PHP_VERSION,
-            'wp_version'   => ( function_exists('get_bloginfo') ? get_bloginfo('version') : 'n/a' ),
-            'server'       => [
-                'REMOTE_ADDR'   => $_SERVER['REMOTE_ADDR'] ?? null,
-                'HTTP_X_FORWARDED_FOR' => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? null,
-                'HTTP_CF_CONNECTING_IP' => $_SERVER['HTTP_CF_CONNECTING_IP'] ?? null,
-                'REQUEST_URI'   => $_SERVER['REQUEST_URI'] ?? null,
-                'HTTPS'         => isset($_SERVER['HTTPS']) ? $_SERVER['HTTPS'] : null,
-            ],
-        ];
-
-        error_log('in "process_payment"');
+        // Debugging disabled
+        // $debug = [
+        //     'stage'        => 'ajax_entry',
+        //     'server_time'  => gmdate('c'),
+        //     'php_version'  => PHP_VERSION,
+        //     'wp_version'   => ( function_exists('get_bloginfo') ? get_bloginfo('version') : 'n/a' ),
+        //     'server'       => [
+        //         'REMOTE_ADDR'   => $_SERVER['REMOTE_ADDR'] ?? null,
+        //         'HTTP_X_FORWARDED_FOR' => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? null,
+         //         'HTTP_CF_CONNECTING_IP' => $_SERVER['HTTP_CF_CONNECTING_IP'] ?? null,
+        //         'REQUEST_URI'   => $_SERVER['REQUEST_URI'] ?? null,
+        //         'HTTPS'         => isset($_SERVER['HTTPS']) ? $_SERVER['HTTPS'] : null,
+        //     ],
+        // ];
+        // error_log('in "process_payment"');
 
         $raw  = file_get_contents( 'php://input' );
-        $debug['raw_body'] = $raw;
+        // $debug['raw_body'] = $raw;
 
         $data = json_decode( $raw, true );
-        $debug['decoded_json'] = $data;
+        // $debug['decoded_json'] = $data;
 
         if ( ! is_array( $data ) ) {
-            error_log('invalid json in body');
+            // error_log('invalid json in body');
             wp_send_json_error( [
                 'error' => __( 'Invalid request', 'tta' ),
-                'debug' => $debug,
+                // 'debug' => $debug,
             ], 400 );
         }
 
         $nonce_ok = ! empty( $data['_wpnonce'] ) && wp_verify_nonce( $data['_wpnonce'], 'tta_pay_nonce' );
-        $debug['nonce_ok'] = $nonce_ok;
+        // $debug['nonce_ok'] = $nonce_ok;
         if ( ! $nonce_ok ) {
-            error_log('nonce check failed');
+            // error_log('nonce check failed');
             wp_send_json_error( [
                 'error' => __( 'Security check failed', 'tta' ),
-                'debug' => $debug,
+                // 'debug' => $debug,
             ], 403 );
         }
 
@@ -76,19 +75,19 @@ class TTA_Ajax_Payment {
             'country'    => 'USA',
         ];
 
-        $debug['amount']          = $amount;
-        $debug['billing_received'] = $billing;
-        $debug['billing_clean']    = $billing_clean;
+        // $debug['amount']          = $amount;
+        // $debug['billing_received'] = $billing;
+        // $debug['billing_clean']    = $billing_clean;
 
         if ( empty( $data['opaqueData'] ) || ! is_array( $data['opaqueData'] ) ) {
-            error_log('payment token missing');
-            $debug['opaque_present'] = false;
+            // error_log('payment token missing');
+            // $debug['opaque_present'] = false;
             wp_send_json_error( [
                 'error' => __( 'Payment token missing', 'tta' ),
-                'debug' => $debug,
+                // 'debug' => $debug,
             ], 422 );
         }
-        $debug['opaque_present'] = true;
+        // $debug['opaque_present'] = true;
 
         $billing_clean['opaqueData'] = [
             'dataDescriptor' => sanitize_text_field( $data['opaqueData']['dataDescriptor'] ?? '' ),
@@ -99,31 +98,31 @@ class TTA_Ajax_Payment {
         $billing_clean['description'] = 'Trying to Adult RVA – Order';
         $billing_clean['ip']          = self::get_client_ip();
 
-        $debug['final_payload_to_charge'] = [
-            'amount'  => $amount,
-            'billing' => $billing_clean,
-        ];
+        // $debug['final_payload_to_charge'] = [
+        //     'amount'  => $amount,
+        //     'billing' => $billing_clean,
+        // ];
 
         // Call gateway
         $payments_service = new TTA_AuthorizeNet_API();
         $result = $payments_service->charge( $amount, '', '', '', $billing_clean );
 
-        $debug['charge_result_raw'] = $result;
+        // $debug['charge_result_raw'] = $result;
 
         if ( ! empty( $result['success'] ) ) {
-            error_log('charge success');
+            // error_log('charge success');
             wp_send_json_success( [
                 'transaction_id' => $result['transaction_id'],
-                'debug'          => $debug,
-                'gateway'        => $result['debug'] ?? null, // pass through gateway debug if provided
+                // 'debug'          => $debug,
+                // 'gateway'        => $result['debug'] ?? null, // pass through gateway debug if provided
             ] );
         }
 
-        error_log('charge failed');
+        // error_log('charge failed');
         wp_send_json_error( [
             'error'   => $result['error'] ?? __( 'Payment failed', 'tta' ),
-            'debug'   => $debug,
-            'gateway' => $result['debug'] ?? null,
+            // 'debug'   => $debug,
+            // 'gateway' => $result['debug'] ?? null,
         ] );
     }
 }

@@ -38,7 +38,7 @@ class TTA_CSV_Transaction_Lookup {
                 continue;
             }
 
-            TTA_Debug_Logger::log( 'csv_lookup email=' . $email );
+            // TTA_Debug_Logger::log( 'csv_lookup email=' . $email );
             $transactions = $api->find_transactions_by_email( $email, 65 );
 
             if ( $transactions ) {
@@ -54,12 +54,12 @@ class TTA_CSV_Transaction_Lookup {
                         $txn['details']
                     );
                     $results[] = $line;
-                    TTA_Debug_Logger::log( 'csv_lookup result=' . $line );
+                    // TTA_Debug_Logger::log( 'csv_lookup result=' . $line );
                 }
             } else {
                 $line = sprintf( '%s - no transactions found', $email );
                 $results[] = $line;
-                TTA_Debug_Logger::log( 'csv_lookup result=' . $line );
+                // TTA_Debug_Logger::log( 'csv_lookup result=' . $line );
             }
         }
 
