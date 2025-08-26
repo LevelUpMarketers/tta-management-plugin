@@ -79,11 +79,12 @@ When a visitor lands on an event page that no longer exists in the primary
 `tta_events_archive` table. Archived events display all of the standard details
 and retain the attendee gallery. Ticket types come from `tta_tickets_archive`
 and attendee profiles load from `tta_attendees_archive`. The **Get Your Tickets
-Now** section remains in place but all controls are disabled and a tooltip
-explains that ticket sales are closed. Disabled buttons are dimmed with a light
-overlay so the tooltip displays at full opacity. The login prompt is suppressed. A small
-notice appears above the “About This Event” section letting the visitor know the
-event has passed and linking to `/events/` to browse upcoming events.
+Now** section is disabled with a tooltip reading “This event already happened!
+Look for more events like this soon.” Events whose start time is in the past
+but not yet archived use this same disabled layout. The section is dimmed with
+a light overlay so the tooltip displays at full opacity, the login prompt is
+suppressed, and a small notice appears above the “About This Event” section
+linking to `/events/` to browse upcoming events.
 
 ## Attendee Gallery
 
