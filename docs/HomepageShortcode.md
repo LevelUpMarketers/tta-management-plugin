@@ -17,7 +17,7 @@ Required assets are enqueued automatically.
 
 ## Notes
 
-- The members and events counters animate from 0 to **5,382** members and **1,032** events.
+- The counters animate from 0 to **65,000+** followers, **21** leadership team members and **665** events.
 - "Our Next Event" links to the event, shows its image, name, date, time, address and a real-time countdown with icons.
 - Event grids use landscape cards arranged in two columns by two rows.
 - The intro image area cycles through several community photos.
