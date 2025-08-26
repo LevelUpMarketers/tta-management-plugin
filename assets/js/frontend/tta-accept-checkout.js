@@ -129,9 +129,34 @@
       e.preventDefault();
       var $btn = $form.find('button[name="tta_do_checkout"]');
       var $spin = $form.find('.tta-admin-progress-spinner-svg');
+      const amount = (() => {
+        const clean = s => {
+          const n = parseFloat(String(s || '').trim().replace(/[, ]/g, '').replace(/[^\d.]/g, ''));
+          return isNaN(n) ? null : n.toFixed(2);
+        };
+        return (
+          clean($('#tta-final-total').text() || $('#tta-final-total').val()) ||
+          clean($form.find('[name="tta_amount"]').val()) ||
+          clean($btn.data('amount')) ||
+          clean($form.data('amount')) ||
+          '0.00'
+        );
+      })();
+      var isFree = parseFloat(amount) <= 0;
       $btn.prop('disabled', true);
       $spin.css({ display: 'inline-block', opacity: 0 }).fadeTo(200, 1);
-      showMessage('Processing payment…');
+      showMessage(isFree ? 'Submitting order…' : 'Processing payment…');
+
+      if (isFree) {
+        R.step('Zero total, skipping payment', { amount });
+        if (typeof window.ttaFinalizeOrder === 'function') {
+          window.ttaFinalizeOrder('', '');
+        } else {
+          R.warn('Finalize callback missing (window.ttaFinalizeOrder)');
+        }
+        R.done({ outcome: 'free_checkout' });
+        return;
+      }
 
       // Collect fields
       var cardNumber = $.trim($form.find('[name="card_number"]').val());
@@ -158,20 +183,6 @@
         zip: $form.find('[name="billing_zip"]').val(),
         country: 'USA'
       };
-
-      const amount = (() => {
-        const clean = s => {
-          const n = parseFloat(String(s || '').trim().replace(/[, ]/g, '').replace(/[^\d.]/g, ''));
-          return isNaN(n) ? null : n.toFixed(2);
-        };
-        return (
-          clean($('#tta-final-total').text() || $('#tta-final-total').val()) ||
-          clean($form.find('[name="tta_amount"]').val()) ||
-          clean($btn.data('amount')) ||
-          clean($form.data('amount')) ||
-          '0.00'
-        );
-      })();
 
       R.step('Collected form fields', {
         amount,

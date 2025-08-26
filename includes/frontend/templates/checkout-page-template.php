@@ -27,6 +27,29 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
     $ticket_total     = $cart->get_total( $discount_codes, false );
     $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
     $membership_total = $membership_level ? tta_get_membership_price( $membership_level ) : 0;
+    if ( 0 === floatval( $ticket_total + $membership_total ) ) {
+        $attendees = $_POST['attendees'] ?? [];
+        $cart->finalize_purchase( '', 0, $attendees, '' );
+
+        $user   = wp_get_current_user();
+        $emails = array_merge( [ $user->user_email ], tta_collect_attendee_emails( $attendees ) );
+        $emails = array_filter( array_map( 'sanitize_email', $emails ) );
+        $unique = [];
+        foreach ( $emails as $email ) {
+            $key = strtolower( $email );
+            if ( ! isset( $unique[ $key ] ) ) {
+                $unique[ $key ] = $email;
+            }
+        }
+        $emails = array_values( $unique );
+        $_SESSION['tta_checkout_emails']      = $emails;
+        $_SESSION['tta_checkout_membership']  = '';
+        $_SESSION['tta_checkout_has_tickets'] = ! empty( $attendees );
+
+        unset( $_SESSION['tta_membership_purchase'] );
+        wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
+        exit;
+    }
     $context          = tta_get_current_user_context();
     if ( 'premium' === strtolower( $context['membership_level'] ) ) {
         if ( in_array( $membership_level, [ 'basic', 'premium' ], true ) ) {
@@ -182,6 +205,8 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
 $discount_codes   = $_SESSION['tta_discount_codes'] ?? [];
 $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
 $has_membership   = in_array( $membership_level, [ 'basic', 'premium', 'reentry' ], true );
+$total_amount     = $cart->get_total( $discount_codes );
+$is_free_checkout = ( 0 >= $total_amount );
 get_header();
 
 $header_shortcode = '[vc_row full_width="stretch_row_content_no_spaces" css=".vc_custom_1670382516702{background-image: url(https://trying-to-adult-rva-2025.local/wp-content/uploads/2022/12/IMG-4418.png?id=70) !important;background-position: center !important;background-repeat: no-repeat !important;background-size: cover !important;}"][vc_column][vc_empty_space height="300px" el_id="jre-header-title-empty"][vc_column_text css_animation="slideInLeft" el_id="jre-homepage-id-1" css=".vc_custom_1671885403487{margin-left: 50px !important;padding-left: 50px !important;}"]<p id="jre-homepage-id-3">CHECKOUT</p>[/vc_column_text][/vc_column][/vc_row]';
@@ -192,6 +217,7 @@ echo do_shortcode( $header_shortcode );
 $sub_details   = $_SESSION['tta_checkout_sub'] ?? null;
 $user          = wp_get_current_user();
 $is_logged_in  = is_user_logged_in();
+$payment_disabled = ! $is_logged_in || $is_free_checkout;
 $has_tickets   = false;
 if ( $checkout_done ) {
     $sent_emails  = $_SESSION['tta_checkout_emails']     ?? [];
@@ -355,23 +381,27 @@ if ( $checkout_done ) {
                     </div>
                     <div class="tta-billing-details-div-container<?php echo $is_logged_in ? '' : ' tta-disabled'; ?>">
                         <h4><?php esc_html_e( 'Payment Info', 'tta' ); ?></h4>
-                        <p style="display:block;" class="tta-attendee-note">Please enter your credit or debit card details below.</p>
+                        <p style="display:block;" class="tta-attendee-note">
+                            <?php
+                            echo $is_free_checkout ? esc_html__( 'No payment is required for this order - simply click the button below to secure your spot!', 'tta' ) : esc_html__( 'Please enter your credit or debit card details below.', 'tta' );
+                            ?>
+                        </p>
                         <p>
                             <label>
                                 <?php esc_html_e( 'Card Number', 'tta' ); ?><br />
-                                <input type="text" name="card_number" placeholder="&#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226;" required <?php disabled( ! $is_logged_in ); ?> />
+                                <input type="text" name="card_number" placeholder="&#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226;" <?php echo $payment_disabled ? '' : 'required'; ?> <?php disabled( $payment_disabled ); ?> />
                             </label>
                         </p>
                         <p>
                             <label>
                                 <?php esc_html_e( 'Expiration', 'tta' ); ?><br />
-                                <input type="text" id="tta-card-exp" class="tta-card-exp" name="card_exp" placeholder="MM/YY" required maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" <?php disabled( ! $is_logged_in ); ?> />
+                                <input type="text" id="tta-card-exp" class="tta-card-exp" name="card_exp" placeholder="MM/YY" maxlength="5" pattern="\d{2}/\d{2}" inputmode="numeric" <?php echo $payment_disabled ? '' : 'required'; ?> <?php disabled( $payment_disabled ); ?> />
                             </label>
                         </p>
                         <p>
                             <label>
                                 <?php esc_html_e( 'CVC', 'tta' ); ?><br />
-                                <input type="text" name="card_cvc" placeholder="123" required <?php disabled( ! $is_logged_in ); ?> />
+                                <input type="text" name="card_cvc" placeholder="123" <?php echo $payment_disabled ? '' : 'required'; ?> <?php disabled( $payment_disabled ); ?> />
                             </label>
                         </p>
                         <p class="tta-place-order-button-p">

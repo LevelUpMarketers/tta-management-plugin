@@ -548,13 +548,14 @@ class TTA_Cart {
     $discount_total = max( 0, $total_before - $total_after );
 
     // Log transaction details and send notifications
-    if ( $transaction_id ) {
-      $user_id = get_current_user_id();
-      TTA_Transaction_Logger::log( $transaction_id, $amount, $items, implode( ',', $discount_codes ), $discount_total, $user_id, $card_last4 );
-      TTA_Email_Handler::get_instance()->send_purchase_emails( $items, $user_id );
-      TTA_SMS_Handler::get_instance()->send_purchase_texts( $items, $user_id );
-      tta_remove_purchased_from_waitlists( $items, $user_id );
+    $user_id = get_current_user_id();
+    if ( ! $transaction_id ) {
+      $transaction_id = 'FREE-' . uniqid();
     }
+    TTA_Transaction_Logger::log( $transaction_id, $amount, $items, implode( ',', $discount_codes ), $discount_total, $user_id, $card_last4 );
+    TTA_Email_Handler::get_instance()->send_purchase_emails( $items, $user_id );
+    TTA_SMS_Handler::get_instance()->send_purchase_texts( $items, $user_id );
+    tta_remove_purchased_from_waitlists( $items, $user_id );
 
     $this->empty_cart();
     $wpdb->delete( $this->carts_table, [ 'id' => $this->cart_id ], [ '%d' ] );
