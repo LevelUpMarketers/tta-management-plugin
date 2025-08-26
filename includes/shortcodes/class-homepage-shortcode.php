@@ -56,9 +56,10 @@ class TTA_Homepage_Shortcode {
         $upcoming      = tta_get_upcoming_events( 1, 4 );
         $past_events   = $this->get_recent_past_events( 4 );
         $newest_member = $this->get_newest_member();
-        $birthdays     = $this->get_birthdays_this_month();
-        $member_count  = $this->get_member_count();
-        $event_count   = $this->get_event_count();
+        $birthdays        = $this->get_birthdays_this_month();
+        $follower_count   = $this->get_follower_count();
+        $leadership_count = $this->get_leadership_count();
+        $event_count      = $this->get_event_count();
         $current_month = date_i18n( 'F' );
 
         ob_start();
@@ -68,8 +69,9 @@ class TTA_Homepage_Shortcode {
                 <div class="tta-stats">
                     <h2><img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/memberlevel.svg' ); ?>" alt=""><?php esc_html_e( 'TTA Stats', 'tta' ); ?></h2>
                     <ul class="tta-stats-list">
-                        <li><img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/clock.svg' ); ?>" alt=""><span><?php esc_html_e( 'Founded in 2020', 'tta' ); ?></span></li>
-                        <li><img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/profile.svg' ); ?>" alt="<?php esc_attr_e( 'Members', 'tta' ); ?>"><span class="tta-counter" aria-live="polite" data-target="<?php echo esc_attr( $member_count ); ?>">0</span> <?php esc_html_e( 'Members', 'tta' ); ?></li>
+                        <li><img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/clock.svg' ); ?>" alt=""><span><?php esc_html_e( 'Founded in 2021', 'tta' ); ?></span></li>
+                        <li><img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/profile.svg' ); ?>" alt="<?php esc_attr_e( 'Followers', 'tta' ); ?>"><span class="tta-counter" aria-live="polite" data-target="<?php echo esc_attr( $follower_count ); ?>">0</span>+ <?php esc_html_e( 'Followers', 'tta' ); ?></li>
+                        <li><img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/memberlevel.svg' ); ?>" alt="<?php esc_attr_e( 'Leadership team members', 'tta' ); ?>"><span class="tta-counter" aria-live="polite" data-target="<?php echo esc_attr( $leadership_count ); ?>">0</span> <?php esc_html_e( 'Leadership Team Members', 'tta' ); ?></li>
                         <li><img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/calendar.svg' ); ?>" alt="<?php esc_attr_e( 'Events', 'tta' ); ?>"><span class="tta-counter" aria-live="polite" data-target="<?php echo esc_attr( $event_count ); ?>">0</span> <?php esc_html_e( 'Events', 'tta' ); ?></li>
                     </ul>
                 </div>
@@ -296,12 +298,21 @@ class TTA_Homepage_Shortcode {
     }
 
     /**
-     * Get total number of members.
+     * Get total number of followers.
      *
      * @return int
      */
-    private function get_member_count() {
-        return 5382;
+    private function get_follower_count() {
+        return 65000;
+    }
+
+    /**
+     * Get total number of leadership team members.
+     *
+     * @return int
+     */
+    private function get_leadership_count() {
+        return 21;
     }
 
     /**
@@ -310,7 +321,7 @@ class TTA_Homepage_Shortcode {
      * @return int
      */
     private function get_event_count() {
-        return 1032;
+        return 665;
     }
 }
 
