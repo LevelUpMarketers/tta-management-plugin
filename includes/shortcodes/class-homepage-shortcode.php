@@ -234,10 +234,17 @@ class TTA_Homepage_Shortcode {
     private function get_recent_past_events( $limit = 2 ) {
         return TTA_Cache::remember( 'recent_past_events_' . $limit, function() use ( $limit ) {
             global $wpdb;
-            $events_table = $wpdb->prefix . 'tta_events';
-            $sql = $wpdb->prepare(
-                "SELECT id, name, date, page_id, mainimageid FROM {$events_table} WHERE date < %s ORDER BY date DESC LIMIT %d",
-                current_time( 'Y-m-d' ),
+            $events_table  = $wpdb->prefix . 'tta_events';
+            $archive_table = $wpdb->prefix . 'tta_events_archive';
+            $today         = current_time( 'Y-m-d' );
+            $sql           = $wpdb->prepare(
+                "SELECT id, name, date, page_id, mainimageid FROM (
+                    SELECT id, name, date, page_id, mainimageid FROM {$events_table} WHERE date < %s
+                    UNION ALL
+                    SELECT id, name, date, page_id, mainimageid FROM {$archive_table} WHERE date < %s
+                ) AS past ORDER BY date DESC LIMIT %d",
+                $today,
+                $today,
                 $limit
             );
             $rows = $wpdb->get_results( $sql, ARRAY_A );
