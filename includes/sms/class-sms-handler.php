@@ -34,7 +34,7 @@ class TTA_SMS_Handler {
         try {
             $this->client->messages->create( $to, [ 'from' => $this->from, 'body' => $body ] );
         } catch ( \Exception $e ) {
-            error_log( 'TTA SMS Error: ' . $e->getMessage() );
+            // error_log( 'TTA SMS Error: ' . $e->getMessage() );
         }
     }
 

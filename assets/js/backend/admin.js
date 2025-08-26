@@ -170,7 +170,7 @@ jQuery(function($){
       get_event_nonce: TTA_Ajax.get_event_nonce
     }, function(res){
       if ( ! res.success ) {
-        console.error('Event fetch failed', res.data && res.data.message);
+        // console.error('Event fetch failed', res.data && res.data.message);
         return;
       }
       var html = res.data.html;
@@ -574,7 +574,7 @@ jQuery(function($){
       get_member_nonce: TTA_Ajax.get_member_nonce
     }, function(res){
       if ( ! res.success ) {
-        console.error('Member fetch failed', res.data && res.data.message);
+        // console.error('Member fetch failed', res.data && res.data.message);
         return;
       }
       var html = res.data.html;
@@ -942,7 +942,7 @@ jQuery(function($){
       event_ute_id     : ute,
       get_ticket_nonce : TTA_Ajax.get_ticket_nonce
     }, function(res){
-      if ( ! res.success ) return console.error(res);
+      if ( ! res.success ) return; // console.error(res);
       var $new = $('<tr class="tta-inline-row"><td colspan="'+colspan+'"><div class="tta-inline-container"></div></td></tr>');
       $row.after($new);
       $new.find('.tta-inline-container').html(res.data.html).slideDown(200);

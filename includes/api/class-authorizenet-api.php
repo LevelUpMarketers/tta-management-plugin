@@ -80,82 +80,7 @@ class TTA_AuthorizeNet_API {
      * @return void
      */
     protected function log_response( $context, $response ) {
-        if ( ! $response ) {
-            TTA_Debug_Logger::log( $context . ': [no response]' );
-            return;
-        }
-
-        $array = json_decode( json_encode( $response ), true );
-        if ( is_array( $array ) ) {
-            $array = $this->sanitize_response_array( $array );
-            TTA_Debug_Logger::log( $context . ' response: ' . wp_json_encode( $array ) );
-        }
-
-        $result   = '';
-        $msg_code = '';
-        $msg_text = '';
-
-        if ( method_exists( $response, 'getMessages' ) && $response->getMessages() ) {
-            $result = $response->getMessages()->getResultCode();
-            $msgs   = $response->getMessages()->getMessage();
-            if ( $msgs ) {
-                $first    = $msgs[0];
-                $msg_code = method_exists( $first, 'getCode' ) ? $first->getCode() : '';
-                $msg_text = method_exists( $first, 'getText' ) ? $first->getText() : '';
-            }
-        }
-
-        $summary = trim( $result . ' ' . $msg_code . ' ' . $msg_text );
-        TTA_Debug_Logger::log( $context . ': ' . ( $summary ?: '[no details]' ) );
-
-        if ( method_exists( $response, 'getTransactionResponse' ) && $response->getTransactionResponse() ) {
-            $tresponse = $response->getTransactionResponse();
-            $resp_code = method_exists( $tresponse, 'getResponseCode' ) ? $tresponse->getResponseCode() : '';
-            $code      = '';
-            $text      = '';
-
-            if ( method_exists( $tresponse, 'getErrors' ) && $tresponse->getErrors() ) {
-                $err  = $tresponse->getErrors()[0];
-                $code = method_exists( $err, 'getErrorCode' ) ? $err->getErrorCode() : '';
-                $text = method_exists( $err, 'getErrorText' ) ? $err->getErrorText() : '';
-            } elseif ( method_exists( $tresponse, 'getMessages' ) && $tresponse->getMessages() ) {
-                $msg  = $tresponse->getMessages()[0];
-                $code = method_exists( $msg, 'getCode' ) ? $msg->getCode() : '';
-                $text = method_exists( $msg, 'getDescription' ) ? $msg->getDescription() : '';
-            }
-
-            $trans_summary = trim( $resp_code . ' ' . $code . ' ' . $text );
-            TTA_Debug_Logger::log( $context . ' transaction: ' . ( $trans_summary ?: '[no details]' ) );
-
-            $fields = [];
-            $fields['responseCode'] = $resp_code;
-            if ( method_exists( $tresponse, 'getTransId' ) ) {
-                $fields['transId'] = $tresponse->getTransId();
-            }
-            if ( method_exists( $tresponse, 'getAuthCode' ) ) {
-                $fields['authCode'] = $tresponse->getAuthCode();
-            }
-            if ( method_exists( $tresponse, 'getAvsResultCode' ) ) {
-                $fields['avsResultCode'] = $tresponse->getAvsResultCode();
-            }
-            if ( method_exists( $tresponse, 'getCvvResultCode' ) ) {
-                $fields['cvvResultCode'] = $tresponse->getCvvResultCode();
-            }
-            if ( method_exists( $tresponse, 'getAccountNumber' ) ) {
-                $fields['accountNumber'] = $this->mask_card( (string) $tresponse->getAccountNumber() );
-            }
-            if ( method_exists( $tresponse, 'getErrors' ) && $tresponse->getErrors() ) {
-                $err = $tresponse->getErrors()[0];
-                $fields['errors'] = [
-                    'errorCode' => method_exists( $err, 'getErrorCode' ) ? $err->getErrorCode() : '',
-                    'errorText' => method_exists( $err, 'getErrorText' ) ? $err->getErrorText() : '',
-                ];
-            }
-            $fields = array_filter( $fields );
-            if ( $fields ) {
-                TTA_Debug_Logger::log( $context . ' transactionResponse: ' . wp_json_encode( $fields ) );
-            }
-        }
+        // Debug logging disabled
     }
 
     /**
@@ -241,26 +166,26 @@ class TTA_AuthorizeNet_API {
  */
 public function charge( $amount, $card_number, $exp_date, $card_code, array $billing = [] ) {
 
-    error_log("In the 'charge() function");
+    // error_log("In the 'charge() function");
 
-    $debug = [
-        'stage'            => 'charge_entry',
-        'when'             => gmdate('c'),
-        'env'              => property_exists($this, 'environment') ? $this->environment : 'n/a',
-        'login_id'         => $this->login_id,          // UNMASKED (dev per request)
-        'transaction_key'  => $this->transaction_key,   // UNMASKED (dev per request)
-        'amount_input'     => $amount,
-        'card_input'       => [
-            'number' => $card_number,
-            'exp'    => $exp_date,
-            'cvv'    => $card_code,
-        ],
-        'billing_input'    => $billing,
-    ];
+    // $debug = [
+    //     'stage'            => 'charge_entry',
+    //     'when'             => gmdate('c'),
+    //     'env'              => property_exists($this, 'environment') ? $this->environment : 'n/a',
+    //     'login_id'         => $this->login_id,          // UNMASKED (dev per request)
+    //     'transaction_key'  => $this->transaction_key,   // UNMASKED (dev per request)
+    //     'amount_input'     => $amount,
+    //     'card_input'       => [
+    //         'number' => $card_number,
+    //         'exp'    => $exp_date,
+    //         'cvv'    => $card_code,
+    //     ],
+    //     'billing_input'    => $billing,
+    // ];
 
     if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
-        $debug['fatal'] = 'Credentials not configured';
-        return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured', 'debug' => [ 'gateway' => $debug ] ];
+        // $debug['fatal'] = 'Credentials not configured';
+        return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
     }
 
     // Normalize
@@ -275,13 +200,13 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
     if ( ! $use_token ) {
         if ( ! preg_match( '/^\d{4}-\d{2}$/', $exp_date ) ) {
-            error_log( 'WARN: exp_date not YYYY-MM: ' . $exp_date );
+            // error_log( 'WARN: exp_date not YYYY-MM: ' . $exp_date );
         }
         if ( strlen( $card_code ) < 3 || strlen( $card_code ) > 4 ) {
-            error_log( 'WARN: CVV length unusual: ' . strlen( $card_code ) );
+            // error_log( 'WARN: CVV length unusual: ' . strlen( $card_code ) );
         }
     }
-    $debug['use_token'] = $use_token ? 'yes' : 'no';
+    // $debug['use_token'] = $use_token ? 'yes' : 'no';
 
     // Build API objects
     $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
@@ -290,13 +215,13 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
     $paymentOne = new AnetAPI\PaymentType();
     if ( $use_token ) {
-        error_log("In the use_token if");
+        // error_log("In the use_token if");
         $od = new AnetAPI\OpaqueDataType();
         $od->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
         $od->setDataValue( $billing['opaqueData']['dataValue'] );
         $paymentOne->setOpaqueData( $od );
     } else {
-        error_log("In the use_token else");
+        // error_log("In the use_token else");
         $creditCard = new AnetAPI\CreditCardType();
         $creditCard->setCardNumber( $card_number );
         $creditCard->setExpirationDate( $exp_date );
@@ -358,14 +283,14 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
     $root         = $mapper->getXmlName( ( new \ReflectionClass( $request ) )->getName() );
     $request_json = [ $root => $request ];
     $raw_array    = json_decode( wp_json_encode( $request_json ), true ); // RAW
-    $debug['request_raw_array'] = $raw_array;
+    // $debug['request_raw_array'] = $raw_array;
 
     // Send
     $controller = new AnetController\CreateTransactionController( $request );
     $response   = $this->send_request( $controller );
 
     // Dump response (raw print_r plus structured pull)
-    $debug['response_dump_print_r'] = print_r( $response, true );
+    // $debug['response_dump_print_r'] = print_r( $response, true );
 
     $diag = [
         'resultCode'     => null,
@@ -414,7 +339,7 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $diag['hints'][] = 'Empty response from gateway (network or endpoint issue).';
     }
 
-    $debug['diag'] = $diag;
+    // $debug['diag'] = $diag;
 
     // Return results with debug
     if ( $response && 'Ok' === ($response->getMessages() ? $response->getMessages()->getResultCode() : null) ) {
@@ -423,20 +348,20 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             return [
                 'success'        => true,
                 'transaction_id' => $tresponse->getTransId(),
-                'debug'          => [ 'gateway' => $debug ],
+                // 'debug'          => [ 'gateway' => $debug ],
             ];
         }
         return [
             'success' => false,
             'error'   => $this->format_error( $response, $tresponse, 'Transaction failed' ),
-            'debug'   => [ 'gateway' => $debug ],
+            // 'debug'   => [ 'gateway' => $debug ],
         ];
     }
 
     return [
         'success' => false,
         'error'   => $this->format_error( $response, null, 'API error' ),
-        'debug'   => [ 'gateway' => $debug ],
+        // 'debug'   => [ 'gateway' => $debug ],
     ];
 }
 
@@ -1173,7 +1098,7 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         }
 
         $email = strtolower( trim( (string) $email ) );
-        TTA_Debug_Logger::log( 'find_transactions_by_email lookup=' . ( $email ?: '[none]' ) );
+        // TTA_Debug_Logger::log( 'find_transactions_by_email lookup=' . ( $email ?: '[none]' ) );
 
         $merchant_auth = new AnetAPI\MerchantAuthenticationType();
         $merchant_auth->setName( $this->login_id );
@@ -1262,19 +1187,19 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
                             }
 
                             if ( '' === $bill_email ) {
-                                TTA_Debug_Logger::log(
-                                    sprintf(
-                                        'find_transactions_by_email alt fields: ship_email=%s profile_id=%s payment_profile_id=%s',
-                                        $ship_email ?: '[none]',
-                                        $profile_id ?: '[none]',
-                                        $pay_prof ?: '[none]'
-                                    )
-                                );
+                                // TTA_Debug_Logger::log(
+                                //     sprintf(
+                                //         'find_transactions_by_email alt fields: ship_email=%s profile_id=%s payment_profile_id=%s',
+                                //         $ship_email ?: '[none]',
+                                //         $profile_id ?: '[none]',
+                                //         $pay_prof ?: '[none]'
+                                //     )
+                                // );
                             }
                         }
 
                         if ( $bill_email === $email ) {
-                            TTA_Debug_Logger::log( 'find_transactions_by_email match=' . $bill_email );
+                            // TTA_Debug_Logger::log( 'find_transactions_by_email match=' . $bill_email );
                             $seen[ $summary->getTransId() ] = true;
                             $matches[]                      = [
                                 'id'                 => $summary->getTransId(),
