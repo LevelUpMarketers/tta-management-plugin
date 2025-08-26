@@ -47,6 +47,7 @@ class TTA_Ajax_Refund {
 
             if ( $amount <= 0 ) {
                 tta_cancel_attendance_internal( intval( $att['id'] ), true, true );
+                TTA_Email_Handler::get_instance()->send_cancellation_email( $att_details, $event_id );
                 $message = sprintf(
                     __( "We're sorry you can't make it! Your attendance has been cancelled. Be sure to check out our %s See you next time!", 'tta' ),
                     '<a href="/events">' . __( 'other upcoming events here.', 'tta' ) . '</a>'

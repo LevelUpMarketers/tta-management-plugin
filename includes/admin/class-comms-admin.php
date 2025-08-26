@@ -46,6 +46,15 @@ class TTA_Comms_Admin {
                 'email_body'  => __('Your event is only 2 hours away! Below are the details.', 'tta'),
                 'sms_text'    => __('Only 2 hours to go! View your upcoming events at ', 'tta'),
             ],
+            'cancellation_requested' => [
+                'label'       => __( 'Cancellation Requested', 'tta' ),
+                'type'        => 'External',
+                'category'    => 'Cancellation',
+                'description' => __( 'Sent to a member when they cancel attendance for a free ticket.', 'tta' ),
+                'email_subject' => __( 'Attendance cancelled', 'tta' ),
+                'email_body'  => __( "We're sorry you can't make it! Your attendance has been cancelled. Be sure to check out our [other upcoming events here](/events). See you next time!", 'tta' ),
+                'sms_text'    => '',
+            ],
             'refund_requested' => [
                 'label'       => __('Refund Requested', 'tta'),
                 'type'        => 'External',

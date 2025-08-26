@@ -15,6 +15,7 @@ Templates are listed in a table similar to the Manage Events page. Click a row t
 | `purchase` | Sent after a successful event purchase. Includes event details automatically. |
 | `reminder_24hr` | Sent 24 hours before an event starts. |
 | `reminder_2hr` | Sent two hours before an event starts. |
+| `cancellation_requested` | Sent to a member when they cancel attendance for a free ticket. |
 | `refund_requested` | Sent to a member when they request a refund. |
 | `refund_processed` | Sent to attendees when a refund request is approved and issued. |
 | `event_sold_out` | Internal alert when an event reaches capacity. |
@@ -43,6 +44,7 @@ Default values are provided on initial install:
 - **Purchase SMS**: "Thanks for registering! View your upcoming events at "
 - **24-Hour Reminder Email Body**: "Heads-up! Your event is just 1 day away! Below are the details."
 - **2-Hour Reminder Email Body**: "Your event is only 2 hours away! Below are the details."
+- **Cancellation Requested Email Body**: "We're sorry you can't make it! Your attendance has been cancelled. Be sure to check out our other upcoming events here. See you next time!"
 - **Admin Notifications**: internal alerts are sent when events sell out.
 - **Host and Volunteer Reminders**: internal messages mirror attendee reminders at 24 and 2 hours before the event.
 
