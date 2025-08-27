@@ -177,6 +177,22 @@ class TTA_Assets {
             TTA_PLUGIN_VERSION
         );
 
+        // Logout link handler for top bar.
+        wp_enqueue_script(
+            'tta-logout-link',
+            TTA_PLUGIN_URL . 'assets/js/frontend/logout.js',
+            [],
+            TTA_PLUGIN_VERSION,
+            true
+        );
+        wp_localize_script(
+            'tta-logout-link',
+            'TTALogout',
+            [
+                'url' => wp_logout_url( home_url( '/' ) ),
+            ]
+        );
+
         // Register assets used by shortcodes.
         wp_register_style(
             'tta-homepage-shortcode',
