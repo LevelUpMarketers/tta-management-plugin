@@ -20,5 +20,5 @@ Required assets are enqueued automatically.
 - The counters animate from 0 to **65,000+** followers, **21** leadership team members and **665** events.
 - "Our Next Event" links to the event, shows its image, name, date, time, address and a real-time countdown with icons.
 - Event grids use landscape cards arranged in two columns by two rows.
-- The intro image area cycles through several community photos.
+- The intro image area cycles through community photos. Images can be selected under **TTA Settings → Slider Images**.
 - The partner section mirrors the ad component used on event pages, including icons and contact details.

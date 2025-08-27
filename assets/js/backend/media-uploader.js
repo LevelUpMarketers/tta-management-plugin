@@ -102,8 +102,8 @@ jQuery(function($){
     var $button  = $(this),
         target   = $button.data('target'),                   // e.g. "#otherimageids"
         $input   = $(target),                                 // hidden <input>
-        previewID = target.replace('otherimageids', 'otherimage-preview'),
-        $preview = $(previewID);
+        previewSel = $button.data('preview') || target.replace('otherimageids', 'otherimage-preview'),
+        $preview = $(previewSel);
 
     // Open WordPress media frame
     var frame = wp.media({
