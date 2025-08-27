@@ -6011,6 +6011,35 @@ function tta_export_member_metrics_report( $start_date = '', $end_date = '' ) {
 }
 
 /**
+ * Retrieve slider image URLs selected in settings with fallback defaults.
+ *
+ * @return string[] Array of image URLs.
+ */
+function tta_get_slider_images() {
+    $ids  = array_map( 'absint', (array) get_option( 'tta_slider_images', [] ) );
+    $urls = [];
+
+    foreach ( $ids as $id ) {
+        $src = wp_get_attachment_image_url( $id, 'large' );
+        if ( $src ) {
+            $urls[] = $src;
+        }
+    }
+
+    if ( empty( $urls ) ) {
+        $urls = [
+            '/wp-content/uploads/2025/08/IMG-1351-reduced.jpg',
+            '/wp-content/uploads/2025/08/IMG-4850-reduced.jpg',
+            '/wp-content/uploads/2022/12/IMG-1153.jpg',
+            '/wp-content/uploads/2025/08/41657B74-F47D-451A-A99A-0B95C793FFD4-1-reduced.jpg',
+            '/wp-content/uploads/2025/08/IMG-7075-1-reduced.jpg',
+        ];
+    }
+
+    return $urls;
+}
+
+/**
  * Handle admin-post request for exporting member metrics.
  */
 function tta_handle_member_metrics_export() {

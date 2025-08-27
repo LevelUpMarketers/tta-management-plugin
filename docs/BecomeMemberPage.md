@@ -7,7 +7,7 @@ The **Become a Member** template introduces a front‑end landing page for membe
 - Registered by `TTA_Become_Member_Page`.
 - Describes Non-member, Standard Member, and Premium Member benefits in a three-column table with a mobile-friendly card layout.
 - Shows pricing ($0 Non-member, $10 Standard, $17 Premium) in a dedicated row just above the signup buttons.
-- Displays an introductory row above the table with a heading, descriptive paragraph, and rotating image gallery.
+- Displays an introductory row above the table with a heading, descriptive paragraph, and rotating image gallery. Images come from the **TTA Settings → Slider Images** tab.
 - Includes signup buttons for Standard and Premium tiers embedded within the table. Clicking a button sends an AJAX request that stores the selected membership level in the session and redirects visitors to the cart page.
 - Offers a **Join Now** button in the Non-member column that reveals an inline registration form for creating a free account.
 - The page enqueues `tta-cart.js` so the signup buttons behave like adding tickets to the cart and redirect immediately. The cart will show the chosen membership as a line item so visitors can check out normally.

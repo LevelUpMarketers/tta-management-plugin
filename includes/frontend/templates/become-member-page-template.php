@@ -22,14 +22,8 @@ echo do_shortcode( $header_shortcode );
     </div>
     <div id="tta-member-intro-gallery" class="tta-member-intro-gallery">
       <?php
-      $carousel_images = [
-        '/wp-content/uploads/2025/08/IMG-1351-reduced.jpg',
-        '/wp-content/uploads/2025/08/IMG-4850-reduced.jpg',
-        '/wp-content/uploads/2025/08/IMG-1153-reduced.jpg',
-        '/wp-content/uploads/2025/08/41657B74-F47D-451A-A99A-0B95C793FFD4-1-reduced.jpg',
-        '/wp-content/uploads/2025/08/IMG-7075-1-reduced.jpg',
-      ];
-      foreach ( $carousel_images as $i => $src ) :
+      $slider_images = tta_get_slider_images();
+      foreach ( $slider_images as $i => $src ) :
         $class = 0 === $i ? ' class="active"' : '';
         echo '<img src="' . esc_url( $src ) . '" alt=""' . $class . '>';
       endforeach;
