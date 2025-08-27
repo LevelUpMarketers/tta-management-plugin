@@ -185,11 +185,22 @@ class TTA_Assets {
             TTA_PLUGIN_VERSION,
             true
         );
+        $first_name = '';
+        if ( is_user_logged_in() ) {
+            $user = wp_get_current_user();
+            $first_name = $user->user_firstname;
+            if ( empty( $first_name ) ) {
+                $first_name = $user->display_name;
+            }
+            $first_name = sanitize_text_field( $first_name );
+        }
+
         wp_localize_script(
             'tta-logout-link',
             'TTALogout',
             [
-                'url' => wp_logout_url( home_url( '/' ) ),
+                'url'  => wp_logout_url( home_url( '/' ) ),
+                'name' => $first_name,
             ]
         );
 

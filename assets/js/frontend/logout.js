@@ -8,5 +8,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var link = document.querySelector('.tta-header-logout-div a');
     if ( link ) {
         link.setAttribute('href', TTALogout.url);
+        if ( TTALogout.name ) {
+            link.innerHTML = link.innerHTML.replace('[USER FIRST NAME]', TTALogout.name);
+        }
     }
 });
