@@ -1,6 +1,6 @@
 # Accept.js Tokenization
 
-The checkout page now uses [Authorize.Net Accept.js](https://developer.authorize.net/api/reference/features/acceptjs.html) to tokenize payment details in the browser before sending them to the server. When the order total is `$0.00`, this tokenization step is skipped and the checkout finalizes immediately without contacting Authorize.Net.
+The checkout page now uses [Authorize.Net Accept.js](https://developer.authorize.net/api/reference/features/acceptjs.html) to tokenize payment details in the browser before sending them to the server. When the order total is `$0.00`, this tokenization step is skipped and the checkout finalizes immediately without contacting Authorize.Net. Detection of a zero-dollar order relies on the first numeric amount displayed and also bypasses tokenization when the card fields are disabled.
 
 ## Assets
 - `Accept.js` is loaded from Authorize.Net's CDN based on the sandbox or live mode.

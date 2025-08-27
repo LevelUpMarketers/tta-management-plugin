@@ -130,9 +130,12 @@
       var $btn = $form.find('button[name="tta_do_checkout"]');
       var $spin = $form.find('.tta-admin-progress-spinner-svg');
       const amount = (() => {
-        const clean = s => {
-          const n = parseFloat(String(s || '').trim().replace(/[, ]/g, '').replace(/[^\d.]/g, ''));
-          return isNaN(n) ? null : n.toFixed(2);
+        const clean = (s) => {
+          const match = String(s || '')
+            .trim()
+            .replace(/[, ]+/g, '')
+            .match(/-?\d+(?:\.\d+)?/);
+          return match ? parseFloat(match[0]).toFixed(2) : null;
         };
         return (
           clean($('#tta-final-total').text() || $('#tta-final-total').val()) ||
@@ -142,7 +145,9 @@
           '0.00'
         );
       })();
-      var isFree = parseFloat(amount) <= 0;
+
+      var paymentDisabled = $form.find('[name="card_number"]').is(':disabled');
+      var isFree = parseFloat(amount) <= 0 || paymentDisabled;
       $btn.prop('disabled', true);
       $spin.css({ display: 'inline-block', opacity: 0 }).fadeTo(200, 1);
       showMessage(isFree ? 'Submitting order…' : 'Processing payment…');
