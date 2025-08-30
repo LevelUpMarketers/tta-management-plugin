@@ -188,7 +188,7 @@ $upgrade_label     = '';
 
 if ( ! $is_logged_in ) {
     if ( 'free' === $event_required ) {
-        $tickets_message .= ' - <a href="#tta-login-message" class="tta-scroll-login">' . esc_html__( 'Log in here', 'tta' ) . '</a> ' . esc_html__( 'for the best experience.', 'tta' );
+        $tickets_message .= '<a href="#tta-login-message" class="tta-scroll-login">' . esc_html__( 'Log in here', 'tta' ) . '</a> ' . esc_html__( 'for the best experience.', 'tta' );
         $tickets_message .= ' ' . sprintf(
             /* translators: 1: opening link, 2: closing link */
             esc_html__( 'Don\'t have an account? %1$sCreate one here%2$s!', 'tta' ),
@@ -196,7 +196,7 @@ if ( ! $is_logged_in ) {
             '</a>'
         );
     } else {
-        $tickets_message .= ' - <a href="#tta-login-message" class="tta-scroll-login">' . esc_html__( 'Log in here', 'tta' ) . '</a> ' . esc_html__( 'to purchase tickets.', 'tta' );
+        $tickets_message .= '<a href="#tta-login-message" class="tta-scroll-login">' . esc_html__( 'Log in here', 'tta' ) . '</a> ' . esc_html__( 'to purchase tickets.', 'tta' );
         $tickets_message .= ' ' . sprintf(
             /* translators: 1: opening link, 2: closing link */
             esc_html__( 'Don\'t have an account? %1$sCreate one here%2$s!', 'tta' ),
@@ -216,7 +216,7 @@ if ( ! $is_logged_in ) {
     if ( $qualifies ) {
         if ( 'free' === $event_required ) {
             if ( 'free' === $membership_level ) {
-                $tickets_message .= " - " . sprintf( __( 'Thanks for being a Member, %s!', 'tta' ), $first );
+                $tickets_message .= "" . sprintf( __( 'Thanks for being a Member, %s!', 'tta' ), $first );
                 $tickets_message .= ' ' . sprintf(
                     /* translators: 1: opening link, 2: closing link */
                     __( 'Did you know that by upgrading your membership, you\'ll receive discounts and other perks? %1$sUpgrade your membership here%2$s!', 'tta' ),
@@ -224,7 +224,7 @@ if ( ! $is_logged_in ) {
                     '</a>'
                 );
             } elseif ( 'basic' === $membership_level ) {
-                $tickets_message .= " - " . sprintf( __( 'Thanks for being a Basic Member, %s!', 'tta' ), $first );
+                $tickets_message .= "" . sprintf( __( 'Thanks for being a Basic Member, %s!', 'tta' ), $first );
                 $tickets_message .= ' ' . sprintf(
                     /* translators: 1: opening link, 2: closing link */
                     __( 'Did you know that by upgrading your membership to Premium, you\'ll receive even more discounts and perks? %1$sClick here to upgrade%2$s!', 'tta' ),
@@ -232,17 +232,18 @@ if ( ! $is_logged_in ) {
                     '</a>'
                 );
             } else {
-                $tickets_message .= " - " . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
+                $tickets_message .= "" . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
+                /*
                 $tickets_message .= ' ' . sprintf(
-                    /* translators: 1: opening link, 2: closing link */
                     __( 'Did you know that by referring someone new to Trying to Adult, you can receive a referral bonus, including free events? %1$sClick here for more info%2$s!', 'tta' ),
                     '<a href="' . esc_url( home_url( '/referral-program' ) ) . '">',
                     '</a>'
                 );
+                */
             }
         } elseif ( 'basic' === $event_required ) {
             if ( 'basic' === $membership_level ) {
-                $tickets_message .= " - " . sprintf( __( 'Thanks for being a Basic Member, %s!', 'tta' ), $first );
+                $tickets_message .= "" . sprintf( __( 'Thanks for being a Basic Member, %s!', 'tta' ), $first );
                 $tickets_message .= ' ' . sprintf(
                     /* translators: 1: opening link, 2: closing link */
                     __( 'Did you know that by upgrading your membership to Premium, you\'ll receive even more discounts and perks? %1$sClick here to upgrade%2$s!', 'tta' ),
@@ -250,26 +251,28 @@ if ( ! $is_logged_in ) {
                     '</a>'
                 );
             } else { // premium
-                $tickets_message .= " - " . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
+                $tickets_message .= "" . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
+                /*
                 $tickets_message .= ' ' . sprintf(
-                    /* translators: 1: opening link, 2: closing link */
                     __( 'Did you know that by referring someone new to Trying to Adult, you can receive a referral bonus, including free events? %1$sClick here for more info%2$s!', 'tta' ),
                     '<a href="' . esc_url( home_url( '/referral-program' ) ) . '">',
                     '</a>'
                 );
+                */
             }
         } else { // premium event, premium member
-            $tickets_message .= " - " . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
+            $tickets_message .= "" . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
+            /*
             $tickets_message .= ' ' . sprintf(
-                /* translators: 1: opening link, 2: closing link */
                 __( 'Did you know that by referring someone new to Trying to Adult, you can receive a referral bonus, including free events? %1$sClick here for more info%2$s!', 'tta' ),
                 '<a href="' . esc_url( home_url( '/referral-program' ) ) . '">',
                 '</a>'
             );
+            */
         }
     } else {
         if ( 'basic' === $event_required ) {
-            $tickets_message .= ' - ' . sprintf(
+            $tickets_message .= '' . sprintf(
                 __( 'Hey %1$s, you\'ll need to upgrade to at least %2$sBasic Membership%3$s to purchase tickets for this event. %4$sClick here to upgrade%5$s!', 'tta' ),
                 $first,
                 '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
@@ -283,7 +286,7 @@ if ( ! $is_logged_in ) {
             $waitlist_tooltip  = __( 'You must have at least a Basic Membership to join the waitlist.', 'tta' );
         } else {
             if ( 'basic' === $membership_level ) {
-                $tickets_message .= ' - ' . sprintf(
+                $tickets_message .= '' . sprintf(
                     __( 'Hey %1$s, thanks for being a Basic Member! This event is only available to %2$sPremium Members%3$s though. %4$sClick here to upgrade%5$s to attend this event and receive even more discounts and perks!', 'tta' ),
                     $first,
                     '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
@@ -292,7 +295,7 @@ if ( ! $is_logged_in ) {
                     '</a>'
                 );
             } else { // free member
-                $tickets_message .= ' - ' . sprintf(
+                $tickets_message .= '' . sprintf(
                     __( 'Hey %1$s, you\'ll need to upgrade to a %2$sPremium Membership%3$s to purchase tickets for this event. %4$sClick here to upgrade%5$s!', 'tta' ),
                     $first,
                     '<a href="' . esc_url( home_url( '/become-a-member/' ) ) . '">',
@@ -308,6 +311,7 @@ if ( ! $is_logged_in ) {
         }
     }
 }
+
 
 if ( ! $qualifies && ! $is_archived ) {
     if ( 'basic' === $event_required ) {
