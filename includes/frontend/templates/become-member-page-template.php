@@ -108,12 +108,12 @@ echo do_shortcode( $header_shortcode );
         <td></td>
         <td></td>
         <td>
-          <button type="button" id="tta-basic-signup" class="tta-button tta-button-primary">
+          <button type="button" class="tta-button tta-button-primary tta-basic-signup">
             <?php esc_html_e( 'Sign Up', 'tta' ); ?>
           </button>
         </td>
         <td>
-          <button type="button" id="tta-premium-signup" class="tta-button tta-button-primary">
+          <button type="button" class="tta-button tta-button-primary tta-premium-signup">
             <?php esc_html_e( 'Sign Up', 'tta' ); ?>
           </button>
         </td>
@@ -134,11 +134,11 @@ echo do_shortcode( $header_shortcode );
           <?php endforeach; ?>
         </ul>
         <?php if ( 'basic' === $tier_key ) : ?>
-          <button type="button" id="tta-basic-signup" class="tta-button tta-button-primary">
+          <button type="button" class="tta-button tta-button-primary tta-basic-signup">
             <?php esc_html_e( 'Sign Up', 'tta' ); ?>
           </button>
         <?php elseif ( 'premium' === $tier_key ) : ?>
-          <button type="button" id="tta-premium-signup" class="tta-button tta-button-primary">
+          <button type="button" class="tta-button tta-button-primary tta-premium-signup">
             <?php esc_html_e( 'Sign Up', 'tta' ); ?>
           </button>
         <?php endif; ?>
