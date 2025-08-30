@@ -31,10 +31,10 @@ class TTA_Ajax_Membership {
         }
         $current_level = strtolower( $context['membership_level'] );
         if ( 'premium' === $current_level ) {
-            wp_send_json_error( [ 'message' => __( 'You already have a Premium Membership.', 'tta' ) ] );
+            wp_send_json_error( [ 'message' => __( 'Whoops! Looks like you already have a Premium Membership!', 'tta' ) ] );
         }
         if ( 'basic' === $current_level && 'basic' === $level ) {
-            wp_send_json_error( [ 'message' => __( 'You already have a Basic Membership.', 'tta' ) ] );
+            wp_send_json_error( [ 'message' => __( 'Whoops! Looks like you already have a Basic Membership!', 'tta' ) ] );
         }
         if ( ! session_id() ) {
             session_start();

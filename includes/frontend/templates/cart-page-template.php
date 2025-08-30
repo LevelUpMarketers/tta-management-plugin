@@ -51,7 +51,8 @@ if ( $waitlist_ctx ) {
     );
 }
 
-$items = $cart->get_items();
+$items          = $cart->get_items();
+$has_membership = ! empty( $_SESSION['tta_membership_purchase'] );
 ?>
 <div class="wrap tta-cart-page">
     <form id="tta-cart-form">
@@ -70,8 +71,9 @@ $items = $cart->get_items();
             <?php echo tta_render_cart_contents( $cart, $discount_codes, [] ); ?>
         </div>
     </form>
+    <?php $disabled = empty( $items ) && ! $has_membership; ?>
     <p>
-        <a class="tta-cart-checkout-button<?php echo empty( $items ) ? ' tta-disabled' : ''; ?>" href="<?php echo esc_url( home_url( '/checkout' ) ); ?>"<?php echo empty( $items ) ? ' disabled aria-disabled="true"' : ''; ?>>
+        <a class="tta-cart-checkout-button<?php echo $disabled ? ' tta-disabled' : ''; ?>" href="<?php echo esc_url( home_url( '/checkout' ) ); ?>"<?php echo $disabled ? ' disabled aria-disabled="true"' : ''; ?>>
             <?php esc_html_e( 'Checkout', 'tta' ); ?>
         </a>
     </p>

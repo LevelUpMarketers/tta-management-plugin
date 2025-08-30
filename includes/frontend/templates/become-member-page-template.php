@@ -17,9 +17,6 @@ echo do_shortcode( $header_shortcode );
 <div class="tta-become-member-wrap">
 <section id="tta-member-intro" class="tta-section tta-member-intro">
   <div id="tta-member-intro-inner" class="tta-member-intro-inner">
-    <div class="tta-member-intro-text">
-      <h1><?php esc_html_e( 'Become a Trying to Adult Member', 'tta' ); ?></h1>
-    </div>
     <div id="tta-member-intro-gallery" class="tta-member-intro-gallery">
       <?php
       $slider_images = tta_get_slider_images();
@@ -108,12 +105,12 @@ echo do_shortcode( $header_shortcode );
         <td></td>
         <td></td>
         <td>
-          <button type="button" id="tta-basic-signup" class="tta-button tta-button-primary">
+          <button type="button" class="tta-button tta-button-primary tta-basic-signup">
             <?php esc_html_e( 'Sign Up', 'tta' ); ?>
           </button>
         </td>
         <td>
-          <button type="button" id="tta-premium-signup" class="tta-button tta-button-primary">
+          <button type="button" class="tta-button tta-button-primary tta-premium-signup">
             <?php esc_html_e( 'Sign Up', 'tta' ); ?>
           </button>
         </td>
@@ -134,11 +131,11 @@ echo do_shortcode( $header_shortcode );
           <?php endforeach; ?>
         </ul>
         <?php if ( 'basic' === $tier_key ) : ?>
-          <button type="button" id="tta-basic-signup" class="tta-button tta-button-primary">
+          <button type="button" class="tta-button tta-button-primary tta-basic-signup">
             <?php esc_html_e( 'Sign Up', 'tta' ); ?>
           </button>
         <?php elseif ( 'premium' === $tier_key ) : ?>
-          <button type="button" id="tta-premium-signup" class="tta-button tta-button-primary">
+          <button type="button" class="tta-button tta-button-primary tta-premium-signup">
             <?php esc_html_e( 'Sign Up', 'tta' ); ?>
           </button>
         <?php endif; ?>

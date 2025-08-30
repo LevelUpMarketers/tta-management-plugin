@@ -13,7 +13,11 @@ if ( ! $context['is_logged_in'] ) {
     get_header();
     $header_shortcode = '[vc_row full_width="stretch_row_content_no_spaces" css=".vc_custom_1670382516702{background-image: url(https://trying-to-adult-rva-2025.local/wp-content/uploads/2022/12/IMG-4418.png?id=70) !important;background-position: center !important;background-repeat: no-repeat !important;background-size: cover !important;}"][vc_column][vc_empty_space height="300px" el_id="jre-header-title-empty"][vc_column_text css_animation="slideInLeft" el_id="jre-homepage-id-1" css=".vc_custom_1671885403487{margin-left: 50px !important;padding-left: 50px !important;}"]<p id="jre-homepage-id-3">EVENT CHECK-IN</p>[/vc_column_text][/vc_column][/vc_row]';
     echo do_shortcode( $header_shortcode );
-    wp_login_form( [ 'redirect' => get_permalink() ] );
+
+    $form_html   = wp_login_form( [ 'echo' => false, 'redirect' => get_permalink() ] );
+    $lost_pw_url = wp_lostpassword_url( get_permalink() );
+    echo '<div id="tta-login-wrap" class="tta-login-wrap">' . $form_html . '<p class="login-lost-password"><a href="' . esc_url( $lost_pw_url ) . '">' . esc_html__( 'Forgot your password?', 'tta' ) . '</a></p></div>';
+
     get_footer();
     return;
 }
@@ -28,7 +32,17 @@ if ( ! $is_admin && ( ! $member || ! in_array( $member['member_type'], $allowed,
 
 global $wpdb;
 $events_table = $wpdb->prefix . 'tta_events';
-$events = $wpdb->get_results( "SELECT * FROM {$events_table} WHERE date >= CURDATE() ORDER BY date ASC", ARRAY_A );
+$cutoff_ts    = current_time( 'timestamp' ) - DAY_IN_SECONDS;
+$cutoff_date  = gmdate( 'Y-m-d', $cutoff_ts );
+$events       = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$events_table} WHERE date >= %s ORDER BY date ASC", $cutoff_date ), ARRAY_A );
+$events       = array_values( array_filter( $events, function ( $e ) use ( $cutoff_ts ) {
+    $parts   = explode( '|', $e['time'] );
+    $end     = trim( $parts[1] ?? $parts[0] );
+    $tz      = wp_timezone();
+    $end_dt  = date_create( $e['date'] . ' ' . $end, $tz );
+    $end_ts  = $end_dt ? $end_dt->getTimestamp() : 0;
+    return $end_ts >= $cutoff_ts;
+} ) );
 $today  = current_time( 'Y-m-d' );
 
 get_header();

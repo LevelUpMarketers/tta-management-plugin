@@ -3,7 +3,7 @@
  * Plugin Name: Trying To Adult Management Plugin
  * Plugin URI: https://example.com
  * Description: Custom plugin for Members, Events, Tickets management with waitlist, notifications, and Authorize.Net integration.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Your Name
  * Author URI: https://example.com
  * Text Domain: trying-to-adult-management
@@ -18,14 +18,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Define plugin constants
 define( 'TTA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TTA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'TTA_PLUGIN_VERSION', '1.0.1' );
+define( 'TTA_PLUGIN_VERSION', '1.0.2' );
 define( 'TTA_DB_VERSION', '1.11.0' );
 define( 'TTA_BASIC_MEMBERSHIP_PRICE', 10.00 );
 define( 'TTA_PREMIUM_MEMBERSHIP_PRICE', 17.00 );
 define( 'TTA_REENTRY_TICKET_PRICE', 25.00 );
-define( 'TTA_BASIC_SUBSCRIPTION_NAME', 'Trying to Adult Basic Membership' );
+define( 'TTA_BASIC_SUBSCRIPTION_NAME', 'Trying to Adult Standard Membership' );
 define( 'TTA_PREMIUM_SUBSCRIPTION_NAME', 'Trying to Adult Premium Membership' );
-define( 'TTA_BASIC_SUBSCRIPTION_DESCRIPTION', 'Monthly Basic Membership subscription for Trying to Adult.' );
+define( 'TTA_BASIC_SUBSCRIPTION_DESCRIPTION', 'Monthly Standard Membership subscription for Trying to Adult.' );
 define( 'TTA_PREMIUM_SUBSCRIPTION_DESCRIPTION', 'Monthly Premium Membership subscription for Trying to Adult.' );
 // Ban sentinel datetimes
 define( 'TTA_BAN_UNTIL_INDEFINITE', '9999-12-31 23:59:59' );

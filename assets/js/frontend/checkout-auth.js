@@ -12,8 +12,6 @@ jQuery(function($){
 
   $('#tta-login-message').on('click', '.tta-show-register', function(e){
     e.preventDefault();
-    var $link = $(this);
-    $link.addClass('tta-button-disabled').attr('aria-disabled', 'true').attr('tabindex', '-1');
     $('#tta-login-wrap').fadeOut(200, function(){
       $('#tta-register-form').fadeIn(200);
     });
@@ -24,8 +22,6 @@ jQuery(function($){
     $('#tta-register-form').fadeOut(200, function(){
       $('#tta-login-wrap').fadeIn(200);
     });
-    var $link = $('#tta-login-message .tta-show-register');
-    $link.removeClass('tta-button-disabled').removeAttr('aria-disabled tabindex');
   });
 
   $('#tta-register-form').on('submit', function(e){

@@ -56,7 +56,7 @@ $events = $wpdb->get_results( $wpdb->prepare($sql, $offset, $per_page), ARRAY_A 
       <th><?php esc_html_e('Event Image', 'tta'); ?></th>
       <th><?php esc_html_e('Event Name', 'tta'); ?></th>
       <th><?php esc_html_e('Date', 'tta'); ?></th>
-      <th><?php esc_html_e('Tickets', 'tta'); ?></th>
+      <th><?php esc_html_e('Tickets Left', 'tta'); ?></th>
       <th></th><!-- expand arrow -->
     </tr>
   </thead>
@@ -71,17 +71,14 @@ $events = $wpdb->get_results( $wpdb->prepare($sql, $offset, $per_page), ARRAY_A 
         $img_html = '<img src="'.$default.'" width="50" height="50" alt="">';
       }
       $date_fmt = date_i18n('n-j-Y', strtotime($e['date']));
-      // how many tickets exist for this event?
-      $count_tix = $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$tickets_table} WHERE event_ute_id = %s",
-        $e['ute_id']
-      ));
+      // how many tickets remain for this event?
+      $remaining = tta_get_remaining_ticket_count( $e['ute_id'] );
     ?>
       <tr data-event-ute-id="<?php echo esc_attr($e['ute_id']); ?>">
         <td><?php echo $img_html; ?></td>
         <td><?php echo esc_html($e['name']); ?></td>
         <td><?php echo esc_html($date_fmt); ?></td>
-        <td><?php echo intval($count_tix); ?></td>
+        <td><?php echo esc_html( sprintf( _n( '%d Ticket Left', '%d Tickets Left', $remaining, 'tta' ), $remaining ) ); ?></td>
         <td class="tta-toggle-cell">
           <img src="<?php echo esc_url(TTA_PLUGIN_URL.'assets/images/admin/arrow.svg'); ?>"
                class="tta-toggle-arrow" width="10" height="10"

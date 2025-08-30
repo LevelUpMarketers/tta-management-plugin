@@ -100,8 +100,8 @@ jQuery(function($){
     }, 'json');
   }
 
-  $('#tta-basic-signup').on('click', function(){ sendMembership('basic'); });
-  $('#tta-premium-signup').on('click', function(){ sendMembership('premium'); });
+  $('.tta-basic-signup').on('click', function(){ sendMembership('basic'); });
+  $('.tta-premium-signup').on('click', function(){ sendMembership('premium'); });
   $(document).on('click', '#tta-remove-membership', function(){ removeMembership(); });
 
   function collectCartData(){

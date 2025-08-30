@@ -50,6 +50,18 @@
   cursor:pointer;
 }
 
+.login-username label,
+.login-password label{
+  display:block;
+}
+
+@media (max-width:600px){
+  .tta-login-wrap input[type="text"],
+  .tta-login-wrap input[type="password"]{
+    width:100%;
+  }
+}
+
 
 
 
