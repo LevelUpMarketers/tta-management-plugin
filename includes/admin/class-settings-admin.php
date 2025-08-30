@@ -36,6 +36,7 @@ class TTA_Settings_Admin {
         echo '<a href="?page=tta-settings&tab=general" class="nav-tab ' . ( 'general' === $active_tab ? 'nav-tab-active' : '' ) . '">' . esc_html__( 'General Settings', 'tta' ) . '</a>';
         echo '<a href="?page=tta-settings&tab=logging" class="nav-tab ' . ( 'logging' === $active_tab ? 'nav-tab-active' : '' ) . '">' . esc_html__( 'Logging', 'tta' ) . '</a>';
         echo '<a href="?page=tta-settings&tab=api" class="nav-tab ' . ( 'api' === $active_tab ? 'nav-tab-active' : '' ) . '">' . esc_html__( 'API Settings', 'tta' ) . '</a>';
+        echo '<a href="?page=tta-settings&tab=slider" class="nav-tab ' . ( 'slider' === $active_tab ? 'nav-tab-active' : '' ) . '">' . esc_html__( 'Slider Images', 'tta' ) . '</a>';
         echo '</h2>';
 
         if ( 'logging' === $active_tab ) {
@@ -183,6 +184,29 @@ class TTA_Settings_Admin {
             }
 
             echo '<script>document.querySelectorAll(".tta-reveal").forEach(function(btn){btn.addEventListener("click",function(){var t=document.getElementById(btn.dataset.target);if(t.type==="password"){t.type="text";btn.textContent="' . esc_js( __( 'Hide', 'tta' ) ) . '";}else{t.type="password";btn.textContent="' . esc_js( __( 'Reveal', 'tta' ) ) . '";}});});</script>';
+        } elseif ( 'slider' === $active_tab ) {
+            if ( isset( $_POST['tta_save_slider_images'] ) && check_admin_referer( 'tta_save_slider_images_action', 'tta_save_slider_images_nonce' ) ) {
+                $ids_raw = isset( $_POST['tta_slider_image_ids'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_slider_image_ids'] ) ) : '';
+                $ids     = array_filter( array_map( 'absint', array_filter( array_map( 'trim', explode( ',', $ids_raw ) ) ) ) );
+                update_option( 'tta_slider_images', $ids, false );
+                echo '<div class="updated"><p>' . esc_html__( 'Slider images saved.', 'tta' ) . '</p></div>';
+            }
+
+            $ids = get_option( 'tta_slider_images', [] );
+            echo '<form method="post" action="?page=tta-settings&tab=slider">';
+            wp_nonce_field( 'tta_save_slider_images_action', 'tta_save_slider_images_nonce' );
+            echo '<p><button type="button" class="button tta-upload-multiple" data-target="#tta_slider_image_ids" data-preview="#tta_slider_images_preview">' . esc_html__( 'Select Images', 'tta' ) . '</button></p>';
+            echo '<div id="tta_slider_images_preview">';
+            foreach ( $ids as $id ) {
+                $thumb = wp_get_attachment_image_url( intval( $id ), 'thumbnail' );
+                if ( $thumb ) {
+                    echo '<img src="' . esc_url( $thumb ) . '" style="max-width:100px;margin-right:5px;" />';
+                }
+            }
+            echo '</div>';
+            echo '<input type="hidden" id="tta_slider_image_ids" name="tta_slider_image_ids" value="' . esc_attr( implode( ',', $ids ) ) . '">';
+            echo '<p><input type="submit" name="tta_save_slider_images" class="button button-primary" value="' . esc_attr__( 'Save Slider Images', 'tta' ) . '"></p>';
+            echo '</form>';
         } else {
             if ( isset( $_POST['tta_flush_cache'] ) && check_admin_referer( 'tta_flush_cache_action', 'tta_flush_cache_nonce' ) ) {
                 TTA_Cache::flush();

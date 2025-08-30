@@ -228,3 +228,11 @@
   /*  All checkout page css  */
 
 }
+
+/* Top bar logout link */
+.tta-header-logout-div {
+  display: none;
+}
+.logged-in .tta-header-logout-div {
+  display: inline-block;
+}
