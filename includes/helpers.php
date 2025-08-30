@@ -4898,6 +4898,80 @@ function tta_render_login_register_section( $redirect ) {
 }
 
 /**
+ * Render a login/register accordion tailored for membership checkout when
+ * the visitor is not authenticated. The registration form is shown by
+ * default with a link allowing existing users to switch to the login form.
+ *
+ * @param string $redirect URL to redirect to after a successful login.
+ * @return string         HTML markup for the membership login/register section.
+ */
+function tta_render_membership_checkout_section( $redirect ) {
+    $form_html = wp_login_form(
+        [
+            'echo'     => false,
+            'redirect' => esc_url_raw( $redirect ),
+        ]
+    );
+
+    $lost_pw_url = wp_lostpassword_url( $redirect );
+
+    ob_start();
+    ?>
+    <section id="tta-login-message" class="tta-message-center tta-login-accordion">
+      <h2><?php esc_html_e( 'Register Below to Complete Your Membership Purchase.', 'tta' ); ?></h2>
+      <div class="tta-accordion">
+        <div class="tta-accordion-content expanded">
+          <div id="tta-login-wrap" style="display:none;">
+            <?php echo $form_html; ?>
+            <p class="login-lost-password"><a href="<?php echo esc_url( $lost_pw_url ); ?>"><?php esc_html_e( 'Forgot your password?', 'tta' ); ?></a></p>
+            <a href="#tta-login-message" class="tta-button-link tta-show-register"><?php esc_html_e( 'Back to Account Creation', 'tta' ); ?></a>
+          </div>
+          <form id="tta-register-form">
+            <p>
+              <label><?php esc_html_e( 'First Name', 'tta' ); ?><br />
+                <input type="text" name="first_name" required />
+              </label>
+            </p>
+            <p>
+              <label><?php esc_html_e( 'Last Name', 'tta' ); ?><br />
+                <input type="text" name="last_name" required />
+              </label>
+            </p>
+            <p>
+              <label><?php esc_html_e( 'Email', 'tta' ); ?><br />
+                <input type="email" name="email" required />
+              </label>
+            </p>
+            <p>
+              <label><?php esc_html_e( 'Verify Email', 'tta' ); ?><br />
+                <input type="email" name="email_verify" required />
+              </label>
+            </p>
+            <p>
+              <label><?php esc_html_e( 'Password', 'tta' ); ?><br />
+                <input type="password" name="password" required />
+              </label>
+            </p>
+            <p>
+              <label><?php esc_html_e( 'Verify Password', 'tta' ); ?><br />
+                <input type="password" name="password_verify" required />
+              </label>
+            </p>
+            <p>
+              <button type="submit" class="tta-button tta-button-primary"><?php esc_html_e( 'Create Account', 'tta' ); ?></button>
+              <a href="#tta-login-message" class="tta-button-link tta-cancel-register"><?php esc_html_e( 'Already have an Account? Log in here!', 'tta' ); ?></a>
+              <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+            </p>
+            <span id="tta-register-response" class="tta-admin-progress-response-p"></span>
+          </form>
+        </div>
+      </div>
+    </section>
+    <?php
+    return trim( ob_get_clean() );
+}
+
+/**
  * Render an image preview for admin screens that works even when
  * WordPress cannot generate intermediate sizes (e.g. unsupported
  * MIME types).

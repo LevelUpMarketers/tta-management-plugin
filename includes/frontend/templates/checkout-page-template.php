@@ -306,7 +306,13 @@ if ( $checkout_done ) {
         <p><?php esc_html_e( 'Your cart is empty.', 'tta' ); ?></p>
 <?php else : ?>
         <?php if ( ! $is_logged_in ) : ?>
-            <?php echo tta_render_login_register_section( home_url( '/checkout' ) ); ?>
+            <?php
+            if ( $has_membership ) {
+                echo tta_render_membership_checkout_section( home_url( '/checkout' ) );
+            } else {
+                echo tta_render_login_register_section( home_url( '/checkout' ) );
+            }
+            ?>
         <?php endif; ?>
         <form id="tta-checkout-form" method="post">
             <?php wp_nonce_field( 'tta_checkout_action', 'tta_checkout_nonce' ); ?>
