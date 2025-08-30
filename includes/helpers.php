@@ -4501,6 +4501,22 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                         ?>
                     </td>
                 </tr>
+                <?php if ( $has_membership && in_array( $membership_level, [ 'basic', 'premium' ], true ) ) : ?>
+                <tr class="tta-membership-billing-note">
+                    <td colspan="<?php echo $has_tickets ? 6 : 5; ?>">
+                        <?php
+                        $billing_day = date_i18n( 'jS' );
+                        $formatted  = number_format( $m_total, 2 );
+                        printf(
+                            esc_html__( 'You will be billed $%1$s today to begin your membership, and a recurring $%2$s on the %3$s of every month.', 'tta' ),
+                            esc_html( $formatted ),
+                            esc_html( $formatted ),
+                            esc_html( $billing_day )
+                        );
+                        ?>
+                    </td>
+                </tr>
+                <?php endif; ?>
                 <?php if ( $discount_codes ) : ?>
                 <tr class="tta-active-discounts">
                     <td colspan="6">
@@ -4673,6 +4689,22 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                         ?>
                     </td>
                 </tr>
+                <?php if ( $has_membership && in_array( $membership_level, [ 'basic', 'premium' ], true ) ) : ?>
+                <tr class="tta-membership-billing-note">
+                    <td colspan="<?php echo $has_tickets ? 5 : 4; ?>">
+                        <?php
+                        $billing_day = date_i18n( 'jS' );
+                        $formatted  = number_format( $m_total, 2 );
+                        printf(
+                            esc_html__( 'You will be billed $%1$s today to begin your membership, and a recurring $%2$s on the %3$s of every month.', 'tta' ),
+                            esc_html( $formatted ),
+                            esc_html( $formatted ),
+                            esc_html( $billing_day )
+                        );
+                        ?>
+                    </td>
+                </tr>
+                <?php endif; ?>
                 <?php if ( $discount_codes ) : ?>
                 <tr class="tta-active-discounts">
                     <td colspan="5">
