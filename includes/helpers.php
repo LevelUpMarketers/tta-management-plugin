@@ -1242,9 +1242,9 @@ function tta_get_member_names_by_ids( array $user_ids ) {
 function tta_get_membership_label( $level ) {
     switch ( strtolower( $level ) ) {
         case 'basic':
-            return __( 'Basic Member', 'tta' );
+            return __( 'Standard Membership', 'tta' );
         case 'premium':
-            return __( 'Premium Member', 'tta' );
+            return __( 'Premium Membership', 'tta' );
         case 'reentry':
             return __( 'Re-Entry Ticket', 'tta' );
         default:
@@ -4470,10 +4470,9 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                 <?php if ( $has_membership ) : ?>
                     <?php $m_price = tta_get_membership_price( $membership_level ); ?>
                     <tr class="tta-membership-row" data-ticket="0">
-                        <td data-label="<?php echo esc_attr( 'Event or Item' ); ?>">
+                        <td data-label="<?php echo esc_attr( 'Event or Item' ); ?>" colspan="<?php echo $has_tickets ? 2 : 1; ?>">
                             <?php echo esc_html( tta_get_membership_label( $membership_level ) ); ?>
                         </td>
-                        <?php if ( $has_tickets ) : ?><td data-label="<?php echo esc_attr( 'Ticket Reserved for…' ); ?>"></td><?php endif; ?>
                         <td data-label="<?php echo esc_attr( 'Quantity' ); ?>">1</td>
                         <td data-label="<?php echo esc_attr( 'Price' ); ?>">$<?php echo esc_html( number_format( $m_price, 2 ) ); ?><?php if ( 'reentry' !== $membership_level ) echo ' ' . esc_html__( 'Per Month', 'tta' ); ?></td>
                         <td data-label="<?php echo esc_attr( 'Subtotal' ); ?>">$<?php echo esc_html( number_format( $m_price, 2 ) ); ?><?php if ( 'reentry' !== $membership_level ) echo ' ' . esc_html__( 'Per Month', 'tta' ); ?></td>
@@ -4644,11 +4643,12 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                 <?php if ( $has_membership ) : ?>
                     <?php $m_price = tta_get_membership_price( $membership_level ); ?>
                     <tr class="tta-membership-row" data-ticket="0">
-                        <td><?php echo esc_html( tta_get_membership_label( $membership_level ) ); ?></td>
-                        <?php if ( $has_tickets ) : ?><td></td><?php endif; ?>
-                        <td>1</td>
-                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?><?php if ( 'reentry' !== $membership_level ) echo ' ' . esc_html__( 'Per Month', 'tta' ); ?></td>
-                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?><?php if ( 'reentry' !== $membership_level ) echo ' ' . esc_html__( 'Per Month', 'tta' ); ?></td>
+                        <td data-label="<?php echo esc_attr( 'Event or Item' ); ?>" colspan="<?php echo $has_tickets ? 2 : 1; ?>">
+                            <?php echo esc_html( tta_get_membership_label( $membership_level ) ); ?>
+                        </td>
+                        <td data-label="<?php echo esc_attr( 'Qty' ); ?>">1</td>
+                        <td data-label="<?php echo esc_attr( 'Price' ); ?>">$<?php echo esc_html( number_format( $m_price, 2 ) ); ?><?php if ( 'reentry' !== $membership_level ) echo ' ' . esc_html__( 'Per Month', 'tta' ); ?></td>
+                        <td data-label="<?php echo esc_attr( 'Subtotal' ); ?>">$<?php echo esc_html( number_format( $m_price, 2 ) ); ?><?php if ( 'reentry' !== $membership_level ) echo ' ' . esc_html__( 'Per Month', 'tta' ); ?></td>
                     </tr>
                 <?php endif; ?>
             </tbody>
