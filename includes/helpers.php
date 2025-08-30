@@ -4470,11 +4470,13 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                 <?php if ( $has_membership ) : ?>
                     <?php $m_price = tta_get_membership_price( $membership_level ); ?>
                     <tr class="tta-membership-row" data-ticket="0">
-                        <td><?php echo esc_html( tta_get_membership_label( $membership_level ) ); ?></td>
-                        <?php if ( $has_tickets ) : ?><td></td><?php endif; ?>
-                        <td>1</td>
-                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?><?php if ( 'reentry' !== $membership_level ) echo ' ' . esc_html__( 'Per Month', 'tta' ); ?></td>
-                        <td>$<?php echo esc_html( number_format( $m_price, 2 ) ); ?><?php if ( 'reentry' !== $membership_level ) echo ' ' . esc_html__( 'Per Month', 'tta' ); ?></td>
+                        <td data-label="<?php echo esc_attr( 'Event or Item' ); ?>">
+                            <?php echo esc_html( tta_get_membership_label( $membership_level ) ); ?>
+                        </td>
+                        <?php if ( $has_tickets ) : ?><td data-label="<?php echo esc_attr( 'Ticket Reserved for…' ); ?>"></td><?php endif; ?>
+                        <td data-label="<?php echo esc_attr( 'Quantity' ); ?>">1</td>
+                        <td data-label="<?php echo esc_attr( 'Price' ); ?>">$<?php echo esc_html( number_format( $m_price, 2 ) ); ?><?php if ( 'reentry' !== $membership_level ) echo ' ' . esc_html__( 'Per Month', 'tta' ); ?></td>
+                        <td data-label="<?php echo esc_attr( 'Subtotal' ); ?>">$<?php echo esc_html( number_format( $m_price, 2 ) ); ?><?php if ( 'reentry' !== $membership_level ) echo ' ' . esc_html__( 'Per Month', 'tta' ); ?></td>
                         <td><button type="button" id="tta-remove-membership" class="tta-remove-item" aria-label="Remove"></button></td>
                     </tr>
                 <?php endif; ?>

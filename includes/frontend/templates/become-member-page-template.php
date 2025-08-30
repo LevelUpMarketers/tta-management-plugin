@@ -17,9 +17,6 @@ echo do_shortcode( $header_shortcode );
 <div class="tta-become-member-wrap">
 <section id="tta-member-intro" class="tta-section tta-member-intro">
   <div id="tta-member-intro-inner" class="tta-member-intro-inner">
-    <div class="tta-member-intro-text">
-      <h1><?php esc_html_e( 'Become a Trying to Adult Member', 'tta' ); ?></h1>
-    </div>
     <div id="tta-member-intro-gallery" class="tta-member-intro-gallery">
       <?php
       $slider_images = tta_get_slider_images();

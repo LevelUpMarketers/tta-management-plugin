@@ -22,6 +22,7 @@ This document summarizes the current logic around the cart and checkout process 
    - If a visitor selected a membership on the Become a Member page, that membership appears as its own line item in the cart.
    - Premium members cannot add another membership at all. Attempts to add Basic or Premium memberships are rejected.
    - When the cart only contains a membership, the table hides the **Ticket Reserved for…** column and the first column heading becomes **Event or Item**. Membership pricing shows "Per Month" in the price and subtotal columns, and the total row also displays "Per Month". Column spans adjust so the table remains aligned without the countdown column.
+   - Membership line items include `data-label` attributes so mobile views show field names like **Event or Item**, **Quantity**, **Price**, and **Subtotal**.
    - If both a membership and tickets are present, the total row displays the first charge (e.g. `$15.00 today, $10 Per Month`) so customers understand future recurring payments.
    - A dedicated **Ticket Reserved for…** column displays a live ten minute countdown for ticket rows.
   - The Quantity column enforces the per‑member limit configured for each ticket.
