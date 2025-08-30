@@ -315,6 +315,7 @@ select[disabled]::before {
 }
 @media (max-width: 782px) {
   .tta-cart-checkout-button { display:block; width:100%; box-sizing:border-box; text-align:center; }
+  .tta-login-accordion .tta-cancel-register { display:block; }
 }
 .tta-button-primary{
   min-width: 165px;
