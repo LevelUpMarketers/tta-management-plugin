@@ -8,11 +8,11 @@ Make sure the **Automated Recurring Billing** module is active on your merchant 
 
 To verify in the sandbox:
 
-1. Complete checkout with a Basic or Premium membership in the cart.
+1. Complete checkout with a Standard or Premium membership in the cart.
 2. In the Merchant Interface, open **Recurring Billing > Search** to view the new subscription by ID.
 3. Transaction history will show the initial payment (if the start date is the same day it may post the next business day) followed by monthly charges.
 
-Use the subscription ID stored in the `tta_members` table to manage the plan or cancel it via the admin tools. New member records begin with `subscription_status` set to `NULL` and are updated to `active` only when a Basic or Premium membership is purchased. When a member buys another membership, any prior subscription ID on file is cancelled through Authorize.Net before the new subscription is created so the member only ever has one active plan.
+Use the subscription ID stored in the `tta_members` table to manage the plan or cancel it via the admin tools. New member records begin with `subscription_status` set to `NULL` and are updated to `active` only when a Standard or Premium membership is purchased. When a member buys another membership, any prior subscription ID on file is cancelled through Authorize.Net before the new subscription is created so the member only ever has one active plan.
 
 After a successful membership checkout the confirmation page now displays the returned
 `subscriptionId` along with the API result code. If the ID is missing, the profile
@@ -41,7 +41,7 @@ the `membership_level` updated to `basic` or `premium` depending on the charge
 amount. To ensure Authorize.Net associates the correct billing method, the
 subscription request references the payment profile via the
 `customerPaymentProfileId` field.
-Transactions for $5 are tagged as **Trying to Adult Basic Membership** while $10
+Transactions for $10 are tagged as **Trying to Adult Standard Membership** while $17
 charges become **Trying to Adult Premium Membership** so the subscription is
 clearly labeled in Authorize.Net. The results of each conversion are displayed
 on the settings page and written to the debug log.

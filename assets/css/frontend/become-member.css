@@ -137,6 +137,45 @@
   font-size: 18px;
 }
 
+@media (max-width: 960px) {
+  .tta-become-member-wrap {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .tta-tier-card h2 {
+    margin-top: 0;
+    text-align: center;
+    font-weight: 600;
+    color: #3a7096;
+    font-size: 30px;
+    font-family: "Teko", sans-serif;
+    background: #f7f7f7;
+    padding: 20px;
+  }
+
+  .tta-tier-card {
+    padding: 0;
+    border-bottom: solid 1px #3a7096;
+  }
+
+  .tta-tier-card li {
+    border-bottom: solid 1px #3a7096;
+  }
+
+  #tta-become-member-wrap > div > div > ul {
+    margin: 20px;
+  }
+
+  .tta-basic-signup,
+  .tta-premium-signup {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    margin-bottom: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .tta-membership-table {
     display: none;

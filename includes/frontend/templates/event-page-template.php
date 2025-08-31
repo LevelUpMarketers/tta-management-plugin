@@ -232,14 +232,7 @@ if ( ! $is_logged_in ) {
                     '</a>'
                 );
             } else {
-                $tickets_message .= "" . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
-                /*
-                $tickets_message .= ' ' . sprintf(
-                    __( 'Did you know that by referring someone new to Trying to Adult, you can receive a referral bonus, including free events? %1$sClick here for more info%2$s!', 'tta' ),
-                    '<a href="' . esc_url( home_url( '/referral-program' ) ) . '">',
-                    '</a>'
-                );
-                */
+                $tickets_message .= '' . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
             }
         } elseif ( 'basic' === $event_required ) {
             if ( 'basic' === $membership_level ) {
@@ -251,24 +244,10 @@ if ( ! $is_logged_in ) {
                     '</a>'
                 );
             } else { // premium
-                $tickets_message .= "" . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
-                /*
-                $tickets_message .= ' ' . sprintf(
-                    __( 'Did you know that by referring someone new to Trying to Adult, you can receive a referral bonus, including free events? %1$sClick here for more info%2$s!', 'tta' ),
-                    '<a href="' . esc_url( home_url( '/referral-program' ) ) . '">',
-                    '</a>'
-                );
-                */
+                $tickets_message .= '' . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
             }
         } else { // premium event, premium member
-            $tickets_message .= "" . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
-            /*
-            $tickets_message .= ' ' . sprintf(
-                __( 'Did you know that by referring someone new to Trying to Adult, you can receive a referral bonus, including free events? %1$sClick here for more info%2$s!', 'tta' ),
-                '<a href="' . esc_url( home_url( '/referral-program' ) ) . '">',
-                '</a>'
-            );
-            */
+            $tickets_message .= '' . sprintf( __( 'Thanks for being a Premium Member, %s!', 'tta' ), $first );
         }
     } else {
         if ( 'basic' === $event_required ) {

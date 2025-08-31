@@ -47,7 +47,7 @@ Attendee lists now reflect the database in real time. When a member requests a r
 Past events show the same details as upcoming events. To keep the database small, events more than three days past are moved to an `tta_events_archive` table by a daily cron job. The dashboard transparently queries both the current events table and this archive so members can always view their history.
 
 - Each attendee entry also lists their final attendance status (Attended, No-Show, or Pending) along with any refund notes.
-- A summary box at the top displays how many events you've attended and no‑showed along with your total savings. The savings amount is wrapped in a `<span class="tta-savings-wow-span">` element so it can be styled prominently. The message varies by membership level—Basic members are prompted to upgrade, Premium members see a referral link, and Free members get an invitation to join.
+- A summary box at the top displays how many events you've attended and no‑showed along with your total savings. The savings amount is wrapped in a `<span class="tta-savings-wow-span">` element so it can be styled prominently. The message varies by membership level—Basic members are prompted to upgrade, while Free members get an invitation to join.
 - Ticket details remain enclosed within each past event's container so stray markup doesn't spill outside the dashboard layout.
 
 ## Billing & Membership Info

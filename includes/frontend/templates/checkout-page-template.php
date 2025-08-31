@@ -204,6 +204,27 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
 
 $discount_codes   = $_SESSION['tta_discount_codes'] ?? [];
 $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
+$membership_notice = '';
+if ( is_user_logged_in() && $membership_level ) {
+    $context       = tta_get_current_user_context();
+    $current_level = strtolower( $context['membership_level'] ?? 'free' );
+    if ( $current_level === $membership_level ) {
+        unset( $_SESSION['tta_membership_purchase'] );
+        $membership_notice = sprintf(
+            __( 'You already have a %1$s! Please <a href="%2$s">visit your Member Dashboard</a> to manage your membership.', 'tta' ),
+            tta_get_membership_label( $current_level ),
+            esc_url( home_url( '/member-dashboard/?tab=billing' ) )
+        );
+        $membership_level = '';
+    } elseif ( 'premium' === $current_level && 'basic' === $membership_level ) {
+        unset( $_SESSION['tta_membership_purchase'] );
+        $membership_notice = sprintf(
+            __( 'You have a Premium Membership already - are you sure you want to downgrade to a Standard Membership? If so, please <a href="%s">do so on your Member Dashboard</a>.', 'tta' ),
+            esc_url( home_url( '/member-dashboard/?tab=billing' ) )
+        );
+        $membership_level = '';
+    }
+}
 $has_membership   = in_array( $membership_level, [ 'basic', 'premium', 'reentry' ], true );
 $total_amount     = $cart->get_total( $discount_codes );
 $is_free_checkout = ( 0 >= $total_amount );
@@ -227,6 +248,9 @@ if ( $checkout_done ) {
 }
 ?>
 <div class="wrap tta-checkout-page">
+    <?php if ( $membership_notice ) : ?>
+        <p class="tta-cart-notice"><?php echo wp_kses_post( $membership_notice ); ?></p>
+    <?php endif; ?>
     <?php if ( $checkout_done ) : ?>
         <div class="tta-checkout-complete">
             <?php
@@ -242,31 +266,23 @@ if ( $checkout_done ) {
                         )
                     );
                 } else {
-                    $amount = 'premium' === $member_level ? TTA_PREMIUM_MEMBERSHIP_PRICE : TTA_BASIC_MEMBERSHIP_PRICE;
+                    $amount          = 'premium' === $member_level ? TTA_PREMIUM_MEMBERSHIP_PRICE : TTA_BASIC_MEMBERSHIP_PRICE;
+                    $membership_name = 'premium' === $member_level ? __( 'Premium', 'tta' ) : __( 'Standard', 'tta' );
+
                     printf(
                         '<p>%s</p>',
                         wp_kses_post(
                             sprintf(
                                 __( "Thanks for becoming a %s Member! There's nothing else for you to do - you'll be automatically billed $%s once monthly, and can cancel anytime on your %s. An email will be sent to %s with your Membership Details. Thanks again, and enjoy your Membership perks!", 'tta' ),
-                                ucfirst( $member_level ),
+                                $membership_name,
                                 number_format_i18n( $amount, 0 ),
-                                '<a href="https://trying-to-adult-rva-2025.local/member-dashboard/?tab=billing">' . esc_html__( 'Member Dashboard', 'tta' ) . '</a>',
+                                '<a href="' . esc_url( home_url( '/member-dashboard/?tab=billing' ) ) . '">' . esc_html__( 'Member Dashboard', 'tta' ) . '</a>',
                                 esc_html( $user->user_email )
                             )
                         )
                     );
 
-                    if ( 'basic' === $member_level ) {
-                        printf(
-                            '<p>%s</p>',
-                            wp_kses_post(
-                                sprintf(
-                                    __( "Did you know that there's even MORE perks and discounts to be had with a Premium Membership? %s", 'tta' ),
-                                    '<a href="https://trying-to-adult-rva-2025.local/become-a-member/">' . esc_html__( 'Learn more here.', 'tta' ) . '</a>'
-                                )
-                            )
-                        );
-                    } elseif ( 'premium' === $member_level ) {
+                    if ( 'premium' === $member_level ) {
                         printf(
                             '<p>%s <a href="mailto:sam@tryingtoadultrva.com">sam@tryingtoadultrva.com</a> %s</p>',
                             esc_html__( 'Did you know? You can earn a free event and other perks by referring friends and family! Let us know who you\'ve referred at', 'tta' ),
@@ -306,7 +322,13 @@ if ( $checkout_done ) {
         <p><?php esc_html_e( 'Your cart is empty.', 'tta' ); ?></p>
 <?php else : ?>
         <?php if ( ! $is_logged_in ) : ?>
-            <?php echo tta_render_login_register_section( home_url( '/checkout' ) ); ?>
+            <?php
+            if ( $has_membership ) {
+                echo tta_render_membership_checkout_section( home_url( '/checkout' ) );
+            } else {
+                echo tta_render_login_register_section( home_url( '/checkout' ) );
+            }
+            ?>
         <?php endif; ?>
         <form id="tta-checkout-form" method="post">
             <?php wp_nonce_field( 'tta_checkout_action', 'tta_checkout_nonce' ); ?>
