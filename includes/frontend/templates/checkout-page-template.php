@@ -266,31 +266,23 @@ if ( $checkout_done ) {
                         )
                     );
                 } else {
-                    $amount = 'premium' === $member_level ? TTA_PREMIUM_MEMBERSHIP_PRICE : TTA_BASIC_MEMBERSHIP_PRICE;
+                    $amount          = 'premium' === $member_level ? TTA_PREMIUM_MEMBERSHIP_PRICE : TTA_BASIC_MEMBERSHIP_PRICE;
+                    $membership_name = 'premium' === $member_level ? __( 'Premium', 'tta' ) : __( 'Standard', 'tta' );
+
                     printf(
                         '<p>%s</p>',
                         wp_kses_post(
                             sprintf(
                                 __( "Thanks for becoming a %s Member! There's nothing else for you to do - you'll be automatically billed $%s once monthly, and can cancel anytime on your %s. An email will be sent to %s with your Membership Details. Thanks again, and enjoy your Membership perks!", 'tta' ),
-                                ucfirst( $member_level ),
+                                $membership_name,
                                 number_format_i18n( $amount, 0 ),
-                                '<a href="https://trying-to-adult-rva-2025.local/member-dashboard/?tab=billing">' . esc_html__( 'Member Dashboard', 'tta' ) . '</a>',
+                                '<a href="' . esc_url( home_url( '/member-dashboard/?tab=billing' ) ) . '">' . esc_html__( 'Member Dashboard', 'tta' ) . '</a>',
                                 esc_html( $user->user_email )
                             )
                         )
                     );
 
-                    if ( 'basic' === $member_level ) {
-                        printf(
-                            '<p>%s</p>',
-                            wp_kses_post(
-                                sprintf(
-                                    __( "Did you know that there's even MORE perks and discounts to be had with a Premium Membership? %s", 'tta' ),
-                                    '<a href="https://trying-to-adult-rva-2025.local/become-a-member/">' . esc_html__( 'Learn more here.', 'tta' ) . '</a>'
-                                )
-                            )
-                        );
-                    } elseif ( 'premium' === $member_level ) {
+                    if ( 'premium' === $member_level ) {
                         printf(
                             '<p>%s <a href="mailto:sam@tryingtoadultrva.com">sam@tryingtoadultrva.com</a> %s</p>',
                             esc_html__( 'Did you know? You can earn a free event and other perks by referring friends and family! Let us know who you\'ve referred at', 'tta' ),

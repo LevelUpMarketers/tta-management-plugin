@@ -514,9 +514,12 @@ class TTA_Assets {
                 'tta-checkout-process',
                 'tta_checkout',
                 [
-                    'ajax_url'   => admin_url( 'admin-ajax.php' ),
-                    'nonce'      => wp_create_nonce( 'tta_checkout_action' ),
-                    'user_email' => is_user_logged_in() ? wp_get_current_user()->user_email : '',
+                    'ajax_url'       => admin_url( 'admin-ajax.php' ),
+                    'nonce'          => wp_create_nonce( 'tta_checkout_action' ),
+                    'user_email'     => is_user_logged_in() ? wp_get_current_user()->user_email : '',
+                    'dashboard_url'  => home_url( '/member-dashboard/?tab=billing' ),
+                    'basic_price'    => TTA_BASIC_MEMBERSHIP_PRICE,
+                    'premium_price'  => TTA_PREMIUM_MEMBERSHIP_PRICE,
                 ]
             );
 
