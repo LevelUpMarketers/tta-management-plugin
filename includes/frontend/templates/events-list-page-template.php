@@ -216,7 +216,7 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
                     <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/ads/placeholder2.svg' ); ?>" alt="Upgrade">
                 </a>
             <?php else : ?>
-                <p><?php esc_html_e( 'Thanks for being a Premium Member! Don\'t forget about our referral program for extra rewards.', 'tta' ); ?></p>
+                <p><?php esc_html_e( 'Thanks for being a Premium Member!', 'tta' ); ?></p>
             <?php endif; ?>
         </div>
     </aside>

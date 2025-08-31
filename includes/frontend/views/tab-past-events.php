@@ -13,11 +13,10 @@
         echo wp_kses(
             sprintf(
                 /* translators: %s: amount saved */
-                __( 'Your membership and discount codes have saved you a total of <span class="tta-savings-wow-span">$%s!</span> Did you know you can receive a referral bonus, to include free events? <a href="/referral-program">Click here to learn more now!</a>', 'tta' ),
+                __( 'Your membership and discount codes have saved you a total of <span class="tta-savings-wow-span">$%s!</span>.', 'tta' ),
                 number_format( $summary['savings'], 2 )
             ),
             array(
-                'a'    => array( 'href' => array() ),
                 'span' => array( 'class' => array() ),
             )
         );
