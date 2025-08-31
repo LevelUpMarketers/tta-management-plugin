@@ -17,7 +17,7 @@ The **Become a Member** template introduces a front‑end landing page for membe
 - Only one membership can exist in the cart at a time. Logged-in users who already have a Standard membership cannot add another Standard plan. Premium members cannot add any membership product.
 - When only a membership is present in the cart, the subtotal and total rows show the price "Per Month" and table columns remain aligned.
 - When tickets are also in the cart, the total row shows the immediate charge followed by the monthly membership amount (e.g. `$15.00 today, $10 Per Month`).
-- A follow-up note beneath the total explains the upfront charge and when the monthly renewal will occur (e.g. "You will be billed $10.00 today to begin your membership, and a recurring $10.00 on the 15th of every month").
+ - A follow-up note beneath the total explains the upfront charge and when the monthly renewal will occur and now includes guidance for cancellations and refunds (e.g. "You will be billed $10.00 today to begin your membership, and a recurring $10.00 on the 15th of every month. If you wish to cancel your membership, you can do so at any time on your member profile. For questions about refunds, visit our Rules & Policies page.").
 
 ### Header
 The template outputs a WPBakery hero row above the content using `do_shortcode()`. The banner displays **Become a Member** over a full-width background image.

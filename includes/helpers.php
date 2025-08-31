@@ -4505,13 +4505,25 @@ function tta_render_cart_contents( TTA_Cart $cart, $discount_codes = [], array $
                 <tr class="tta-membership-billing-note">
                     <td colspan="<?php echo $has_tickets ? 6 : 5; ?>">
                         <?php
-                        $billing_day = date_i18n( 'jS' );
-                        $formatted  = number_format( $m_total, 2 );
+                        $billing_day  = date_i18n( 'jS' );
+                        $formatted    = number_format( $m_total, 2 );
+                        $profile_link = sprintf(
+                            '<a href="%s">%s</a>',
+                            esc_url( home_url( '/member-dashboard/?tab=billing' ) ),
+                            esc_html__( 'on your member profile', 'tta' )
+                        );
+                        $rules_link   = sprintf(
+                            '<a href="%s">%s</a>',
+                            esc_url( home_url( '/rules-policies' ) ),
+                            esc_html__( 'Rules & Policies page', 'tta' )
+                        );
                         printf(
-                            esc_html__( 'You will be billed $%1$s today to begin your membership, and a recurring $%2$s on the %3$s of every month.', 'tta' ),
+                            wp_kses_post( __( 'You will be billed $%1$s today to begin your membership, and a recurring $%2$s on the %3$s of every month. If you wish to cancel your membership, you can do so at any time %4$s. For questions about refunds, visit our %5$s.', 'tta' ) ),
                             esc_html( $formatted ),
                             esc_html( $formatted ),
-                            esc_html( $billing_day )
+                            esc_html( $billing_day ),
+                            $profile_link,
+                            $rules_link
                         );
                         ?>
                     </td>
@@ -4693,13 +4705,25 @@ function tta_render_checkout_summary( TTA_Cart $cart, $discount_codes = [] ) {
                 <tr class="tta-membership-billing-note">
                     <td colspan="<?php echo $has_tickets ? 5 : 4; ?>">
                         <?php
-                        $billing_day = date_i18n( 'jS' );
-                        $formatted  = number_format( $m_total, 2 );
+                        $billing_day  = date_i18n( 'jS' );
+                        $formatted    = number_format( $m_total, 2 );
+                        $profile_link = sprintf(
+                            '<a href="%s">%s</a>',
+                            esc_url( home_url( '/member-dashboard/?tab=billing' ) ),
+                            esc_html__( 'on your member profile', 'tta' )
+                        );
+                        $rules_link   = sprintf(
+                            '<a href="%s">%s</a>',
+                            esc_url( home_url( '/rules-policies' ) ),
+                            esc_html__( 'Rules & Policies page', 'tta' )
+                        );
                         printf(
-                            esc_html__( 'You will be billed $%1$s today to begin your membership, and a recurring $%2$s on the %3$s of every month.', 'tta' ),
+                            wp_kses_post( __( 'You will be billed $%1$s today to begin your membership, and a recurring $%2$s on the %3$s of every month. If you wish to cancel your membership, you can do so at any time %4$s. For questions about refunds, visit our %5$s.', 'tta' ) ),
                             esc_html( $formatted ),
                             esc_html( $formatted ),
-                            esc_html( $billing_day )
+                            esc_html( $billing_day ),
+                            $profile_link,
+                            $rules_link
                         );
                         ?>
                     </td>
