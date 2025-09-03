@@ -78,6 +78,10 @@ class TTA_Ajax_Checkout {
             wp_send_json_error( [ 'message' => $res->get_error_message() ] );
         }
 
+        if ( $membership_total > 0 && in_array( $membership_level, [ 'basic', 'premium' ], true ) ) {
+            TTA_Email_Handler::get_instance()->send_membership_purchase_email( get_current_user_id(), $membership_level );
+        }
+
         $user   = wp_get_current_user();
         $emails = array_merge( [ $user->user_email ], tta_collect_attendee_emails( $attendees ) );
         $emails = array_filter( array_map( 'sanitize_email', $emails ) );

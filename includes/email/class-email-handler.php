@@ -257,4 +257,60 @@ class TTA_Email_Handler {
             wp_mail( $to, $subject, $body, $headers );
         }
     }
+
+    /**
+     * Send a membership purchase confirmation email.
+     *
+     * @param int    $user_id WordPress user ID.
+     * @param string $level   Membership level slug.
+     */
+    public function send_membership_purchase_email( $user_id, $level ) {
+        $templates = tta_get_comm_templates();
+        if ( empty( $templates['membership_purchase'] ) ) {
+            return;
+        }
+        $tpl     = $templates['membership_purchase'];
+        $context = tta_get_user_context_by_id( intval( $user_id ) );
+        $context['membership_level'] = $level;
+
+        $tokens      = $this->build_tokens( [], $context, [] );
+        $subject_raw = tta_expand_anchor_tokens( $tpl['email_subject'], $tokens );
+        $subject     = tta_strip_bold( strtr( $subject_raw, $tokens ) );
+        $body_raw    = tta_expand_anchor_tokens( $tpl['email_body'], $tokens );
+        $body_txt    = tta_convert_bold( tta_convert_links( strtr( $body_raw, $tokens ) ) );
+        $body        = nl2br( $body_txt );
+        $to          = sanitize_email( $context['user_email'] );
+        $headers     = [ 'Content-Type: text/html; charset=UTF-8' ];
+        if ( $to ) {
+            wp_mail( $to, $subject, $body, $headers );
+        }
+    }
+
+    /**
+     * Send a membership cancellation confirmation email.
+     *
+     * @param int    $user_id WordPress user ID.
+     * @param string $level   Membership level slug that was cancelled.
+     */
+    public function send_membership_cancellation_email( $user_id, $level ) {
+        $templates = tta_get_comm_templates();
+        if ( empty( $templates['membership_cancellation'] ) ) {
+            return;
+        }
+        $tpl     = $templates['membership_cancellation'];
+        $context = tta_get_user_context_by_id( intval( $user_id ) );
+        $context['membership_level'] = $level;
+
+        $tokens      = $this->build_tokens( [], $context, [] );
+        $subject_raw = tta_expand_anchor_tokens( $tpl['email_subject'], $tokens );
+        $subject     = tta_strip_bold( strtr( $subject_raw, $tokens ) );
+        $body_raw    = tta_expand_anchor_tokens( $tpl['email_body'], $tokens );
+        $body_txt    = tta_convert_bold( tta_convert_links( strtr( $body_raw, $tokens ) ) );
+        $body        = nl2br( $body_txt );
+        $to          = sanitize_email( $context['user_email'] );
+        $headers     = [ 'Content-Type: text/html; charset=UTF-8' ];
+        if ( $to ) {
+            wp_mail( $to, $subject, $body, $headers );
+        }
+    }
 }

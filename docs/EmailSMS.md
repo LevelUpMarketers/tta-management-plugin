@@ -13,6 +13,8 @@ Templates are listed in a table similar to the Manage Events page. Click a row t
 | Key | Description |
 |-----|-------------|
 | `purchase` | Sent after a successful event purchase. Includes event details automatically. |
+| `membership_purchase` | Sent when a member purchases a membership. |
+| `membership_cancellation` | Sent when a member cancels their membership. |
 | `reminder_24hr` | Sent 24 hours before an event starts. |
 | `reminder_2hr` | Sent two hours before an event starts. |
 | `cancellation_requested` | Sent to a member when they cancel attendance for a free ticket. |
@@ -45,6 +47,9 @@ Default values are provided on initial install:
 - **24-Hour Reminder Email Body**: "Heads-up! Your event is just 1 day away! Below are the details."
 - **2-Hour Reminder Email Body**: "Your event is only 2 hours away! Below are the details."
 - **Cancellation Requested Email Body**: "We're sorry you can't make it! Your attendance has been cancelled. Be sure to check out our other upcoming events here. See you next time!"
+- **Membership Purchase Email Subject**: "Welcome to your membership!"
+- **Membership Purchase Email Body**: "Thanks for becoming a {membership_level} member. You now have access to member benefits. Manage your membership anytime from your dashboard."
+- **Membership Cancellation Email Body**: "Your {membership_level} membership is now cancelled. We're sorry to see you go and hope to see you again soon!"
 - **Admin Notifications**: internal alerts are sent when events sell out.
 - **Host and Volunteer Reminders**: internal messages mirror attendee reminders at 24 and 2 hours before the event.
 

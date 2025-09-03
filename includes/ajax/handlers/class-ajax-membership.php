@@ -76,6 +76,7 @@ class TTA_Ajax_Membership {
         tta_update_user_membership_level( $user_id, 'free', null, 'cancelled' );
         tta_update_user_subscription_status( $user_id, 'cancelled' );
         tta_log_membership_cancellation( $user_id, $level, 'member' );
+        TTA_Email_Handler::get_instance()->send_membership_cancellation_email( $user_id, $level );
         TTA_Cache::flush();
 
         wp_send_json_success( [ 'message' => __( 'Subscription cancelled.', 'tta' ), 'status' => 'cancelled' ] );
