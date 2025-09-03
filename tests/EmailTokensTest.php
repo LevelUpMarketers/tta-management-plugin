@@ -124,4 +124,28 @@ class EmailTokensTest extends TestCase {
         $this->assertSame('TBD', $tokens['{event_volunteer}']);
         $this->assertSame("Don't forget snacks", $tokens['{host_notes}']);
     }
+
+    public function test_build_tokens_include_membership_tokens() {
+        $handler = TTA_Email_Handler::get_instance();
+        $ref = new \ReflectionClass($handler);
+        $method = $ref->getMethod('build_tokens');
+        $method->setAccessible(true);
+
+        $event = [];
+        $member = [
+            'first_name' => 'Bob',
+            'last_name'  => 'Smith',
+            'user_email' => 'bob@example.com',
+            'member'     => [],
+            'membership_level' => 'basic',
+            'subscription_id'  => 'SUB123',
+        ];
+        $attendees = [];
+
+        $tokens = $method->invoke($handler, $event, $member, $attendees);
+
+        $this->assertSame('Standard', $tokens['{membership_level}']);
+        $this->assertSame('$10.00', $tokens['{membership_price}']);
+        $this->assertSame('SUB123', $tokens['{subscription_id}']);
+    }
 }

@@ -303,6 +303,8 @@ class TTA_Comms_Admin {
             echo '<button type="button" class="button tta-insert-token" data-token="{email}">{email}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{phone}">{phone}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{membership_level}">{membership_level}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{membership_price}">{membership_price}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{subscription_id}">{subscription_id}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{member_type}">{member_type}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_profile_url}">{dashboard_profile_url}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_upcoming_url}">{dashboard_upcoming_url}</button> ';

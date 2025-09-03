@@ -139,9 +139,29 @@ class TTA_Email_Handler {
             '{last_name}'            => $member['last_name'] ?? '',
             '{email}'                => $member['user_email'] ?? '',
             '{phone}'                => $member['member']['phone'] ?? '',
-            '{membership_level}'     => $member['membership_level'] ?? '',
+            '{membership_level}'     => '',
+            '{membership_price}'     => '',
+            '{subscription_id}'      => sanitize_text_field( $member['subscription_id'] ?? '' ),
             '{member_type}'          => $member['member']['member_type'] ?? '',
         ];
+
+        $level = strtolower( $member['membership_level'] ?? '' );
+        switch ( $level ) {
+            case 'basic':
+                $tokens['{membership_level}'] = __( 'Standard', 'tta' );
+                break;
+            case 'premium':
+                $tokens['{membership_level}'] = __( 'Premium', 'tta' );
+                break;
+            case 'reentry':
+                $tokens['{membership_level}'] = __( 'Re-Entry', 'tta' );
+                break;
+            default:
+                $tokens['{membership_level}'] = __( 'Free', 'tta' );
+        }
+
+        $price = tta_get_membership_price( $level );
+        $tokens['{membership_price}'] = '$' . number_format( (float) $price, 2 );
 
         $names = tta_get_event_host_volunteer_names( $event['id'] ?? 0 );
         $tokens['{event_host}']       = $names['hosts'] ? implode( ', ', $names['hosts'] ) : 'TBD';

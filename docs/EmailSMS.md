@@ -106,8 +106,12 @@ empty or omitted the full URL is printed.
 {email}
 {phone}
 {membership_level}
+{membership_price}
+{subscription_id}
 {member_type}
 ```
+
+`{membership_level}` will automatically capitalize the member's level (e.g., "Standard" or "Premium").
 
 ### Ban & Re-Entry
 
