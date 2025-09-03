@@ -3967,16 +3967,29 @@ function tta_get_transaction_event_attendees( $gateway_tx_id, $event_id ) {
  * Build a user context array for a specific user ID.
  *
  * @param int $user_id WordPress user ID.
- * @return array
+ * @return array {
+ *     wp_user_id:int,
+ *     user_email:string,
+ *     first_name:string,
+ *     last_name:string,
+ *     member:?array,
+ *     membership_level:string,
+ *     subscription_id:?string,
+ *     subscription_status:?string,
+ *     banned_until:?string,
+ * }
  */
 function tta_get_user_context_by_id( $user_id ) {
     $context = [
-        'wp_user_id'       => intval( $user_id ),
-        'user_email'       => '',
-        'first_name'       => '',
-        'last_name'        => '',
-        'member'           => null,
-        'membership_level' => 'free',
+        'wp_user_id'         => intval( $user_id ),
+        'user_email'         => '',
+        'first_name'         => '',
+        'last_name'          => '',
+        'member'             => null,
+        'membership_level'   => 'free',
+        'subscription_id'    => null,
+        'subscription_status'=> null,
+        'banned_until'       => null,
     ];
 
     $user = get_user_by( 'ID', $user_id );
@@ -3994,8 +4007,11 @@ function tta_get_user_context_by_id( $user_id ) {
     }, 300 );
 
     if ( is_array( $member ) ) {
-        $context['member']           = $member;
-        $context['membership_level'] = $member['membership_level'] ?? 'free';
+        $context['member']            = $member;
+        $context['membership_level']  = $member['membership_level'] ?? 'free';
+        $context['subscription_id']   = $member['subscription_id'] ?? null;
+        $context['subscription_status'] = $member['subscription_status'] ?? null;
+        $context['banned_until']      = $member['banned_until'] ?? null;
     }
 
     return $context;
