@@ -189,6 +189,13 @@ class TTA_Email_Handler {
         $tokens['{refund_event_date}'] = isset( $event['date'] ) ? tta_format_event_date( $event['date'] ) : '';
         $tokens['{refund_event_time}'] = isset( $event['time'] ) ? tta_format_event_time( $event['time'] ) : '';
 
+        $now  = new \DateTime( 'now', new \DateTimeZone( 'America/New_York' ) );
+        $tokens['{current_time}']         = $now->format( 'g:i A' );
+        $tokens['{current_date}']         = $now->format( 'n/j/Y' );
+        $tokens['{current_weekday}']      = $now->format( 'l' );
+        $tokens['{current_month}']        = $now->format( 'F' );
+        $tokens['{current_day_of_month}'] = $now->format( 'jS' );
+
         return $tokens;
     }
 

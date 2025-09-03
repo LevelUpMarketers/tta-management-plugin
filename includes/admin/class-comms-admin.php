@@ -311,6 +311,12 @@ class TTA_Comms_Admin {
             echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_waitlist_url}">{dashboard_waitlist_url}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_past_url}">{dashboard_past_url}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_billing_url}">{dashboard_billing_url}</button></div>';
+            echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Current date and time.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?"></span><strong>' . esc_html__( 'Date & Time', 'tta' ) . '</strong><br>';
+            echo '<button type="button" class="button tta-insert-token" data-token="{current_time}">{current_time}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{current_date}">{current_date}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{current_weekday}">{current_weekday}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{current_month}">{current_month}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{current_day_of_month}">{current_day_of_month}</button></div>';
             echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Re-entry links for banned members.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?"></span><strong>' . esc_html__( 'Ban & Re-Entry', 'tta' ) . '</strong><br>';
             echo '<button type="button" class="button tta-insert-token" data-token="{reentry_link}">{reentry_link}</button></div>';
 

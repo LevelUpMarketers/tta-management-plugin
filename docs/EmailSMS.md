@@ -113,6 +113,18 @@ empty or omitted the full URL is printed.
 
 `{membership_level}` will automatically capitalize the member's level (e.g., "Standard" or "Premium").
 
+### Date & Time
+
+```
+{current_time}
+{current_date}
+{current_weekday}
+{current_month}
+{current_day_of_month}
+```
+
+All values reflect Eastern Time when the message is sent. `{current_time}` outputs a human-readable time like `1:32 PM` and `{current_date}` formats as `9/3/2025`.
+
 ### Ban & Re-Entry
 
 ```
