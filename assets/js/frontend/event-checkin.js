@@ -1,4 +1,13 @@
 jQuery(function($){
+  var params = new URLSearchParams(window.location.search);
+  var open = params.get('event');
+  if(open){
+    var $row = $('.tta-event-row[data-event-ute-id="'+open+'"]');
+    if($row.length){
+      $row.trigger('click');
+      $('html,body').animate({scrollTop:$row.offset().top-20},400);
+    }
+  }
   // Toggle event rows
   $(document).on('click', '.tta-event-row', function(e){
     if ($(e.target).is('button, a')) return;
@@ -60,17 +69,32 @@ jQuery(function($){
   $(document).on('click', '.tta-mark-attendance', function(e){
     e.preventDefault();
     var $btn = $(this), id = $btn.data('attendee-id'), status = $btn.data('status');
+    var $wrap = $btn.closest('.tta-inline-wrapper, .tta-inline-container');
+    var ute = $wrap.find('.tta-mark-all-no-show').data('event-ute-id');
     if(status === 'no_show'){
       var msg = 'Are you sure you want to mark this person as a no-show? If this is their third no-show, this member will be automatically banned until they purchase a Re-entry Ticket. They will be emailed with further instructions if you proceed.';
       if(!window.confirm(msg)) return;
     }
     $.post(TTA_Checkin.ajax_url, { action:'tta_set_attendance', nonce:TTA_Checkin.set_nonce, attendee_id:id, status:status }, function(res){
       if(!res.success) return;
+      if(res.data && res.data.reload){
+        var url = new URL(window.location.href);
+        if(ute){ url.searchParams.set('event', ute); }
+        window.location.href = url.toString();
+        return;
+      }
       var label = $btn.closest('tr').find('.status-label');
       var text  = status.replace('_',' ');
       text = text.replace(/\b\w/g, function(c){ return c.toUpperCase(); });
       label.text(text);
       $btn.closest('td').find('.tta-mark-attendance').prop('disabled', true).addClass('disabled');
+      if(res.data){
+        var $col = $btn.closest('tr').find('td').eq(2);
+        var atLab = TTA_Checkin.attendance_label;
+        var evLab = TTA_Checkin.attended_label;
+        var nsLab = TTA_Checkin.noshow_label;
+        $col.html('<span class="tta-info-title">'+atLab+'</span>'+res.data.attended+' '+evLab+', '+res.data.no_show+' '+nsLab);
+      }
     }, 'json');
   });
 

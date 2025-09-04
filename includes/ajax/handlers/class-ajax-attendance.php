@@ -38,8 +38,28 @@ class TTA_Ajax_Attendance {
         if ( ! $att_id ) {
             wp_send_json_error( [ 'message' => 'missing attendee' ] );
         }
+
+        global $wpdb;
+        $att_table = $wpdb->prefix . 'tta_attendees';
+        $row = $wpdb->get_row( $wpdb->prepare( "SELECT email, status FROM {$att_table} WHERE id = %d", $att_id ), ARRAY_A );
+        if ( ! $row ) {
+            wp_send_json_error( [ 'message' => 'not found' ] );
+        }
+        $current = sanitize_text_field( $row['status'] );
+        if ( 'pending' !== $current ) {
+            wp_send_json_success( [ 'reload' => true ] );
+        }
+
         tta_set_attendance_status( $att_id, $status );
-        wp_send_json_success();
+
+        $email     = strtolower( sanitize_email( $row['email'] ) );
+        $attended  = tta_get_attended_event_count_by_email( $email );
+        $no_show   = tta_get_no_show_event_count_by_email( $email );
+
+        wp_send_json_success( [
+            'attended' => $attended,
+            'no_show'  => $no_show,
+        ] );
     }
 
     public static function mark_pending_no_show() {

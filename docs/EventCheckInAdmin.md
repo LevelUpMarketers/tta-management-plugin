@@ -27,8 +27,10 @@ appears inside the toggle cell itself and shows labels such as **Name**,
 screens because the table headers remain visible.
 
 Attendees are ordered with all pending members first, followed by checked-in
-and then no-shows. Each group remains alphabetized by first name, and expanding
-a row on desktop slides the attendee list into view for a smoother experience.
+and then no-shows. Pending attendees who request assistance are listed before
+other pending members, and each group remains alphabetized by first name.
+Expanding a row on desktop slides the attendee list into view for a smoother
+experience.
 
 ### Table details
 
@@ -40,13 +42,13 @@ a row on desktop slides the attendee list into view for a smoother experience.
   pending attendee at once after a confirmation prompt. This triggers the usual
   banning and notification process for members who reach three no-shows.
 - Any assistance notes also appear in a list above the attendee table along
-  with the member's name, phone, and email so hosts can't miss them. Rows with
-  assistance notes are highlighted in bold red text with a slightly larger font
-  to draw attention.
+  with the member's name, phone, and email. The list text is bold red and rows
+  with assistance notes are highlighted in the table to draw attention.
 - A new **# of Expected Attendees** column shows how many approved attendees are expected for each event.
 - If the event has host notes, they appear beneath the address so volunteers can see any special instructions.
 - The **Date & Time** column uses the same human-friendly format as the event header.
-- Clicking the **Check In** or **No-Show** buttons now updates the status label with proper capitalization.
+- Clicking the **Check In** or **No-Show** buttons now updates the status label with proper capitalization and adjusts the
+  attendee's event history totals. If another host updates the record first, the page reloads and automatically opens that event so everyone sees the latest information.
 - Selecting **No-Show** prompts a confirmation explaining that a third no-show automatically bans the member until they purchase a Re-entry Ticket and sends them an email with reinstatement instructions.
 - Once an attendee is marked as a no-show or checked in, both action buttons are disabled—and remain disabled on reload—to prevent duplicate submissions.
 - The ban and notification email trigger the moment a member's total no-shows reach three (counting the event just marked) and won't resend on additional no-shows.

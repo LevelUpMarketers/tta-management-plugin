@@ -505,6 +505,26 @@ class HelpersTest extends TestCase {
         $this->assertSame(['Amy','Ann','Ben','Charlie'], $names);
     }
 
+    public function test_pending_with_assistance_note_first() {
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public function get_results($q,$o=ARRAY_A){
+                return [
+                    ['id'=>1,'ticket_id'=>1,'first_name'=>'Ben','last_name'=>'B','email'=>'b','phone'=>'p','assistance_note'=>'-','status'=>'pending'],
+                    ['id'=>2,'ticket_id'=>1,'first_name'=>'Amy','last_name'=>'A','email'=>'a','phone'=>'p','assistance_note'=>'help','status'=>'pending'],
+                    ['id'=>3,'ticket_id'=>1,'first_name'=>'Carl','last_name'=>'C','email'=>'c','phone'=>'p','assistance_note'=>'','status'=>'checked_in'],
+                ];
+            }
+            public function get_var($q){ return 0; }
+            public function prepare($q,...$a){ return $q; }
+        };
+        require_once __DIR__ . '/../includes/helpers.php';
+        $rows  = tta_get_event_attendees_with_status('ev1');
+        $names = array_column($rows, 'first_name');
+        $this->assertSame(['Amy','Ben','Carl'], $names);
+    }
+
     public function test_get_remaining_ticket_count_queries_table() {
         global $wpdb;
         $wpdb = new class {

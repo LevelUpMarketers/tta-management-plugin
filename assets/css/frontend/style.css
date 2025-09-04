@@ -134,8 +134,25 @@
   margin-left:10px;
 }
 
+.tta-admin-progress-spinner-svg{
+  display:none;
+  opacity:0;
+  width:25px;
+  height:25px;
+  vertical-align:middle;
+  transition:opacity .2s ease;
+  animation:tta-spinner-rotate 1s linear infinite;
+}
+
+@keyframes tta-spinner-rotate{
+  from{transform:rotate(0deg);}to{transform:rotate(360deg);}
+}
+
 .tta-assistance-list{
   margin:10px 0;
+  color:#c00;
+  font-weight:700;
+  font-size:1.1em;
 }
 .tta-assistance-list ul{
   margin:0;
