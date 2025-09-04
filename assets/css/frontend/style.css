@@ -119,6 +119,35 @@
   cursor: not-allowed;
 }
 
+.tta-no-show-actions{
+  margin:10px 0;
+}
+.tta-no-show-actions .button{
+  display:block;
+  margin-bottom:10px;
+  width:100%;
+  max-width:300px;
+}
+.tta-no-show-actions .tta-progress-spinner,
+.tta-no-show-actions .tta-admin-progress-response-p{
+  display:inline-block;
+  margin-left:10px;
+}
+
+.tta-assistance-list{
+  margin:10px 0;
+}
+.tta-assistance-list ul{
+  margin:0;
+  padding-left:20px;
+}
+
+.tta-assistance-row{
+  color:#c00;
+  font-weight:700;
+  font-size:1.1em;
+}
+
 .tta-info-title{
   display:none;
   font-weight:600;

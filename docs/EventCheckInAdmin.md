@@ -26,8 +26,9 @@ appears inside the toggle cell itself and shows labels such as **Name**,
 **Email**, and **Status** before each value. These labels are hidden on wider
 screens because the table headers remain visible.
 
-Attendees are ordered alphabetically by first name, and expanding a row on
-desktop slides the attendee list into view for a smoother experience.
+Attendees are ordered with all pending members first, followed by checked-in
+and then no-shows. Each group remains alphabetized by first name, and expanding
+a row on desktop slides the attendee list into view for a smoother experience.
 
 ### Table details
 
@@ -35,6 +36,13 @@ desktop slides the attendee list into view for a smoother experience.
   hosts don't accidentally mark them as no-shows.
 - Two columns display each attendee's event history and any **Needs Assistance** note. The history column shows `X Events Attended, Y No-Shows`; when no assistance note exists a simple `-` is shown.
 - Members submit these assistance notes from the Upcoming Events tab on their dashboard. The note is stored only for the member's own attendee record and emailed to all event hosts automatically.
+- A **Mark all Pending as No-Shows** button lets hosts convert every remaining
+  pending attendee at once after a confirmation prompt. This triggers the usual
+  banning and notification process for members who reach three no-shows.
+- Any assistance notes also appear in a list above the attendee table along
+  with the member's name, phone, and email so hosts can't miss them. Rows with
+  assistance notes are highlighted in bold red text with a slightly larger font
+  to draw attention.
 - A new **# of Expected Attendees** column shows how many approved attendees are expected for each event.
 - If the event has host notes, they appear beneath the address so volunteers can see any special instructions.
 - The **Date & Time** column uses the same human-friendly format as the event header.

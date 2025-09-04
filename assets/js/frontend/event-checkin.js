@@ -73,4 +73,32 @@ jQuery(function($){
       $btn.closest('td').find('.tta-mark-attendance').prop('disabled', true).addClass('disabled');
     }, 'json');
   });
+
+  // Mark all pending attendees as no-shows
+  $(document).on('click', '.tta-mark-all-no-show', function(e){
+    e.preventDefault();
+    var $btn  = $(this),
+        ute   = $btn.data('event-ute-id'),
+        $wrap = $btn.closest('.tta-no-show-actions'),
+        $spin = $wrap.find('.tta-admin-progress-spinner-svg'),
+        $resp = $wrap.find('.tta-admin-progress-response-p');
+    var msg = 'Are you SURE you want to mark everyone that has a current status of "Pending" as a "No-Show"? This cannot be undone. If doing this gives a member their third No-Show, that member will be automatically banned until they purchase a Re-entry Ticket. Those members will be emailed with further instructions if you proceed.';
+    if(!window.confirm(msg)) return;
+    $resp.text('');
+    $spin.css({display:'inline-block',opacity:0}).fadeTo(200,1);
+    $.post(TTA_Checkin.ajax_url, { action:'tta_mark_pending_no_show', nonce:TTA_Checkin.set_nonce, event_ute_id: ute }, function(res){
+      $spin.fadeOut(200);
+      if(!res.success){
+        $resp.text(res.data && res.data.message ? res.data.message : 'Error');
+        return;
+      }
+      $resp.text('Updated.');
+      $.post(TTA_Checkin.ajax_url, { action:'tta_get_event_attendance', nonce:TTA_Checkin.get_nonce, event_ute_id: ute }, function(r){
+        if(!r.success) return;
+        var $target = $btn.closest('.tta-inline-wrapper');
+        if(!$target.length){ $target = $btn.closest('.tta-inline-container'); }
+        $target.html(r.data.html);
+      }, 'json');
+    }, 'json');
+  });
 });

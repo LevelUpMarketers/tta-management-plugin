@@ -727,6 +727,19 @@ function tta_get_event_attendees_with_status( $event_ute_id ) {
         $out[] = $r;
     }
 
+    usort(
+        $out,
+        function ( $a, $b ) {
+            $order = [ 'pending' => 0, 'checked_in' => 1, 'no_show' => 2 ];
+            $sa    = $order[ $a['status'] ] ?? 99;
+            $sb    = $order[ $b['status'] ] ?? 99;
+            if ( $sa === $sb ) {
+                return strcasecmp( $a['first_name'], $b['first_name'] );
+            }
+            return $sa - $sb;
+        }
+    );
+
     return $out;
 }
 
