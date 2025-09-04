@@ -135,6 +135,7 @@
       <strong id="tta-membership-level"><?php echo esc_html( tta_get_membership_label( $level ) ); ?></strong>
       – $<?php echo number_format( $price, 2 ); ?> <?php esc_html_e( 'Per Month', 'tta' ); ?>
     </p>
+    <p><?php esc_html_e( 'Membership ID:', 'tta' ); ?> <span id="tta-membership-id"><?php echo esc_html( $sub_id ); ?></span></p>
     <?php $display_status = 'paymentproblem' === $status ? __( 'Payment problem', 'tta' ) : ucfirst( $status ); ?>
     <p><?php esc_html_e( 'Status:', 'tta' ); ?> <span id="tta-membership-status"><?php echo esc_html( $display_status ); ?></span></p>
     <?php if ( $last4 ) : ?>
