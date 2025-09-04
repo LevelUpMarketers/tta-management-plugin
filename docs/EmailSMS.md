@@ -4,7 +4,7 @@ The plugin sends automated notifications to members. Administrators can manage t
 
 1. **Email Templates** – existing template editor described below.
 2. **Mass Communications** – send a one-off email to all verified attendees of a selected event.
-3. **Email Logs** – lists scheduled reminder and thank‑you emails grouped by event. Reminder jobs are automatically queued whenever an event is created or its start time changes and are scheduled using the site's timezone setting. Each entry shows the send time in `MM-DD-YYYY HH:MMAM/PM` format along with a live `HH H, MM M, SS S` countdown using the site's timezone, exposes its current recipient list via AJAX, and can be deleted before it runs.
+3. **Email Logs** – lists scheduled reminder and thank‑you emails grouped by event. Reminder jobs are automatically queued whenever an event is created or its start time changes and are scheduled using the site's timezone setting. Post-event thank‑you emails are also scheduled when the event is created and run 18 hours after the event ends for attendees who checked in. Each entry shows the send time in `MM-DD-YYYY HH:MMAM/PM` format along with a live `HH H, MM M, SS S` countdown using the site's timezone, exposes its current recipient list via AJAX, and can be deleted before it runs.
 4. **Email History** – a running log of all attempted emails including recipient address and delivery result. A **Clear Log** button removes all entries.
 
 Templates are listed in a table similar to the Manage Events page. Click a row to expand an inline form containing the fields for that communication. Each form has its own **Save Changes** button and progress spinner.
@@ -33,7 +33,7 @@ Select an event from the dropdown to automatically load the email addresses of a
 | `volunteer_reminder_24hr` | Reminder to volunteers 24 hours before their event. |
 | `volunteer_reminder_2hr` | Reminder to volunteers two hours before their event. |
 | `assistance_request` | Sent to event hosts when a member asks for help finding the group. |
-| `post_event_review` | Sent 24 hours after an event is archived to attendees marked as checked in. |
+| `post_event_review` | Sent 18 hours after an event ends to attendees marked as checked in. |
 
 Each template stores:
 

@@ -132,6 +132,8 @@ class EmailReminderScheduleTest extends TestCase {
         TTA_Email_Reminders::schedule_post_event_thanks( 1 );
         $this->assertCount( 1, $GLOBALS['scheduled'] );
         $this->assertSame( 'tta_post_event_thanks_email', $GLOBALS['scheduled'][0][1] );
+        $expected = ( new DateTime( '2030-08-16 14:00', wp_timezone() ) )->setTimezone( new DateTimeZone( 'UTC' ) )->getTimestamp();
+        $this->assertSame( $expected, $GLOBALS['scheduled'][0][0] );
     }
 
     public function test_clear_event_emails_removes_events() {
