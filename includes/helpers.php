@@ -146,6 +146,62 @@ function tta_collect_attendee_emails( array $attendees ) {
 }
 
 /**
+ * Normalize a description string for Authorize.Net.
+ *
+ * Removes non-ASCII characters and trims to the gateway's
+ * 255 character limit.
+ *
+ * @param string $desc Raw description.
+ * @return string      Sanitized description.
+ */
+function tta_normalize_authnet_description( $desc ) {
+    $desc = tta_sanitize_text_field( $desc );
+    $desc = preg_replace( '/[^\x20-\x7E]/', '', $desc );
+    if ( strlen( $desc ) > 255 ) {
+        $desc = substr( $desc, 0, 252 ) . '...';
+    }
+    return $desc;
+}
+
+/**
+ * Build an Authorize.Net order description from the cart and membership.
+ *
+ * Gathers unique event names and any membership purchase, then
+ * returns a safe, truncated string for use in the payment request.
+ *
+ * @return string Description text.
+ */
+function tta_build_order_description() {
+    $parts = [];
+
+    // Include event names from the cart.
+    $cart = new TTA_Cart();
+    foreach ( $cart->get_items() as $item ) {
+        $name = tta_sanitize_text_field( $item['event_name'] ?? '' );
+        if ( $name && ! in_array( $name, $parts, true ) ) {
+            $parts[] = $name;
+        }
+    }
+
+    // Include membership purchase if present.
+    $level = $_SESSION['tta_membership_purchase'] ?? '';
+    if ( 'basic' === $level ) {
+        $parts[] = 'Trying to Adult Standard Membership';
+    } elseif ( 'premium' === $level ) {
+        $parts[] = 'Trying to Adult Premium Membership';
+    } elseif ( 'reentry' === $level ) {
+        $parts[] = 'Trying to Adult Re-Entry Ticket';
+    }
+
+    if ( empty( $parts ) ) {
+        $parts[] = 'Trying to Adult RVA Order';
+    }
+
+    $desc = implode( '; ', $parts );
+    return tta_normalize_authnet_description( $desc );
+}
+
+/**
  * Get a member's current membership level by email.
  *
  * @param string $email Email address.

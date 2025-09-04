@@ -230,12 +230,12 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
     }
 
     // Order
-    $invoice = preg_replace('/[^A-Za-z0-9\-_.]/', '', (string)($billing['invoice'] ?? ('TAR-'.time())) );
-    $invoice = substr($invoice, 0, 20);
-    $desc    = isset($billing['description']) ? $billing['description'] : 'Trying to Adult RVA – Order';
+    $invoice = preg_replace( '/[^A-Za-z0-9\-_.]/', '', (string) ( $billing['invoice'] ?? ( 'TAR-' . time() ) ) );
+    $invoice = substr( $invoice, 0, 20 );
+    $desc    = tta_normalize_authnet_description( $billing['description'] ?? 'Trying to Adult RVA Order' );
     $order   = new AnetAPI\OrderType();
-    $order->setInvoiceNumber($invoice);
-    $order->setDescription($desc);
+    $order->setInvoiceNumber( $invoice );
+    $order->setDescription( $desc );
 
     // Bill-to
     $address = new AnetAPI\CustomerAddressType();
@@ -672,7 +672,8 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $subscription = new AnetAPI\ARBSubscriptionType();
         $subscription->setName( $name );
         if ( $description ) {
-            $order = new AnetAPI\OrderType();
+            $description = tta_normalize_authnet_description( $description );
+            $order       = new AnetAPI\OrderType();
             $order->setDescription( $description );
             $subscription->setOrder( $order );
         }
@@ -950,7 +951,8 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             $subscription->setName( $name );
         }
         if ( $description ) {
-            $order = new AnetAPI\OrderType();
+            $description = tta_normalize_authnet_description( $description );
+            $order       = new AnetAPI\OrderType();
             $order->setDescription( $description );
             $subscription->setOrder( $order );
         }
@@ -1276,7 +1278,7 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
         $order = new AnetAPI\OrderType();
         if ( $description ) {
-            $order->setDescription( $description );
+            $order->setDescription( tta_normalize_authnet_description( $description ) );
         }
 
         $profile = new AnetAPI\CustomerProfileIdType();
