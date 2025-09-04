@@ -1266,7 +1266,7 @@ echo '<div id="tta-login-wrap">' . $form_html . $lost_pw_html . '</div>';
                   <h2 class="tta-eventpage-sidebar-heading"><?php esc_html_e( 'Refund Policy', 'tta' ); ?></h2>
                   <p>All event registrations and membership purchases for Trying to Adult RVA are managed directly through our website.</p>
                   <h3>Event Registrations</h3>
-                  <p>If you are unable to attend, you may request a refund through your member profile. Refunds are automatically processed once another participant claims your spot. If no one claims your spot, you will not be issued a refund.</p>
+                  <p>If you are unable to attend, you may cancel your attendance or request a refund on the &quot;Your Upcoming Events&quot; tab of your <a href="<?php echo esc_url( site_url( '/member-dashboard/' ) ); ?>">Member Dashboard</a>. Refunds are automatically processed once another participant claims your spot. If no one claims your spot, you will not be issued a refund.</p>
                   <h3>Memberships</h3>
                   <p>Memberships can be modified or cancelled at any time on the "Billing &amp; Membership Info" tab of your <a href="<?php echo esc_url( site_url( '/member-dashboard/' ) ); ?>">Member Dashboard</a>. Please note that there are no refunds for months that have already been paid.</p>
                   <p>All returns, refunds, and cancellations must be handled through the Trying to Adult RVA website. Transactions outside of our website (e.g., third-party apps or direct payments) are not accepted.</p>

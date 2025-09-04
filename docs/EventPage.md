@@ -69,7 +69,7 @@ Logged-in members instead see links to profile info, upcoming events, past event
 
 ## Refund Policy Section
 
-The sidebar now includes a **Refund Policy** accordion detailing how event registrations and memberships are handled. It explains the refund process for event registrations, outlines membership cancellation rules, and links to both the Member Dashboard and the site's Rules & Policies page for more information.
+The sidebar now includes a **Refund Policy** accordion detailing how event registrations and memberships are handled. For event registrations, attendees can cancel their attendance or request refunds from the "Your Upcoming Events" tab of the Member Dashboard. The section also outlines membership cancellation rules and links to both the Member Dashboard and the site's Rules & Policies page for more information.
 
 ## Image Gallery
 
