@@ -1718,6 +1718,25 @@ function tta_unban_user( $wp_user_id ) {
     tta_clear_reinstatement_cron( $wp_user_id );
 }
 
+/**
+ * Record the current no-show count so future bans require five new events.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ */
+function tta_reset_no_show_offset( $wp_user_id ) {
+    $wp_user_id = intval( $wp_user_id );
+    $user       = get_userdata( $wp_user_id );
+    if ( ! $user || ! $user->user_email ) {
+        return;
+    }
+    $email = strtolower( sanitize_email( $user->user_email ) );
+    $total = tta_get_no_show_event_count_by_email( $email, false );
+    global $wpdb;
+    $table = $wpdb->prefix . 'tta_members';
+    $wpdb->update( $table, [ 'no_show_offset' => $total ], [ 'wpuserid' => $wp_user_id ], [ '%d' ], [ '%d' ] );
+    TTA_Cache::delete( 'no_show_count_' . md5( $email ) );
+}
+
 add_action( 'tta_reinstate_member', 'tta_unban_user', 10, 1 );
 
 /**
@@ -3792,7 +3811,7 @@ function tta_get_attended_event_count_by_email( $email ) {
  * @param string $email Attendee email address.
  * @return int Number of no-shows.
  */
-function tta_get_no_show_event_count_by_email( $email ) {
+function tta_get_no_show_event_count_by_email( $email, $adjust = true ) {
     $email = strtolower( sanitize_email( $email ) );
     if ( '' === $email ) {
         return 0;
@@ -3800,7 +3819,7 @@ function tta_get_no_show_event_count_by_email( $email ) {
 
     $cache_key = 'no_show_count_' . md5( $email );
     $cached    = TTA_Cache::get( $cache_key );
-    if ( false !== $cached ) {
+    if ( $adjust && false !== $cached ) {
         return intval( $cached );
     }
 
@@ -3818,7 +3837,15 @@ function tta_get_no_show_event_count_by_email( $email ) {
         $email
     ) );
 
-    TTA_Cache::set( $cache_key, $count, 300 );
+    if ( $adjust ) {
+        $offset = (int) $wpdb->get_var( $wpdb->prepare(
+            "SELECT no_show_offset FROM {$wpdb->prefix}tta_members WHERE LOWER(email) = %s",
+            $email
+        ) );
+        $count = max( 0, $count - $offset );
+        TTA_Cache::set( $cache_key, $count, 300 );
+    }
+
     return $count;
 }
 

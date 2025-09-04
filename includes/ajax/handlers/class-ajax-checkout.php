@@ -49,6 +49,7 @@ class TTA_Ajax_Checkout {
             if ( 'reentry' === $membership_level ) {
                 tta_clear_reinstatement_cron( get_current_user_id() );
                 tta_unban_user( get_current_user_id() );
+                tta_reset_no_show_offset( get_current_user_id() );
                 tta_send_banned_reinstatement_email( get_current_user_id() );
                 unset( $_SESSION['tta_membership_purchase'] );
             } else {

@@ -13,4 +13,4 @@ Members automatically appear here when their total no-shows reach five or more, 
 That email includes a direct link to checkout that adds the Re-entry Ticket to their cart when they're already logged in.
 
 When a timed ban is set, a cron job schedules automatic reinstatement. Updating a member's ban clears any existing cron job and queues a new one matching the latest ban length.
-Purchasing a Re-Entry Ticket immediately lifts the ban and removes any queued reinstatement job.
+Purchasing a Re-Entry Ticket immediately lifts the ban, resets the member's no-show baseline so five new no-shows can trigger another ban, and removes any queued reinstatement job.
