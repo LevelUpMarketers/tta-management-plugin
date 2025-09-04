@@ -115,6 +115,7 @@ class TTA_Ajax_Membership {
 
         tta_update_user_membership_level( $user_id, $level );
         TTA_Cache::flush();
+        TTA_Email_Handler::get_instance()->send_membership_change_email( $user_id, $level );
 
         wp_send_json_success( [
             'message' => __( 'Membership updated.', 'tta' ),

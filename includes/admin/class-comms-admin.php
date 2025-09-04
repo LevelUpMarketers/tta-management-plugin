@@ -46,6 +46,15 @@ class TTA_Comms_Admin {
                 'email_body'  => __( 'Your {membership_level} membership is now cancelled. We\'re sorry to see you go and hope to see you again soon!', 'tta' ),
                 'sms_text'    => '',
             ],
+            'membership_change' => [
+                'label'       => __( 'Membership Plan Updated', 'tta' ),
+                'type'        => 'External',
+                'category'    => 'Membership',
+                'description' => __( 'Sent when a member changes membership levels.', 'tta' ),
+                'email_subject' => __( 'Your membership has been updated', 'tta' ),
+                'email_body'  => __( 'Your membership is now {membership_level} at {membership_price} per month.', 'tta' ),
+                'sms_text'    => '',
+            ],
             'reminder_24hr' => [
                 'label'       => __('24-Hour Event Reminder', 'tta'),
                 'type'        => 'External',

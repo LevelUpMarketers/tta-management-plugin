@@ -340,4 +340,32 @@ class TTA_Email_Handler {
             wp_mail( $to, $subject, $body, $headers );
         }
     }
+
+    /**
+     * Send a membership change confirmation email.
+     *
+     * @param int    $user_id WordPress user ID.
+     * @param string $level   New membership level slug.
+     */
+    public function send_membership_change_email( $user_id, $level ) {
+        $templates = tta_get_comm_templates();
+        if ( empty( $templates['membership_change'] ) ) {
+            return;
+        }
+        $tpl     = $templates['membership_change'];
+        $context = tta_get_user_context_by_id( intval( $user_id ) );
+        $context['membership_level'] = $level;
+
+        $tokens      = $this->build_tokens( [], $context, [] );
+        $subject_raw = tta_expand_anchor_tokens( $tpl['email_subject'], $tokens );
+        $subject     = tta_strip_bold( strtr( $subject_raw, $tokens ) );
+        $body_raw    = tta_expand_anchor_tokens( $tpl['email_body'], $tokens );
+        $body_txt    = tta_convert_bold( tta_convert_links( strtr( $body_raw, $tokens ) ) );
+        $body        = nl2br( $body_txt );
+        $to          = sanitize_email( $context['user_email'] );
+        $headers     = [ 'Content-Type: text/html; charset=UTF-8' ];
+        if ( $to ) {
+            wp_mail( $to, $subject, $body, $headers );
+        }
+    }
 }
