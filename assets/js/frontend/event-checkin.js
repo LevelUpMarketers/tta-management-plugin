@@ -1,13 +1,4 @@
 jQuery(function($){
-  var params = new URLSearchParams(window.location.search);
-  var open = params.get('event');
-  if(open){
-    var $row = $('.tta-event-row[data-event-ute-id="'+open+'"]');
-    if($row.length){
-      $row.trigger('click');
-      $('html,body').animate({scrollTop:$row.offset().top-20},400);
-    }
-  }
   // Toggle event rows
   $(document).on('click', '.tta-event-row', function(e){
     if ($(e.target).is('button, a')) return;
@@ -124,5 +115,18 @@ jQuery(function($){
         $target.html(r.data.html);
       }, 'json');
     }, 'json');
+  });
+
+  $(window).on('load', function(){
+    var params = new URLSearchParams(window.location.search);
+    var open   = params.get('event');
+    if(open){
+      var $row = $('.tta-event-row[data-event-ute-id="'+open+'"]');
+      if($row.length){
+        $('html,body').animate({scrollTop:$row.offset().top-20},400,function(){
+          $row.trigger('click');
+        });
+      }
+    }
   });
 });
