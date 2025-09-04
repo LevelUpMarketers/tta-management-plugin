@@ -1211,6 +1211,7 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
 
   // Save a single communication template via AJAX
   $(document).on('submit', '.tta-comms-form', function(e){
+    if ($(this).is('#tta-mass-email-form')) { return; }
     e.preventDefault();
 
     var $form = $(this),
@@ -1523,6 +1524,42 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
 
   $('.tta-comms-form').each(function(){
     renderPreview($(this));
+  });
+
+  // Mass Communications
+  $(document).on('change', '#tta-mass-event', function(){
+    var ute = $(this).val();
+    var nonce = $('#tta_mass_email_nonce').val();
+    var $area = $('#tta-mass-emails').val('');
+    if(!ute){ return; }
+    $.post(TTA_Ajax.ajax_url, { action:'tta_mass_emails', event: ute, nonce: nonce }, function(res){
+      if(res.success){ $('#tta-mass-emails').val(res.data.emails.join('\n')); }
+    }, 'json');
+  });
+
+  $('#tta-mass-send').on('click', function(){
+    var $form = $('#tta-mass-email-form');
+    var data = {
+      action: 'tta_mass_send',
+      nonce: $('#tta_mass_email_nonce').val(),
+      event: $('#tta-mass-event').val(),
+      emails: $('#tta-mass-emails').val(),
+      email_subject: $form.find('input[name=email_subject]').val(),
+      email_body: $form.find('textarea[name=email_body]').val()
+    };
+    var $spin = $form.find('.tta-admin-progress-spinner-svg').css({display:'inline-block',opacity:0}).fadeTo(200,1);
+    var $resp = $form.find('.tta-admin-progress-response-p').removeClass('updated error').text('');
+    $.post(TTA_Ajax.ajax_url, data, function(res){
+      $spin.fadeTo(200,0,function(){ $(this).hide(); });
+      if(res.success){
+        $resp.addClass('updated').text(res.data.message);
+      } else {
+        $resp.addClass('error').text(res.data.message || 'Error');
+      }
+    }, 'json').fail(function(){
+      $spin.fadeTo(200,0,function(){ $(this).hide(); });
+      $resp.addClass('error').text('Request failed.');
+    });
   });
 
   // Auto-fill venue details when selecting a saved venue

@@ -368,4 +368,39 @@ class TTA_Email_Handler {
             wp_mail( $to, $subject, $body, $headers );
         }
     }
+
+    public function send_mass_email( $event_ute_id, array $emails, $subject_raw, $body_raw ) {
+        $event = tta_get_event_for_email( $event_ute_id );
+        if ( empty( $event ) ) {
+            return 0;
+        }
+        $attendees = tta_get_event_attendees( $event_ute_id );
+        $by_email  = [];
+        foreach ( (array) $attendees as $att ) {
+            $e = sanitize_email( $att['email'] ?? '' );
+            if ( $e ) {
+                $by_email[ strtolower( $e ) ] = $att;
+            }
+        }
+        $count   = 0;
+        $headers = [ 'Content-Type: text/html; charset=UTF-8' ];
+        foreach ( $emails as $addr ) {
+            $email = sanitize_email( $addr );
+            if ( ! $email ) {
+                continue;
+            }
+            $att  = $by_email[ strtolower( $email ) ] ?? [ 'first_name' => '', 'last_name' => '', 'email' => $email ];
+            $row  = tta_get_member_row_by_email( $email );
+            $ctx  = $row ? tta_get_user_context_by_id( intval( $row['wpuserid'] ) ) : [ 'wp_user_id' => 0, 'user_email' => $email, 'first_name' => $att['first_name'], 'last_name' => $att['last_name'], 'member' => [ 'phone' => '', 'member_type' => '' ], 'membership_level' => tta_get_membership_level_by_email( $email ), 'subscription_id' => null, 'subscription_status' => null, 'banned_until' => null ];
+            $tokens      = $this->build_tokens( $event, $ctx, [ $att ] );
+            $subject_txt = tta_expand_anchor_tokens( $subject_raw, $tokens );
+            $subject     = tta_strip_bold( strtr( $subject_txt, $tokens ) );
+            $body_exp    = tta_expand_anchor_tokens( $body_raw, $tokens );
+            $body_txt    = tta_convert_bold( tta_convert_links( strtr( $body_exp, $tokens ) ) );
+            $body        = nl2br( $body_txt );
+            wp_mail( $email, $subject, $body, $headers );
+            $count++;
+        }
+        return $count;
+    }
 }

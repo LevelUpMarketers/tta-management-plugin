@@ -226,6 +226,7 @@ class TTA_Comms_Admin {
     public function render_page(){
         $tabs = [
             'templates' => __( 'Email Templates', 'tta' ),
+            'mass'      => __( 'Mass Communications', 'tta' ),
             'logs'      => __( 'Email Logs', 'tta' ),
             'history'   => __( 'Email History', 'tta' ),
         ];
@@ -243,6 +244,8 @@ class TTA_Comms_Admin {
             $this->render_logs_tab();
         } elseif ( 'history' === $current ) {
             $this->render_history_tab();
+        } elseif ( 'mass' === $current ) {
+            $this->render_mass_tab();
         } else {
             $this->render_templates_tab();
         }
@@ -389,6 +392,124 @@ class TTA_Comms_Admin {
         }
 
         echo '</tbody></table>';
+    }
+
+    protected function render_token_buttons() {
+        echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Details about the event.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?" /></span><strong>' . esc_html__( 'Event Information', 'tta' ) . '</strong> ';
+        echo '<span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Details about the event.', 'tta' ) . '"></span><br>';
+        echo '<button type="button" class="button tta-insert-token" data-token="{event_name}">{event_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{event_address}">{event_address}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{event_address_link}">{event_address_link}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{event_link}">{event_link}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{event_date}">{event_date}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{event_time}">{event_time}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{event_type}">{event_type}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{venue_name}">{venue_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{venue_url}">{venue_url}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{base_cost}">{base_cost}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{member_cost}">{member_cost}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{premium_cost}">{premium_cost}</button></div>';
+
+        echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Details from the purchasing member profile.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?" /></span><strong>' . esc_html__( 'Member Information', 'tta' ) . '</strong><br>';
+        echo '<button type="button" class="button tta-insert-token" data-token="{first_name}">{first_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{last_name}">{last_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{email}">{email}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{phone}">{phone}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{membership_level}">{membership_level}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{membership_price}">{membership_price}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{subscription_id}">{subscription_id}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{member_type}">{member_type}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_profile_url}">{dashboard_profile_url}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_upcoming_url}">{dashboard_upcoming_url}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_waitlist_url}">{dashboard_waitlist_url}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_past_url}">{dashboard_past_url}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{dashboard_billing_url}">{dashboard_billing_url}</button></div>';
+
+        echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Current date and time.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?" /></span><strong>' . esc_html__( 'Date & Time', 'tta' ) . '</strong><br>';
+        echo '<button type="button" class="button tta-insert-token" data-token="{current_time}">{current_time}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{current_date}">{current_date}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{current_weekday}">{current_weekday}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{current_month}">{current_month}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{current_day_of_month}">{current_day_of_month}</button></div>';
+        echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Re-entry links for banned members.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?" /></span><strong>' . esc_html__( 'Ban & Re-Entry', 'tta' ) . '</strong><br>';
+        echo '<button type="button" class="button tta-insert-token" data-token="{reentry_link}">{reentry_link}</button></div>';
+
+        echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Per-ticket attendee details.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?" /></span><strong>' . esc_html__( 'Event Attendee Information', 'tta' ) . '</strong><br>';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee_first_name}">{attendee_first_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee_last_name}">{attendee_last_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee_email}">{attendee_email}</button>';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee_phone}">{attendee_phone}</button>';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee2_first_name}">{attendee2_first_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee2_last_name}">{attendee2_last_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee2_email}">{attendee2_email}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee2_phone}">{attendee2_phone}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee3_first_name}">{attendee3_first_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee3_last_name}">{attendee3_last_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee3_email}">{attendee3_email}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee3_phone}">{attendee3_phone}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee4_first_name}">{attendee4_first_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee4_last_name}">{attendee4_last_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee4_email}">{attendee4_email}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{attendee4_phone}">{attendee4_phone}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{assistance_message}">{assistance_message}</button></div>';
+
+        echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Event hosts and volunteers.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?" /></span><strong>' . esc_html__( 'Event Contacts', 'tta' ) . '</strong><br>';
+        echo '<button type="button" class="button tta-insert-token" data-token="{event_host}">{event_host}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{event_volunteer}">{event_volunteer}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{host_notes}">{host_notes}</button></div>';
+
+        echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Details about the refunded ticket.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?" /></span><strong>' . esc_html__( 'Refund Information', 'tta' ) . '</strong><br>';
+        echo '<button type="button" class="button tta-insert-token" data-token="{refund_first_name}">{refund_first_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{refund_last_name}">{refund_last_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{refund_email}">{refund_email}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{refund_amount}">{refund_amount}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{refund_ticket}">{refund_ticket}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{refund_event_name}">{refund_event_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{refund_event_date}">{refund_event_date}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{refund_event_time}">{refund_event_time}</button></div>';
+
+        echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Details from an assistance request.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?" /></span><strong>' . esc_html__( 'Assistance Message', 'tta' ) . '</strong><br>';
+        echo '<button type="button" class="button tta-insert-token" data-token="{assistance_message}">{assistance_message}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{assistance_first_name}">{assistance_first_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{assistance_last_name}">{assistance_last_name}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{assistance_email}">{assistance_email}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{assistance_phone}">{assistance_phone}</button></div>';
+
+        echo '<div class="tta-token-section"><strong>' . esc_html__( 'Formatting & Styling', 'tta' ) . '</strong><br>';
+        echo '<button type="button" class="button tta-link-text">' . esc_html__( 'Link This Text', 'tta' ) . '</button> ';
+        echo '<button type="button" class="button tta-insert-br">' . esc_html__( 'Line Break', 'tta' ) . '</button> ';
+        echo '<button type="button" class="button tta-bold-text">' . esc_html__( 'Bold', 'tta' ) . '</button> ';
+        echo '<button type="button" class="button tta-italic-text">' . esc_html__( 'Italic', 'tta' ) . '</button></div>';
+    }
+
+    protected function render_mass_tab() {
+        global $wpdb;
+        $events_table  = $wpdb->prefix . 'tta_events';
+        $archive_table = $wpdb->prefix . 'tta_events_archive';
+        $rows = $wpdb->get_results( "SELECT ute_id, name, date FROM {$events_table} UNION SELECT ute_id, name, date FROM {$archive_table} ORDER BY date DESC", ARRAY_A );
+        echo '<form id="tta-mass-email-form" class="tta-comms-form" method="post">';
+        wp_nonce_field( 'tta_mass_email_action', 'tta_mass_email_nonce' );
+        echo '<table class="form-table">';
+        echo '<tr><th scope="row">' . esc_html__( 'Select Event', 'tta' ) . '</th><td><select id="tta-mass-event" name="event"><option value="">' . esc_html__( 'Choose an event', 'tta' ) . '</option>';
+        foreach ( (array) $rows as $row ) {
+            $label = $row['name'] . ' (' . $row['date'] . ')';
+            echo '<option value="' . esc_attr( $row['ute_id'] ) . '">' . esc_html( $label ) . '</option>';
+        }
+        echo '</select></td></tr>';
+        echo '<tr><th scope="row">' . esc_html__( 'Recipients', 'tta' ) . '</th><td><textarea id="tta-mass-emails" name="emails" rows="3" class="large-text"></textarea><p class="description">' . esc_html__( 'One email per line. Modify as needed before sending.', 'tta' ) . '</p></td></tr>';
+        echo '<tr><th scope="row">' . esc_html__( 'Email Subject', 'tta' ) . '</th><td><input type="text" name="email_subject" class="regular-text tta-comm-input"></td></tr>';
+        echo '<tr><th scope="row">' . esc_html__( 'Email Body', 'tta' ) . '</th><td><textarea name="email_body" rows="6" class="large-text tta-comm-input"></textarea></td></tr>';
+        echo '<tr><th scope="row">' . esc_html__( 'Insert Token', 'tta' ) . '</th><td>';
+        $this->render_token_buttons();
+        echo '</td></tr>';
+        echo '<tr><th scope="row">' . esc_html__( 'Email Preview', 'tta' ) . '</th><td><div class="tta-email-preview"><strong class="tta-email-preview-subject"></strong><p class="tta-email-preview-body"></p></div></td></tr>';
+        echo '</table>';
+        echo '<p class="submit">';
+        echo '<button type="button" class="button button-primary" id="tta-mass-send">' . esc_html__( 'Send Email', 'tta' ) . '</button>';
+        echo '<div class="tta-admin-progress-spinner-div"><img class="tta-admin-progress-spinner-svg" src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ) . '" alt="Loading" /></div>';
+        echo '<div class="tta-admin-progress-response-div"><p class="tta-admin-progress-response-p"></p></div>';
+        echo '</p>';
+        echo '</form>';
     }
 
     /** Render scheduled email jobs. */
