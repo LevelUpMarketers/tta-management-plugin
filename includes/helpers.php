@@ -895,10 +895,16 @@ function tta_get_attendee_user_id( $attendee_id ) {
  */
 function tta_set_attendance_status( $attendee_id, $status ) {
     global $wpdb;
-    $att_table = $wpdb->prefix . 'tta_attendees';
-    $status    = in_array( $status, [ 'checked_in', 'no_show', 'pending' ], true ) ? $status : 'pending';
+    $att_table   = $wpdb->prefix . 'tta_attendees';
+    $att_archive = $wpdb->prefix . 'tta_attendees_archive';
+    $status      = in_array( $status, [ 'checked_in', 'no_show', 'pending' ], true ) ? $status : 'pending';
 
     $row   = $wpdb->get_row( $wpdb->prepare( "SELECT email FROM {$att_table} WHERE id = %d", $attendee_id ), ARRAY_A );
+    $table = $att_table;
+    if ( ! $row ) {
+        $row   = $wpdb->get_row( $wpdb->prepare( "SELECT email FROM {$att_archive} WHERE id = %d", $attendee_id ), ARRAY_A );
+        $table = $att_archive;
+    }
     $email = $row ? strtolower( sanitize_email( $row['email'] ) ) : '';
 
     $current = tta_get_attendance_status( $attendee_id );
@@ -906,11 +912,13 @@ function tta_set_attendance_status( $attendee_id, $status ) {
         return;
     }
 
-    $wpdb->update( $att_table, [ 'status' => $status ], [ 'id' => intval( $attendee_id ) ], [ '%s' ], [ '%d' ] );
+    $wpdb->update( $table, [ 'status' => $status ], [ 'id' => intval( $attendee_id ) ], [ '%s' ], [ '%d' ] );
     TTA_Cache::delete( 'attendance_status_' . intval( $attendee_id ) );
     if ( $email ) {
-        TTA_Cache::delete( 'attended_count_' . md5( $email ) );
-        TTA_Cache::delete( 'no_show_count_' . md5( $email ) );
+        $hash = md5( $email );
+        TTA_Cache::delete( 'attended_count_' . $hash );
+        TTA_Cache::delete( 'no_show_count_' . $hash );
+        TTA_Cache::delete( 'member_event_history_' . $hash );
     }
 
     $user_id = tta_get_attendee_user_id( $attendee_id );
@@ -3187,6 +3195,61 @@ function tta_get_member_billing_history( $wp_user_id ) {
 
     TTA_Cache::set( $cache_key, $history, 300 );
     return $history;
+}
+
+/**
+ * Retrieve event attendance history for a member.
+ *
+ * @param string $email Member email address.
+ * @return array[] List of events with attendee IDs and statuses.
+ */
+function tta_get_member_event_history( $email ) {
+    $email = strtolower( sanitize_email( $email ) );
+    if ( ! $email ) {
+        return [];
+    }
+
+    $cache_key = 'member_event_history_' . md5( $email );
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $att_table       = $wpdb->prefix . 'tta_attendees';
+    $att_archive     = $wpdb->prefix . 'tta_attendees_archive';
+    $tickets_table   = $wpdb->prefix . 'tta_tickets';
+    $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
+    $events_table    = $wpdb->prefix . 'tta_events';
+    $events_archive  = $wpdb->prefix . 'tta_events_archive';
+
+    $sql = "(SELECT a.id AS att_id, a.status, e.name, e.date
+               FROM {$att_table} a
+               JOIN {$tickets_table} t ON a.ticket_id = t.id
+               JOIN {$events_table} e ON t.event_ute_id = e.ute_id
+              WHERE LOWER(a.email) = %s)
+            UNION ALL
+            (SELECT a.id AS att_id, a.status, e.name, e.date
+               FROM {$att_archive} a
+               JOIN {$tickets_archive} t ON a.ticket_id = t.id
+               JOIN {$events_archive} e ON t.event_ute_id = e.ute_id
+              WHERE LOWER(a.email) = %s)
+            ORDER BY date DESC";
+
+    $rows = $wpdb->get_results( $wpdb->prepare( $sql, $email, $email ), ARRAY_A );
+    $events = [];
+    foreach ( $rows as $r ) {
+        $events[] = [
+            'attendee_id' => intval( $r['att_id'] ),
+            'name'        => sanitize_text_field( $r['name'] ),
+            'date'        => $r['date'],
+            'status'      => sanitize_text_field( $r['status'] ),
+        ];
+    }
+
+    $ttl = empty( $events ) ? 60 : 300;
+    TTA_Cache::set( $cache_key, $events, $ttl );
+    return $events;
 }
 
 /**

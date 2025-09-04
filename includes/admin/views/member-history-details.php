@@ -10,6 +10,7 @@ if ( ! $member ) { echo '<p>Member not found.</p>'; return; }
 
 $summary = tta_get_member_history_summary( $member_id, true );
 $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
+$event_history   = tta_get_member_event_history( $member['email'] );
 ?>
 <div class="tta-member-history-details">
   <h3><?php echo esc_html( $member['first_name'] . ' ' . $member['last_name'] ); ?></h3>
@@ -87,6 +88,41 @@ $billing_history = tta_get_member_billing_history( $member['wpuserid'] );
   <?php else : ?>
     <p><?php esc_html_e( 'No transactions found.', 'tta' ); ?></p>
   <?php endif; ?>
+
+  <h4>
+    <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Record of this member\'s event attendance.', 'tta' ); ?>">
+      <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="Help">
+    </span>
+    <?php esc_html_e( 'Event History', 'tta' ); ?>
+  </h4>
+  <table class="widefat striped tta-event-history">
+    <thead>
+      <tr>
+        <th><?php esc_html_e( 'Date', 'tta' ); ?></th>
+        <th><?php esc_html_e( 'Event Name', 'tta' ); ?></th>
+        <th><?php esc_html_e( 'Current Status', 'tta' ); ?></th>
+        <th><?php esc_html_e( 'Actions', 'tta' ); ?></th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php if ( $event_history ) : ?>
+        <?php foreach ( $event_history as $ev ) : ?>
+          <tr data-attendee-id="<?php echo esc_attr( $ev['attendee_id'] ); ?>">
+            <td><?php echo esc_html( date_i18n( 'F j, Y', strtotime( $ev['date'] ) ) ); ?></td>
+            <td><?php echo esc_html( $ev['name'] ); ?></td>
+            <?php $label = ( 'checked_in' === $ev['status'] ) ? __( 'Attended', 'tta' ) : ( 'no_show' === $ev['status'] ? __( 'No Show', 'tta' ) : __( 'Pending', 'tta' ) ); ?>
+            <td class="tta-evhist-status"><?php echo esc_html( $label ); ?></td>
+            <td>
+              <button type="button" class="button tta-evhist-checkin"><?php esc_html_e( 'Check In', 'tta' ); ?></button>
+              <button type="button" class="button tta-evhist-noshow"><?php esc_html_e( 'No-Show', 'tta' ); ?></button>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      <?php else : ?>
+        <tr><td colspan="4"><?php esc_html_e( 'No event history found.', 'tta' ); ?></td></tr>
+      <?php endif; ?>
+    </tbody>
+  </table>
 
   <h4>
     <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Update payment methods, cancel, reactivate or change membership level.', 'tta' ); ?>">

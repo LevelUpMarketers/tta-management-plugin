@@ -1562,6 +1562,27 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
     });
   });
 
+  // Update attendance status from member history
+  $(document).on('click', '.tta-evhist-checkin, .tta-evhist-noshow', function(e){
+    e.preventDefault();
+    var $btn   = $(this);
+    var $row   = $btn.closest('tr');
+    var id     = $row.data('attendee-id');
+    var status = $btn.hasClass('tta-evhist-checkin') ? 'checked_in' : 'no_show';
+    $.post(TTA_Ajax.ajax_url, {
+      action: 'tta_update_attendance_status',
+      nonce: TTA_Ajax.get_member_nonce,
+      attendee_id: id,
+      status: status
+    }, function(res){
+      if(res.success){
+        $row.find('.tta-evhist-status').text(res.data.status);
+      } else {
+        alert(res.data.message || 'Error');
+      }
+    }, 'json').fail(function(){ alert('Request failed.'); });
+  });
+
   // Auto-fill venue details when selecting a saved venue
   $(document).on('change input', '#venuename', function(){
     var val = $(this).val();
