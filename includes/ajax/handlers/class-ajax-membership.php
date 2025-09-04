@@ -106,9 +106,10 @@ class TTA_Ajax_Membership {
 
         $amount   = tta_get_membership_price( $level );
         $sub_name = ( 'premium' === $level ) ? TTA_PREMIUM_SUBSCRIPTION_NAME : TTA_BASIC_SUBSCRIPTION_NAME;
+        $sub_desc = ( 'premium' === $level ) ? TTA_PREMIUM_SUBSCRIPTION_DESCRIPTION : TTA_BASIC_SUBSCRIPTION_DESCRIPTION;
 
         $api = new TTA_AuthorizeNet_API();
-        $res = $api->update_subscription_amount( $sub_id, $amount, $sub_name );
+        $res = $api->update_subscription_amount( $sub_id, $amount, $sub_name, $sub_desc );
         if ( ! $res['success'] ) {
             wp_send_json_error( [ 'message' => $res['error'] ] );
         }

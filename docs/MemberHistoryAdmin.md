@@ -35,7 +35,7 @@ Below the summary is a **Manage Subscription** section. The controls are arrange
    **Retry billing using payment info already on file in Authorize.Net.**
    retries the stored subscription. The Change Level and Cancel forms are hidden
    when the subscription is cancelled or has a payment problem.
-- Change the membership level and specify a custom monthly price. The update attempts to modify the existing subscription via Authorize.Net; the subscription name is adjusted to match the new level, and the dropdown defaults to the member's current tier. On failure a clear error message is returned.
+- Change the membership level and specify a custom monthly price. The update attempts to modify the existing subscription via Authorize.Net; the subscription name and description are adjusted to match the new level, and the dropdown defaults to the member's current tier. On failure a clear error message is returned.
 - Each form displays its own response message directly below the submit button for clearer feedback.
 - Assign a brand new membership to a user who has never subscribed before. The form matches the front-end checkout and charges the first month immediately. When reactivating a cancelled or payment-problem plan the form pre-fills the last monthly amount and billing address from Authorize.Net so usually only a new card number is required.
 - Changing the **Level** dropdown automatically fills the price field with the default ($10 for Standard, $17 for Premium). When the form loads for an existing subscription, the field is pre-filled with the member's current monthly charge pulled from Authorize.Net and this amount is preserved; defaults only apply when no price exists.

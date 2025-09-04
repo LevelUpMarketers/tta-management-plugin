@@ -932,9 +932,10 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
      * @param string $subscription_id Subscription ID.
      * @param float  $amount          New monthly amount.
      * @param string $name            Optional new subscription name.
+     * @param string $description     Optional subscription description.
      * @return array { success:bool, error?:string }
      */
-    public function update_subscription_amount( $subscription_id, $amount, $name = '' ) {
+    public function update_subscription_amount( $subscription_id, $amount, $name = '', $description = '' ) {
         if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
@@ -947,6 +948,11 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $subscription->setAmount( $amount );
         if ( $name ) {
             $subscription->setName( $name );
+        }
+        if ( $description ) {
+            $order = new AnetAPI\OrderType();
+            $order->setDescription( $description );
+            $subscription->setOrder( $order );
         }
 
         $request = new AnetAPI\ARBUpdateSubscriptionRequest();
