@@ -113,7 +113,7 @@ class TTA_Comms_Admin {
                 'label'       => __( 'No-Show Limit & Banned Status Notification', 'tta' ),
                 'type'        => 'External',
                 'category'    => 'Ban',
-                'description' => __( 'Sent when a member accrues three no-shows and is banned until purchasing a Re-Entry Ticket.', 'tta' ),
+                'description' => __( 'Sent when a member accrues five no-shows and is banned until purchasing a Re-Entry Ticket.', 'tta' ),
                 'email_subject' => __( 'No-Show Limit Reached', 'tta' ),
                 'email_body'  => __( 'You have reached the no-show limit and are banned until you purchase a [Re-entry Ticket]({reentry_link}).', 'tta' ),
                 'sms_text'    => '',

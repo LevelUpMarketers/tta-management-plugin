@@ -40,7 +40,7 @@ experience.
 - Members submit these assistance notes from the Upcoming Events tab on their dashboard. The note is stored only for the member's own attendee record and emailed to all event hosts automatically.
 - A **Mark all Pending as No-Shows** button lets hosts convert every remaining
   pending attendee at once after a confirmation prompt. This triggers the usual
-  banning and notification process for members who reach three no-shows.
+  banning and notification process for members who reach five no-shows.
 - Any assistance notes also appear in a list above the attendee table along
   with the member's name, phone, and email. The list text is bold red and rows
   with assistance notes are highlighted in the table to draw attention.
@@ -50,7 +50,7 @@ experience.
 - Clicking the **Check In** or **No-Show** buttons now updates the status label with proper capitalization and adjusts the
   attendee's event history totals. If another host updates the record first, the page reloads and automatically opens that event so everyone sees the latest information.
 - Adding `?event=<id>` to the URL deep-links directly to an event. On load, the page scrolls to that event and expands it automatically.
-- Selecting **No-Show** prompts a confirmation explaining that a third no-show automatically bans the member until they purchase a Re-entry Ticket and sends them an email with reinstatement instructions.
+- Selecting **No-Show** prompts a confirmation explaining that a fifth no-show automatically bans the member until they purchase a Re-entry Ticket and sends them an email with reinstatement instructions.
 - Once an attendee is marked as a no-show or checked in, both action buttons are disabled—and remain disabled on reload—to prevent duplicate submissions.
-- The ban and notification email trigger the moment a member's total no-shows reach three (counting the event just marked) and won't resend on additional no-shows.
+- The ban and notification email trigger the moment a member's total no-shows reach five (counting the event just marked) and won't resend on additional no-shows.
 - Event headers display the date and time in a friendly format like `Saturday July 19, 2025 - 6:00 PM to 8:00 PM`. The venue name links to its website and the address links directly to Google Maps for quick directions. Event details are loaded via `tta_get_event_for_email()` so the venue information always appears.

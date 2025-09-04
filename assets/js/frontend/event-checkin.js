@@ -63,7 +63,7 @@ jQuery(function($){
     var $wrap = $btn.closest('.tta-inline-wrapper, .tta-inline-container');
     var ute = $wrap.find('.tta-mark-all-no-show').data('event-ute-id');
     if(status === 'no_show'){
-      var msg = 'Are you sure you want to mark this person as a no-show? If this is their third no-show, this member will be automatically banned until they purchase a Re-entry Ticket. They will be emailed with further instructions if you proceed.';
+      var msg = 'Are you sure you want to mark this person as a no-show? If this is their fifth no-show, this member will be automatically banned until they purchase a Re-entry Ticket. They will be emailed with further instructions if you proceed.';
       if(!window.confirm(msg)) return;
     }
     $.post(TTA_Checkin.ajax_url, { action:'tta_set_attendance', nonce:TTA_Checkin.set_nonce, attendee_id:id, status:status }, function(res){
@@ -97,7 +97,7 @@ jQuery(function($){
         $wrap = $btn.closest('.tta-no-show-actions'),
         $spin = $wrap.find('.tta-admin-progress-spinner-svg'),
         $resp = $wrap.find('.tta-admin-progress-response-p');
-    var msg = 'Are you SURE you want to mark everyone that has a current status of "Pending" as a "No-Show"? This cannot be undone. If doing this gives a member their third No-Show, that member will be automatically banned until they purchase a Re-entry Ticket. Those members will be emailed with further instructions if you proceed.';
+    var msg = 'Are you SURE you want to mark everyone that has a current status of "Pending" as a "No-Show"? This cannot be undone. If doing this gives a member their fifth No-Show, that member will be automatically banned until they purchase a Re-entry Ticket. Those members will be emailed with further instructions if you proceed.';
     if(!window.confirm(msg)) return;
     $resp.text('');
     $spin.css({display:'inline-block',opacity:0}).fadeTo(200,1);

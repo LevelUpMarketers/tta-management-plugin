@@ -9,7 +9,7 @@ The **Banned Members** tab appears under **TTA Members** in the WordPress admin.
 - The scheduled reinstatement date if an automatic cron job is queued.
 - A **Reinstate** button allowing administrators to manually clear the ban.
 
-Members automatically appear here when their total no-shows reach three or more, at which point they are banned until purchasing a Re-entry Ticket and receive an email with reinstatement instructions.
+Members automatically appear here when their total no-shows reach five or more, at which point they are banned until purchasing a Re-entry Ticket and receive an email with reinstatement instructions.
 That email includes a direct link to checkout that adds the Re-entry Ticket to their cart when they're already logged in.
 
 When a timed ban is set, a cron job schedules automatic reinstatement. Updating a member's ban clears any existing cron job and queues a new one matching the latest ban length.
