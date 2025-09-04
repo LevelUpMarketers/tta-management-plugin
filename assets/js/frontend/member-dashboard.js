@@ -405,8 +405,9 @@ jQuery(function($){
     e.preventDefault();
     var $form = $(this),
         $btn  = $form.find('button[type="submit"]'),
-        $spin = $form.find('.tta-admin-progress-spinner-svg'),
-        $resp = $form.find('.tta-admin-progress-response-p'),
+        $actions = $form.closest('.tta-membership-actions'),
+        $spin = $actions.find('.tta-admin-progress-spinner-svg'),
+        $resp = $actions.find('.tta-admin-progress-response-p'),
         start = Date.now();
 
     $resp.removeClass('updated error').text('');
@@ -440,8 +441,9 @@ jQuery(function($){
     e.preventDefault();
     var $form = $(this),
         $btn  = $form.find('button[type="submit"]'),
-        $spin = $form.find('.tta-admin-progress-spinner-svg'),
-        $resp = $form.find('.tta-admin-progress-response-p'),
+        $actions = $form.closest('.tta-membership-actions'),
+        $spin = $actions.find('.tta-admin-progress-spinner-svg'),
+        $resp = $actions.find('.tta-admin-progress-response-p'),
         start = Date.now();
 
     $resp.removeClass('updated error').text('');
