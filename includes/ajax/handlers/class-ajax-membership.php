@@ -10,6 +10,7 @@ class TTA_Ajax_Membership {
         add_action( 'wp_ajax_tta_remove_membership', [ __CLASS__, 'ajax_remove_membership' ] );
         add_action( 'wp_ajax_nopriv_tta_remove_membership', [ __CLASS__, 'ajax_remove_membership' ] );
         add_action( 'wp_ajax_tta_cancel_membership', [ __CLASS__, 'ajax_cancel_membership' ] );
+        add_action( 'wp_ajax_tta_change_membership_level', [ __CLASS__, 'ajax_change_membership_level' ] );
         add_action( 'wp_ajax_tta_update_payment', [ __CLASS__, 'ajax_update_payment' ] );
     }
 
@@ -80,6 +81,47 @@ class TTA_Ajax_Membership {
         TTA_Cache::flush();
 
         wp_send_json_success( [ 'message' => __( 'Subscription cancelled.', 'tta' ), 'status' => 'cancelled' ] );
+    }
+
+    public static function ajax_change_membership_level() {
+        check_ajax_referer( 'tta_member_front_update', 'nonce' );
+        if ( ! is_user_logged_in() ) {
+            wp_send_json_error( [ 'message' => __( 'You must be logged in.', 'tta' ) ] );
+        }
+
+        $user_id = get_current_user_id();
+        $context = tta_get_current_user_context();
+        $current = strtolower( $context['membership_level'] ?? 'free' );
+        $status  = strtolower( $context['subscription_status'] ?? '' );
+        $sub_id  = $context['subscription_id'] ?? '';
+
+        if ( 'active' !== $status || ! $sub_id ) {
+            wp_send_json_error( [ 'message' => __( 'No active subscription found.', 'tta' ) ] );
+        }
+
+        $level = isset( $_POST['level'] ) ? sanitize_text_field( $_POST['level'] ) : '';
+        if ( ! in_array( $level, [ 'basic', 'premium' ], true ) || $level === $current ) {
+            wp_send_json_error( [ 'message' => __( 'Invalid membership level.', 'tta' ) ] );
+        }
+
+        $amount   = tta_get_membership_price( $level );
+        $sub_name = ( 'premium' === $level ) ? TTA_PREMIUM_SUBSCRIPTION_NAME : TTA_BASIC_SUBSCRIPTION_NAME;
+
+        $api = new TTA_AuthorizeNet_API();
+        $res = $api->update_subscription_amount( $sub_id, $amount, $sub_name );
+        if ( ! $res['success'] ) {
+            wp_send_json_error( [ 'message' => $res['error'] ] );
+        }
+
+        tta_update_user_membership_level( $user_id, $level );
+        TTA_Cache::flush();
+
+        wp_send_json_success( [
+            'message' => __( 'Membership updated.', 'tta' ),
+            'level'   => $level,
+            'label'   => tta_get_membership_label( $level ),
+            'price'   => number_format( $amount, 2 ),
+        ] );
     }
 
     public static function ajax_update_payment() {

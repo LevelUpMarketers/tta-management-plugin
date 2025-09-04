@@ -140,6 +140,33 @@
     <?php if ( $last4 ) : ?>
       <p><?php esc_html_e( 'Current Card:', 'tta' ); ?> <span id="tta-card-last4">**** <?php echo esc_html( $last4 ); ?></span></p>
     <?php endif; ?>
+    <?php if ( 'premium' === $level ) : ?>
+      <form class="tta-change-level-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
+        <?php wp_nonce_field( 'tta_member_front_update', 'nonce' ); ?>
+        <input type="hidden" name="action" value="tta_change_membership_level" />
+        <input type="hidden" name="level" value="basic" />
+        <div class="tta-submit-wrap">
+          <button type="submit" class="button"><?php esc_html_e( 'Downgrade to Standard', 'tta' ); ?></button>
+          <span class="tta-progress-spinner">
+            <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+          </span>
+          <span class="tta-admin-progress-response-p"></span>
+        </div>
+      </form>
+    <?php elseif ( 'basic' === $level ) : ?>
+      <form class="tta-change-level-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
+        <?php wp_nonce_field( 'tta_member_front_update', 'nonce' ); ?>
+        <input type="hidden" name="action" value="tta_change_membership_level" />
+        <input type="hidden" name="level" value="premium" />
+        <div class="tta-submit-wrap">
+          <button type="submit" class="button"><?php esc_html_e( 'Upgrade to Premium', 'tta' ); ?></button>
+          <span class="tta-progress-spinner">
+            <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+          </span>
+          <span class="tta-admin-progress-response-p"></span>
+        </div>
+      </form>
+    <?php endif; ?>
     <?php if ( 'cancelled' !== $status ) : ?>
       <form id="tta-cancel-membership-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
         <?php wp_nonce_field( 'tta_member_front_update', 'nonce' ); ?>
