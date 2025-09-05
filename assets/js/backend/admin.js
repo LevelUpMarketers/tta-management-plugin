@@ -1211,6 +1211,7 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
 
   // Save a single communication template via AJAX
   $(document).on('submit', '.tta-comms-form', function(e){
+    if ($(this).is('#tta-mass-email-form')) { return; }
     e.preventDefault();
 
     var $form = $(this),
@@ -1465,8 +1466,15 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
         '{last_name}': mem.last_name || 'Last',
         '{email}': mem.email || 'member@example.com',
         '{phone}': mem.phone || '555-555-5555',
-        '{membership_level}': mem.membership_level || 'basic',
+        '{membership_level}': (mem.membership_level === 'premium') ? 'Premium' : (mem.membership_level === 'basic' ? 'Standard' : (mem.membership_level === 'reentry' ? 'Re-Entry' : 'Free')),
+        '{membership_price}': (mem.membership_level === 'premium') ? '$17.00' : (mem.membership_level === 'basic' ? '$10.00' : '$0.00'),
+        '{subscription_id}': mem.subscription_id || 'SUB0000',
         '{member_type}': mem.member_type || 'member',
+        '{current_time}': '1:32 PM',
+        '{current_date}': '9/3/2025',
+        '{current_weekday}': 'Wednesday',
+        '{current_month}': 'September',
+        '{current_day_of_month}': '3rd',
         '{reentry_link}': '/checkout?auto=reentry',
         '{attendee_first_name}': mem.first_name || 'First',
         '{attendee_last_name}': mem.last_name || 'Last',
@@ -1516,6 +1524,63 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
 
   $('.tta-comms-form').each(function(){
     renderPreview($(this));
+  });
+
+  // Mass Communications
+  $(document).on('change', '#tta-mass-event', function(){
+    var ute = $(this).val();
+    var nonce = $('#tta_mass_email_nonce').val();
+    var $area = $('#tta-mass-emails').val('');
+    if(!ute){ return; }
+    $.post(TTA_Ajax.ajax_url, { action:'tta_mass_emails', event: ute, nonce: nonce }, function(res){
+      if(res.success){ $('#tta-mass-emails').val(res.data.emails.join('\n')); }
+    }, 'json');
+  });
+
+  $('#tta-mass-send').on('click', function(){
+    var $form = $('#tta-mass-email-form');
+    var data = {
+      action: 'tta_mass_send',
+      nonce: $('#tta_mass_email_nonce').val(),
+      event: $('#tta-mass-event').val(),
+      emails: $('#tta-mass-emails').val(),
+      email_subject: $form.find('input[name=email_subject]').val(),
+      email_body: $form.find('textarea[name=email_body]').val()
+    };
+    var $spin = $form.find('.tta-admin-progress-spinner-svg').css({display:'inline-block',opacity:0}).fadeTo(200,1);
+    var $resp = $form.find('.tta-admin-progress-response-p').removeClass('updated error').text('');
+    $.post(TTA_Ajax.ajax_url, data, function(res){
+      $spin.fadeTo(200,0,function(){ $(this).hide(); });
+      if(res.success){
+        $resp.addClass('updated').text(res.data.message);
+      } else {
+        $resp.addClass('error').text(res.data.message || 'Error');
+      }
+    }, 'json').fail(function(){
+      $spin.fadeTo(200,0,function(){ $(this).hide(); });
+      $resp.addClass('error').text('Request failed.');
+    });
+  });
+
+  // Update attendance status from member history
+  $(document).on('click', '.tta-evhist-checkin, .tta-evhist-noshow', function(e){
+    e.preventDefault();
+    var $btn   = $(this);
+    var $row   = $btn.closest('tr');
+    var id     = $row.data('attendee-id');
+    var status = $btn.hasClass('tta-evhist-checkin') ? 'checked_in' : 'no_show';
+    $.post(TTA_Ajax.ajax_url, {
+      action: 'tta_update_attendance_status',
+      nonce: TTA_Ajax.get_member_nonce,
+      attendee_id: id,
+      status: status
+    }, function(res){
+      if(res.success){
+        $row.find('.tta-evhist-status').text(res.data.status);
+      } else {
+        alert(res.data.message || 'Error');
+      }
+    }, 'json').fail(function(){ alert('Request failed.'); });
   });
 
   // Auto-fill venue details when selecting a saved venue

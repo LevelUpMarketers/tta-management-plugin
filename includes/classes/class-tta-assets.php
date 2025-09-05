@@ -574,6 +574,9 @@ class TTA_Assets {
                     'ajax_url'  => admin_url( 'admin-ajax.php' ),
                     'get_nonce' => wp_create_nonce( 'tta_get_attendance_action' ),
                     'set_nonce' => wp_create_nonce( 'tta_set_attendance_action' ),
+                    'attendance_label' => __( 'Event Attendance & No-Shows:', 'tta' ),
+                    'attended_label'   => __( 'Events Attended', 'tta' ),
+                    'noshow_label'     => __( 'No-Shows', 'tta' ),
                 ]
             );
         }

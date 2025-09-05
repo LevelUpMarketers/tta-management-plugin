@@ -139,9 +139,29 @@ class TTA_Email_Handler {
             '{last_name}'            => $member['last_name'] ?? '',
             '{email}'                => $member['user_email'] ?? '',
             '{phone}'                => $member['member']['phone'] ?? '',
-            '{membership_level}'     => $member['membership_level'] ?? '',
+            '{membership_level}'     => '',
+            '{membership_price}'     => '',
+            '{subscription_id}'      => sanitize_text_field( $member['subscription_id'] ?? '' ),
             '{member_type}'          => $member['member']['member_type'] ?? '',
         ];
+
+        $level = strtolower( $member['membership_level'] ?? '' );
+        switch ( $level ) {
+            case 'basic':
+                $tokens['{membership_level}'] = __( 'Standard', 'tta' );
+                break;
+            case 'premium':
+                $tokens['{membership_level}'] = __( 'Premium', 'tta' );
+                break;
+            case 'reentry':
+                $tokens['{membership_level}'] = __( 'Re-Entry', 'tta' );
+                break;
+            default:
+                $tokens['{membership_level}'] = __( 'Free', 'tta' );
+        }
+
+        $price = tta_get_membership_price( $level );
+        $tokens['{membership_price}'] = '$' . number_format( (float) $price, 2 );
 
         $names = tta_get_event_host_volunteer_names( $event['id'] ?? 0 );
         $tokens['{event_host}']       = $names['hosts'] ? implode( ', ', $names['hosts'] ) : 'TBD';
@@ -168,6 +188,13 @@ class TTA_Email_Handler {
         $tokens['{refund_event_name}'] = $event['name'] ?? '';
         $tokens['{refund_event_date}'] = isset( $event['date'] ) ? tta_format_event_date( $event['date'] ) : '';
         $tokens['{refund_event_time}'] = isset( $event['time'] ) ? tta_format_event_time( $event['time'] ) : '';
+
+        $now  = new \DateTime( 'now', new \DateTimeZone( 'America/New_York' ) );
+        $tokens['{current_time}']         = $now->format( 'g:i A' );
+        $tokens['{current_date}']         = $now->format( 'n/j/Y' );
+        $tokens['{current_weekday}']      = $now->format( 'l' );
+        $tokens['{current_month}']        = $now->format( 'F' );
+        $tokens['{current_day_of_month}'] = $now->format( 'jS' );
 
         return $tokens;
     }
@@ -256,5 +283,124 @@ class TTA_Email_Handler {
         if ( $to ) {
             wp_mail( $to, $subject, $body, $headers );
         }
+    }
+
+    /**
+     * Send a membership purchase confirmation email.
+     *
+     * @param int    $user_id WordPress user ID.
+     * @param string $level   Membership level slug.
+     */
+    public function send_membership_purchase_email( $user_id, $level ) {
+        $templates = tta_get_comm_templates();
+        if ( empty( $templates['membership_purchase'] ) ) {
+            return;
+        }
+        $tpl     = $templates['membership_purchase'];
+        $context = tta_get_user_context_by_id( intval( $user_id ) );
+        $context['membership_level'] = $level;
+
+        $tokens      = $this->build_tokens( [], $context, [] );
+        $subject_raw = tta_expand_anchor_tokens( $tpl['email_subject'], $tokens );
+        $subject     = tta_strip_bold( strtr( $subject_raw, $tokens ) );
+        $body_raw    = tta_expand_anchor_tokens( $tpl['email_body'], $tokens );
+        $body_txt    = tta_convert_bold( tta_convert_links( strtr( $body_raw, $tokens ) ) );
+        $body        = nl2br( $body_txt );
+        $to          = sanitize_email( $context['user_email'] );
+        $headers     = [ 'Content-Type: text/html; charset=UTF-8' ];
+        if ( $to ) {
+            wp_mail( $to, $subject, $body, $headers );
+        }
+    }
+
+    /**
+     * Send a membership cancellation confirmation email.
+     *
+     * @param int    $user_id WordPress user ID.
+     * @param string $level   Membership level slug that was cancelled.
+     */
+    public function send_membership_cancellation_email( $user_id, $level ) {
+        $templates = tta_get_comm_templates();
+        if ( empty( $templates['membership_cancellation'] ) ) {
+            return;
+        }
+        $tpl     = $templates['membership_cancellation'];
+        $context = tta_get_user_context_by_id( intval( $user_id ) );
+        $context['membership_level'] = $level;
+
+        $tokens      = $this->build_tokens( [], $context, [] );
+        $subject_raw = tta_expand_anchor_tokens( $tpl['email_subject'], $tokens );
+        $subject     = tta_strip_bold( strtr( $subject_raw, $tokens ) );
+        $body_raw    = tta_expand_anchor_tokens( $tpl['email_body'], $tokens );
+        $body_txt    = tta_convert_bold( tta_convert_links( strtr( $body_raw, $tokens ) ) );
+        $body        = nl2br( $body_txt );
+        $to          = sanitize_email( $context['user_email'] );
+        $headers     = [ 'Content-Type: text/html; charset=UTF-8' ];
+        if ( $to ) {
+            wp_mail( $to, $subject, $body, $headers );
+        }
+    }
+
+    /**
+     * Send a membership change confirmation email.
+     *
+     * @param int    $user_id WordPress user ID.
+     * @param string $level   New membership level slug.
+     */
+    public function send_membership_change_email( $user_id, $level ) {
+        $templates = tta_get_comm_templates();
+        if ( empty( $templates['membership_change'] ) ) {
+            return;
+        }
+        $tpl     = $templates['membership_change'];
+        $context = tta_get_user_context_by_id( intval( $user_id ) );
+        $context['membership_level'] = $level;
+
+        $tokens      = $this->build_tokens( [], $context, [] );
+        $subject_raw = tta_expand_anchor_tokens( $tpl['email_subject'], $tokens );
+        $subject     = tta_strip_bold( strtr( $subject_raw, $tokens ) );
+        $body_raw    = tta_expand_anchor_tokens( $tpl['email_body'], $tokens );
+        $body_txt    = tta_convert_bold( tta_convert_links( strtr( $body_raw, $tokens ) ) );
+        $body        = nl2br( $body_txt );
+        $to          = sanitize_email( $context['user_email'] );
+        $headers     = [ 'Content-Type: text/html; charset=UTF-8' ];
+        if ( $to ) {
+            wp_mail( $to, $subject, $body, $headers );
+        }
+    }
+
+    public function send_mass_email( $event_ute_id, array $emails, $subject_raw, $body_raw ) {
+        $event = tta_get_event_for_email( $event_ute_id );
+        if ( empty( $event ) ) {
+            return 0;
+        }
+        $attendees = tta_get_event_attendees( $event_ute_id );
+        $by_email  = [];
+        foreach ( (array) $attendees as $att ) {
+            $e = sanitize_email( $att['email'] ?? '' );
+            if ( $e ) {
+                $by_email[ strtolower( $e ) ] = $att;
+            }
+        }
+        $count   = 0;
+        $headers = [ 'Content-Type: text/html; charset=UTF-8' ];
+        foreach ( $emails as $addr ) {
+            $email = sanitize_email( $addr );
+            if ( ! $email ) {
+                continue;
+            }
+            $att  = $by_email[ strtolower( $email ) ] ?? [ 'first_name' => '', 'last_name' => '', 'email' => $email ];
+            $row  = tta_get_member_row_by_email( $email );
+            $ctx  = $row ? tta_get_user_context_by_id( intval( $row['wpuserid'] ) ) : [ 'wp_user_id' => 0, 'user_email' => $email, 'first_name' => $att['first_name'], 'last_name' => $att['last_name'], 'member' => [ 'phone' => '', 'member_type' => '' ], 'membership_level' => tta_get_membership_level_by_email( $email ), 'subscription_id' => null, 'subscription_status' => null, 'banned_until' => null ];
+            $tokens      = $this->build_tokens( $event, $ctx, [ $att ] );
+            $subject_txt = tta_expand_anchor_tokens( $subject_raw, $tokens );
+            $subject     = tta_strip_bold( strtr( $subject_txt, $tokens ) );
+            $body_exp    = tta_expand_anchor_tokens( $body_raw, $tokens );
+            $body_txt    = tta_convert_bold( tta_convert_links( strtr( $body_exp, $tokens ) ) );
+            $body        = nl2br( $body_txt );
+            wp_mail( $email, $subject, $body, $headers );
+            $count++;
+        }
+        return $count;
     }
 }

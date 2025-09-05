@@ -271,3 +271,14 @@ ALTER TABLE `wp_j9bzlz98u3_tta_attendees`
 ALTER TABLE `wp_j9bzlz98u3_tta_attendees_archive`
   ADD KEY `email_idx` (`email`);
 ```
+
+## Track no-show resets
+
+Version 1.12.0 adds a `no_show_offset` column to `tta_members` so a member's
+no-show count can be restarted when they purchase a Re-Entry Ticket. Existing
+installs update automatically, or run:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_members`
+  ADD COLUMN `no_show_offset` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `hide_event_attendance`;
+```

@@ -70,7 +70,7 @@ class TTA_Email_Reminders {
     }
 
     /**
-     * Schedule a post-event thank you email 24 hours after archiving.
+     * Schedule a post-event thank you email 18 hours after an event ends.
      *
      * @param int $event_id Event ID.
      */
@@ -79,11 +79,25 @@ class TTA_Email_Reminders {
         if ( ! $event_id ) {
             return;
         }
-        $timestamp = self::to_server_time( self::current_time() + DAY_IN_SECONDS );
-        if ( wp_next_scheduled( 'tta_post_event_thanks_email', [ $event_id ] ) ) {
+
+        $ute_id = tta_get_event_ute_id( $event_id );
+        if ( ! $ute_id ) {
             return;
         }
-        wp_schedule_single_event( $timestamp, 'tta_post_event_thanks_email', [ $event_id ] );
+
+        $event = tta_get_event_for_email( $ute_id );
+        if ( empty( $event['date'] ) ) {
+            return;
+        }
+
+        $parts = explode( '|', $event['time'] ?? '' );
+        $end   = $parts[1] ?? $parts[0] ?? '00:00';
+        $dt    = DateTime::createFromFormat( 'Y-m-d H:i', $event['date'] . ' ' . $end, wp_timezone() );
+        if ( ! $dt ) {
+            return;
+        }
+        $timestamp = $dt->getTimestamp() + 18 * HOUR_IN_SECONDS;
+        self::schedule_single( $timestamp, 'tta_post_event_thanks_email', [ $event_id ] );
     }
 
     /**

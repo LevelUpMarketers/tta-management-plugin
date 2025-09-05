@@ -49,6 +49,7 @@ class TTA_Ajax_Checkout {
             if ( 'reentry' === $membership_level ) {
                 tta_clear_reinstatement_cron( get_current_user_id() );
                 tta_unban_user( get_current_user_id() );
+                tta_reset_no_show_offset( get_current_user_id() );
                 tta_send_banned_reinstatement_email( get_current_user_id() );
                 unset( $_SESSION['tta_membership_purchase'] );
             } else {
@@ -76,6 +77,10 @@ class TTA_Ajax_Checkout {
         $res         = $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4 );
         if ( is_wp_error( $res ) ) {
             wp_send_json_error( [ 'message' => $res->get_error_message() ] );
+        }
+
+        if ( $membership_total > 0 && in_array( $membership_level, [ 'basic', 'premium' ], true ) ) {
+            TTA_Email_Handler::get_instance()->send_membership_purchase_email( get_current_user_id(), $membership_level );
         }
 
         $user   = wp_get_current_user();

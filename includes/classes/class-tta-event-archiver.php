@@ -22,7 +22,6 @@ class TTA_Event_Archiver {
             $id     = intval( $row['id'] );
             $ute_id = $row['ute_id'];
             TTA_Email_Reminders::clear_event_emails( $id );
-            TTA_Email_Reminders::schedule_post_event_thanks( $id );
             $exists = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$archive_table} WHERE id = %d", $id ) );
             if ( ! $exists ) {
                 $wpdb->insert( $archive_table, $row );

@@ -8,6 +8,7 @@ class TTA_Ajax_Attendance {
         add_action( 'wp_ajax_tta_remove_attendee', [ __CLASS__, 'remove_attendee' ] );
         add_action( 'wp_ajax_tta_refund_attendee', [ __CLASS__, 'refund_attendee' ] );
         add_action( 'wp_ajax_tta_cancel_attendance', [ __CLASS__, 'cancel_attendance' ] );
+        add_action( 'wp_ajax_tta_mark_pending_no_show', [ __CLASS__, 'mark_pending_no_show' ] );
     }
 
     public static function get_event_attendance() {
@@ -20,6 +21,7 @@ class TTA_Ajax_Attendance {
         if ( ! $event ) {
             wp_send_json_error( [ 'message' => 'not found' ] );
         }
+        $event['ute_id'] = $ute;
         $attendees = tta_get_event_attendees_with_status( $ute );
         ob_start();
         $GLOBALS['event'] = $event;
@@ -36,8 +38,45 @@ class TTA_Ajax_Attendance {
         if ( ! $att_id ) {
             wp_send_json_error( [ 'message' => 'missing attendee' ] );
         }
+
+        global $wpdb;
+        $att_table = $wpdb->prefix . 'tta_attendees';
+        $row = $wpdb->get_row( $wpdb->prepare( "SELECT email, status FROM {$att_table} WHERE id = %d", $att_id ), ARRAY_A );
+        if ( ! $row ) {
+            wp_send_json_error( [ 'message' => 'not found' ] );
+        }
+        $current = sanitize_text_field( $row['status'] );
+        if ( 'pending' !== $current ) {
+            wp_send_json_success( [ 'reload' => true ] );
+        }
+
         tta_set_attendance_status( $att_id, $status );
-        wp_send_json_success();
+
+        $email     = strtolower( sanitize_email( $row['email'] ) );
+        $attended  = tta_get_attended_event_count_by_email( $email );
+        $no_show   = tta_get_no_show_event_count_by_email( $email );
+
+        wp_send_json_success( [
+            'attended' => $attended,
+            'no_show'  => $no_show,
+        ] );
+    }
+
+    public static function mark_pending_no_show() {
+        check_ajax_referer( 'tta_set_attendance_action', 'nonce' );
+        $ute = tta_sanitize_text_field( $_POST['event_ute_id'] ?? '' );
+        if ( ! $ute ) {
+            wp_send_json_error( [ 'message' => 'missing id' ] );
+        }
+        $attendees = tta_get_event_attendees_with_status( $ute );
+        $count     = 0;
+        foreach ( $attendees as $a ) {
+            if ( 'pending' === $a['status'] ) {
+                tta_set_attendance_status( intval( $a['id'] ), 'no_show' );
+                $count++;
+            }
+        }
+        wp_send_json_success( [ 'updated' => $count ] );
     }
 
     public static function remove_attendee() {

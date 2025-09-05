@@ -237,6 +237,20 @@ class HelpersTest extends TestCase {
         $this->assertSame($context1, $context2);
     }
 
+    public function test_get_user_context_by_id_includes_subscription_fields() {
+        global $wpdb;
+        $wpdb->row_data = [
+            'wpuserid' => 5,
+            'membership_level' => 'basic',
+            'subscription_id' => 'SUB999',
+            'subscription_status' => 'active',
+            'banned_until' => null,
+        ];
+        $ctx = tta_get_user_context_by_id(5);
+        $this->assertSame('SUB999', $ctx['subscription_id']);
+        $this->assertSame('active', $ctx['subscription_status']);
+    }
+
     public function test_admin_preview_image_uses_fallback() {
         $html = tta_admin_preview_image(1, [50,50], ['class'=>'x']);
         $this->assertStringContainsString('file1.jpg', $html);
@@ -468,6 +482,47 @@ class HelpersTest extends TestCase {
         require_once __DIR__ . '/../includes/helpers.php';
         $rows = tta_get_event_attendees_with_status('ev1');
         $this->assertCount(1, $rows);
+    }
+
+    public function test_get_event_attendees_with_status_sorts_by_status() {
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public function get_results($q,$o=ARRAY_A){
+                return [
+                    ['id'=>1,'ticket_id'=>1,'first_name'=>'Charlie','last_name'=>'C','email'=>'c','phone'=>'p','assistance_note'=>'','status'=>'no_show'],
+                    ['id'=>2,'ticket_id'=>1,'first_name'=>'Amy','last_name'=>'A','email'=>'a','phone'=>'p','assistance_note'=>'','status'=>'pending'],
+                    ['id'=>3,'ticket_id'=>1,'first_name'=>'Ben','last_name'=>'B','email'=>'b','phone'=>'p','assistance_note'=>'','status'=>'checked_in'],
+                    ['id'=>4,'ticket_id'=>1,'first_name'=>'Ann','last_name'=>'Z','email'=>'d','phone'=>'p','assistance_note'=>'','status'=>'pending'],
+                ];
+            }
+            public function get_var($q){ return 0; }
+            public function prepare($q,...$a){ return $q; }
+        };
+        require_once __DIR__ . '/../includes/helpers.php';
+        $rows  = tta_get_event_attendees_with_status('ev1');
+        $names = array_column($rows, 'first_name');
+        $this->assertSame(['Amy','Ann','Ben','Charlie'], $names);
+    }
+
+    public function test_pending_with_assistance_note_first() {
+        global $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public function get_results($q,$o=ARRAY_A){
+                return [
+                    ['id'=>1,'ticket_id'=>1,'first_name'=>'Ben','last_name'=>'B','email'=>'b','phone'=>'p','assistance_note'=>'-','status'=>'pending'],
+                    ['id'=>2,'ticket_id'=>1,'first_name'=>'Amy','last_name'=>'A','email'=>'a','phone'=>'p','assistance_note'=>'help','status'=>'pending'],
+                    ['id'=>3,'ticket_id'=>1,'first_name'=>'Carl','last_name'=>'C','email'=>'c','phone'=>'p','assistance_note'=>'','status'=>'checked_in'],
+                ];
+            }
+            public function get_var($q){ return 0; }
+            public function prepare($q,...$a){ return $q; }
+        };
+        require_once __DIR__ . '/../includes/helpers.php';
+        $rows  = tta_get_event_attendees_with_status('ev1');
+        $names = array_column($rows, 'first_name');
+        $this->assertSame(['Amy','Ben','Carl'], $names);
     }
 
     public function test_get_remaining_ticket_count_queries_table() {

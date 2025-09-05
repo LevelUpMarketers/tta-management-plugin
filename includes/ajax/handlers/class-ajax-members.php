@@ -12,6 +12,7 @@ class TTA_Ajax_Members {
         add_action( 'wp_ajax_tta_get_member',         [ __CLASS__, 'get_member' ] );
         add_action( 'wp_ajax_tta_get_member_form',    [ __CLASS__, 'get_member_form' ] );
         add_action( 'wp_ajax_tta_get_member_history', [ __CLASS__, 'get_member_history' ] );
+        add_action( 'wp_ajax_tta_update_attendance_status', [ __CLASS__, 'update_attendance_status' ] );
         add_action( 'wp_ajax_tta_update_member',      [ __CLASS__, 'update_member' ] );
         add_action( 'wp_ajax_tta_front_update_member',[ __CLASS__, 'update_member_front' ] );
         add_action( 'wp_ajax_tta_reinstate_member',   [ __CLASS__, 'reinstate_member' ] );
@@ -268,6 +269,23 @@ class TTA_Ajax_Members {
         include TTA_PLUGIN_DIR . 'includes/admin/views/member-history-details.php';
         $html = ob_get_clean();
         wp_send_json_success( [ 'html' => $html ] );
+    }
+
+    public static function update_attendance_status() {
+        check_ajax_referer( 'tta_member_update_action', 'nonce' );
+        if ( empty( $_POST['attendee_id'] ) ) {
+            wp_send_json_error( [ 'message' => 'Missing attendee.' ] );
+        }
+        $att_id = intval( $_POST['attendee_id'] );
+        $status = sanitize_text_field( $_POST['status'] ?? '' );
+        if ( ! in_array( $status, [ 'checked_in', 'no_show' ], true ) ) {
+            wp_send_json_error( [ 'message' => 'Invalid status.' ] );
+        }
+
+        tta_set_attendance_status( $att_id, $status );
+
+        $label = ( 'checked_in' === $status ) ? __( 'Attended', 'tta' ) : __( 'No Show', 'tta' );
+        wp_send_json_success( [ 'status' => $label ] );
     }
 
     public static function update_member() {

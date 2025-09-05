@@ -95,7 +95,7 @@ class TTA_Ajax_Payment {
         ];
 
         $billing_clean['invoice']     = substr( preg_replace( '/[^A-Za-z0-9]/', '', 'TAR-' . time() ), 0, 20 );
-        $billing_clean['description'] = 'Trying to Adult RVA – Order';
+        $billing_clean['description'] = tta_build_order_description();
         $billing_clean['ip']          = self::get_client_ip();
 
         // $debug['final_payload_to_charge'] = [

@@ -20,8 +20,29 @@ if ( ! defined( 'ABSPATH' ) ) exit;
   <p class="tta-host-notes">
     <?php echo nl2br( esc_html( $event['host_notes'] ) ); ?>
   </p>
-  <?php endif; ?>
+<?php endif; ?>
 </div>
+<div class="tta-no-show-actions">
+  <button type="button" class="button tta-mark-all-no-show" data-event-ute-id="<?php echo esc_attr( $event['ute_id'] ); ?>"><?php esc_html_e( 'Mark all Pending as No-Shows', 'tta' ); ?></button>
+  <span class="tta-progress-spinner"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" /></span>
+  <span class="tta-admin-progress-response-p"></span>
+</div>
+<?php
+$assist_notes = array_filter(
+    $attendees,
+    function ( $a ) {
+        return '-' !== $a['assistance_note'];
+    }
+);
+if ( $assist_notes ) : ?>
+<div class="tta-assistance-list">
+  <ul>
+    <?php foreach ( $assist_notes as $note ) : ?>
+    <li><?php echo esc_html( $note['assistance_note'] ); ?> - <?php echo esc_html( $note['first_name'] . ' ' . $note['last_name'] ); ?> - <?php echo esc_html( $note['phone'] ); ?> - <?php echo esc_html( $note['email'] ); ?></li>
+    <?php endforeach; ?>
+  </ul>
+</div>
+<?php endif; ?>
 <table class="widefat striped tta-attendance-table">
   <thead>
     <tr>
@@ -35,8 +56,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
   </thead>
   <tbody>
   <?php if ( $attendees ) :
-    foreach ( $attendees as $a ) : ?>
-    <tr data-attendee-id="<?php echo esc_attr( $a['id'] ); ?>">
+    foreach ( $attendees as $a ) :
+        $row_class = '-' !== $a['assistance_note'] ? ' class="tta-assistance-row"' : '';
+    ?>
+    <tr<?php echo $row_class; ?> data-attendee-id="<?php echo esc_attr( $a['id'] ); ?>">
       <td><span class="tta-info-title"><?php esc_html_e( 'Name:', 'tta' ); ?></span><?php echo esc_html( $a['first_name'] . ' ' . $a['last_name'] ); ?></td>
       <td><span class="tta-info-title"><?php esc_html_e( 'Email:', 'tta' ); ?></span><?php echo esc_html( $a['email'] ); ?></td>
       <td><span class="tta-info-title"><?php esc_html_e( 'Event Attendance & No-Shows:', 'tta' ); ?></span><?php echo intval( $a['attended_count'] ); ?> <?php esc_html_e( 'Events Attended', 'tta' ); ?>, <?php echo intval( $a['no_show_count'] ); ?> <?php esc_html_e( 'No-Shows', 'tta' ); ?></td>

@@ -183,8 +183,9 @@ class TTA_Ajax_Events {
             ] );
         }
 
-        // Schedule reminder emails for the new event
+        // Schedule reminder and thank-you emails for the new event
         TTA_Email_Reminders::schedule_event_emails( $event_id );
+        TTA_Email_Reminders::schedule_post_event_thanks( $event_id );
 
         // 8) Return success
         $page_url = $page_id ? get_permalink( $page_id ) : '';
@@ -354,6 +355,7 @@ class TTA_Ajax_Events {
         if ( $reschedule ) {
             TTA_Email_Reminders::clear_event_emails( $id );
             TTA_Email_Reminders::schedule_event_emails( $id );
+            TTA_Email_Reminders::schedule_post_event_thanks( $id );
         }
         TTA_Cache::flush();
         wp_send_json_success([ 'message'=>'Event updated!','page_url'=>$page_url ]);

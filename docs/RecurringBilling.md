@@ -13,6 +13,7 @@ To verify in the sandbox:
 3. Transaction history will show the initial payment (if the start date is the same day it may post the next business day) followed by monthly charges.
 
 Use the subscription ID stored in the `tta_members` table to manage the plan or cancel it via the admin tools. New member records begin with `subscription_status` set to `NULL` and are updated to `active` only when a Standard or Premium membership is purchased. When a member buys another membership, any prior subscription ID on file is cancelled through Authorize.Net before the new subscription is created so the member only ever has one active plan.
+Members may also upgrade or downgrade their plan from the Billing & Membership Info tab. The change uses `update_subscription_amount()` to adjust the monthly charge, subscription name, and description in Authorize.Net before updating the `tta_members` record.
 
 After a successful membership checkout the confirmation page now displays the returned
 `subscriptionId` along with the API result code. If the ID is missing, the profile

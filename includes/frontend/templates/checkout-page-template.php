@@ -124,6 +124,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
 
                 if ( 'reentry' === $membership_level ) {
                     tta_unban_user( get_current_user_id() );
+                    tta_reset_no_show_offset( get_current_user_id() );
                 } else {
                     $existing_sub = tta_get_user_subscription_id( get_current_user_id() );
                     if ( $existing_sub ) {

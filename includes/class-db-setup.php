@@ -154,6 +154,7 @@ class TTA_DB_Setup {
             opt_in_event_update_email       TINYINT(1) DEFAULT 0,
             opt_in_event_update_sms         TINYINT(1) DEFAULT 0,
             hide_event_attendance           TINYINT(1) DEFAULT 0,
+            no_show_offset                  INT UNSIGNED NOT NULL DEFAULT 0,
             banned_until                   DATETIME DEFAULT NULL,
             PRIMARY KEY  (id),
             KEY wpuserid_idx (wpuserid),

@@ -1,18 +1,26 @@
 # Email and SMS Templates
 
-The plugin sends automated notifications to members. Administrators can manage these messages from **TTA Email & SMS** in the WordPress admin. The page contains three tabs:
+The plugin sends automated notifications to members. Administrators can manage these messages from **TTA Email & SMS** in the WordPress admin. The page contains four tabs:
 
 1. **Email Templates** – existing template editor described below.
-2. **Email Logs** – lists scheduled reminder and thank‑you emails grouped by event. Reminder jobs are automatically queued whenever an event is created or its start time changes and are scheduled using the site's timezone setting. Each entry shows the send time in `MM-DD-YYYY HH:MMAM/PM` format along with a live `HH H, MM M, SS S` countdown using the site's timezone, exposes its current recipient list via AJAX, and can be deleted before it runs.
-3. **Email History** – a running log of all attempted emails including recipient address and delivery result. A **Clear Log** button removes all entries.
+2. **Mass Communications** – send a one-off email to all verified attendees of a selected event.
+3. **Email Logs** – lists scheduled reminder and thank‑you emails grouped by event. Reminder jobs are automatically queued whenever an event is created or its start time changes and are scheduled using the site's timezone setting. Post-event thank‑you emails are also scheduled when the event is created and run 18 hours after the event ends for attendees who checked in. Each entry shows the send time in `MM-DD-YYYY HH:MMAM/PM` format along with a live `HH H, MM M, SS S` countdown using the site's timezone, exposes its current recipient list via AJAX, and can be deleted before it runs.
+4. **Email History** – a running log of all attempted emails including recipient address and delivery result. A **Clear Log** button removes all entries.
 
 Templates are listed in a table similar to the Manage Events page. Click a row to expand an inline form containing the fields for that communication. Each form has its own **Save Changes** button and progress spinner.
+
+## Mass Communications Tab
+
+Select an event from the dropdown to automatically load the email addresses of all verified attendees. The list can be edited before sending so additional recipients can be added or removed. Enter a subject and body, insert any of the standard email tokens, preview the message and press **Send Email** to notify everyone at once.
 
 ## Available Templates
 
 | Key | Description |
 |-----|-------------|
 | `purchase` | Sent after a successful event purchase. Includes event details automatically. |
+| `membership_purchase` | Sent when a member purchases a membership. |
+| `membership_cancellation` | Sent when a member cancels their membership. |
+| `membership_change` | Sent when a member upgrades or downgrades their membership. |
 | `reminder_24hr` | Sent 24 hours before an event starts. |
 | `reminder_2hr` | Sent two hours before an event starts. |
 | `cancellation_requested` | Sent to a member when they cancel attendance for a free ticket. |
@@ -25,7 +33,7 @@ Templates are listed in a table similar to the Manage Events page. Click a row t
 | `volunteer_reminder_24hr` | Reminder to volunteers 24 hours before their event. |
 | `volunteer_reminder_2hr` | Reminder to volunteers two hours before their event. |
 | `assistance_request` | Sent to event hosts when a member asks for help finding the group. |
-| `post_event_review` | Sent 24 hours after an event is archived to attendees marked as checked in. |
+| `post_event_review` | Sent 18 hours after an event ends to attendees marked as checked in. |
 
 Each template stores:
 
@@ -45,6 +53,11 @@ Default values are provided on initial install:
 - **24-Hour Reminder Email Body**: "Heads-up! Your event is just 1 day away! Below are the details."
 - **2-Hour Reminder Email Body**: "Your event is only 2 hours away! Below are the details."
 - **Cancellation Requested Email Body**: "We're sorry you can't make it! Your attendance has been cancelled. Be sure to check out our other upcoming events here. See you next time!"
+- **Membership Purchase Email Subject**: "Welcome to your membership!"
+- **Membership Purchase Email Body**: "Thanks for becoming a {membership_level} member. You now have access to member benefits. Manage your membership anytime from your dashboard."
+- **Membership Cancellation Email Body**: "Your {membership_level} membership is now cancelled. We're sorry to see you go and hope to see you again soon!"
+- **Membership Change Email Subject**: "Your membership has been updated"
+- **Membership Change Email Body**: "Your membership is now {membership_level} at {membership_price} per month."
 - **Admin Notifications**: internal alerts are sent when events sell out.
 - **Host and Volunteer Reminders**: internal messages mirror attendee reminders at 24 and 2 hours before the event.
 
@@ -101,8 +114,24 @@ empty or omitted the full URL is printed.
 {email}
 {phone}
 {membership_level}
+{membership_price}
+{subscription_id}
 {member_type}
 ```
+
+`{membership_level}` will automatically capitalize the member's level (e.g., "Standard" or "Premium").
+
+### Date & Time
+
+```
+{current_time}
+{current_date}
+{current_weekday}
+{current_month}
+{current_day_of_month}
+```
+
+All values reflect Eastern Time when the message is sent. `{current_time}` outputs a human-readable time like `1:32 PM` and `{current_date}` formats as `9/3/2025`.
 
 ### Ban & Re-Entry
 

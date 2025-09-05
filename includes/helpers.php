@@ -146,6 +146,62 @@ function tta_collect_attendee_emails( array $attendees ) {
 }
 
 /**
+ * Normalize a description string for Authorize.Net.
+ *
+ * Removes non-ASCII characters and trims to the gateway's
+ * 255 character limit.
+ *
+ * @param string $desc Raw description.
+ * @return string      Sanitized description.
+ */
+function tta_normalize_authnet_description( $desc ) {
+    $desc = tta_sanitize_text_field( $desc );
+    $desc = preg_replace( '/[^\x20-\x7E]/', '', $desc );
+    if ( strlen( $desc ) > 255 ) {
+        $desc = substr( $desc, 0, 252 ) . '...';
+    }
+    return $desc;
+}
+
+/**
+ * Build an Authorize.Net order description from the cart and membership.
+ *
+ * Gathers unique event names and any membership purchase, then
+ * returns a safe, truncated string for use in the payment request.
+ *
+ * @return string Description text.
+ */
+function tta_build_order_description() {
+    $parts = [];
+
+    // Include event names from the cart.
+    $cart = new TTA_Cart();
+    foreach ( $cart->get_items() as $item ) {
+        $name = tta_sanitize_text_field( $item['event_name'] ?? '' );
+        if ( $name && ! in_array( $name, $parts, true ) ) {
+            $parts[] = $name;
+        }
+    }
+
+    // Include membership purchase if present.
+    $level = $_SESSION['tta_membership_purchase'] ?? '';
+    if ( 'basic' === $level ) {
+        $parts[] = 'Trying to Adult Standard Membership';
+    } elseif ( 'premium' === $level ) {
+        $parts[] = 'Trying to Adult Premium Membership';
+    } elseif ( 'reentry' === $level ) {
+        $parts[] = 'Trying to Adult Re-Entry Ticket';
+    }
+
+    if ( empty( $parts ) ) {
+        $parts[] = 'Trying to Adult RVA Order';
+    }
+
+    $desc = implode( '; ', $parts );
+    return tta_normalize_authnet_description( $desc );
+}
+
+/**
  * Get a member's current membership level by email.
  *
  * @param string $email Email address.
@@ -671,6 +727,26 @@ function tta_get_event_attendees_with_status( $event_ute_id ) {
         $out[] = $r;
     }
 
+    usort(
+        $out,
+        function ( $a, $b ) {
+            $order = [ 'pending' => 0, 'checked_in' => 1, 'no_show' => 2 ];
+            $sa    = $order[ $a['status'] ] ?? 99;
+            $sb    = $order[ $b['status'] ] ?? 99;
+            if ( $sa === $sb ) {
+                if ( 'pending' === $a['status'] ) {
+                    $aa = '-' === $a['assistance_note'] ? 1 : 0;
+                    $bb = '-' === $b['assistance_note'] ? 1 : 0;
+                    if ( $aa !== $bb ) {
+                        return $aa - $bb;
+                    }
+                }
+                return strcasecmp( $a['first_name'], $b['first_name'] );
+            }
+            return $sa - $sb;
+        }
+    );
+
     return $out;
 }
 
@@ -819,10 +895,16 @@ function tta_get_attendee_user_id( $attendee_id ) {
  */
 function tta_set_attendance_status( $attendee_id, $status ) {
     global $wpdb;
-    $att_table = $wpdb->prefix . 'tta_attendees';
-    $status    = in_array( $status, [ 'checked_in', 'no_show', 'pending' ], true ) ? $status : 'pending';
+    $att_table   = $wpdb->prefix . 'tta_attendees';
+    $att_archive = $wpdb->prefix . 'tta_attendees_archive';
+    $status      = in_array( $status, [ 'checked_in', 'no_show', 'pending' ], true ) ? $status : 'pending';
 
     $row   = $wpdb->get_row( $wpdb->prepare( "SELECT email FROM {$att_table} WHERE id = %d", $attendee_id ), ARRAY_A );
+    $table = $att_table;
+    if ( ! $row ) {
+        $row   = $wpdb->get_row( $wpdb->prepare( "SELECT email FROM {$att_archive} WHERE id = %d", $attendee_id ), ARRAY_A );
+        $table = $att_archive;
+    }
     $email = $row ? strtolower( sanitize_email( $row['email'] ) ) : '';
 
     $current = tta_get_attendance_status( $attendee_id );
@@ -830,11 +912,13 @@ function tta_set_attendance_status( $attendee_id, $status ) {
         return;
     }
 
-    $wpdb->update( $att_table, [ 'status' => $status ], [ 'id' => intval( $attendee_id ) ], [ '%s' ], [ '%d' ] );
+    $wpdb->update( $table, [ 'status' => $status ], [ 'id' => intval( $attendee_id ) ], [ '%s' ], [ '%d' ] );
     TTA_Cache::delete( 'attendance_status_' . intval( $attendee_id ) );
     if ( $email ) {
-        TTA_Cache::delete( 'attended_count_' . md5( $email ) );
-        TTA_Cache::delete( 'no_show_count_' . md5( $email ) );
+        $hash = md5( $email );
+        TTA_Cache::delete( 'attended_count_' . $hash );
+        TTA_Cache::delete( 'no_show_count_' . $hash );
+        TTA_Cache::delete( 'member_event_history_' . $hash );
     }
 
     $user_id = tta_get_attendee_user_id( $attendee_id );
@@ -846,7 +930,7 @@ function tta_set_attendance_status( $attendee_id, $status ) {
     if ( 'no_show' === $status && 'no_show' !== $current && $user_id ) {
         $no_shows        = tta_get_no_show_event_count_by_email( $email );
         $previous_no_show = max( 0, $no_shows - 1 );
-        if ( $no_shows >= 3 && $previous_no_show < 3 ) {
+        if ( $no_shows >= 5 && $previous_no_show < 5 ) {
             $members_table = $wpdb->prefix . 'tta_members';
             $wpdb->update( $members_table, [ 'banned_until' => TTA_BAN_UNTIL_REENTRY ], [ 'wpuserid' => $user_id ], [ '%s' ], [ '%d' ] );
             TTA_Cache::delete( 'banned_until_' . $user_id );
@@ -1632,6 +1716,25 @@ function tta_unban_user( $wp_user_id ) {
     TTA_Cache::delete( 'banned_until_' . intval( $wp_user_id ) );
     TTA_Cache::delete( 'banned_members' );
     tta_clear_reinstatement_cron( $wp_user_id );
+}
+
+/**
+ * Record the current no-show count so future bans require five new events.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ */
+function tta_reset_no_show_offset( $wp_user_id ) {
+    $wp_user_id = intval( $wp_user_id );
+    $user       = get_userdata( $wp_user_id );
+    if ( ! $user || ! $user->user_email ) {
+        return;
+    }
+    $email = strtolower( sanitize_email( $user->user_email ) );
+    $total = tta_get_no_show_event_count_by_email( $email, false );
+    global $wpdb;
+    $table = $wpdb->prefix . 'tta_members';
+    $wpdb->update( $table, [ 'no_show_offset' => $total ], [ 'wpuserid' => $wp_user_id ], [ '%d' ], [ '%d' ] );
+    TTA_Cache::delete( 'no_show_count_' . md5( $email ) );
 }
 
 add_action( 'tta_reinstate_member', 'tta_unban_user', 10, 1 );
@@ -3114,6 +3217,61 @@ function tta_get_member_billing_history( $wp_user_id ) {
 }
 
 /**
+ * Retrieve event attendance history for a member.
+ *
+ * @param string $email Member email address.
+ * @return array[] List of events with attendee IDs and statuses.
+ */
+function tta_get_member_event_history( $email ) {
+    $email = strtolower( sanitize_email( $email ) );
+    if ( ! $email ) {
+        return [];
+    }
+
+    $cache_key = 'member_event_history_' . md5( $email );
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $att_table       = $wpdb->prefix . 'tta_attendees';
+    $att_archive     = $wpdb->prefix . 'tta_attendees_archive';
+    $tickets_table   = $wpdb->prefix . 'tta_tickets';
+    $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
+    $events_table    = $wpdb->prefix . 'tta_events';
+    $events_archive  = $wpdb->prefix . 'tta_events_archive';
+
+    $sql = "(SELECT a.id AS att_id, a.status, e.name, e.date
+               FROM {$att_table} a
+               JOIN {$tickets_table} t ON a.ticket_id = t.id
+               JOIN {$events_table} e ON t.event_ute_id = e.ute_id
+              WHERE LOWER(a.email) = %s)
+            UNION ALL
+            (SELECT a.id AS att_id, a.status, e.name, e.date
+               FROM {$att_archive} a
+               JOIN {$tickets_archive} t ON a.ticket_id = t.id
+               JOIN {$events_archive} e ON t.event_ute_id = e.ute_id
+              WHERE LOWER(a.email) = %s)
+            ORDER BY date DESC";
+
+    $rows = $wpdb->get_results( $wpdb->prepare( $sql, $email, $email ), ARRAY_A );
+    $events = [];
+    foreach ( $rows as $r ) {
+        $events[] = [
+            'attendee_id' => intval( $r['att_id'] ),
+            'name'        => sanitize_text_field( $r['name'] ),
+            'date'        => $r['date'],
+            'status'      => sanitize_text_field( $r['status'] ),
+        ];
+    }
+
+    $ttl = empty( $events ) ? 60 : 300;
+    TTA_Cache::set( $cache_key, $events, $ttl );
+    return $events;
+}
+
+/**
  * Retrieve all refund requests submitted by members.
  *
  * @return array[] List of refund requests.
@@ -3653,7 +3811,7 @@ function tta_get_attended_event_count_by_email( $email ) {
  * @param string $email Attendee email address.
  * @return int Number of no-shows.
  */
-function tta_get_no_show_event_count_by_email( $email ) {
+function tta_get_no_show_event_count_by_email( $email, $adjust = true ) {
     $email = strtolower( sanitize_email( $email ) );
     if ( '' === $email ) {
         return 0;
@@ -3661,7 +3819,7 @@ function tta_get_no_show_event_count_by_email( $email ) {
 
     $cache_key = 'no_show_count_' . md5( $email );
     $cached    = TTA_Cache::get( $cache_key );
-    if ( false !== $cached ) {
+    if ( $adjust && false !== $cached ) {
         return intval( $cached );
     }
 
@@ -3679,7 +3837,15 @@ function tta_get_no_show_event_count_by_email( $email ) {
         $email
     ) );
 
-    TTA_Cache::set( $cache_key, $count, 300 );
+    if ( $adjust ) {
+        $offset = (int) $wpdb->get_var( $wpdb->prepare(
+            "SELECT no_show_offset FROM {$wpdb->prefix}tta_members WHERE LOWER(email) = %s",
+            $email
+        ) );
+        $count = max( 0, $count - $offset );
+        TTA_Cache::set( $cache_key, $count, 300 );
+    }
+
     return $count;
 }
 
@@ -3967,16 +4133,29 @@ function tta_get_transaction_event_attendees( $gateway_tx_id, $event_id ) {
  * Build a user context array for a specific user ID.
  *
  * @param int $user_id WordPress user ID.
- * @return array
+ * @return array {
+ *     wp_user_id:int,
+ *     user_email:string,
+ *     first_name:string,
+ *     last_name:string,
+ *     member:?array,
+ *     membership_level:string,
+ *     subscription_id:?string,
+ *     subscription_status:?string,
+ *     banned_until:?string,
+ * }
  */
 function tta_get_user_context_by_id( $user_id ) {
     $context = [
-        'wp_user_id'       => intval( $user_id ),
-        'user_email'       => '',
-        'first_name'       => '',
-        'last_name'        => '',
-        'member'           => null,
-        'membership_level' => 'free',
+        'wp_user_id'         => intval( $user_id ),
+        'user_email'         => '',
+        'first_name'         => '',
+        'last_name'          => '',
+        'member'             => null,
+        'membership_level'   => 'free',
+        'subscription_id'    => null,
+        'subscription_status'=> null,
+        'banned_until'       => null,
     ];
 
     $user = get_user_by( 'ID', $user_id );
@@ -3994,8 +4173,11 @@ function tta_get_user_context_by_id( $user_id ) {
     }, 300 );
 
     if ( is_array( $member ) ) {
-        $context['member']           = $member;
-        $context['membership_level'] = $member['membership_level'] ?? 'free';
+        $context['member']            = $member;
+        $context['membership_level']  = $member['membership_level'] ?? 'free';
+        $context['subscription_id']   = $member['subscription_id'] ?? null;
+        $context['subscription_status'] = $member['subscription_status'] ?? null;
+        $context['banned_until']      = $member['banned_until'] ?? null;
     }
 
     return $context;

@@ -593,3 +593,11 @@
         width: 100%;
     }
 }
+
+.tta-membership-actions {
+  margin-top: 20px;
+}
+.tta-membership-actions .button {
+  min-width: 200px;
+  margin-bottom: 10px;
+}

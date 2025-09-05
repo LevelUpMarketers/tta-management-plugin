@@ -67,6 +67,10 @@ Scrolling accounts for any fixed header on the site. Adjust the selector in `eve
 
 Logged-in members instead see links to profile info, upcoming events, past events, and membership/billing details. Each link loads the Member Dashboard with the matching tab active. A log out link is also provided which returns the user to the same event page after signing out.
 
+## Refund Policy Section
+
+The sidebar now includes a **Refund Policy** accordion detailing how event registrations and memberships are handled. For event registrations, attendees can cancel their attendance or request refunds from the "Your Upcoming Events" tab of the Member Dashboard. The section also outlines membership cancellation rules and links to both the Member Dashboard and the site's Rules & Policies page for more information.
+
 ## Image Gallery
 
 Events can include additional photos displayed in an expandable gallery. The gallery uses a masonry-style layout so images of varying dimensions fit nicely together with minimal gaps.
