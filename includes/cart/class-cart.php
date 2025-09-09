@@ -26,6 +26,9 @@ class TTA_Cart {
       $_SESSION['tta_cart_session'] = wp_generate_uuid4();
     }
     $this->session_key = $_SESSION['tta_cart_session'];
+    if ( empty( $_SESSION['tta_checkout_key'] ) ) {
+      $_SESSION['tta_checkout_key'] = $_SESSION['tta_cart_session'];
+    }
   }
 
   protected function ensure_cart( $create = true ) {
@@ -508,7 +511,7 @@ class TTA_Cart {
    * @param float  $amount         Charged amount.
    * @param array  $attendees      Optional attendee info keyed by ticket ID.
    */
-  public function finalize_purchase( $transaction_id = '', $amount = 0, array $attendees = [], $card_last4 = '' ) {
+  public function finalize_purchase( $transaction_id = '', $amount = 0, array $attendees = [], $card_last4 = '', $checkout_key = '' ) {
     global $wpdb;
 
     $discount_codes = $_SESSION['tta_discount_codes'] ?? [];
@@ -552,7 +555,7 @@ class TTA_Cart {
     if ( ! $transaction_id ) {
       $transaction_id = 'FREE-' . uniqid();
     }
-    TTA_Transaction_Logger::log( $transaction_id, $amount, $items, implode( ',', $discount_codes ), $discount_total, $user_id, $card_last4 );
+    TTA_Transaction_Logger::log( $transaction_id, $amount, $items, implode( ',', $discount_codes ), $discount_total, $user_id, $card_last4, $checkout_key );
     TTA_Email_Handler::get_instance()->send_purchase_emails( $items, $user_id );
     TTA_SMS_Handler::get_instance()->send_purchase_texts( $items, $user_id );
     tta_remove_purchased_from_waitlists( $items, $user_id );
@@ -561,6 +564,7 @@ class TTA_Cart {
     $wpdb->delete( $this->carts_table, [ 'id' => $this->cart_id ], [ '%d' ] );
 
     unset( $_SESSION['tta_cart_session'] );
+    unset( $_SESSION['tta_checkout_key'] );
     unset( $_SESSION['tta_discount_codes'] );
 
     do_action( 'tta_checkout_complete', $this->cart_id );

@@ -18,8 +18,9 @@ class TTA_Transaction_Logger {
      * @param string $discount_code  Discount code used at checkout
      * @param float  $discount_saved Total savings from discounts
      * @param int    $user_id        Optional WordPress user ID
+     * @param string $checkout_key   Unique key for idempotent checkout.
      */
-    public static function log( $transaction_id, $amount, array $items, $discount_code = '', $discount_saved = 0, $user_id = 0, $card_last4 = '' ) {
+    public static function log( $transaction_id, $amount, array $items, $discount_code = '', $discount_saved = 0, $user_id = 0, $card_last4 = '', $checkout_key = '' ) {
         global $wpdb;
 
         $user_id = $user_id ?: get_current_user_id();
@@ -44,11 +45,12 @@ class TTA_Transaction_Logger {
                 'amount'         => $amount,
                 'refunded'       => 0,
                 'card_last4'     => sanitize_text_field( $card_last4 ),
+                'checkout_key'   => sanitize_text_field( $checkout_key ),
                 'discount_code'  => $discount_code,
                 'discount_saved' => $discount_saved,
                 'details'        => wp_json_encode( $items ),
             ],
-            [ '%d', '%d', '%s', '%f', '%f', '%s', '%s', '%f', '%s' ]
+            [ '%d', '%d', '%s', '%f', '%f', '%s', '%s', '%s', '%f', '%s' ]
         );
 
         $txn_id   = $wpdb->insert_id;

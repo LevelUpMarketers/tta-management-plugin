@@ -299,6 +299,7 @@ class TTA_DB_Setup {
             wpuserid        BIGINT UNSIGNED NOT NULL,
             member_id       BIGINT UNSIGNED NULL,
             transaction_id  VARCHAR(50)     NOT NULL,
+            checkout_key    VARCHAR(50)     DEFAULT '',
             amount          DECIMAL(10,2)  NOT NULL,
             refunded        DECIMAL(10,2)  DEFAULT 0.00,
             card_last4      VARCHAR(4)     DEFAULT '',
@@ -309,7 +310,8 @@ class TTA_DB_Setup {
             PRIMARY KEY     (id),
             KEY wpuserid_idx       (wpuserid),
             KEY member_id_idx      (member_id),
-            KEY transaction_id_idx (transaction_id)
+            KEY transaction_id_idx (transaction_id),
+            KEY checkout_key_idx   (checkout_key)
         ) $charset_collate";
 
         // ─────────────────────────────────────────────────────────────────

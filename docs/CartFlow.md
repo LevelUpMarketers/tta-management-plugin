@@ -61,6 +61,9 @@ This document summarizes the current logic around the cart and checkout process 
   - On success, `TTA_Cart::finalize_purchase()` logs the transaction, stores each ticket's attendee info in the `tta_attendees` table, clears the cart tables, removes all discount codes, and triggers the `tta_checkout_complete` action. Inventory has already been reserved when items were added. The checkout page then displays a custom message summarizing any membership purchased and lists the logged‑in member's email along with every unique attendee address. Duplicate addresses are removed case‑insensitively while preserving the original casing, and the receipt list only appears when tickets were part of the order. The AJAX response normalizes the email array so the front‑end receives a proper list when multiple events are purchased in one transaction. The message expands automatically so all email addresses remain visible regardless of list length.
   - After a successful purchase, anyone associated with the transaction is removed from the waitlist for the tickets they bought.
 
+  - Each cart now includes a unique **checkout key**. This key is sent with the payment request, stored on the `tta_transactions` table and used as the Authorize.Net `invoiceNumber`. Before charging, the server checks for an existing row with that key to avoid duplicate transactions and provide atomic, idempotent checkout.
+  - The **Place Order** button is disabled while a request is in progress and this state persists across reloads via `sessionStorage`. If the browser is refreshed mid‑checkout the button remains disabled and the page polls a `tta_checkout_status` endpoint until the original request completes.
+
 4. **Cleanup**
    - `TTA_Cart_Cleanup` schedules an hourly task and also runs on checkout completion to remove expired cart rows.
    - A second cron task runs every ten minutes to purge expired cart items and free their ticket inventory.

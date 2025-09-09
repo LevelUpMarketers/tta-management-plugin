@@ -6,26 +6,99 @@ if ( ! defined( 'ABSPATH' ) ) {
 class TTA_Ajax_Checkout {
 
     public static function init() {
-        add_action( 'wp_ajax_tta_do_checkout', [ __CLASS__, 'do_checkout' ] );
-        add_action( 'wp_ajax_nopriv_tta_do_checkout', [ __CLASS__, 'do_checkout' ] );
+        add_action( 'wp_ajax_tta_checkout', [ __CLASS__, 'checkout' ] );
+        add_action( 'wp_ajax_nopriv_tta_checkout', [ __CLASS__, 'checkout' ] );
+        add_action( 'wp_ajax_tta_checkout_status', [ __CLASS__, 'status' ] );
+        add_action( 'wp_ajax_nopriv_tta_checkout_status', [ __CLASS__, 'status' ] );
     }
 
-    public static function do_checkout() {
+    protected static function get_client_ip() {
+        $ip = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? ( $_SERVER['HTTP_X_FORWARDED_FOR'] ?? ( $_SERVER['REMOTE_ADDR'] ?? '' ) );
+        if ( is_string( $ip ) ) {
+            $ips = explode( ',', $ip );
+            $ip  = trim( $ips[0] );
+        }
+        return sanitize_text_field( $ip );
+    }
+
+    public static function status() {
+        check_ajax_referer( 'tta_checkout_action', 'nonce' );
+        $key = sanitize_text_field( $_POST['checkout_key'] ?? '' );
+        if ( ! $key ) {
+            wp_send_json_error( [ 'message' => __( 'Missing checkout key.', 'tta' ) ] );
+        }
+        global $wpdb;
+        $txn_table = $wpdb->prefix . 'tta_transactions';
+        $txn = $wpdb->get_var( $wpdb->prepare( "SELECT transaction_id FROM {$txn_table} WHERE checkout_key = %s LIMIT 1", $key ) );
+        if ( $txn ) {
+            wp_send_json_success( [ 'transaction_id' => $txn ] );
+        }
+        wp_send_json_success( [ 'transaction_id' => '' ] );
+    }
+
+    public static function checkout() {
         check_ajax_referer( 'tta_checkout_action', 'nonce' );
 
-        $cart = new TTA_Cart();
-        $discount_codes   = $_SESSION['tta_discount_codes'] ?? [];
+        $checkout_key = sanitize_text_field( $_POST['checkout_key'] ?? '' );
+        if ( ! $checkout_key ) {
+            wp_send_json_error( [ 'message' => __( 'Missing checkout key.', 'tta' ) ] );
+        }
 
+        global $wpdb;
+        $txn_table = $wpdb->prefix . 'tta_transactions';
+        $existing = $wpdb->get_var( $wpdb->prepare( "SELECT transaction_id FROM {$txn_table} WHERE checkout_key = %s LIMIT 1", $checkout_key ) );
+        if ( $existing ) {
+            wp_send_json_success( [ 'transaction_id' => $existing ] );
+        }
+
+        $cart            = new TTA_Cart();
+        $discount_codes   = $_SESSION['tta_discount_codes'] ?? [];
         $ticket_total     = $cart->get_total( $discount_codes, false );
         $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
         $membership_total = in_array( $membership_level, [ 'basic', 'premium', 'reentry' ], true ) ? tta_get_membership_price( $membership_level ) : 0;
         $amount           = $ticket_total + $membership_total;
 
-        $transaction_id = tta_sanitize_text_field( $_POST['transaction_id'] ?? '' );
-        $last4          = substr( preg_replace( '/\D/', '', $_POST['last4'] ?? '' ), -4 );
+        $billing = isset( $_POST['billing'] ) && is_array( $_POST['billing'] ) ? $_POST['billing'] : [];
+        $billing_clean = [
+            'first_name' => tta_sanitize_text_field( $billing['first_name'] ?? '' ),
+            'last_name'  => tta_sanitize_text_field( $billing['last_name'] ?? '' ),
+            'email'      => sanitize_email( $billing['email'] ?? '' ),
+            'address'    => tta_sanitize_text_field( $billing['address'] ?? '' ),
+            'address2'   => tta_sanitize_text_field( $billing['address2'] ?? '' ),
+            'city'       => tta_sanitize_text_field( $billing['city'] ?? '' ),
+            'state'      => tta_sanitize_text_field( $billing['state'] ?? '' ),
+            'zip'        => preg_replace( '/\D/', '', $billing['zip'] ?? '' ),
+            'country'    => 'USA',
+        ];
 
-        if ( $amount > 0 && empty( $transaction_id ) ) {
-            wp_send_json_error( [ 'message' => __( 'Missing transaction ID.', 'tta' ) ] );
+        $opaque = isset( $_POST['opaqueData'] ) && is_array( $_POST['opaqueData'] ) ? $_POST['opaqueData'] : [];
+        $has_token = ! empty( $opaque['dataDescriptor'] ) && ! empty( $opaque['dataValue'] );
+
+        if ( $amount > 0 && ! $has_token ) {
+            wp_send_json_error( [ 'message' => __( 'Payment token missing.', 'tta' ) ] );
+        }
+
+        if ( $has_token ) {
+            $billing_clean['opaqueData'] = [
+                'dataDescriptor' => sanitize_text_field( $opaque['dataDescriptor'] ),
+                'dataValue'      => sanitize_text_field( $opaque['dataValue'] ),
+            ];
+        }
+
+        $billing_clean['invoice']     = substr( preg_replace( '/[^A-Za-z0-9]/', '', $checkout_key ), 0, 20 );
+        $billing_clean['description'] = tta_build_order_description();
+        $billing_clean['ip']          = self::get_client_ip();
+
+        $transaction_id = '';
+        $last4 = substr( preg_replace( '/\D/', '', $_POST['last4'] ?? '' ), -4 );
+
+        if ( $amount > 0 ) {
+            $api = new TTA_AuthorizeNet_API();
+            $res = $api->charge( $amount, '', '', '', $billing_clean );
+            if ( empty( $res['success'] ) ) {
+                wp_send_json_error( [ 'message' => $res['error'] ?? __( 'Payment failed', 'tta' ) ] );
+            }
+            $transaction_id = $res['transaction_id'];
         }
 
         if ( $membership_total > 0 && $transaction_id ) {
@@ -43,7 +116,8 @@ class TTA_Ajax_Checkout {
                 '',
                 0,
                 get_current_user_id(),
-                $last4
+                $last4,
+                $checkout_key
             );
 
             if ( 'reentry' === $membership_level ) {
@@ -65,16 +139,14 @@ class TTA_Ajax_Checkout {
                     wp_send_json_error( [ 'message' => $sub['error'] ] );
                 }
                 tta_update_user_membership_level( get_current_user_id(), $membership_level, $sub['subscription_id'], 'active' );
-                $_SESSION['tta_checkout_sub'] = [
-                    'subscription_id' => $sub['subscription_id'],
-                ];
+                $_SESSION['tta_checkout_sub'] = [ 'subscription_id' => $sub['subscription_id'] ];
                 unset( $_SESSION['tta_membership_purchase'] );
             }
         }
 
         $attendees   = $_POST['attendees'] ?? [];
         $has_tickets = ! empty( $attendees );
-        $res         = $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4 );
+        $res = $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4, $checkout_key );
         if ( is_wp_error( $res ) ) {
             wp_send_json_error( [ 'message' => $res->get_error_message() ] );
         }
@@ -101,10 +173,11 @@ class TTA_Ajax_Checkout {
         $message = __( 'Thank you for your purchase!', 'tta' );
         wp_send_json_success(
             [
-                'message'     => $message,
-                'emails'      => $emails,
-                'membership'  => $_SESSION['tta_checkout_membership'],
-                'has_tickets' => $has_tickets,
+                'transaction_id' => $transaction_id,
+                'message'        => $message,
+                'emails'         => $emails,
+                'membership'     => $_SESSION['tta_checkout_membership'],
+                'has_tickets'    => $has_tickets,
             ]
         );
     }

@@ -282,3 +282,13 @@ installs update automatically, or run:
 ALTER TABLE `wp_j9bzlz98u3_tta_members`
   ADD COLUMN `no_show_offset` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `hide_event_attendance`;
 ```
+
+## Checkout key for idempotent transactions
+
+Version 1.13.0 introduces a `checkout_key` column on `tta_transactions` to avoid duplicate charges. Existing installs upgrade automatically or run:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_transactions`
+  ADD COLUMN `checkout_key` VARCHAR(50) DEFAULT '' AFTER `transaction_id`,
+  ADD KEY `checkout_key_idx` (`checkout_key`);
+```

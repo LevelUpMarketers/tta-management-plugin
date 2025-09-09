@@ -510,6 +510,12 @@ class TTA_Assets {
                 ]
             );
 
+            if ( ! session_id() ) {
+                session_start();
+            }
+            if ( empty( $_SESSION['tta_checkout_key'] ) && ! empty( $_SESSION['tta_cart_session'] ) ) {
+                $_SESSION['tta_checkout_key'] = $_SESSION['tta_cart_session'];
+            }
             wp_localize_script(
                 'tta-checkout-process',
                 'tta_checkout',
@@ -520,6 +526,7 @@ class TTA_Assets {
                     'dashboard_url'  => home_url( '/member-dashboard/?tab=billing' ),
                     'basic_price'    => TTA_BASIC_MEMBERSHIP_PRICE,
                     'premium_price'  => TTA_PREMIUM_MEMBERSHIP_PRICE,
+                    'checkout_key'   => sanitize_text_field( $_SESSION['tta_checkout_key'] ?? '' ),
                 ]
             );
 
