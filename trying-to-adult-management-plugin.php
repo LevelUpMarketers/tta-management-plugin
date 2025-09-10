@@ -52,6 +52,7 @@ $tta_authnet_sandbox     = get_option( 'tta_authnet_sandbox', false );
 $creds                   = tta_get_authnet_credentials( (bool) $tta_authnet_sandbox );
 $tta_authnet_login       = $creds['login_id'];
 $tta_authnet_transaction = $creds['transaction_key'];
+$tta_authnet_client      = $creds['client_key'];
 $tta_sendgrid_key        = get_option( 'tta_sendgrid_api_key' );
 
 if ( ! $tta_authnet_login && getenv( 'TTA_AUTHNET_LOGIN_ID' ) ) {
@@ -59,6 +60,9 @@ if ( ! $tta_authnet_login && getenv( 'TTA_AUTHNET_LOGIN_ID' ) ) {
 }
 if ( ! $tta_authnet_transaction && getenv( 'TTA_AUTHNET_TRANSACTION_KEY' ) ) {
     $tta_authnet_transaction = getenv( 'TTA_AUTHNET_TRANSACTION_KEY' );
+}
+if ( ! $tta_authnet_client && getenv( 'TTA_AUTHNET_CLIENT_KEY' ) ) {
+    $tta_authnet_client = getenv( 'TTA_AUTHNET_CLIENT_KEY' );
 }
 if ( ! $tta_sendgrid_key && getenv( 'TTA_SENDGRID_API_KEY' ) ) {
     $tta_sendgrid_key = getenv( 'TTA_SENDGRID_API_KEY' );
@@ -69,6 +73,9 @@ if ( $tta_authnet_login ) {
 }
 if ( $tta_authnet_transaction ) {
     define( 'TTA_AUTHNET_TRANSACTION_KEY', $tta_authnet_transaction );
+}
+if ( $tta_authnet_client ) {
+    define( 'TTA_AUTHNET_CLIENT_KEY', $tta_authnet_client );
 }
 if ( $tta_sendgrid_key && ! defined( 'TTA_SENDGRID_API_KEY' ) ) {
     define( 'TTA_SENDGRID_API_KEY', $tta_sendgrid_key );

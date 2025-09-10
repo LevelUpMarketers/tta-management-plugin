@@ -6,10 +6,11 @@ The checkout page now uses [Authorize.Net Accept.js](https://developer.authorize
 - `Accept.js` is loaded from Authorize.Net's CDN based on the sandbox or live mode.
 - Handler script: `assets/js/frontend/tta-accept-checkout.js` intercepts the checkout form and exchanges card data for an opaque token.
 - If tokenization is unavailable, the script posts the raw card details as a fallback so checkout can continue.
+- The script requires the API Login ID and a public **client key**. The key is pulled from the `tta_authnet_public_client_key_*` options or the `TTA_AUTHNET_CLIENT_KEY` environment variable.
 
 ## AJAX flow
-1. The token and billing details are posted to `admin-ajax.php` via the `tta_process_payment` action (the action is passed in the query string to satisfy WordPress's admin-ajax routing).
-2. The handler sanitizes the request, builds an invoice, and composes an order description from the cart's event names and any membership purchase. The description is stripped of non-ASCII characters and truncated to Authorize.Net's 255 character limit before calling `TTA_AuthorizeNet_API::charge()`.
+1. The token and billing details are posted to `admin-ajax.php` via the `tta_checkout` action.
+2. The handler sanitizes the request, builds an invoice, and composes an order description from the cart's event names and any membership purchase. The description is stripped of non-ASCII characters and truncated to Authorize.Net's 255 character limit before charging.
 3. The charge prefers opaque data and falls back to raw PAN only when no token is provided.
 
 Successful responses return a JSON object containing the `transaction_id`; failures return a friendly error message displayed in `#tta-checkout-response`.

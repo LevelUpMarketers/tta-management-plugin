@@ -25,22 +25,27 @@ class AuthorizeNetCredentialsTest extends TestCase {
     public function test_fetches_credentials_for_each_environment() {
         update_option( 'tta_authnet_login_id_live', 'liveLogin' );
         update_option( 'tta_authnet_transaction_key_live', 'liveKey' );
+        update_option( 'tta_authnet_public_client_key_live', 'liveClient' );
         update_option( 'tta_authnet_login_id_sandbox', 'sandLogin' );
         update_option( 'tta_authnet_transaction_key_sandbox', 'sandKey' );
+        update_option( 'tta_authnet_public_client_key_sandbox', 'sandClient' );
 
         update_option( 'tta_authnet_sandbox', 0 );
         $creds = tta_get_authnet_credentials();
         $this->assertSame( 'liveLogin', $creds['login_id'] );
         $this->assertSame( 'liveKey', $creds['transaction_key'] );
+        $this->assertSame( 'liveClient', $creds['client_key'] );
 
         update_option( 'tta_authnet_sandbox', 1 );
         $creds = tta_get_authnet_credentials();
         $this->assertSame( 'sandLogin', $creds['login_id'] );
         $this->assertSame( 'sandKey', $creds['transaction_key'] );
+        $this->assertSame( 'sandClient', $creds['client_key'] );
 
         // Explicit parameter overrides option
         $creds = tta_get_authnet_credentials( false );
         $this->assertSame( 'liveLogin', $creds['login_id'] );
+        $this->assertSame( 'liveClient', $creds['client_key'] );
     }
 }
 ?>
