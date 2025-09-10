@@ -109,7 +109,7 @@ function tta_sanitize_email( $value ) {
  * Retrieve stored Authorize.Net credentials for live or sandbox mode.
  *
  * @param bool|null $sandbox Whether to fetch sandbox credentials. Null uses current option.
- * @return array{login_id:string, transaction_key:string}
+ * @return array{login_id:string, transaction_key:string, client_key:string}
  */
 function tta_get_authnet_credentials( $sandbox = null ) {
     if ( null === $sandbox ) {

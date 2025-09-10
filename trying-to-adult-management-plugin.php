@@ -90,9 +90,9 @@ if ( is_admin() ) {
         'admin_notices',
         function () {
             $c = tta_get_authnet_credentials();
-            if ( current_user_can( 'manage_options' ) && ( empty( $c['login_id'] ) || empty( $c['transaction_key'] ) ) ) {
+            if ( current_user_can( 'manage_options' ) && ( empty( $c['login_id'] ) || empty( $c['transaction_key'] ) || empty( $c['client_key'] ) ) ) {
                 echo '<div class="notice notice-error"><p>' .
-                    esc_html__( 'Authorize.Net credentials are not configured. Enter them under TTA Settings → API Settings.', 'tta' ) .
+                    esc_html__( 'Authorize.Net credentials are not configured. Enter the Login ID, Transaction Key, and Client Key under TTA Settings → API Settings.', 'tta' ) .
                     '</p></div>';
             }
         }
