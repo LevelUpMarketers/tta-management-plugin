@@ -23,12 +23,20 @@ class TTA_DB_Setup {
 
         $sql_statements = [];
 
-        // Drop non-unique checkout key index before upgrading to unique.
+        // Drop non-unique checkout key index and ensure existing rows have unique
+        // values before converting the index to UNIQUE.
         $txn_table = "{$prefix}transactions";
         if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $txn_table ) ) ) {
             $idx = $wpdb->get_results( "SHOW INDEX FROM {$txn_table} WHERE Key_name = 'checkout_key_idx'" );
             if ( $idx && (int) $idx[0]->Non_unique === 1 ) {
                 $wpdb->query( "ALTER TABLE {$txn_table} DROP INDEX checkout_key_idx" );
+            }
+
+            // Populate blank checkout keys with a unique legacy value so the UNIQUE
+            // constraint can be added without errors.
+            $col = $wpdb->get_results( "SHOW COLUMNS FROM {$txn_table} LIKE 'checkout_key'" );
+            if ( $col ) {
+                $wpdb->query( "UPDATE {$txn_table} SET checkout_key = CONCAT('legacy-', id) WHERE checkout_key = '' OR checkout_key IS NULL" );
             }
         }
 

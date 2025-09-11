@@ -304,3 +304,4 @@ ALTER TABLE `wp_j9bzlz98u3_tta_transactions`
 ```
 
 The installer drops the previous non-unique index automatically before adding the unique key to avoid duplicate key errors during upgrade.
+Before the constraint is added, any existing rows with a blank `checkout_key` are updated to `legacy-{id}` so the new unique index can be created safely.
