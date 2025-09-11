@@ -222,7 +222,8 @@ class TTA_Sample_Data {
                         '',
                         0,
                         intval( $members[ $index % count( $members ) ]['wpuserid'] ),
-                        sprintf( '%04d', rand( 1000, 9999 ) )
+                        sprintf( '%04d', rand( 1000, 9999 ) ),
+                        ''
                     );
                     $txn_id = $wpdb->insert_id;
                 } else {
