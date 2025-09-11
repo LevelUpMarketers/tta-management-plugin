@@ -46,9 +46,21 @@ class TTA_Ajax_Checkout {
 
         global $wpdb;
         $txn_table = $wpdb->prefix . 'tta_transactions';
-        $existing = $wpdb->get_var( $wpdb->prepare( "SELECT transaction_id FROM {$txn_table} WHERE checkout_key = %s LIMIT 1", $checkout_key ) );
-        if ( $existing ) {
-            wp_send_json_success( [ 'transaction_id' => $existing ] );
+        $wpdb->query(
+            $wpdb->prepare(
+                "INSERT INTO {$txn_table} (wpuserid, transaction_id, checkout_key, amount)
+                 VALUES (%d, '', %s, 0)
+                 ON DUPLICATE KEY UPDATE checkout_key = checkout_key",
+                get_current_user_id(),
+                $checkout_key
+            )
+        );
+        if ( 0 === $wpdb->rows_affected ) {
+            $existing = $wpdb->get_var( $wpdb->prepare( "SELECT transaction_id FROM {$txn_table} WHERE checkout_key = %s LIMIT 1", $checkout_key ) );
+            if ( $existing ) {
+                wp_send_json_success( [ 'transaction_id' => $existing ] );
+            }
+            wp_send_json_error( [ 'message' => __( 'Checkout already in progress.', 'tta' ) ] );
         }
 
         $cart            = new TTA_Cart();
@@ -96,12 +108,14 @@ class TTA_Ajax_Checkout {
             $api = new TTA_AuthorizeNet_API();
             $res = $api->charge( $amount, '', '', '', $billing_clean );
             if ( empty( $res['success'] ) ) {
+                $wpdb->delete( $txn_table, [ 'checkout_key' => $checkout_key ], [ '%s' ] );
                 wp_send_json_error( [ 'message' => $res['error'] ?? __( 'Payment failed', 'tta' ) ] );
             }
             $transaction_id = $res['transaction_id'];
         }
 
         if ( $membership_total > 0 && $transaction_id ) {
+            $membership_key = $ticket_total > 0 ? substr( $checkout_key, 0, 46 ) . '-m' : $checkout_key;
             TTA_Transaction_Logger::log(
                 $transaction_id,
                 $membership_total,
@@ -117,7 +131,7 @@ class TTA_Ajax_Checkout {
                 0,
                 get_current_user_id(),
                 $last4,
-                $checkout_key
+                $membership_key
             );
 
             if ( 'reentry' === $membership_level ) {
@@ -146,9 +160,14 @@ class TTA_Ajax_Checkout {
 
         $attendees   = $_POST['attendees'] ?? [];
         $has_tickets = ! empty( $attendees );
-        $res = $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4, $checkout_key );
-        if ( is_wp_error( $res ) ) {
-            wp_send_json_error( [ 'message' => $res->get_error_message() ] );
+        if ( $ticket_total > 0 ) {
+            $res = $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4, $checkout_key );
+            if ( is_wp_error( $res ) ) {
+                wp_send_json_error( [ 'message' => $res->get_error_message() ] );
+            }
+        } else {
+            $cart->empty_cart();
+            unset( $_SESSION['tta_cart_session'], $_SESSION['tta_checkout_key'], $_SESSION['tta_discount_codes'] );
         }
 
         if ( $membership_total > 0 && in_array( $membership_level, [ 'basic', 'premium' ], true ) ) {

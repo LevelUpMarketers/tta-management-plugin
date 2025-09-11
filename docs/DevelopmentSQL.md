@@ -292,3 +292,13 @@ ALTER TABLE `wp_j9bzlz98u3_tta_transactions`
   ADD COLUMN `checkout_key` VARCHAR(50) DEFAULT '' AFTER `transaction_id`,
   ADD KEY `checkout_key_idx` (`checkout_key`);
 ```
+
+## Enforce checkout key uniqueness
+
+Version 1.13.1 converts the `checkout_key` index to a unique index to guarantee a single transaction per key:
+
+```sql
+ALTER TABLE `wp_j9bzlz98u3_tta_transactions`
+  DROP KEY `checkout_key_idx`,
+  ADD UNIQUE KEY `checkout_key_idx` (`checkout_key`);
+```

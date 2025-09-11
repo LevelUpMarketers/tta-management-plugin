@@ -311,7 +311,7 @@ class TTA_DB_Setup {
             KEY wpuserid_idx       (wpuserid),
             KEY member_id_idx      (member_id),
             KEY transaction_id_idx (transaction_id),
-            KEY checkout_key_idx   (checkout_key)
+            UNIQUE KEY checkout_key_idx   (checkout_key)
         ) $charset_collate";
 
         // ─────────────────────────────────────────────────────────────────
