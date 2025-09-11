@@ -12,5 +12,6 @@ The checkout page now uses [Authorize.Net Accept.js](https://developer.authorize
 1. The token and billing details are posted to `admin-ajax.php` via the `tta_checkout` action.
 2. The handler sanitizes the request, builds an invoice, and composes an order description from the cart's event names and any membership purchase. The description is stripped of non-ASCII characters and truncated to Authorize.Net's 255 character limit before charging.
 3. The charge prefers opaque data and falls back to raw PAN only when no token is provided.
+4. When a membership is in the cart, the server may respond requesting a fresh token after a preliminary subscription probe. The browser retokenizes and resubmits before the actual charge.
 
 Successful responses return a JSON object containing the `transaction_id`; failures return a friendly error message displayed in `#tta-checkout-response`.

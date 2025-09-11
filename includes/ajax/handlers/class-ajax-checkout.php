@@ -45,22 +45,25 @@ class TTA_Ajax_Checkout {
         }
 
         global $wpdb;
-        $txn_table = $wpdb->prefix . 'tta_transactions';
+        $txn_table   = $wpdb->prefix . 'tta_transactions';
+        $retokenized = ! empty( $_POST['retokenized'] );
         $wpdb->query(
             $wpdb->prepare(
-                "INSERT INTO {$txn_table} (wpuserid, transaction_id, checkout_key, amount)
-                 VALUES (%d, '', %s, 0)
-                 ON DUPLICATE KEY UPDATE checkout_key = checkout_key",
+                "INSERT INTO {$txn_table} (wpuserid, transaction_id, checkout_key, amount)"
+                . " VALUES (%d, '', %s, 0)"
+                . " ON DUPLICATE KEY UPDATE checkout_key = checkout_key",
                 get_current_user_id(),
                 $checkout_key
             )
         );
         if ( 0 === $wpdb->rows_affected ) {
             $existing = $wpdb->get_var( $wpdb->prepare( "SELECT transaction_id FROM {$txn_table} WHERE checkout_key = %s LIMIT 1", $checkout_key ) );
-            if ( $existing ) {
+            if ( $existing && '' !== $existing ) {
                 wp_send_json_success( [ 'transaction_id' => $existing ] );
             }
-            wp_send_json_error( [ 'message' => __( 'Checkout already in progress.', 'tta' ) ] );
+            if ( ! $retokenized ) {
+                wp_send_json_error( [ 'message' => __( 'Checkout already in progress.', 'tta' ) ] );
+            }
         }
 
         $cart            = new TTA_Cart();
@@ -106,7 +109,7 @@ class TTA_Ajax_Checkout {
 
         if ( $amount > 0 ) {
             $api = new TTA_AuthorizeNet_API();
-            if ( $membership_total > 0 ) {
+            if ( $membership_total > 0 && ! $retokenized ) {
                 $sub_name = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_NAME : TTA_BASIC_SUBSCRIPTION_NAME;
                 $probe    = $api->probe_subscription( $membership_total, $sub_name, $billing_clean['opaqueData'] );
                 if ( empty( $probe['success'] ) ) {
@@ -116,6 +119,7 @@ class TTA_Ajax_Checkout {
                     }
                     wp_send_json_error( [ 'message' => __( "We're sorry! Looks like there's been some kind of general error with your transaction. Please log out, log back in, and try again, making sure you have a strong Internet connection.", 'tta' ) ] );
                 }
+                wp_send_json_success( [ 'retokenize' => true ] );
             }
             $res = $api->charge( $amount, '', '', '', $billing_clean );
             if ( empty( $res['success'] ) ) {

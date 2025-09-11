@@ -106,5 +106,19 @@ class MembershipProbeTest extends TestCase {
         $this->assertTrue( $wpdb->deleted );
         $this->assertSame( "We're sorry! Looks like there's been some kind of general error with your transaction. Please log out, log back in, and try again, making sure you have a strong Internet connection.", $GLOBALS['_last_json']['data']['message'] );
     }
+
+    public function test_probe_success_requests_retokenization() {
+        TTA_AuthorizeNet_API::$probe_response = [ 'success' => true ];
+        $_POST = [
+            'nonce' => 'x',
+            'checkout_key' => 'k3',
+            'opaqueData' => [ 'dataDescriptor' => 'd', 'dataValue' => 'v' ],
+            'billing' => [ 'first_name' => 'a', 'last_name' => 'b', 'email' => 'e', 'address' => 'a', 'city' => 'c', 'state' => 's', 'zip' => '1' ],
+        ];
+        $_SESSION['tta_membership_purchase'] = 'premium';
+        try { TTA_Ajax_Checkout::checkout(); } catch ( Exception $e ) {}
+        $this->assertTrue( $GLOBALS['_last_json']['success'] );
+        $this->assertTrue( $GLOBALS['_last_json']['data']['retokenize'] );
+    }
 }
 ?>

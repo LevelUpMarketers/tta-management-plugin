@@ -12,6 +12,8 @@
     var $btn  = $form.find('button[name="tta_do_checkout"]');
     var $spin = $form.find('.tta-admin-progress-spinner-svg');
     var $resp = $('#tta-checkout-response');
+    var cardData = {};
+    var billing = {};
 
     function finalizeResponse(res){
       var data = res && res.data ? res.data : res;
@@ -54,7 +56,7 @@
       }
     }
 
-    function sendCheckout(token, billing, cardNumber){
+    function sendCheckout(token, billing, cardNumber, retokenized){
       var dataArr = $form.serializeArray().filter(function(field){
         return ['card_number','card_exp','card_cvc'].indexOf(field.name) === -1 && field.name.indexOf('billing_') !== 0;
       });
@@ -76,6 +78,9 @@
         formData.append('opaqueData[dataDescriptor]', token.dataDescriptor);
         formData.append('opaqueData[dataValue]', token.dataValue);
       }
+      if(retokenized){
+        formData.append('retokenized','1');
+      }
       sessionStorage.setItem('ttaCheckout', JSON.stringify({checkout_key: tta_checkout.checkout_key, timestamp: Date.now()}));
       $.ajax({
         url: tta_checkout.ajax_url,
@@ -84,7 +89,26 @@
         processData: false,
         contentType: false,
         dataType: 'json'
-      }).done(finalizeResponse).fail(function(){
+      }).done(function(res){
+        if(res && res.success && res.data && res.data.retokenize){
+          Accept.dispatchData({
+            authData:{clientKey:cfg.clientKey,apiLoginID:cfg.loginId},
+            cardData:cardData
+          }, function(r2){
+            if(r2.messages.resultCode !== 'Ok'){
+              var errors = (r2.messages.message||[]).map(function(m){return m.text;});
+              showMessage(errors.join(' | ') || 'Payment error', true);
+              $spin.fadeOut(200);
+              $btn.prop('disabled', false);
+              sessionStorage.removeItem('ttaCheckout');
+              return;
+            }
+            sendCheckout(r2.opaqueData, billing, cardData.cardNumber, true);
+          });
+          return;
+        }
+        finalizeResponse(res);
+      }).fail(function(){
         $spin.fadeOut(200);
         $btn.prop('disabled', false);
         $resp.removeClass('updated').addClass('error').text('Request failed. Please try again.');
@@ -117,7 +141,7 @@
       var cardNumber = $.trim($form.find('[name="card_number"]').val());
       var exp = $.trim($form.find('[name="card_exp"]').val());
       var cvc = $.trim($form.find('[name="card_cvc"]').val());
-      var billing = {
+      billing = {
         first_name: $form.find('[name="billing_first_name"]').val(),
         last_name: $form.find('[name="billing_last_name"]').val(),
         email: $form.find('[name="billing_email"]').val(),
@@ -130,17 +154,18 @@
       };
 
       if(isFree){
-        sendCheckout(null, billing, cardNumber);
+        sendCheckout(null, billing, cardNumber, false);
         return;
       }
 
       exp = exp.replace(/\s+/g,'');
       if(/^[0-9]{4}$/.test(exp)) exp = exp.substring(0,2)+'/'+exp.substring(2);
       var parts = exp.split(/[\/\-]/); var month = parts[0]; var year = parts[1]; if(year && year.length===2) year='20'+year;
+      cardData = {cardNumber:cardNumber,month:month,year:year,cardCode:cvc};
 
       Accept.dispatchData({
         authData:{clientKey:cfg.clientKey,apiLoginID:cfg.loginId},
-        cardData:{cardNumber:cardNumber,month:month,year:year,cardCode:cvc}
+        cardData:cardData
       }, function(response){
         if(response.messages.resultCode !== 'Ok'){
           var errors = (response.messages.message||[]).map(function(m){return m.text;});
@@ -150,7 +175,7 @@
           sessionStorage.removeItem('ttaCheckout');
           return;
         }
-        sendCheckout(response.opaqueData, billing, cardNumber);
+        sendCheckout(response.opaqueData, billing, cardNumber, false);
       });
     });
   });
