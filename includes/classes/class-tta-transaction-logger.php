@@ -36,34 +36,33 @@ class TTA_Transaction_Logger {
         );
 
         // Save summary transaction row
-        $wpdb->query(
-            $wpdb->prepare(
-                "INSERT INTO {$txn_table} (wpuserid, member_id, transaction_id, amount, refunded, card_last4, checkout_key, discount_code, discount_saved, details)
-                 VALUES (%d, %d, %s, %f, %f, %s, %s, %s, %f, %s)
-                 ON DUPLICATE KEY UPDATE
-                   wpuserid = VALUES(wpuserid),
-                   member_id = VALUES(member_id),
-                   transaction_id = VALUES(transaction_id),
-                   amount = VALUES(amount),
-                   refunded = VALUES(refunded),
-                   card_last4 = VALUES(card_last4),
-                   discount_code = VALUES(discount_code),
-                   discount_saved = VALUES(discount_saved),
-                   details = VALUES(details)",
-                $user_id,
-                $member_id,
-                $transaction_id,
-                $amount,
-                0,
-                sanitize_text_field( $card_last4 ),
-                sanitize_text_field( $checkout_key ),
-                $discount_code,
-                $discount_saved,
-                wp_json_encode( $items )
-            )
-        );
+        $data = [
+            'wpuserid'      => (int) $user_id,
+            'member_id'     => (int) $member_id,
+            'transaction_id' => $transaction_id,
+            'amount'        => $amount,
+            'refunded'      => 0,
+            'card_last4'    => sanitize_text_field( $card_last4 ),
+            'checkout_key'  => sanitize_text_field( $checkout_key ),
+            'discount_code' => $discount_code,
+            'discount_saved' => $discount_saved,
+            'details'       => wp_json_encode( $items ),
+        ];
 
-        $txn_id = intval( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$txn_table} WHERE checkout_key = %s LIMIT 1", sanitize_text_field( $checkout_key ) ) ) );
+        $formats = [ '%d', '%d', '%s', '%f', '%f', '%s', '%s', '%s', '%f', '%s' ];
+        $existing_id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$txn_table} WHERE checkout_key = %s LIMIT 1", $data['checkout_key'] ) );
+
+        if ( $existing_id ) {
+            // Update reserved row instead of inserting a duplicate.
+            $update         = $data;
+            unset( $update['checkout_key'] );
+            $update_formats = [ '%d', '%d', '%s', '%f', '%f', '%s', '%s', '%f', '%s' ];
+            $wpdb->update( $txn_table, $update, [ 'id' => (int) $existing_id ], $update_formats, [ '%d' ] );
+            $txn_id = intval( $existing_id );
+        } else {
+            $wpdb->insert( $txn_table, $data, $formats );
+            $txn_id = intval( $wpdb->insert_id );
+        }
         $att_table = $wpdb->prefix . 'tta_attendees';
         foreach ( $items as $it ) {
             foreach ( (array) ( $it['attendees'] ?? [] ) as $att ) {
