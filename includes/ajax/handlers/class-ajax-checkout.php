@@ -106,6 +106,17 @@ class TTA_Ajax_Checkout {
 
         if ( $amount > 0 ) {
             $api = new TTA_AuthorizeNet_API();
+            if ( $membership_total > 0 ) {
+                $sub_name = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_NAME : TTA_BASIC_SUBSCRIPTION_NAME;
+                $probe    = $api->probe_subscription( $membership_total, $sub_name, $billing_clean['opaqueData'] );
+                if ( empty( $probe['success'] ) ) {
+                    $wpdb->delete( $txn_table, [ 'checkout_key' => $checkout_key ], [ '%s' ] );
+                    if ( 'E00012' === ( $probe['error_code'] ?? '' ) ) {
+                        wp_send_json_error( [ 'message' => __( 'Duplicate membership detected.', 'tta' ) ] );
+                    }
+                    wp_send_json_error( [ 'message' => __( "We're sorry! Looks like there's been some kind of general error with your transaction. Please log out, log back in, and try again, making sure you have a strong Internet connection.", 'tta' ) ] );
+                }
+            }
             $res = $api->charge( $amount, '', '', '', $billing_clean );
             if ( empty( $res['success'] ) ) {
                 $wpdb->delete( $txn_table, [ 'checkout_key' => $checkout_key ], [ '%s' ] );
