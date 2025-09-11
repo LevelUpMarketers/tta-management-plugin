@@ -3,7 +3,7 @@
  * Plugin Name: Trying To Adult Management Plugin
  * Plugin URI: https://example.com
  * Description: Custom plugin for Members, Events, Tickets management with waitlist, notifications, and Authorize.Net integration.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Your Name
  * Author URI: https://example.com
  * Text Domain: trying-to-adult-management
@@ -18,8 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Define plugin constants
 define( 'TTA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TTA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'TTA_PLUGIN_VERSION', '1.0.3' );
-define( 'TTA_DB_VERSION', '1.12.0' );
+define( 'TTA_PLUGIN_VERSION', '1.0.4' );
+define( 'TTA_DB_VERSION', '1.13.1' );
 define( 'TTA_BASIC_MEMBERSHIP_PRICE', 10.00 );
 define( 'TTA_PREMIUM_MEMBERSHIP_PRICE', 17.00 );
 define( 'TTA_REENTRY_TICKET_PRICE', 25.00 );
@@ -52,6 +52,7 @@ $tta_authnet_sandbox     = get_option( 'tta_authnet_sandbox', false );
 $creds                   = tta_get_authnet_credentials( (bool) $tta_authnet_sandbox );
 $tta_authnet_login       = $creds['login_id'];
 $tta_authnet_transaction = $creds['transaction_key'];
+$tta_authnet_client      = $creds['client_key'];
 $tta_sendgrid_key        = get_option( 'tta_sendgrid_api_key' );
 
 if ( ! $tta_authnet_login && getenv( 'TTA_AUTHNET_LOGIN_ID' ) ) {
@@ -59,6 +60,9 @@ if ( ! $tta_authnet_login && getenv( 'TTA_AUTHNET_LOGIN_ID' ) ) {
 }
 if ( ! $tta_authnet_transaction && getenv( 'TTA_AUTHNET_TRANSACTION_KEY' ) ) {
     $tta_authnet_transaction = getenv( 'TTA_AUTHNET_TRANSACTION_KEY' );
+}
+if ( ! $tta_authnet_client && getenv( 'TTA_AUTHNET_CLIENT_KEY' ) ) {
+    $tta_authnet_client = getenv( 'TTA_AUTHNET_CLIENT_KEY' );
 }
 if ( ! $tta_sendgrid_key && getenv( 'TTA_SENDGRID_API_KEY' ) ) {
     $tta_sendgrid_key = getenv( 'TTA_SENDGRID_API_KEY' );
@@ -69,6 +73,9 @@ if ( $tta_authnet_login ) {
 }
 if ( $tta_authnet_transaction ) {
     define( 'TTA_AUTHNET_TRANSACTION_KEY', $tta_authnet_transaction );
+}
+if ( $tta_authnet_client ) {
+    define( 'TTA_AUTHNET_CLIENT_KEY', $tta_authnet_client );
 }
 if ( $tta_sendgrid_key && ! defined( 'TTA_SENDGRID_API_KEY' ) ) {
     define( 'TTA_SENDGRID_API_KEY', $tta_sendgrid_key );
@@ -83,9 +90,9 @@ if ( is_admin() ) {
         'admin_notices',
         function () {
             $c = tta_get_authnet_credentials();
-            if ( current_user_can( 'manage_options' ) && ( empty( $c['login_id'] ) || empty( $c['transaction_key'] ) ) ) {
+            if ( current_user_can( 'manage_options' ) && ( empty( $c['login_id'] ) || empty( $c['transaction_key'] ) || empty( $c['client_key'] ) ) ) {
                 echo '<div class="notice notice-error"><p>' .
-                    esc_html__( 'Authorize.Net credentials are not configured. Enter them under TTA Settings → API Settings.', 'tta' ) .
+                    esc_html__( 'Authorize.Net credentials are not configured. Enter the Login ID, Transaction Key, and Client Key under TTA Settings → API Settings.', 'tta' ) .
                     '</p></div>';
             }
         }

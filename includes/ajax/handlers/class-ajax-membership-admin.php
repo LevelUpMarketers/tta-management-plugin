@@ -146,7 +146,8 @@ class TTA_Ajax_Membership_Admin {
                 '',
                 0,
                 intval( $member['wpuserid'] ),
-                substr( $card, -4 )
+                substr( $card, -4 ),
+                ''
             );
 
             $sub = $api->create_subscription( $amount, $card, $exp, $cvc, $billing, ucfirst( $level ) . ' Membership', '', date( 'Y-m-d', strtotime( '+1 month' ) ) );
@@ -268,7 +269,8 @@ class TTA_Ajax_Membership_Admin {
             '',
             0,
             intval( $member['wpuserid'] ),
-            substr( $card, -4 )
+            substr( $card, -4 ),
+            ''
         );
 
         $sub = $api->create_subscription( $amount, $card, $exp, $cvc, $billing, ucfirst( $level ) . ' Membership', '', date( 'Y-m-d', strtotime( '+1 month' ) ) );

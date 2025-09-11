@@ -366,6 +366,73 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 }
 
 
+    /**
+     * Probe whether a subscription would succeed without creating it.
+     *
+     * @param float  $amount       Subscription amount.
+     * @param string $plan_name    Subscription name.
+     * @param array  $opaque_data  Accept.js token data {dataDescriptor,dataValue}.
+     * @return array { success:bool, error?:string, error_code?:string }
+     */
+    public function probe_subscription( $amount, $plan_name, array $opaque_data ) {
+        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
+        }
+        if ( empty( $opaque_data['dataDescriptor'] ) || empty( $opaque_data['dataValue'] ) ) {
+            return [ 'success' => false, 'error' => 'Missing payment token' ];
+        }
+
+        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+        $merchantAuthentication->setName( $this->login_id );
+        $merchantAuthentication->setTransactionKey( $this->transaction_key );
+
+        $od = new AnetAPI\OpaqueDataType();
+        $od->setDataDescriptor( $opaque_data['dataDescriptor'] );
+        $od->setDataValue( $opaque_data['dataValue'] );
+        $payment = new AnetAPI\PaymentType();
+        $payment->setOpaqueData( $od );
+
+        $interval = new AnetAPI\PaymentScheduleType\IntervalAType();
+        $interval->setLength( 1 );
+        $interval->setUnit( 'months' );
+
+        $schedule = new AnetAPI\PaymentScheduleType();
+        $schedule->setInterval( $interval );
+        $schedule->setStartDate( new \DateTime( 'now' ) );
+        $schedule->setTotalOccurrences( 9999 );
+
+        $subscription = new AnetAPI\ARBSubscriptionType();
+        $subscription->setName( $plan_name );
+        $subscription->setPaymentSchedule( $schedule );
+        $subscription->setAmount( $amount );
+        $subscription->setPayment( $payment );
+
+        $request = new AnetAPI\ARBCreateSubscriptionRequest();
+        $request->setMerchantAuthentication( $merchantAuthentication );
+        $request->setSubscription( $subscription );
+        $request->setValidationMode( 'testMode' );
+
+        $controller = new AnetController\ARBCreateSubscriptionController( $request );
+        $response   = $this->send_request( $controller );
+        $this->log_response( 'probe_subscription', $response );
+
+        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            return [ 'success' => true ];
+        }
+
+        $code = '';
+        if ( $response && $response->getMessages() && $response->getMessages()->getMessage() ) {
+            $code = $response->getMessages()->getMessage()[0]->getCode();
+        }
+
+        return [
+            'success'    => false,
+            'error'      => $this->format_error( $response, null, 'API error' ),
+            'error_code' => $code,
+        ];
+    }
+
+
 
     /**
      * Retry the most recent charge for a subscription using its stored profile.
