@@ -378,6 +378,80 @@ class HelpersTest extends TestCase {
         $this->assertSame('Bob', $normal[0]['attendees'][0]['first_name']);
     }
 
+    public function test_get_member_upcoming_events_handles_membership_transaction() {
+        global $wpdb;
+        $orig_wpdb = $wpdb;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public $sequence = [];
+            public $last_query = '';
+            public function get_var( $query ) {
+                return 0;
+            }
+            public function prepare( $query, ...$args ) {
+                foreach ( $args as $a ) {
+                    $query = preg_replace( '/%d/', intval( $a ), $query, 1 );
+                    $query = preg_replace( '/%s/', $a, $query, 1 );
+                }
+                return $query;
+            }
+            public function get_results( $query, $output = ARRAY_A ) {
+                $this->last_query = $query;
+                return array_shift( $this->sequence );
+            }
+        };
+
+        $wpdb->sequence = [
+            [
+                [
+                    'action_data' => json_encode([
+                        'transaction_id' => 'TX100',
+                        'amount' => 20,
+                        'items' => [
+                            [
+                                'ticket_id' => 7,
+                                'ticket_name' => 'General',
+                                'quantity' => 1,
+                                'attendees' => [ [ 'first_name' => 'Ann', 'last_name' => 'A', 'email' => 'a@e.com' ] ],
+                            ],
+                        ],
+                    ]),
+                    'event_id'    => 5,
+                    'name'        => 'Combo Event',
+                    'page_id'     => 1,
+                    'mainimageid' => 0,
+                    'date'        => '2030-01-01',
+                    'time'        => '',
+                    'address'     => '1 St -  - City - ST - 00000',
+                    'type'        => 'paid',
+                    'refundsavailable' => '1',
+                ],
+            ],
+            [
+                [ 'id' => 1, 'transaction_id' => 'TX100', 'wpuserid' => 1 ],
+                [ 'id' => 2, 'transaction_id' => 'TX100', 'wpuserid' => 1 ],
+            ],
+            [
+                [ 'transaction_id' => 2, 'cnt' => 1 ],
+            ],
+            [
+                [ 'transaction_id' => 2, 'ticket_id' => 7, 'first_name' => 'Ann', 'last_name' => 'A', 'email' => 'a@e.com' ],
+            ],
+            [
+                [ 'id' => 2, 'transaction_id' => 'TX100', 'created_at' => '2025-01-01 00:00:00', 'wpuserid' => 1, 'details' => json_encode([
+                    [ 'event_ute_id' => 'ute1', 'ticket_id' => 7, 'final_price' => 20 ]
+                ]) ],
+            ],
+        ];
+
+        $events = tta_get_member_upcoming_events( 1 );
+        $this->assertCount( 1, $events );
+        $this->assertSame( 'Combo Event', $events[0]['name'] );
+        $this->assertSame( 'Ann', $events[0]['items'][0]['attendees'][0]['first_name'] );
+
+        $wpdb = $orig_wpdb;
+    }
+
     public function test_get_member_past_events_queries_archive() {
         global $wpdb;
         $wpdb->results_data = [

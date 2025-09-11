@@ -2271,7 +2271,7 @@ function tta_get_member_upcoming_events( $wp_user_id ) {
         $placeholders = implode( ',', array_fill( 0, count( $txn_map ), '%s' ) );
         $tx_rows      = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT id, transaction_id, wpuserid FROM {$wpdb->prefix}tta_transactions WHERE transaction_id IN ($placeholders)",
+                "SELECT id, transaction_id, wpuserid FROM {$wpdb->prefix}tta_transactions WHERE transaction_id IN ($placeholders) ORDER BY id DESC",
                 ...array_keys( $txn_map )
             ),
             ARRAY_A
@@ -2280,8 +2280,12 @@ function tta_get_member_upcoming_events( $wp_user_id ) {
         $tx_ids   = [];
         $tx_users = [];
         foreach ( $tx_rows as $tr ) {
-            $tx_ids[ $tr['transaction_id'] ] = intval( $tr['id'] );
-            $tx_users[ $tr['transaction_id'] ] = intval( $tr['wpuserid'] );
+            $tx = $tr['transaction_id'];
+            if ( isset( $tx_ids[ $tx ] ) ) {
+                continue;
+            }
+            $tx_ids[ $tx ]   = intval( $tr['id'] );
+            $tx_users[ $tx ] = intval( $tr['wpuserid'] );
         }
 
         if ( $tx_ids ) {
