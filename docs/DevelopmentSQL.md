@@ -302,3 +302,5 @@ ALTER TABLE `wp_j9bzlz98u3_tta_transactions`
   DROP KEY `checkout_key_idx`,
   ADD UNIQUE KEY `checkout_key_idx` (`checkout_key`);
 ```
+
+The installer drops the previous non-unique index automatically before adding the unique key to avoid duplicate key errors during upgrade.

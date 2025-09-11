@@ -23,6 +23,15 @@ class TTA_DB_Setup {
 
         $sql_statements = [];
 
+        // Drop non-unique checkout key index before upgrading to unique.
+        $txn_table = "{$prefix}transactions";
+        if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $txn_table ) ) ) {
+            $idx = $wpdb->get_results( "SHOW INDEX FROM {$txn_table} WHERE Key_name = 'checkout_key_idx'" );
+            if ( $idx && (int) $idx[0]->Non_unique === 1 ) {
+                $wpdb->query( "ALTER TABLE {$txn_table} DROP INDEX checkout_key_idx" );
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────
         // Venues table
         // ─────────────────────────────────────────────────────────────────
