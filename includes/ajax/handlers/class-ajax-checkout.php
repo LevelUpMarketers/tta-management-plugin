@@ -160,7 +160,7 @@ class TTA_Ajax_Checkout {
 
         $attendees   = $_POST['attendees'] ?? [];
         $has_tickets = ! empty( $attendees );
-        if ( $ticket_total > 0 ) {
+        if ( $has_tickets ) {
             $res = $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4, $checkout_key );
             if ( is_wp_error( $res ) ) {
                 wp_send_json_error( [ 'message' => $res->get_error_message() ] );
