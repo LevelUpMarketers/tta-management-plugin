@@ -14,7 +14,7 @@ Non-admin users never see the WordPress dashboard. On login the page simply relo
 
 ## Upcoming Events Tab
 
-The **Your Upcoming Events** tab lists future events you have tickets for. Each event
+The **Your Upcoming Events** tab lists future events you have tickets for. Events purchased together with a membership now appear here immediately. Each event
 shows:
 
 - The event thumbnail image
