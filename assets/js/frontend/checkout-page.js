@@ -1,84 +1,47 @@
 jQuery(function($){
   var $form = $('#tta-checkout-form');
-  if (!$form.length) return;
-
-  var $container = $('#tta-checkout-container');
-  var $left = $('.tta-checkout-left');
-  var $right = $('.tta-checkout-right');
+  if(!$form.length) return;
   var $btn  = $form.find('button[name="tta_do_checkout"]');
   var $spin = $form.find('.tta-admin-progress-spinner-svg');
   var $resp = $('#tta-checkout-response');
 
-  window.ttaFinalizeOrder = function(transactionId, last4){
-    $resp.removeClass('updated error').text('');
-    var start = Date.now();
-
+  function setProcessing(msg){
     $btn.prop('disabled', true);
     if(!$spin.is(':visible')){
       $spin.show().css({opacity:0}).fadeTo(200,1);
     }
-    $container.add($left).add($right).fadeTo(200,0.3);
+    if(msg){
+      $resp.text(msg).removeClass('error');
+    }
+  }
 
-    var dataArr = $form.serializeArray().filter(function(field){
-      return ['card_number','card_exp','card_cvc'].indexOf(field.name) === -1;
-    });
-    dataArr.push({name:'action', value:'tta_do_checkout'});
-    dataArr.push({name:'nonce', value: tta_checkout.nonce});
-    if(transactionId){ dataArr.push({name:'transaction_id', value: transactionId}); }
-    if(last4){ dataArr.push({name:'last4', value: last4}); }
-    var data = $.param(dataArr);
+  function clearProcessing(){
+    $spin.fadeOut(200);
+    $btn.prop('disabled', false);
+  }
 
-    return $.post(tta_checkout.ajax_url, data, function(res){
-      var delay = Math.max(0, 5000 - (Date.now()-start));
-      setTimeout(function(){
-        $spin.fadeOut(200);
-        $container.add($left).add($right).fadeTo(200,1);
-        $btn.prop('disabled', false);
-        if(res.success){
-          var html = '';
-          if(res.data.membership){
-            if(res.data.membership === 'reentry'){
-              html += '<p>Thanks for purchasing your Re-Entry Ticket! You can once again register for events. An email will be sent to ' + tta_checkout.user_email + ' for your records. Thanks again, and welcome back!</p>';
-            } else {
-              var amt       = res.data.membership === 'premium' ? tta_checkout.premium_price : tta_checkout.basic_price;
-              var levelName = res.data.membership === 'premium' ? 'Premium' : 'Standard';
-              html += '<p>Thanks for becoming a ' + levelName + ' Member! '
-                + "There's nothing else for you to do - you'll be automatically billed $"+amt+" once monthly, and can cancel anytime on your "
-                + '<a href="'+ tta_checkout.dashboard_url +'">Member Dashboard</a>. '
-                + 'An email will be sent to ' + tta_checkout.user_email + ' with your Membership Details. Thanks again, and enjoy your Membership perks!</p>';
-              if(res.data.membership === 'premium'){
-                html += '<p>Did you know? You can earn a free event and other perks by referring friends and family! Let us know who you\'ve referred at <a href="mailto:sam@tryingtoadultrva.com">sam@tryingtoadultrva.com</a> and we\'ll reach out.</p>';
-              }
-            }
-          }
-          if(res.data.has_tickets){
-            var intro = res.data.membership ? 'Also, thanks for signing up for our upcoming event!' : 'Thanks for signing up!';
-            html += '<p>'+intro+' A receipt has been emailed to each of the email addresses below. Please keep these emails to present to the Event Host or Volunteer upon arrival.</p><ul>';
-            var emails = Array.isArray(res.data.emails) ? res.data.emails : (res.data.emails ? [res.data.emails] : []);
-            var unique = {};
-            emails.forEach(function(e){
-              if(!e){return;}
-              var norm = String(e).trim().toLowerCase();
-              if(!unique[norm]) unique[norm] = e.trim();
-            });
-            Object.values(unique).forEach(function(e){
-              html += '<li>' + $('<div>').text(e).html() + '</li>';
-            });
-            html += '</ul>';
-          }
-          $resp.removeClass('error').addClass('updated').html(html);
-        } else {
-          $resp.removeClass('updated').addClass('error').text(res.data.message||'Error processing payment');
-        }
-      }, delay);
-    }, 'json').fail(function(){
-      var delay = Math.max(0, 5000 - (Date.now()-start));
-      setTimeout(function(){
-        $spin.fadeOut(200);
-        $container.add($left).add($right).fadeTo(200,1);
-        $btn.prop('disabled', false);
-        $resp.removeClass('updated').addClass('error').text('Request failed. Please try again.');
-      }, delay);
-    });
-  };
+  function pollStatus(key){
+    $.post(tta_checkout.ajax_url, {
+      action: 'tta_checkout_status',
+      nonce: tta_checkout.nonce,
+      checkout_key: key
+    }, function(res){
+      if(res.success && res.data && res.data.transaction_id){
+        sessionStorage.removeItem('ttaCheckout');
+        $resp.removeClass('error').addClass('updated').text('Order completed. Please check your email for a receipt.');
+        clearProcessing();
+      } else {
+        setTimeout(function(){ pollStatus(key); }, 3000);
+      }
+    }, 'json');
+  }
+
+  var pending = sessionStorage.getItem('ttaCheckout');
+  if(pending){
+    try { pending = JSON.parse(pending); } catch(e){ pending = null; }
+  }
+  if(pending && pending.checkout_key){
+    setProcessing('Processing…');
+    pollStatus(pending.checkout_key);
+  }
 });

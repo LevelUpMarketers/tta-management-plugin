@@ -109,17 +109,20 @@ function tta_sanitize_email( $value ) {
  * Retrieve stored Authorize.Net credentials for live or sandbox mode.
  *
  * @param bool|null $sandbox Whether to fetch sandbox credentials. Null uses current option.
- * @return array{login_id:string, transaction_key:string}
+ * @return array{login_id:string, transaction_key:string, client_key:string}
  */
 function tta_get_authnet_credentials( $sandbox = null ) {
     if ( null === $sandbox ) {
         $sandbox = (bool) get_option( 'tta_authnet_sandbox', false );
     }
-    $login_option = $sandbox ? 'tta_authnet_login_id_sandbox' : 'tta_authnet_login_id_live';
-    $key_option   = $sandbox ? 'tta_authnet_transaction_key_sandbox' : 'tta_authnet_transaction_key_live';
+    $login_option  = $sandbox ? 'tta_authnet_login_id_sandbox' : 'tta_authnet_login_id_live';
+    $key_option    = $sandbox ? 'tta_authnet_transaction_key_sandbox' : 'tta_authnet_transaction_key_live';
+    $client_option = $sandbox ? 'tta_authnet_public_client_key_sandbox' : 'tta_authnet_public_client_key_live';
+
     return [
         'login_id'        => get_option( $login_option, '' ),
         'transaction_key' => get_option( $key_option, '' ),
+        'client_key'      => get_option( $client_option, '' ),
     ];
 }
 

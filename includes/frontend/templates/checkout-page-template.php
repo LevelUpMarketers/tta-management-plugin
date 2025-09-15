@@ -29,7 +29,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
     $membership_total = $membership_level ? tta_get_membership_price( $membership_level ) : 0;
     if ( 0 === floatval( $ticket_total + $membership_total ) ) {
         $attendees = $_POST['attendees'] ?? [];
-        $cart->finalize_purchase( '', 0, $attendees, '' );
+        $cart->finalize_purchase( '', 0, $attendees, '', '' );
 
         $user   = wp_get_current_user();
         $emails = array_merge( [ $user->user_email ], tta_collect_attendee_emails( $attendees ) );
@@ -119,7 +119,8 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
                     '',
                     0,
                     get_current_user_id(),
-                    substr( preg_replace( '/\D/', '', $_POST['card_number'] ), -4 )
+                    substr( preg_replace( '/\D/', '', $_POST['card_number'] ), -4 ),
+                    ''
                 );
 
                 if ( 'reentry' === $membership_level ) {
@@ -174,7 +175,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] )
 
         if ( empty( $checkout_error ) ) {
             $last4  = substr( preg_replace( '/\D/', '', $_POST['card_number'] ), -4 );
-            $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4 );
+            $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4, '' );
 
             $user   = wp_get_current_user();
             $emails = array_merge( [ $user->user_email ], tta_collect_attendee_emails( $attendees ) );
