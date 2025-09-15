@@ -794,20 +794,23 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $this->log_response( 'get_subscription_details', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
-            $sub      = $response->getSubscription();
-            $status   = $sub && method_exists( $sub, 'getStatus' ) ? strtolower( $sub->getStatus() ) : '';
-            $profile  = $sub ? $sub->getProfile() : null;
-            $pay_prof = $profile ? $profile->getPaymentProfile() : null;
+            $sub       = $response->getSubscription();
+            $status    = $sub && method_exists( $sub, 'getStatus' ) ? strtolower( $sub->getStatus() ) : '';
+            $name      = $sub && method_exists( $sub, 'getName' ) ? $sub->getName() : '';
+            $order     = $sub && method_exists( $sub, 'getOrder' ) ? $sub->getOrder() : null;
+            $desc      = $order && method_exists( $order, 'getDescription' ) ? $order->getDescription() : '';
+            $profile   = $sub ? $sub->getProfile() : null;
+            $pay_prof  = $profile ? $profile->getPaymentProfile() : null;
             $profile_id = $profile && method_exists( $profile, 'getCustomerProfileId' ) ? $profile->getCustomerProfileId() : '';
             $payment_profile_id = $profile && method_exists( $profile, 'getCustomerPaymentProfileId' ) ? $profile->getCustomerPaymentProfileId() : '';
-            $payment  = $pay_prof ? $pay_prof->getPayment() : null;
-            $card     = $payment ? $payment->getCreditCard() : null;
-            $masked   = $card ? $card->getCardNumber() : '';
-            $last4    = preg_match( '/(\d{4})$/', $masked, $m ) ? $m[1] : '';
-            $exp      = $card && method_exists( $card, 'getExpirationDate' ) ? $card->getExpirationDate() : '';
-            $amount   = $sub && method_exists( $sub, 'getAmount' ) ? floatval( $sub->getAmount() ) : 0.0;
-            $bill     = $pay_prof && method_exists( $pay_prof, 'getBillTo' ) ? $pay_prof->getBillTo() : null;
-            $billing  = [];
+            $payment   = $pay_prof ? $pay_prof->getPayment() : null;
+            $card      = $payment ? $payment->getCreditCard() : null;
+            $masked    = $card ? $card->getCardNumber() : '';
+            $last4     = preg_match( '/(\d{4})$/', $masked, $m ) ? $m[1] : '';
+            $exp       = $card && method_exists( $card, 'getExpirationDate' ) ? $card->getExpirationDate() : '';
+            $amount    = $sub && method_exists( $sub, 'getAmount' ) ? floatval( $sub->getAmount() ) : 0.0;
+            $bill      = $pay_prof && method_exists( $pay_prof, 'getBillTo' ) ? $pay_prof->getBillTo() : null;
+            $billing   = [];
             if ( $bill ) {
                 $billing = [
                     'first_name' => $bill->getFirstName(),
@@ -824,6 +827,8 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
                 'card_last4'         => $last4,
                 'status'             => $status,
                 'amount'             => $amount,
+                'name'               => tta_sanitize_text_field( $name ),
+                'description'        => tta_sanitize_text_field( $desc ),
                 'exp_date'           => $exp,
                 'billing'            => $billing,
                 'profile_id'         => $profile_id,

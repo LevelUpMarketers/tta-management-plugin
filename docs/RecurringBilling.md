@@ -29,21 +29,12 @@ subscription issue notice with full billing and address fields plus a link to pu
 When new payment information is submitted the plugin attempts to retry the failed charge immediately—on success the stored
 membership level and `subscription_status` return to `active`.
 
-## Converting Past Transactions
+## Bulk Updating Subscription Amounts
 
-Existing one‑time transactions can be turned into recurring subscriptions
-directly from the admin area. Under **TTA Settings → API Settings** enter one or
-more Authorize.Net transaction IDs (one per line) and click **Convert to
-Subscription**. The plugin retrieves the transaction details for each ID,
-creates an Automated Recurring Billing subscription for the same amount and
-stores the returned subscription ID in the matching `tta_members` record based
-on the billing email. The member's `subscription_status` is set to `active` and
-the `membership_level` updated to `basic` or `premium` depending on the charge
-amount. To ensure Authorize.Net associates the correct billing method, the
-subscription request references the payment profile via the
-`customerPaymentProfileId` field.
-Transactions for $10 are tagged as **Trying to Adult Standard Membership** while $17
-charges become **Trying to Adult Premium Membership** so the subscription is
-clearly labeled in Authorize.Net. The results of each conversion are displayed
-on the settings page and written to the debug log.
+Administrators can correct the monthly charge for existing subscriptions in bulk. Under **TTA Settings → API Settings** enter one or more subscription ID numbers (one per line) and click **Update Subscriptions**. For each ID the plugin retrieves the subscription details from Authorize.Net and adjusts the monthly amount when needed:
+
+* **Trying to Adult Standard Membership** plans are set to $10.
+* **Trying to Adult Premium Membership** plans are set to $17.
+
+Subscriptions with matching amounts are left unchanged. Results of the update are displayed on the settings page.
 
