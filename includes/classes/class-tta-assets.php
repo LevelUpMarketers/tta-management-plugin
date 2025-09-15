@@ -568,6 +568,41 @@ class TTA_Assets {
             );
         }
 
+        // Login/Register page template assets
+        if ( function_exists( 'is_page_template' ) && is_page_template( 'login-register-page-template.php' ) ) {
+            wp_enqueue_style(
+                'tta-login-register-css',
+                TTA_PLUGIN_URL . 'assets/css/frontend/login-register.css',
+                [ 'tta-frontend-css' ],
+                TTA_PLUGIN_VERSION
+            );
+
+            wp_enqueue_script(
+                'tta-login-register-js',
+                TTA_PLUGIN_URL . 'assets/js/frontend/login-register-page.js',
+                [ 'jquery' ],
+                TTA_PLUGIN_VERSION,
+                true
+            );
+
+            $redirect_url = apply_filters( 'tta_login_register_redirect_url', home_url( '/events' ) );
+
+            wp_localize_script(
+                'tta-login-register-js',
+                'ttaLoginRegister',
+                [
+                    'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
+                    'nonce'                => wp_create_nonce( 'tta_frontend_nonce' ),
+                    'redirectUrl'          => esc_url_raw( $redirect_url ),
+                    'emailMismatch'        => __( 'Email addresses do not match.', 'tta' ),
+                    'passwordMismatch'     => __( 'Passwords do not match.', 'tta' ),
+                    'passwordRequirements' => __( 'Password must be at least 8 characters and include upper and lower case letters and a number.', 'tta' ),
+                    'requestFailed'        => __( 'Request failed.', 'tta' ),
+                    'successMessage'       => __( 'Account created! Redirecting…', 'tta' ),
+                ]
+            );
+        }
+
         // 5) Host Check-In template assets
         if ( function_exists( 'is_page_template' ) && is_page_template( 'host-checkin-template.php' ) ) {
             wp_enqueue_script(

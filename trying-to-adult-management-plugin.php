@@ -3,7 +3,7 @@
  * Plugin Name: Trying To Adult Management Plugin
  * Plugin URI: https://example.com
  * Description: Custom plugin for Members, Events, Tickets management with waitlist, notifications, and Authorize.Net integration.
- * Version: 1.0.4
+ * Version: 1.0.5
  * Author: Your Name
  * Author URI: https://example.com
  * Text Domain: trying-to-adult-management
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Define plugin constants
 define( 'TTA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TTA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'TTA_PLUGIN_VERSION', '1.0.4' );
+define( 'TTA_PLUGIN_VERSION', '1.0.5' );
 define( 'TTA_DB_VERSION', '1.13.1' );
 define( 'TTA_BASIC_MEMBERSHIP_PRICE', 10.00 );
 define( 'TTA_PREMIUM_MEMBERSHIP_PRICE', 17.00 );
@@ -156,6 +156,7 @@ require_once TTA_PLUGIN_DIR . 'includes/frontend/class-event-page-manager.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-cart-page-manager.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-checkout-page-manager.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-events-list-page.php';
+require_once TTA_PLUGIN_DIR . 'includes/frontend/class-login-register-page.php';
 require_once TTA_PLUGIN_DIR . 'includes/api/class-authorizenet-api.php';
 require_once TTA_PLUGIN_DIR . 'includes/email/class-email-handler.php';
 require_once TTA_PLUGIN_DIR . 'includes/email/class-email-customizer.php';

@@ -1,0 +1,169 @@
+.tta-account-access {
+  padding: 40px 20px 60px;
+  background: #f8f8f8;
+}
+
+.tta-account-access-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.tta-login-register-grid {
+  display: grid;
+  gap: 40px;
+}
+
+@media (min-width: 768px) {
+  .tta-login-register-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: flex-start;
+  }
+}
+
+.tta-login-column,
+.tta-register-column {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.tta-section-title {
+  font-size: 1.75rem;
+  margin: 0 0 10px;
+}
+
+.tta-section-intro {
+  font-size: 1rem;
+  margin: 0 0 25px;
+  color: #4a4a4a;
+}
+
+.tta-login-form #loginform p {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.tta-login-form #loginform label {
+  font-weight: 600;
+  color: #222222;
+}
+
+.tta-login-form #loginform input[type="text"],
+.tta-login-form #loginform input[type="password"],
+.tta-login-form #loginform input[type="email"] {
+  border: 1px solid #d1d1d1;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.tta-login-form #loginform .forgetmenot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.tta-login-form #loginform .forgetmenot label {
+  font-weight: 500;
+  color: #333333;
+}
+
+.tta-login-form #loginform .submit input[type="submit"] {
+  width: 100%;
+  background: #ff6b3d;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 14px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.tta-login-form #loginform .submit input[type="submit"]:hover,
+.tta-login-form #loginform .submit input[type="submit"]:focus {
+  background: #e55a2c;
+}
+
+.tta-login-help {
+  margin: 15px 0 0;
+}
+
+.tta-login-help a {
+  color: #0073aa;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.tta-register-form p {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.tta-register-form label {
+  font-weight: 600;
+  color: #222222;
+}
+
+.tta-register-form input[type="text"],
+.tta-register-form input[type="email"],
+.tta-register-form input[type="password"] {
+  border: 1px solid #d1d1d1;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 1rem;
+}
+
+.tta-register-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.tta-register-actions .tta-button {
+  min-width: 180px;
+}
+
+.tta-register-form .tta-admin-progress-spinner-svg {
+  width: 26px;
+  height: 26px;
+  display: none;
+}
+
+#tta-register-response {
+  display: block;
+  margin-top: 15px;
+  min-height: 22px;
+}
+
+#tta-register-response.updated {
+  color: #0a8754;
+}
+
+#tta-register-response.error {
+  color: #cc0000;
+}
+
+@media (max-width: 767px) {
+  .tta-login-column,
+  .tta-register-column {
+    padding: 24px;
+  }
+
+  .tta-register-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tta-register-actions .tta-button {
+    width: 100%;
+  }
+}

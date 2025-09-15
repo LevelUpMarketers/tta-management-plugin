@@ -90,6 +90,12 @@ class TTA_Ajax_Auth {
 
         wp_set_current_user( $uid );
         wp_set_auth_cookie( $uid, true );
+
+        $user_obj = get_user_by( 'id', $uid );
+        if ( $user_obj ) {
+            do_action( 'wp_login', $user_obj->user_login, $user_obj );
+        }
+
         TTA_Cache::flush();
 
         wp_send_json_success();
