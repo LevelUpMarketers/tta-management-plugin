@@ -31,9 +31,9 @@ membership level and `subscription_status` return to `active`.
 
 ## Bulk Updating Subscription Amounts
 
-Administrators can correct the monthly charge for existing subscriptions in bulk. Under **TTA Settings → API Settings** enter one or more subscription ID numbers (one per line) and click **Update Subscriptions**. For each ID the plugin retrieves the subscription details from Authorize.Net and adjusts the monthly amount when needed:
+Administrators can correct the monthly charge for existing subscriptions in bulk. Under **TTA Settings → API Settings** enter one or more subscription ID numbers (one per line) and click **Update Subscriptions**. For each ID the plugin retrieves the subscription's name, description, and invoice number from Authorize.Net to determine the plan and adjusts the monthly amount when needed:
 
-* **Trying to Adult Standard Membership** plans are set to $10.
+* **Trying to Adult Standard Membership** plans (including legacy "Trying to Adult Basic Membership" subscriptions) are set to $10.
 * **Trying to Adult Premium Membership** plans are set to $17.
 
 Subscriptions with matching amounts are left unchanged. Results of the update are displayed on the settings page.

@@ -101,17 +101,40 @@ class TTA_Settings_Admin {
 
                         $name        = $details['name'] ?? '';
                         $description = $details['description'] ?? '';
+                        $invoice     = $details['invoice_number'] ?? '';
                         $amount      = (float) ( $details['amount'] ?? 0 );
 
                         $target_amount      = 0;
                         $target_name        = '';
                         $target_description = '';
 
-                        if ( TTA_BASIC_SUBSCRIPTION_NAME === $name || false !== stripos( $description, TTA_BASIC_SUBSCRIPTION_NAME ) ) {
+                        $fields       = [ $name, $description, $invoice ];
+                        $basic_names  = [ TTA_BASIC_SUBSCRIPTION_NAME, 'Trying to Adult Basic Membership' ];
+                        $basic_match  = false;
+                        foreach ( $fields as $field ) {
+                            foreach ( $basic_names as $basic ) {
+                                if ( $field && false !== stripos( $field, $basic ) ) {
+                                    $basic_match = true;
+                                    break 2;
+                                }
+                            }
+                        }
+
+                        $premium_match = false;
+                        if ( ! $basic_match ) {
+                            foreach ( $fields as $field ) {
+                                if ( $field && false !== stripos( $field, TTA_PREMIUM_SUBSCRIPTION_NAME ) ) {
+                                    $premium_match = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ( $basic_match ) {
                             $target_amount      = TTA_BASIC_MEMBERSHIP_PRICE;
                             $target_name        = TTA_BASIC_SUBSCRIPTION_NAME;
                             $target_description = TTA_BASIC_SUBSCRIPTION_DESCRIPTION;
-                        } elseif ( TTA_PREMIUM_SUBSCRIPTION_NAME === $name || false !== stripos( $description, TTA_PREMIUM_SUBSCRIPTION_NAME ) ) {
+                        } elseif ( $premium_match ) {
                             $target_amount      = TTA_PREMIUM_MEMBERSHIP_PRICE;
                             $target_name        = TTA_PREMIUM_SUBSCRIPTION_NAME;
                             $target_description = TTA_PREMIUM_SUBSCRIPTION_DESCRIPTION;

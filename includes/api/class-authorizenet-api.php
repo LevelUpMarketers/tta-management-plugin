@@ -799,6 +799,7 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             $name      = $sub && method_exists( $sub, 'getName' ) ? $sub->getName() : '';
             $order     = $sub && method_exists( $sub, 'getOrder' ) ? $sub->getOrder() : null;
             $desc      = $order && method_exists( $order, 'getDescription' ) ? $order->getDescription() : '';
+            $invoice   = $order && method_exists( $order, 'getInvoiceNumber' ) ? $order->getInvoiceNumber() : '';
             $profile   = $sub ? $sub->getProfile() : null;
             $pay_prof  = $profile ? $profile->getPaymentProfile() : null;
             $profile_id = $profile && method_exists( $profile, 'getCustomerProfileId' ) ? $profile->getCustomerProfileId() : '';
@@ -829,6 +830,7 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
                 'amount'             => $amount,
                 'name'               => tta_sanitize_text_field( $name ),
                 'description'        => tta_sanitize_text_field( $desc ),
+                'invoice_number'     => tta_sanitize_text_field( $invoice ),
                 'exp_date'           => $exp,
                 'billing'            => $billing,
                 'profile_id'         => $profile_id,
