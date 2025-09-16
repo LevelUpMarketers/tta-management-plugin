@@ -168,6 +168,23 @@ $volunteers = ! empty( $event['volunteers'] ) ? tta_get_member_names_by_ids( exp
                 </td>
             </tr>
 
+            <!-- Venue Name -->
+            <tr>
+                <th>
+                    <span class="tta-tooltip-icon"
+                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::VENUE_NAME ) ); ?>"
+                          style="margin-left:4px;">
+                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
+                             alt="Help">
+                    </span>
+                    <label for="venuename">Venue Name</label>
+                </th>
+                <td>
+                    <input type="text" name="venuename" id="venuename" class="regular-text" list="tta-venue-options"
+                           value="<?php echo esc_attr( $event['venuename'] ?? '' ); ?>">
+                </td>
+            </tr>
+
             <?php
             // Split address into pieces
             $parts = isset( $event['address'] ) ? explode( ' - ', $event['address'] ) : [];
@@ -275,23 +292,6 @@ $volunteers = ! empty( $event['volunteers'] ) ? tta_get_member_names_by_ids( exp
                 <td>
                     <input type="text" name="zip" id="zip" class="regular-text"
                            value="<?php echo esc_attr( $zip ); ?>">
-                </td>
-            </tr>
-
-            <!-- Venue Name -->
-            <tr>
-                <th>
-                    <span class="tta-tooltip-icon"
-                          data-tooltip="<?php echo esc_attr( TTA_Tooltips::get( TTA_Tooltips::VENUE_NAME ) ); ?>"
-                          style="margin-left:4px;">
-                        <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>"
-                             alt="Help">
-                    </span>
-                    <label for="venuename">Venue Name</label>
-                </th>
-                <td>
-                    <input type="text" name="venuename" id="venuename" class="regular-text" list="tta-venue-options"
-                           value="<?php echo esc_attr( $event['venuename'] ?? '' ); ?>">
                 </td>
             </tr>
 

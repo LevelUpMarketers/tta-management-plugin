@@ -57,7 +57,23 @@ $lost_pw_url = wp_lostpassword_url( $redirect_url );
       </section>
       <section class="tta-register-column">
         <h1 class="tta-section-title"><?php esc_html_e( 'Don’t Have an Account? Create One Below!', 'tta' ); ?></h1>
-        <p class="tta-section-intro"><?php esc_html_e( 'Create an account to join select events, update your profile info, and sign up for a membership.', 'tta' ); ?></p>
+        <p class="tta-section-intro">
+          <?php
+          printf(
+              wp_kses(
+                  /* translators: %s: Become a Member page URL. */
+                  __( 'Create an account below, and then consider <a class="tta-join-link" href="%s">signing up for a Membership</a> to access member-only events and pricing discounts!', 'tta' ),
+                  [
+                      'a' => [
+                          'href'  => [],
+                          'class' => [],
+                      ],
+                  ]
+              ),
+              esc_url( home_url( '/become-a-member/' ) )
+          );
+          ?>
+        </p>
         <form id="tta-register-form" class="tta-register-form">
           <p>
             <label for="tta-register-first-name"><?php esc_html_e( 'First Name', 'tta' ); ?></label>
