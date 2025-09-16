@@ -32,7 +32,24 @@ $lost_pw_url = wp_lostpassword_url( $redirect_url );
     <div class="tta-login-register-grid">
       <section class="tta-login-column">
         <h1 class="tta-section-title"><?php esc_html_e( 'Already Have an Account? Log In Below!', 'tta' ); ?></h1>
-        <p class="tta-section-intro"><?php esc_html_e( 'Log in to unlock member-only pricing, manage your upcoming events, and access your dashboard.', 'tta' ); ?></p>
+        <p class="tta-section-intro">
+          <?php
+          echo wp_kses(
+              sprintf(
+                  /* translators: %s: Become a Member page URL */
+                  __( 'Log in to see your Standard or Premium Membership pricing on events. Don\'t have a Membership? <a class="tta-join-link" href="%s"><strong>Join Here!</strong></a>', 'tta' ),
+                  esc_url( home_url( '/become-a-member/' ) )
+              ),
+              [
+                  'a'      => [
+                      'href'  => [],
+                      'class' => [],
+                  ],
+                  'strong' => [],
+              ]
+          );
+          ?>
+        </p>
         <div class="tta-login-form">
           <?php echo $login_form; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
           <p class="tta-login-help"><a href="<?php echo esc_url( $lost_pw_url ); ?>"><?php esc_html_e( 'Forgot your password?', 'tta' ); ?></a></p>
@@ -40,7 +57,7 @@ $lost_pw_url = wp_lostpassword_url( $redirect_url );
       </section>
       <section class="tta-register-column">
         <h1 class="tta-section-title"><?php esc_html_e( 'Don’t Have an Account? Create One Below!', 'tta' ); ?></h1>
-        <p class="tta-section-intro"><?php esc_html_e( 'Create an account to join events faster, save your preferences, and see pricing tailored to your membership level.', 'tta' ); ?></p>
+        <p class="tta-section-intro"><?php esc_html_e( 'Create an account to join select events, update your profile info, and sign up for a membership.', 'tta' ); ?></p>
         <form id="tta-register-form" class="tta-register-form">
           <p>
             <label for="tta-register-first-name"><?php esc_html_e( 'First Name', 'tta' ); ?></label>

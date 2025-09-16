@@ -203,7 +203,7 @@ class TTA_Assets {
                 'name'       => $first_name,
                 'loggedIn'   => is_user_logged_in(),
                 'loginUrl'   => home_url( '/login-or-create-an-account/' ),
-                'loginLabel' => esc_html__( 'Login', 'tta-management-plugin' ),
+                'loginLabel' => esc_html__( 'Log In', 'tta-management-plugin' ),
             ]
         );
 

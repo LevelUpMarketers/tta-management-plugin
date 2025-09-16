@@ -64,6 +64,9 @@ class TTA_Login_Branding {
             __( 'To reset your password, click on the link below:', 'tta' ),
             '',
             $reset_link,
+            '',
+            __( "We're looking forward to seeing you at the next event!", 'tta' ),
+            __( '- The Trying to Adult Team', 'tta' ),
         ];
 
         return implode( "\n", $lines );

@@ -24,7 +24,7 @@
             }
         } else {
             link.setAttribute('href', TTALogout.loginUrl);
-            link.textContent = TTALogout.loginLabel || 'Login';
+            link.textContent = TTALogout.loginLabel || 'Log In';
         }
     }
 

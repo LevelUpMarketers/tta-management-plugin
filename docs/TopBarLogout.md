@@ -10,7 +10,7 @@ The theme's top bar markup may include an empty logout container:
 
 This plugin automatically handles that element:
 
-- Visitors who are not logged in see a “Login” link that points to the
+- Visitors who are not logged in see a “Log In” link that points to the
   `/login-or-create-an-account/` page.
 - When a member is logged in, the plugin sets the anchor's `href` to a secure
   logout URL that redirects back to the site's homepage.
