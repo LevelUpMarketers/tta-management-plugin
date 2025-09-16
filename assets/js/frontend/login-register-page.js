@@ -11,12 +11,39 @@
     var $spinner = $form.find('.tta-admin-progress-spinner-svg');
     var $button = $form.find('button[type="submit"]');
     var $response = $('#tta-register-response');
+    var showPasswordText = settings.showPassword || 'Show password';
+    var hidePasswordText = settings.hidePassword || 'Hide password';
 
     $spinner.hide();
 
     function resetState() {
       $response.removeClass('error updated').text('');
     }
+
+    function setToggleState($toggle, isVisible) {
+      $toggle.attr('aria-pressed', isVisible);
+      $toggle.find('.tta-visually-hidden').text(isVisible ? hidePasswordText : showPasswordText);
+    }
+
+    $form.find('.tta-password-toggle').each(function () {
+      setToggleState($(this), false);
+    });
+
+    $form.on('click', '.tta-password-toggle', function (event) {
+      event.preventDefault();
+
+      var $toggle = $(this);
+      var targetId = $toggle.attr('data-target');
+      var $input = targetId ? $('#' + targetId) : $toggle.closest('.tta-password-input').find('input').first();
+
+      if (!$input.length) {
+        return;
+      }
+
+      var makeVisible = $input.attr('type') === 'password';
+      $input.attr('type', makeVisible ? 'text' : 'password');
+      setToggleState($toggle, makeVisible);
+    });
 
     function showError(message) {
       $response.removeClass('updated').addClass('error').text(message);

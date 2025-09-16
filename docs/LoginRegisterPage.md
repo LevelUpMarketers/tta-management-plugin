@@ -24,6 +24,10 @@ screen.
   validation rules used across the site (matching email/password pairs and
   strong password requirements). Registration happens via the existing
   `tta_register` AJAX endpoint.
+- **Password visibility toggles** on both registration password fields so
+  visitors can confirm their entries on desktop and mobile. The toggle keeps
+  the control accessible by announcing its current state via screen reader
+  text.
 - **Automatic redirect** to the Events Listings page after either a
   successful login or a successful account creation. The redirect
   destination can be changed with the

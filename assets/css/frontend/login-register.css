@@ -29,12 +29,15 @@
 }
 
 .tta-section-title {
-  font-size: 1.75rem;
+  font-family: "Teko", sans-serif;
+  font-size: 30px;
+  font-weight: 600;
+  color: #3a7096;
   margin: 0 0 10px;
 }
 
 .tta-section-intro {
-  font-size: 1rem;
+  font-size: 18px;
   margin: 0 0 25px;
   color: #4a4a4a;
 }
@@ -57,7 +60,7 @@
   border: 1px solid #d1d1d1;
   border-radius: 6px;
   padding: 12px;
-  font-size: 1rem;
+  font-size: 14px;
   width: 100%;
 }
 
@@ -100,16 +103,12 @@
   font-weight: 600;
 }
 
-.tta-register-form p {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 18px;
-}
-
 .tta-register-form label {
+  display: block;
   font-weight: 600;
   color: #222222;
+  margin-bottom: 6px;
+  font-size: 16px;
 }
 
 .tta-register-form input[type="text"],
@@ -118,7 +117,81 @@
   border: 1px solid #d1d1d1;
   border-radius: 6px;
   padding: 12px;
-  font-size: 1rem;
+  font-size: 14px;
+  width: 100%;
+}
+
+#tta-register-form p:not(.tta-register-actions) {
+  display: inline-block;
+  width: calc(50% - 6px);
+  margin: 0 6px 18px 0;
+  vertical-align: top;
+}
+
+#tta-register-form p:not(.tta-register-actions):nth-of-type(2n) {
+  margin-right: 0;
+}
+
+.tta-password-input {
+  position: relative;
+  display: block;
+}
+
+.tta-password-input input[type="password"],
+.tta-password-input input[type="text"] {
+  width: 100%;
+  padding-right: 48px;
+}
+
+.tta-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #3a7096;
+  cursor: pointer;
+  padding: 0;
+}
+
+.tta-password-toggle:focus,
+.tta-password-toggle:hover {
+  color: #ff6b3d;
+}
+
+.tta-password-toggle-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.tta-password-toggle-icon--hide {
+  display: none;
+}
+
+.tta-password-toggle[aria-pressed="true"] .tta-password-toggle-icon--show {
+  display: none;
+}
+
+.tta-password-toggle[aria-pressed="true"] .tta-password-toggle-icon--hide {
+  display: block;
+}
+
+.tta-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .tta-register-actions {
@@ -126,6 +199,8 @@
   align-items: center;
   gap: 12px;
   margin-top: 10px;
+  width: 100%;
+  margin-right: 0;
 }
 
 .tta-register-actions .tta-button {
@@ -150,6 +225,19 @@
 
 #tta-register-response.error {
   color: #cc0000;
+}
+
+@media (max-width: 1050px) {
+  #tta-register-form p:not(.tta-register-actions) {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .tta-register-form input[type="text"],
+  .tta-register-form input[type="email"],
+  .tta-register-form input[type="password"] {
+    width: 100%;
+  }
 }
 
 @media (max-width: 767px) {

@@ -599,6 +599,8 @@ class TTA_Assets {
                     'passwordRequirements' => __( 'Password must be at least 8 characters and include upper and lower case letters and a number.', 'tta' ),
                     'requestFailed'        => __( 'Request failed.', 'tta' ),
                     'successMessage'       => __( 'Account created! Redirecting…', 'tta' ),
+                    'showPassword'         => __( 'Show password', 'tta' ),
+                    'hidePassword'         => __( 'Hide password', 'tta' ),
                 ]
             );
         }
