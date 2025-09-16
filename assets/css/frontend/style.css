@@ -292,6 +292,3 @@
   display: inline-block;
 }
 
-body:not(.logged-in) .tta-header-logout-div span {
-  display: none;
-}
