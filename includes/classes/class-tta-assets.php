@@ -199,8 +199,11 @@ class TTA_Assets {
             'tta-logout-link',
             'TTALogout',
             [
-                'url'  => wp_logout_url( home_url( '/' ) ),
-                'name' => $first_name,
+                'url'        => wp_logout_url( home_url( '/' ) ),
+                'name'       => $first_name,
+                'loggedIn'   => is_user_logged_in(),
+                'loginUrl'   => home_url( '/login-or-create-an-account/' ),
+                'loginLabel' => esc_html__( 'Login', 'tta-management-plugin' ),
             ]
         );
 

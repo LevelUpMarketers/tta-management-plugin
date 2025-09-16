@@ -289,8 +289,9 @@
 
 /* Top bar logout link */
 .tta-header-logout-div {
-  display: none;
-}
-.logged-in .tta-header-logout-div {
   display: inline-block;
+}
+
+body:not(.logged-in) .tta-header-logout-div span {
+  display: none;
 }
