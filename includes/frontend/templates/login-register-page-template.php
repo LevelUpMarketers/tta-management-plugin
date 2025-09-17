@@ -37,7 +37,7 @@ $lost_pw_url = wp_lostpassword_url( $redirect_url );
           echo wp_kses(
               sprintf(
                   /* translators: %s: Become a Member page URL */
-                  __( 'Log in to see your Standard or Premium Membership pricing on events. Don\'t have a Membership? <a class="tta-join-link" href="%s"><strong>Join Here!</strong></a>', 'tta' ),
+                  __( 'Log in to sign up for events, see upcoming events, and check Membership status & perks.  Don\'t have a Membership? <a class="tta-join-link" href="%s"><strong>Join Here!</strong></a>', 'tta' ),
                   esc_url( home_url( '/become-a-member/' ) )
               ),
               [
@@ -62,7 +62,7 @@ $lost_pw_url = wp_lostpassword_url( $redirect_url );
           printf(
               wp_kses(
                   /* translators: %s: Become a Member page URL. */
-                  __( 'Create an account below, and then consider <a class="tta-join-link" href="%s">signing up for a Membership</a> to access member-only events and pricing discounts!', 'tta' ),
+                  __( 'Create a FREE account below.  Sign up for <a class="tta-join-link" href="%s">one of our Memberships</a> to gain access to special perks & discounts.', 'tta' ),
                   [
                       'a' => [
                           'href'  => [],
