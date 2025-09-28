@@ -315,7 +315,6 @@
 }
 
 .tta-login-accordion .tta-accordion-content.expanded {
-  max-height: 400px;
   padding: 20px 0 0;
   background: #faf8e5;
 }
@@ -762,9 +761,13 @@ input[disabled]::before {
 /* Accordion fade + transition already in place from your description section */
 
 
-#tta-register-form > p{
-  display:inline-block;
-  margin-right: 10px;
+#tta-register-form > p {
+  margin-right: 0;
+  width: 100%;
+}
+
+#tta-register-form > p input {
+  width: 100%;
 }
 
 .tta-event-main #tta-login-message #loginform .login-username, .tta-event-main #tta-login-message #loginform .login-password{

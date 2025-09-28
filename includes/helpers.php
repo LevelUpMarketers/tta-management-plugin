@@ -1485,6 +1485,106 @@ function tta_check_subscription_on_login( $user_login, $user ) {
 }
 
 /**
+ * Ensure the active cart reflects the logged-in user's membership pricing.
+ *
+ * @param int $wp_user_id WordPress user ID.
+ */
+function tta_refresh_cart_session_for_user( $wp_user_id ) {
+    $wp_user_id = intval( $wp_user_id );
+    if ( $wp_user_id <= 0 ) {
+        return;
+    }
+
+    if ( ! session_id() ) {
+        session_start();
+    }
+
+    if ( empty( $_SESSION['tta_cart_session'] ) ) {
+        return;
+    }
+
+    global $wpdb;
+
+    $session_key = sanitize_text_field( wp_unslash( $_SESSION['tta_cart_session'] ) );
+    $carts_table = $wpdb->prefix . 'tta_carts';
+    $items_table = $wpdb->prefix . 'tta_cart_items';
+    $tickets_table = $wpdb->prefix . 'tta_tickets';
+
+    $cart_row = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT id FROM {$carts_table} WHERE session_key = %s",
+            $session_key
+        ),
+        ARRAY_A
+    );
+
+    if ( ! $cart_row ) {
+        return;
+    }
+
+    $cart_id = intval( $cart_row['id'] );
+    $wpdb->update(
+        $carts_table,
+        [ 'user_id' => $wp_user_id ],
+        [ 'id' => $cart_id ],
+        [ '%d' ],
+        [ '%d' ]
+    );
+
+    $membership_level = tta_get_user_membership_level( $wp_user_id );
+
+    $items = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT ci.ticket_id, t.baseeventcost, t.discountedmembercost, t.premiummembercost
+             FROM {$items_table} ci
+             JOIN {$tickets_table} t ON ci.ticket_id = t.id
+             WHERE ci.cart_id = %d",
+            $cart_id
+        ),
+        ARRAY_A
+    );
+
+    foreach ( (array) $items as $item ) {
+        $ticket_id = intval( $item['ticket_id'] ?? 0 );
+        if ( ! $ticket_id ) {
+            continue;
+        }
+
+        $price = floatval( $item['baseeventcost'] );
+        if ( 'basic' === $membership_level ) {
+            $price = floatval( $item['discountedmembercost'] );
+        } elseif ( 'premium' === $membership_level ) {
+            $price = floatval( $item['premiummembercost'] );
+        }
+
+        $wpdb->update(
+            $items_table,
+            [ 'price' => $price ],
+            [ 'cart_id' => $cart_id, 'ticket_id' => $ticket_id ],
+            [ '%f' ],
+            [ '%d', '%d' ]
+        );
+    }
+
+    // Ensure subsequent requests use the refreshed session context.
+    $_SESSION['tta_checkout_key'] = $_SESSION['tta_cart_session'];
+    unset( $_SESSION['tta_cart_notice'] );
+}
+
+/**
+ * Refresh cart pricing when a user successfully logs in.
+ *
+ * @param string  $user_login Username.
+ * @param WP_User $user       User object.
+ */
+function tta_refresh_cart_on_login( $user_login, $user ) {
+    if ( $user instanceof WP_User ) {
+        tta_refresh_cart_session_for_user( $user->ID );
+    }
+}
+add_action( 'wp_login', 'tta_refresh_cart_on_login', 20, 2 );
+
+/**
  * Ensure a user's subscription status matches Authorize.Net.
  *
  * @param int $wp_user_id WordPress user ID.
@@ -5865,6 +5965,13 @@ add_action( 'admin_init', 'tta_block_dashboard_access' );
  */
 function tta_login_redirect( $redirect_to, $requested_redirect_to, $user ) {
     if ( $user instanceof WP_User && ! user_can( $user, 'manage_options' ) ) {
+        if ( $requested_redirect_to ) {
+            $validated = wp_validate_redirect( $requested_redirect_to, home_url( '/' ) );
+            if ( $validated ) {
+                return $validated;
+            }
+        }
+
         $referer = wp_get_referer();
         return $referer ? $referer : home_url( '/' );
     }
