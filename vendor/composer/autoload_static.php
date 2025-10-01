@@ -11,6 +11,10 @@ class ComposerStaticInit5030b871dfd391dcd041ce10457b0a8a
         array (
             'ZipStream\\' => 10,
         ),
+        'T' => 
+        array (
+            'Twilio\\' => 7,
+        ),
         'P' => 
         array (
             'Psr\\SimpleCache\\' => 16,
@@ -20,6 +24,7 @@ class ComposerStaticInit5030b871dfd391dcd041ce10457b0a8a
         ),
         'M' => 
         array (
+            'MyCLabs\\Enum\\' => 13,
             'Matrix\\' => 7,
         ),
         'C' => 
@@ -33,6 +38,10 @@ class ComposerStaticInit5030b871dfd391dcd041ce10457b0a8a
         'ZipStream\\' => 
         array (
             0 => __DIR__ . '/..' . '/maennchen/zipstream-php/src',
+        ),
+        'Twilio\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/twilio/sdk/src/Twilio',
         ),
         'Psr\\SimpleCache\\' => 
         array (
@@ -51,6 +60,10 @@ class ComposerStaticInit5030b871dfd391dcd041ce10457b0a8a
         array (
             0 => __DIR__ . '/..' . '/phpoffice/phpspreadsheet/src/PhpSpreadsheet',
         ),
+        'MyCLabs\\Enum\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/myclabs/php-enum/src',
+        ),
         'Matrix\\' => 
         array (
             0 => __DIR__ . '/..' . '/markbaker/matrix/classes/src',
@@ -67,6 +80,7 @@ class ComposerStaticInit5030b871dfd391dcd041ce10457b0a8a
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'Stringable' => __DIR__ . '/..' . '/myclabs/php-enum/stubs/Stringable.php',
         'net\\authorize\\api\\constants\\ANetEnvironment' => __DIR__ . '/..' . '/authorizenet/authorizenet/lib/net/authorize/api/constants/ANetEnvironment.php',
         'net\\authorize\\api\\contract\\v1\\ANetApiRequestType' => __DIR__ . '/..' . '/authorizenet/authorizenet/lib/net/authorize/api/contract/v1/ANetApiRequestType.php',
         'net\\authorize\\api\\contract\\v1\\ANetApiResponseType' => __DIR__ . '/..' . '/authorizenet/authorizenet/lib/net/authorize/api/contract/v1/ANetApiResponseType.php',
