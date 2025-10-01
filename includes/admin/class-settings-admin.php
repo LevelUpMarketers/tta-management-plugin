@@ -3,6 +3,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+use Twilio\Rest\Client;
+
 class TTA_Settings_Admin {
     public static function get_instance() {
         static $inst;
@@ -193,6 +195,117 @@ class TTA_Settings_Admin {
                 $twilio_env = 'live';
             }
 
+            $twilio_test_debug   = [
+                'endpoint'  => '',
+                'variables' => null,
+                'payload'   => null,
+                'response'  => null,
+            ];
+            $twilio_test_message = '';
+
+            $sandbox_display_value = defined( 'TTA_TWILIO_SANDBOX_NUMBER' ) && TTA_TWILIO_SANDBOX_NUMBER ? TTA_TWILIO_SANDBOX_NUMBER : $twilio_sandbox_to;
+
+            if ( isset( $_POST['tta_send_test_twilio_sms'] ) && check_admin_referer( 'tta_test_twilio_sms_action', 'tta_test_twilio_sms_nonce' ) ) {
+                $twilio_test_message = isset( $_POST['tta_twilio_test_message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['tta_twilio_test_message'] ) ) : '';
+
+                $display_env           = defined( 'TTA_TWILIO_ENVIRONMENT' ) ? sanitize_key( TTA_TWILIO_ENVIRONMENT ) : $twilio_env;
+                $sandbox_destination   = $sandbox_display_value;
+                $messaging_service_sid = defined( 'TTA_TWILIO_MESSAGING_SERVICE_SID' ) && TTA_TWILIO_MESSAGING_SERVICE_SID ? TTA_TWILIO_MESSAGING_SERVICE_SID : $twilio_service;
+                $from_number           = defined( 'TTA_TWILIO_SENDING_NUMBER' ) && TTA_TWILIO_SENDING_NUMBER ? TTA_TWILIO_SENDING_NUMBER : $twilio_number;
+
+                $twilio_test_debug['variables'] = [
+                    'environment'        => $display_env,
+                    'sandbox_recipient'  => $sandbox_destination,
+                    'using_service_sid'  => (bool) $messaging_service_sid,
+                    'using_from_number'  => (bool) $from_number,
+                    'message_length'     => strlen( $twilio_test_message ),
+                ];
+
+                $error_message = '';
+
+                if ( '' === $twilio_test_message ) {
+                    $error_message = esc_html__( 'Please enter a test message before sending.', 'tta' );
+                } elseif ( empty( $sandbox_destination ) ) {
+                    $error_message = esc_html__( 'Unable to send test SMS because no Twilio sandbox number is configured.', 'tta' );
+                } elseif ( ! class_exists( Client::class ) ) {
+                    $error_message = esc_html__( 'The Twilio PHP SDK is not available. Please ensure the library is installed.', 'tta' );
+                }
+
+                $auth_sid    = '';
+                $auth_token  = '';
+                $account_sid = '';
+                $mode        = '';
+
+                if ( ! $error_message ) {
+                    if ( defined( 'TTA_TWILIO_API_SID' ) && TTA_TWILIO_API_SID && defined( 'TTA_TWILIO_API_KEY' ) && TTA_TWILIO_API_KEY ) {
+                        $auth_sid    = TTA_TWILIO_API_SID;
+                        $auth_token  = TTA_TWILIO_API_KEY;
+                        $account_sid = defined( 'TTA_TWILIO_USER_SID' ) && TTA_TWILIO_USER_SID ? TTA_TWILIO_USER_SID : ( defined( 'TTA_TWILIO_SID' ) && TTA_TWILIO_SID ? TTA_TWILIO_SID : '' );
+                        $mode        = 'api_key';
+                    } elseif ( defined( 'TTA_TWILIO_SID' ) && TTA_TWILIO_SID && defined( 'TTA_TWILIO_TOKEN' ) && TTA_TWILIO_TOKEN ) {
+                        $auth_sid    = TTA_TWILIO_SID;
+                        $auth_token  = TTA_TWILIO_TOKEN;
+                        $account_sid = TTA_TWILIO_SID;
+                        $mode        = 'auth_token';
+                    }
+
+                    if ( ! $auth_sid || ! $auth_token ) {
+                        $error_message = esc_html__( 'Twilio credentials are incomplete. Provide an API SID and Key or Account SID and Token before sending a test SMS.', 'tta' );
+                    } elseif ( 'api_key' === $mode && ! $account_sid ) {
+                        $error_message = esc_html__( 'A Twilio Account SID is required when using API Keys. Update the Twilio settings and try again.', 'tta' );
+                    }
+                }
+
+                if ( ! $error_message ) {
+                    $twilio_test_debug['variables']['credential_mode'] = $mode;
+                    $twilio_test_debug['variables']['account_sid']     = $this->mask_sensitive_value( $account_sid );
+                    $twilio_test_debug['variables']['auth_sid']        = $this->mask_sensitive_value( $auth_sid );
+
+                    $message_args    = [ 'body' => $twilio_test_message ];
+                    $payload_display = [
+                        'to'   => $sandbox_destination,
+                        'body' => $twilio_test_message,
+                    ];
+
+                    if ( $messaging_service_sid ) {
+                        $message_args['messagingServiceSid'] = $messaging_service_sid;
+                        $payload_display['messagingServiceSid'] = $messaging_service_sid;
+                    } elseif ( $from_number ) {
+                        $message_args['from'] = $from_number;
+                        $payload_display['from'] = $from_number;
+                    } else {
+                        $error_message = esc_html__( 'Configure a Twilio Messaging Service SID or Sending Number before sending a test SMS.', 'tta' );
+                    }
+
+                    $twilio_test_debug['payload'] = $payload_display;
+                }
+
+                if ( $error_message ) {
+                    $twilio_test_debug['response'] = [ 'error' => $error_message ];
+                    echo '<div class="error"><p>' . esc_html( $error_message ) . '</p></div>';
+                } else {
+                    try {
+                        $client = 'api_key' === $mode ? new Client( $auth_sid, $auth_token, $account_sid ) : new Client( $auth_sid, $auth_token );
+
+                        $account_for_endpoint           = $account_sid ? $account_sid : $auth_sid;
+                        $twilio_test_debug['endpoint'] = sprintf( 'https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json', rawurlencode( $account_for_endpoint ) );
+
+                        $response = $client->messages->create( $sandbox_destination, $message_args );
+
+                        $twilio_test_debug['response'] = $this->format_twilio_response( $response );
+
+                        echo '<div class="updated"><p>' . esc_html__( 'Test SMS sent successfully. Check the sandbox number for delivery.', 'tta' ) . '</p></div>';
+                        TTA_Debug_Logger::log( sprintf( 'Twilio sandbox test SMS sent to %s (SID: %s)', $sandbox_destination, $response->sid ) );
+                        $twilio_test_message = '';
+                    } catch ( \Exception $e ) {
+                        $error = sprintf( __( 'Twilio returned an error while sending the test SMS: %s', 'tta' ), $e->getMessage() );
+                        $twilio_test_debug['response'] = [ 'error' => $e->getMessage() ];
+                        echo '<div class="error"><p>' . esc_html( $error ) . '</p></div>';
+                        TTA_Debug_Logger::log( 'Twilio sandbox test SMS failed: ' . $e->getMessage() );
+                    }
+                }
+            }
+
             echo '<form method="post" action="?page=tta-settings&tab=api">';
             wp_nonce_field( 'tta_save_api_settings_action', 'tta_save_api_settings_nonce' );
             echo '<table class="form-table"><tbody>';
@@ -223,14 +336,46 @@ class TTA_Settings_Admin {
                 echo '<textarea readonly style="width:100%;height:200px;">' . esc_html( implode( "\n", $convert_results ) ) . '</textarea>';
             }
 
+            $twilio_endpoint_display = $twilio_test_debug['endpoint'] ? $twilio_test_debug['endpoint'] : __( 'Pending implementation', 'tta' );
+
+            $twilio_variables_display = __( 'Pending implementation', 'tta' );
+            if ( null !== $twilio_test_debug['variables'] ) {
+                $encoded = wp_json_encode( $twilio_test_debug['variables'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+                if ( false !== $encoded ) {
+                    $twilio_variables_display = $encoded;
+                } else {
+                    $twilio_variables_display = print_r( $twilio_test_debug['variables'], true );
+                }
+            }
+
+            $twilio_payload_display = __( 'Pending implementation', 'tta' );
+            if ( null !== $twilio_test_debug['payload'] ) {
+                $encoded = wp_json_encode( $twilio_test_debug['payload'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+                if ( false !== $encoded ) {
+                    $twilio_payload_display = $encoded;
+                } else {
+                    $twilio_payload_display = print_r( $twilio_test_debug['payload'], true );
+                }
+            }
+
+            $twilio_response_display = __( 'Pending implementation', 'tta' );
+            if ( null !== $twilio_test_debug['response'] ) {
+                $encoded = wp_json_encode( $twilio_test_debug['response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+                if ( false !== $encoded ) {
+                    $twilio_response_display = $encoded;
+                } else {
+                    $twilio_response_display = print_r( $twilio_test_debug['response'], true );
+                }
+            }
+
             echo '<hr><h2>' . esc_html__( 'Test Twilio Sandbox SMS', 'tta' ) . '</h2>';
             echo '<form method="post" action="?page=tta-settings&tab=api" class="tta-twilio-sandbox-test">';
             wp_nonce_field( 'tta_test_twilio_sms_action', 'tta_test_twilio_sms_nonce' );
             echo '<p><label for="tta_twilio_test_message">' . esc_html__( 'Message Content', 'tta' ) . '</label><br />';
-            echo '<textarea id="tta_twilio_test_message" name="tta_twilio_test_message" rows="6" cols="60" placeholder="' . esc_attr__( 'Type a message to send to the sandbox number.', 'tta' ) . '"></textarea></p>';
+            echo '<textarea id="tta_twilio_test_message" name="tta_twilio_test_message" rows="6" cols="60" placeholder="' . esc_attr__( 'Type a message to send to the sandbox number.', 'tta' ) . '">' . esc_textarea( $twilio_test_message ) . '</textarea></p>';
             echo '<p class="description">' . esc_html__( 'Messages from this form will always be delivered to the configured Twilio sandbox number.', 'tta' );
-            if ( ! empty( $twilio_sandbox_to ) ) {
-                echo ' ' . esc_html__( 'Current sandbox recipient:', 'tta' ) . ' <code>' . esc_html( $twilio_sandbox_to ) . '</code>';
+            if ( ! empty( $sandbox_display_value ) ) {
+                echo ' ' . esc_html__( 'Current sandbox recipient:', 'tta' ) . ' <code>' . esc_html( $sandbox_display_value ) . '</code>';
             } else {
                 echo ' ' . esc_html__( 'No sandbox number is currently configured.', 'tta' );
             }
@@ -240,13 +385,13 @@ class TTA_Settings_Admin {
 
             echo '<div class="tta-twilio-test-feedback">';
             echo '<h3>' . esc_html__( 'Debug Output', 'tta' ) . '</h3>';
-            echo '<p class="description">' . esc_html__( 'When implemented, this area will display endpoint details, variables, payloads, and API responses for troubleshooting.', 'tta' ) . '</p>';
+            echo '<p class="description">' . esc_html__( 'Use this information to troubleshoot sandbox deliveries. Values are masked where appropriate.', 'tta' ) . '</p>';
             echo '<table class="widefat striped" style="max-width:800px;">';
             echo '<tbody>';
-            echo '<tr><th scope="row">' . esc_html__( 'API Endpoint', 'tta' ) . '</th><td><code id="tta_twilio_test_endpoint">' . esc_html__( 'Pending implementation', 'tta' ) . '</code></td></tr>';
-            echo '<tr><th scope="row">' . esc_html__( 'Request Variables', 'tta' ) . '</th><td><pre id="tta_twilio_test_variables" style="white-space:pre-wrap;">' . esc_html__( 'Pending implementation', 'tta' ) . '</pre></td></tr>';
-            echo '<tr><th scope="row">' . esc_html__( 'Payload', 'tta' ) . '</th><td><pre id="tta_twilio_test_payload" style="white-space:pre-wrap;">' . esc_html__( 'Pending implementation', 'tta' ) . '</pre></td></tr>';
-            echo '<tr><th scope="row">' . esc_html__( 'API Response', 'tta' ) . '</th><td><pre id="tta_twilio_test_response" style="white-space:pre-wrap;">' . esc_html__( 'Pending implementation', 'tta' ) . '</pre></td></tr>';
+            echo '<tr><th scope="row">' . esc_html__( 'API Endpoint', 'tta' ) . '</th><td><code id="tta_twilio_test_endpoint">' . esc_html( $twilio_endpoint_display ) . '</code></td></tr>';
+            echo '<tr><th scope="row">' . esc_html__( 'Request Variables', 'tta' ) . '</th><td><pre id="tta_twilio_test_variables" style="white-space:pre-wrap;">' . esc_html( $twilio_variables_display ) . '</pre></td></tr>';
+            echo '<tr><th scope="row">' . esc_html__( 'Payload', 'tta' ) . '</th><td><pre id="tta_twilio_test_payload" style="white-space:pre-wrap;">' . esc_html( $twilio_payload_display ) . '</pre></td></tr>';
+            echo '<tr><th scope="row">' . esc_html__( 'API Response', 'tta' ) . '</th><td><pre id="tta_twilio_test_response" style="white-space:pre-wrap;">' . esc_html( $twilio_response_display ) . '</pre></td></tr>';
             echo '</tbody>';
             echo '</table>';
             echo '</div>';
@@ -316,6 +461,55 @@ class TTA_Settings_Admin {
         }
 
         echo '</div>';
+    }
+
+    private function mask_sensitive_value( $value ) {
+        $value = (string) $value;
+
+        if ( '' === $value ) {
+            return '';
+        }
+
+        $length = strlen( $value );
+
+        if ( $length <= 4 ) {
+            return str_repeat( '*', $length );
+        }
+
+        return str_repeat( '*', $length - 4 ) . substr( $value, -4 );
+    }
+
+    private function format_twilio_response( $response ) {
+        if ( ! is_object( $response ) ) {
+            return $response;
+        }
+
+        $date_created = null;
+        if ( isset( $response->dateCreated ) ) {
+            if ( $response->dateCreated instanceof \DateTimeInterface ) {
+                $date_created = $response->dateCreated->format( DATE_ATOM );
+            } else {
+                $date_created = (string) $response->dateCreated;
+            }
+        }
+
+        $data = [
+            'sid'                   => isset( $response->sid ) ? $response->sid : '',
+            'status'                => isset( $response->status ) ? $response->status : '',
+            'to'                    => isset( $response->to ) ? $response->to : '',
+            'from'                  => isset( $response->from ) ? $response->from : '',
+            'messaging_service_sid' => isset( $response->messagingServiceSid ) ? $response->messagingServiceSid : '',
+            'date_created'          => $date_created,
+            'error_code'            => isset( $response->errorCode ) ? $response->errorCode : null,
+            'error_message'         => isset( $response->errorMessage ) ? $response->errorMessage : null,
+        ];
+
+        return array_filter(
+            $data,
+            function ( $value ) {
+                return null !== $value && '' !== $value;
+            }
+        );
     }
 }
 
