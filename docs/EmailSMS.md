@@ -239,3 +239,16 @@ the email handler and reads the SMS text from the same template set. When the
 Twilio credentials are configured, members and attendees receive text messages
 for purchases, refunds and waitlist openings. If credentials are missing no SMS
 is dispatched and a notice appears in the WordPress admin.
+
+Twilio credentials can be managed directly from **TTA Settings → API Settings**.
+Provide the Twilio User SID (account SID), API SID, and API Key generated for
+your API credential pair. Supply either a Messaging Service SID or a Sending
+Number so the plugin knows which sender identity to use when delivering SMS
+messages. Select the Twilio Environment (Live or Sandbox) to control where
+messages are delivered during testing. When Sandbox mode is enabled all SMS
+are routed to the configured Twilio Sandbox Number, ensuring real members do
+not receive test messages. When sandbox mode is active without a sandbox number
+the plugin suppresses SMS delivery and displays an admin warning so test sends
+cannot reach real phones by mistake. These values are stored securely in the
+WordPress options table and are also consumable via environment variables for
+deployment flexibility.

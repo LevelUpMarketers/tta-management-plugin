@@ -3,7 +3,7 @@
  * Plugin Name: Trying To Adult Management Plugin
  * Plugin URI: https://example.com
  * Description: Custom plugin for Members, Events, Tickets management with waitlist, notifications, and Authorize.Net integration.
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: Your Name
  * Author URI: https://example.com
  * Text Domain: trying-to-adult-management
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Define plugin constants
 define( 'TTA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TTA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'TTA_PLUGIN_VERSION', '1.0.5' );
+define( 'TTA_PLUGIN_VERSION', '1.0.6' );
 define( 'TTA_DB_VERSION', '1.13.1' );
 define( 'TTA_BASIC_MEMBERSHIP_PRICE', 10.00 );
 define( 'TTA_PREMIUM_MEMBERSHIP_PRICE', 17.00 );
@@ -47,13 +47,12 @@ TTA_Debug_Logger::init();
 require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-tooltips.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin-bar.php';
 
-// Load Authorize.Net and SendGrid credentials from the database or environment variables.
+// Load Authorize.Net credentials from the database or environment variables.
 $tta_authnet_sandbox     = get_option( 'tta_authnet_sandbox', false );
 $creds                   = tta_get_authnet_credentials( (bool) $tta_authnet_sandbox );
 $tta_authnet_login       = $creds['login_id'];
 $tta_authnet_transaction = $creds['transaction_key'];
 $tta_authnet_client      = $creds['client_key'];
-$tta_sendgrid_key        = get_option( 'tta_sendgrid_api_key' );
 
 if ( ! $tta_authnet_login && getenv( 'TTA_AUTHNET_LOGIN_ID' ) ) {
     $tta_authnet_login = getenv( 'TTA_AUTHNET_LOGIN_ID' );
@@ -64,10 +63,6 @@ if ( ! $tta_authnet_transaction && getenv( 'TTA_AUTHNET_TRANSACTION_KEY' ) ) {
 if ( ! $tta_authnet_client && getenv( 'TTA_AUTHNET_CLIENT_KEY' ) ) {
     $tta_authnet_client = getenv( 'TTA_AUTHNET_CLIENT_KEY' );
 }
-if ( ! $tta_sendgrid_key && getenv( 'TTA_SENDGRID_API_KEY' ) ) {
-    $tta_sendgrid_key = getenv( 'TTA_SENDGRID_API_KEY' );
-}
-
 if ( $tta_authnet_login ) {
     define( 'TTA_AUTHNET_LOGIN_ID', $tta_authnet_login );
 }
@@ -76,9 +71,6 @@ if ( $tta_authnet_transaction ) {
 }
 if ( $tta_authnet_client ) {
     define( 'TTA_AUTHNET_CLIENT_KEY', $tta_authnet_client );
-}
-if ( $tta_sendgrid_key && ! defined( 'TTA_SENDGRID_API_KEY' ) ) {
-    define( 'TTA_SENDGRID_API_KEY', $tta_sendgrid_key );
 }
 if ( ! defined( 'TTA_AUTHNET_SANDBOX' ) ) {
     define( 'TTA_AUTHNET_SANDBOX', (bool) $tta_authnet_sandbox );
@@ -102,26 +94,124 @@ if ( is_admin() ) {
 // -----------------------------------------------------------------------------
 // Twilio Credentials
 // -----------------------------------------------------------------------------
+if ( false !== get_option( 'tta_sendgrid_api_key', false ) ) {
+    delete_option( 'tta_sendgrid_api_key' );
+}
+
 $twilio_config = TTA_PLUGIN_DIR . 'twilio-config.php';
 if ( file_exists( $twilio_config ) ) {
     include_once $twilio_config;
 }
 
-if ( getenv( 'TTA_TWILIO_SID' ) && ! defined( 'TTA_TWILIO_SID' ) ) {
-    define( 'TTA_TWILIO_SID', getenv( 'TTA_TWILIO_SID' ) );
+$twilio_user_sid     = get_option( 'tta_twilio_user_sid', '' );
+$twilio_api_sid      = get_option( 'tta_twilio_api_sid', '' );
+$twilio_api_key      = get_option( 'tta_twilio_api_key', '' );
+$twilio_service_sid  = get_option( 'tta_twilio_messaging_service_sid', '' );
+$twilio_from_number  = get_option( 'tta_twilio_sending_number', '' );
+$twilio_environment  = get_option( 'tta_twilio_environment', 'live' );
+$twilio_sandbox_to   = get_option( 'tta_twilio_sandbox_number', '' );
+
+$twilio_environment = 'sandbox' === strtolower( $twilio_environment ) ? 'sandbox' : 'live';
+
+if ( ! $twilio_user_sid && getenv( 'TTA_TWILIO_USER_SID' ) ) {
+    $twilio_user_sid = getenv( 'TTA_TWILIO_USER_SID' );
 }
-if ( getenv( 'TTA_TWILIO_TOKEN' ) && ! defined( 'TTA_TWILIO_TOKEN' ) ) {
-    define( 'TTA_TWILIO_TOKEN', getenv( 'TTA_TWILIO_TOKEN' ) );
+if ( ! $twilio_user_sid && getenv( 'TTA_TWILIO_SID' ) ) {
+    $twilio_user_sid = getenv( 'TTA_TWILIO_SID' );
 }
-if ( getenv( 'TTA_TWILIO_FROM' ) && ! defined( 'TTA_TWILIO_FROM' ) ) {
-    define( 'TTA_TWILIO_FROM', getenv( 'TTA_TWILIO_FROM' ) );
+
+if ( ! $twilio_api_sid && getenv( 'TTA_TWILIO_API_SID' ) ) {
+    $twilio_api_sid = getenv( 'TTA_TWILIO_API_SID' );
+}
+if ( ! $twilio_api_sid && getenv( 'TTA_TWILIO_SID' ) ) {
+    $twilio_api_sid = getenv( 'TTA_TWILIO_SID' );
+}
+
+if ( ! $twilio_api_key && getenv( 'TTA_TWILIO_API_KEY' ) ) {
+    $twilio_api_key = getenv( 'TTA_TWILIO_API_KEY' );
+}
+if ( ! $twilio_api_key && getenv( 'TTA_TWILIO_TOKEN' ) ) {
+    $twilio_api_key = getenv( 'TTA_TWILIO_TOKEN' );
+}
+
+if ( ! $twilio_service_sid && getenv( 'TTA_TWILIO_MESSAGING_SERVICE_SID' ) ) {
+    $twilio_service_sid = getenv( 'TTA_TWILIO_MESSAGING_SERVICE_SID' );
+}
+
+if ( ! $twilio_from_number && getenv( 'TTA_TWILIO_SENDING_NUMBER' ) ) {
+    $twilio_from_number = getenv( 'TTA_TWILIO_SENDING_NUMBER' );
+}
+if ( ! $twilio_from_number && getenv( 'TTA_TWILIO_FROM' ) ) {
+    $twilio_from_number = getenv( 'TTA_TWILIO_FROM' );
+}
+
+$env_environment = getenv( 'TTA_TWILIO_ENVIRONMENT' );
+if ( $env_environment ) {
+    $twilio_environment = 'sandbox' === strtolower( $env_environment ) ? 'sandbox' : 'live';
+}
+
+$env_sandbox_to = getenv( 'TTA_TWILIO_SANDBOX_NUMBER' );
+if ( $env_sandbox_to ) {
+    $twilio_sandbox_to = $env_sandbox_to;
+}
+
+if ( $twilio_user_sid && ! defined( 'TTA_TWILIO_USER_SID' ) ) {
+    define( 'TTA_TWILIO_USER_SID', $twilio_user_sid );
+}
+if ( $twilio_api_sid && ! defined( 'TTA_TWILIO_API_SID' ) ) {
+    define( 'TTA_TWILIO_API_SID', $twilio_api_sid );
+}
+if ( $twilio_api_key && ! defined( 'TTA_TWILIO_API_KEY' ) ) {
+    define( 'TTA_TWILIO_API_KEY', $twilio_api_key );
+}
+if ( $twilio_service_sid && ! defined( 'TTA_TWILIO_MESSAGING_SERVICE_SID' ) ) {
+    define( 'TTA_TWILIO_MESSAGING_SERVICE_SID', $twilio_service_sid );
+}
+if ( $twilio_from_number && ! defined( 'TTA_TWILIO_SENDING_NUMBER' ) ) {
+    define( 'TTA_TWILIO_SENDING_NUMBER', $twilio_from_number );
+}
+
+if ( ! defined( 'TTA_TWILIO_ENVIRONMENT' ) ) {
+    define( 'TTA_TWILIO_ENVIRONMENT', $twilio_environment );
+}
+
+if ( ! defined( 'TTA_TWILIO_IS_SANDBOX' ) ) {
+    $env_value = defined( 'TTA_TWILIO_ENVIRONMENT' ) ? strtolower( TTA_TWILIO_ENVIRONMENT ) : $twilio_environment;
+    define( 'TTA_TWILIO_IS_SANDBOX', 'sandbox' === $env_value );
+}
+
+if ( $twilio_sandbox_to && ! defined( 'TTA_TWILIO_SANDBOX_NUMBER' ) ) {
+    define( 'TTA_TWILIO_SANDBOX_NUMBER', sanitize_text_field( $twilio_sandbox_to ) );
+}
+
+if ( defined( 'TTA_TWILIO_USER_SID' ) && ! defined( 'TTA_TWILIO_SID' ) ) {
+    define( 'TTA_TWILIO_SID', TTA_TWILIO_USER_SID );
+}
+if ( defined( 'TTA_TWILIO_API_KEY' ) && ! defined( 'TTA_TWILIO_TOKEN' ) ) {
+    define( 'TTA_TWILIO_TOKEN', TTA_TWILIO_API_KEY );
+}
+if ( defined( 'TTA_TWILIO_SENDING_NUMBER' ) && ! defined( 'TTA_TWILIO_FROM' ) ) {
+    define( 'TTA_TWILIO_FROM', TTA_TWILIO_SENDING_NUMBER );
 }
 
 if ( is_admin() ) {
     add_action( 'admin_notices', function () {
-        if ( current_user_can( 'manage_options' ) && ( ! defined( 'TTA_TWILIO_SID' ) || ! defined( 'TTA_TWILIO_TOKEN' ) || ! defined( 'TTA_TWILIO_FROM' ) ) ) {
+        $has_account = defined( 'TTA_TWILIO_USER_SID' ) && TTA_TWILIO_USER_SID;
+        $has_key     = defined( 'TTA_TWILIO_API_SID' ) && TTA_TWILIO_API_SID && defined( 'TTA_TWILIO_API_KEY' ) && TTA_TWILIO_API_KEY;
+        $has_sender  = ( defined( 'TTA_TWILIO_MESSAGING_SERVICE_SID' ) && TTA_TWILIO_MESSAGING_SERVICE_SID ) || ( defined( 'TTA_TWILIO_SENDING_NUMBER' ) && TTA_TWILIO_SENDING_NUMBER );
+        $sandbox_ok  = true;
+
+        if ( defined( 'TTA_TWILIO_IS_SANDBOX' ) && TTA_TWILIO_IS_SANDBOX ) {
+            $sandbox_ok = defined( 'TTA_TWILIO_SANDBOX_NUMBER' ) && TTA_TWILIO_SANDBOX_NUMBER;
+        }
+
+        if ( current_user_can( 'manage_options' ) && ( ! $has_account || ! $has_key || ! $has_sender ) ) {
             echo '<div class="notice notice-error"><p>' .
-                esc_html__( 'Twilio credentials are not configured. Define TTA_TWILIO_SID, TTA_TWILIO_TOKEN and TTA_TWILIO_FROM in twilio-config.php or your server environment.', 'tta' ) .
+                esc_html__( 'Twilio credentials are not fully configured. Provide a Twilio User SID, API SID, API Key, and either a Messaging Service SID or Sending Number in TTA Settings → API Settings or via your server environment.', 'tta' ) .
+                '</p></div>';
+        } elseif ( current_user_can( 'manage_options' ) && ! $sandbox_ok ) {
+            echo '<div class="notice notice-warning"><p>' .
+                esc_html__( 'Twilio sandbox mode is enabled but no Twilio Sandbox Number is configured. SMS messages will be skipped until a sandbox recipient is provided.', 'tta' ) .
                 '</p></div>';
         }
     } );
