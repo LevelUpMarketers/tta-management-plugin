@@ -10,3 +10,5 @@ if ( ! defined( 'ABSPATH' ) ) {
 // define( 'TTA_TWILIO_API_KEY', 'your_twilio_api_secret' );
 // define( 'TTA_TWILIO_MESSAGING_SERVICE_SID', 'MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' );
 // define( 'TTA_TWILIO_SENDING_NUMBER', '+18005551234' );
+// define( 'TTA_TWILIO_ENVIRONMENT', 'sandbox' );
+// define( 'TTA_TWILIO_SANDBOX_NUMBER', '+18005559876' );

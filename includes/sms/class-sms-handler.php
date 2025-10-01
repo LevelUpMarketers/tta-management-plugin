@@ -14,6 +14,12 @@ class TTA_SMS_Handler {
     /** @var string */
     protected $messaging_service_sid = '';
 
+    /** @var string */
+    protected $recipient_override = '';
+
+    /** @var bool */
+    protected $sandbox_mode = false;
+
     public static function get_instance() {
         return self::$instance ?: ( self::$instance = new self() );
     }
@@ -49,9 +55,29 @@ class TTA_SMS_Handler {
         } elseif ( defined( 'TTA_TWILIO_FROM' ) && TTA_TWILIO_FROM ) {
             $this->from = TTA_TWILIO_FROM;
         }
+
+        if ( defined( 'TTA_TWILIO_IS_SANDBOX' ) ) {
+            $this->sandbox_mode = (bool) TTA_TWILIO_IS_SANDBOX;
+        } elseif ( defined( 'TTA_TWILIO_ENVIRONMENT' ) ) {
+            $this->sandbox_mode = 'sandbox' === strtolower( TTA_TWILIO_ENVIRONMENT );
+        }
+
+        if ( $this->sandbox_mode ) {
+            if ( defined( 'TTA_TWILIO_SANDBOX_NUMBER' ) && TTA_TWILIO_SANDBOX_NUMBER ) {
+                $this->recipient_override = sanitize_text_field( TTA_TWILIO_SANDBOX_NUMBER );
+            } elseif ( getenv( 'TTA_TWILIO_SANDBOX_NUMBER' ) ) {
+                $this->recipient_override = sanitize_text_field( getenv( 'TTA_TWILIO_SANDBOX_NUMBER' ) );
+            }
+        }
     }
 
     protected function send_sms( $to, $body ) {
+        if ( $this->sandbox_mode && ! $this->recipient_override ) {
+            return;
+        }
+
+        $to = $this->recipient_override ?: $to;
+
         if ( ! $this->client || ! $to || ! $body ) {
             return;
         }
@@ -68,6 +94,26 @@ class TTA_SMS_Handler {
         } catch ( \Exception $e ) {
             // error_log( 'TTA SMS Error: ' . $e->getMessage() );
         }
+    }
+
+    protected function normalize_numbers( array $numbers ) {
+        if ( $this->recipient_override ) {
+            return [ $this->recipient_override ];
+        }
+
+        if ( $this->sandbox_mode ) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ( $numbers as $number ) {
+            $number = sanitize_text_field( $number );
+            if ( $number && ! in_array( $number, $normalized, true ) ) {
+                $normalized[] = $number;
+            }
+        }
+
+        return $normalized;
     }
 
     protected function build_tokens( array $event, array $member, array $attendees, array $refund = [] ) {
@@ -124,13 +170,10 @@ class TTA_SMS_Handler {
                 $numbers[] = $member_phone;
             }
             foreach ( $attendees as $a ) {
-                $phone = sanitize_text_field( $a['phone'] ?? '' );
-                if ( $phone && ! in_array( $phone, $numbers, true ) ) {
-                    $numbers[] = $phone;
-                }
+                $numbers[] = $a['phone'] ?? '';
             }
 
-            foreach ( $numbers as $num ) {
+            foreach ( $this->normalize_numbers( $numbers ) as $num ) {
                 $this->send_sms( $num, $message );
             }
         }
@@ -159,12 +202,9 @@ class TTA_SMS_Handler {
         $msg_raw = tta_expand_anchor_tokens( $tpl['sms_text'], $tokens );
         $message = tta_strip_bold( strtr( $msg_raw, $tokens ) );
 
-        $numbers = array_unique( array_merge( [ $context['member']['phone'] ?? '' ], array_column( $attendees, 'phone' ) ) );
-        foreach ( $numbers as $num ) {
-            $num = sanitize_text_field( $num );
-            if ( $num ) {
-                $this->send_sms( $num, $message );
-            }
+        $numbers = array_merge( [ $context['member']['phone'] ?? '' ], array_column( $attendees, 'phone' ) );
+        foreach ( $this->normalize_numbers( $numbers ) as $num ) {
+            $this->send_sms( $num, $message );
         }
     }
 
@@ -183,9 +223,9 @@ class TTA_SMS_Handler {
 
         $msg_raw = tta_expand_anchor_tokens( $tpl['sms_text'], $tokens );
         $message = tta_strip_bold( strtr( $msg_raw, $tokens ) );
-        $phone   = sanitize_text_field( $entry['phone'] ?? '' );
-        if ( $phone ) {
-            $this->send_sms( $phone, $message );
+        $phone   = $entry['phone'] ?? '';
+        foreach ( $this->normalize_numbers( [ $phone ] ) as $num ) {
+            $this->send_sms( $num, $message );
         }
     }
 }
