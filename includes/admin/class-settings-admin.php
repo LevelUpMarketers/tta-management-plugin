@@ -58,11 +58,15 @@ class TTA_Settings_Admin {
         } elseif ( 'api' === $active_tab ) {
             $import_results = [];
             if ( isset( $_POST['tta_save_api_settings'] ) && check_admin_referer( 'tta_save_api_settings_action', 'tta_save_api_settings_nonce' ) ) {
-                $login   = isset( $_POST['tta_authnet_login_id'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_authnet_login_id'] ) ) : '';
-                $trans   = isset( $_POST['tta_authnet_transaction_key'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_authnet_transaction_key'] ) ) : '';
-                $client  = isset( $_POST['tta_authnet_client_key'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_authnet_client_key'] ) ) : '';
-                $send    = isset( $_POST['tta_sendgrid_api_key'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_sendgrid_api_key'] ) ) : '';
-                $sandbox = isset( $_POST['tta_authnet_sandbox'] ) ? (int) $_POST['tta_authnet_sandbox'] : 0;
+                $login           = isset( $_POST['tta_authnet_login_id'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_authnet_login_id'] ) ) : '';
+                $trans           = isset( $_POST['tta_authnet_transaction_key'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_authnet_transaction_key'] ) ) : '';
+                $client          = isset( $_POST['tta_authnet_client_key'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_authnet_client_key'] ) ) : '';
+                $twilio_user_sid = isset( $_POST['tta_twilio_user_sid'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_twilio_user_sid'] ) ) : '';
+                $twilio_api_sid  = isset( $_POST['tta_twilio_api_sid'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_twilio_api_sid'] ) ) : '';
+                $twilio_api_key  = isset( $_POST['tta_twilio_api_key'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_twilio_api_key'] ) ) : '';
+                $twilio_service  = isset( $_POST['tta_twilio_messaging_service_sid'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_twilio_messaging_service_sid'] ) ) : '';
+                $twilio_number   = isset( $_POST['tta_twilio_sending_number'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_twilio_sending_number'] ) ) : '';
+                $sandbox         = isset( $_POST['tta_authnet_sandbox'] ) ? (int) $_POST['tta_authnet_sandbox'] : 0;
 
                 if ( $sandbox ) {
                     update_option( 'tta_authnet_login_id_sandbox', $login, false );
@@ -73,7 +77,12 @@ class TTA_Settings_Admin {
                     update_option( 'tta_authnet_transaction_key_live', $trans, false );
                     update_option( 'tta_authnet_public_client_key_live', $client, false );
                 }
-                update_option( 'tta_sendgrid_api_key', $send, false );
+                update_option( 'tta_twilio_user_sid', $twilio_user_sid, false );
+                update_option( 'tta_twilio_api_sid', $twilio_api_sid, false );
+                update_option( 'tta_twilio_api_key', $twilio_api_key, false );
+                update_option( 'tta_twilio_messaging_service_sid', $twilio_service, false );
+                update_option( 'tta_twilio_sending_number', $twilio_number, false );
+                delete_option( 'tta_sendgrid_api_key' );
                 update_option( 'tta_authnet_sandbox', $sandbox ? 1 : 0, false );
                 echo '<div class="updated"><p>' . esc_html__( 'API settings saved.', 'tta' ) . '</p></div>';
             }
@@ -154,17 +163,21 @@ class TTA_Settings_Admin {
                 }
             }
 
-            $login_live    = get_option( 'tta_authnet_login_id_live', '' );
-            $trans_live    = get_option( 'tta_authnet_transaction_key_live', '' );
-            $client_live   = get_option( 'tta_authnet_public_client_key_live', '' );
-            $login_sandbox = get_option( 'tta_authnet_login_id_sandbox', '' );
-            $trans_sandbox = get_option( 'tta_authnet_transaction_key_sandbox', '' );
+            $login_live     = get_option( 'tta_authnet_login_id_live', '' );
+            $trans_live     = get_option( 'tta_authnet_transaction_key_live', '' );
+            $client_live    = get_option( 'tta_authnet_public_client_key_live', '' );
+            $login_sandbox  = get_option( 'tta_authnet_login_id_sandbox', '' );
+            $trans_sandbox  = get_option( 'tta_authnet_transaction_key_sandbox', '' );
             $client_sandbox = get_option( 'tta_authnet_public_client_key_sandbox', '' );
-            $send          = get_option( 'tta_sendgrid_api_key', '' );
-            $sandbox       = (int) get_option( 'tta_authnet_sandbox', 0 );
-            $login         = $sandbox ? $login_sandbox : $login_live;
-            $trans         = $sandbox ? $trans_sandbox : $trans_live;
-            $client        = $sandbox ? $client_sandbox : $client_live;
+            $twilio_user_sid = get_option( 'tta_twilio_user_sid', '' );
+            $twilio_api_sid  = get_option( 'tta_twilio_api_sid', '' );
+            $twilio_api_key  = get_option( 'tta_twilio_api_key', '' );
+            $twilio_service  = get_option( 'tta_twilio_messaging_service_sid', '' );
+            $twilio_number   = get_option( 'tta_twilio_sending_number', '' );
+            $sandbox        = (int) get_option( 'tta_authnet_sandbox', 0 );
+            $login          = $sandbox ? $login_sandbox : $login_live;
+            $trans          = $sandbox ? $trans_sandbox : $trans_live;
+            $client         = $sandbox ? $client_sandbox : $client_live;
 
             echo '<form method="post" action="?page=tta-settings&tab=api">';
             wp_nonce_field( 'tta_save_api_settings_action', 'tta_save_api_settings_nonce' );
@@ -173,7 +186,11 @@ class TTA_Settings_Admin {
             echo '<tr><th scope="row"><label for="tta_authnet_login_id">' . esc_html__( 'Authorize.Net Login ID', 'tta' ) . '</label></th><td><input type="password" id="tta_authnet_login_id" name="tta_authnet_login_id" value="' . esc_attr( $login ) . '" /> <button type="button" class="button tta-reveal" data-target="tta_authnet_login_id">' . esc_html__( 'Reveal', 'tta' ) . '</button></td></tr>';
             echo '<tr><th scope="row"><label for="tta_authnet_transaction_key">' . esc_html__( 'Authorize.Net Transaction Key', 'tta' ) . '</label></th><td><input type="password" id="tta_authnet_transaction_key" name="tta_authnet_transaction_key" value="' . esc_attr( $trans ) . '" /> <button type="button" class="button tta-reveal" data-target="tta_authnet_transaction_key">' . esc_html__( 'Reveal', 'tta' ) . '</button></td></tr>';
             echo '<tr><th scope="row"><label for="tta_authnet_client_key">' . esc_html__( 'Authorize.Net Client Key', 'tta' ) . '</label></th><td><input type="password" id="tta_authnet_client_key" name="tta_authnet_client_key" value="' . esc_attr( $client ) . '" /> <button type="button" class="button tta-reveal" data-target="tta_authnet_client_key">' . esc_html__( 'Reveal', 'tta' ) . '</button></td></tr>';
-            echo '<tr><th scope="row"><label for="tta_sendgrid_api_key">' . esc_html__( 'SendGrid API Key', 'tta' ) . '</label></th><td><input type="password" id="tta_sendgrid_api_key" name="tta_sendgrid_api_key" value="' . esc_attr( $send ) . '" /> <button type="button" class="button tta-reveal" data-target="tta_sendgrid_api_key">' . esc_html__( 'Reveal', 'tta' ) . '</button></td></tr>';
+            echo '<tr><th scope="row"><label for="tta_twilio_user_sid">' . esc_html__( 'Twilio User SID', 'tta' ) . '</label></th><td><input type="text" id="tta_twilio_user_sid" name="tta_twilio_user_sid" value="' . esc_attr( $twilio_user_sid ) . '" /></td></tr>';
+            echo '<tr><th scope="row"><label for="tta_twilio_api_sid">' . esc_html__( 'Twilio API SID', 'tta' ) . '</label></th><td><input type="text" id="tta_twilio_api_sid" name="tta_twilio_api_sid" value="' . esc_attr( $twilio_api_sid ) . '" /></td></tr>';
+            echo '<tr><th scope="row"><label for="tta_twilio_api_key">' . esc_html__( 'Twilio API Key', 'tta' ) . '</label></th><td><input type="password" id="tta_twilio_api_key" name="tta_twilio_api_key" value="' . esc_attr( $twilio_api_key ) . '" /> <button type="button" class="button tta-reveal" data-target="tta_twilio_api_key">' . esc_html__( 'Reveal', 'tta' ) . '</button></td></tr>';
+            echo '<tr><th scope="row"><label for="tta_twilio_messaging_service_sid">' . esc_html__( 'Messaging Service SID', 'tta' ) . '</label></th><td><input type="text" id="tta_twilio_messaging_service_sid" name="tta_twilio_messaging_service_sid" value="' . esc_attr( $twilio_service ) . '" /></td></tr>';
+            echo '<tr><th scope="row"><label for="tta_twilio_sending_number">' . esc_html__( 'Twilio Sending Number', 'tta' ) . '</label></th><td><input type="text" id="tta_twilio_sending_number" name="tta_twilio_sending_number" value="' . esc_attr( $twilio_number ) . '" /></td></tr>';
             echo '</tbody></table>';
             echo '<p><input type="submit" name="tta_save_api_settings" class="button button-primary" value="' . esc_attr__( 'Save API Settings', 'tta' ) . '"></p>';
             echo '</form>';
