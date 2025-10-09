@@ -884,7 +884,15 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $merchantAuthentication->setTransactionKey( $this->transaction_key );
 
         $subscription = new AnetAPI\ARBSubscriptionType();
-        if ( $card_number && $exp_date ) {
+        $use_token   = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
+        if ( $use_token ) {
+            $payment = new AnetAPI\PaymentType();
+            $opaque  = new AnetAPI\OpaqueDataType();
+            $opaque->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
+            $opaque->setDataValue( $billing['opaqueData']['dataValue'] );
+            $payment->setOpaqueData( $opaque );
+            $subscription->setPayment( $payment );
+        } elseif ( $card_number && $exp_date ) {
             $card = new AnetAPI\CreditCardType();
             $card->setCardNumber( $card_number );
             $card->setExpirationDate( $exp_date );

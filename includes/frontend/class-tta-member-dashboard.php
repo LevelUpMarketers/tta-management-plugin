@@ -50,10 +50,26 @@ class TTA_Member_Dashboard {
             $js_file = TTA_PLUGIN_DIR . 'assets/js/frontend/member-dashboard.js';
             $js_url  = TTA_PLUGIN_URL . 'assets/js/frontend/member-dashboard.js';
             $js_ver  = file_exists( $js_file ) ? filemtime( $js_file ) : TTA_PLUGIN_VERSION;
+            $use_sandbox = (bool) get_option( 'tta_authnet_use_sandbox', get_option( 'tta_authnet_sandbox', false ) );
+            $login       = $use_sandbox ? get_option( 'tta_authnet_login_id_sandbox', '' ) : get_option( 'tta_authnet_login_id_live', '' );
+            $client_key  = $use_sandbox ? get_option( 'tta_authnet_public_client_key_sandbox', '' ) : get_option( 'tta_authnet_public_client_key_live', '' );
+            if ( ! $client_key && defined( 'TTA_AUTHNET_CLIENT_KEY' ) ) {
+                $client_key = TTA_AUTHNET_CLIENT_KEY;
+            }
+            $accept_url  = $use_sandbox ? 'https://jstest.authorize.net/v1/Accept.js' : 'https://js.authorize.net/v1/Accept.js';
+
+            wp_enqueue_script(
+                'tta-acceptjs',
+                $accept_url,
+                [],
+                null,
+                true
+            );
+
             wp_enqueue_script(
                 'tta-member-dashboard-js',
                 $js_url,
-                [ 'jquery' ],
+                [ 'jquery', 'tta-acceptjs' ],
                 $js_ver,
                 true
             );
@@ -81,6 +97,12 @@ class TTA_Member_Dashboard {
                     'password_requirements_msg'=> __( 'Password must be at least 8 characters and include upper and lower case letters and a number.', 'tta' ),
                     'request_failed_msg'       => __( 'Request failed.', 'tta' ),
                     'account_created_msg'      => __( 'Account created! Reloading in %d…', 'tta' ),
+                    'accept'                   => [
+                        'loginId'   => $login,
+                        'clientKey' => $client_key,
+                        'mode'      => $use_sandbox ? 'sandbox' : 'live',
+                    ],
+                    'encryption_failed_html'   => wp_kses_post( __( "Encryption of your payment information failed! Please try again later. If you're still having trouble, please contact us using the form on our <a href=\"/contact\">Contact Page</a>.", 'tta' ) ),
                 ]
             );
         }

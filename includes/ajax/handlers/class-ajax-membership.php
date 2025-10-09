@@ -138,11 +138,14 @@ class TTA_Ajax_Membership {
             wp_send_json_error( [ 'message' => __( 'No active subscription found.', 'tta' ) ] );
         }
 
-        $card_number = isset( $_POST['card_number'] ) ? preg_replace( '/\D/', '', $_POST['card_number'] ) : '';
-        $exp         = isset( $_POST['exp_date'] ) ? sanitize_text_field( $_POST['exp_date'] ) : '';
-        $cvc         = isset( $_POST['card_cvc'] ) ? sanitize_text_field( $_POST['card_cvc'] ) : '';
-        if ( ! $card_number || ! $exp ) {
-            wp_send_json_error( [ 'message' => __( 'Payment details incomplete.', 'tta' ) ] );
+        $opaque = [
+            'dataDescriptor' => isset( $_POST['opaqueData']['dataDescriptor'] ) ? preg_replace( '/[^A-Za-z0-9._-]/', '', wp_unslash( $_POST['opaqueData']['dataDescriptor'] ) ) : '',
+            'dataValue'      => isset( $_POST['opaqueData']['dataValue'] ) ? preg_replace( '/[^A-Za-z0-9+=\/._-]/', '', wp_unslash( $_POST['opaqueData']['dataValue'] ) ) : '',
+        ];
+        if ( empty( $opaque['dataDescriptor'] ) || empty( $opaque['dataValue'] ) ) {
+            wp_send_json_error( [
+                'message' => __( "Encryption of your payment information failed! Please try again later. If you're still having trouble, please contact us using the form on our Contact Page.", 'tta' ),
+            ] );
         }
 
         $billing = [
@@ -154,14 +157,18 @@ class TTA_Ajax_Membership {
             'state'      => sanitize_text_field( $_POST['bill_state'] ?? '' ),
             'zip'        => sanitize_text_field( $_POST['bill_zip'] ?? '' ),
         ];
+        $billing['opaqueData'] = $opaque;
 
         $api  = new TTA_AuthorizeNet_API();
-        $res  = $api->update_subscription_payment( $sub_id, $card_number, $exp, $cvc, $billing );
+        $res  = $api->update_subscription_payment( $sub_id, '', '', '', $billing );
         if ( ! $res['success'] ) {
             wp_send_json_error( [ 'message' => $res['error'] ] );
         }
 
         TTA_Cache::delete( 'sub_last4_' . $sub_id );
+
+        $last4      = isset( $_POST['last4'] ) ? preg_replace( '/\D/', '', wp_unslash( $_POST['last4'] ) ) : '';
+        $last4_form = $last4 ? '**** ' . substr( $last4, -4 ) : '';
 
         // Attempt to retry the failed charge immediately.
         $retry = $api->retry_subscription_charge( $sub_id );
@@ -176,6 +183,7 @@ class TTA_Ajax_Membership {
             wp_send_json_success( [
                 'message' => __( 'Payment method updated and charge successful.', 'tta' ),
                 'status'  => 'active',
+                'last4'   => $last4_form,
             ] );
         }
 
