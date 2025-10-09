@@ -165,7 +165,7 @@ class TTA_Ajax_Membership {
             wp_send_json_error( [ 'message' => $res['error'] ] );
         }
 
-        TTA_Cache::delete( 'sub_last4_' . $sub_id );
+        self::clear_subscription_cache( $sub_id, $user_id );
 
         $last4      = isset( $_POST['last4'] ) ? preg_replace( '/\D/', '', wp_unslash( $_POST['last4'] ) ) : '';
         $last4_form = $last4 ? '**** ' . substr( $last4, -4 ) : '';
@@ -184,6 +184,7 @@ class TTA_Ajax_Membership {
                 tta_update_user_membership_level( $user_id, $prev, null, 'active' );
                 delete_user_meta( $user_id, 'tta_prev_level' );
                 tta_log_subscription_status_change( $user_id, 'active' );
+                self::clear_subscription_cache( $sub_id, $user_id );
                 wp_send_json_success( [
                     'message' => __( 'Payment method updated and charge successful.', 'tta' ),
                     'status'  => 'active',
@@ -201,6 +202,24 @@ class TTA_Ajax_Membership {
             'last4'       => $last4_form,
             'reloadAfter' => 5,
         ] );
+    }
+
+    /**
+     * Clear cached subscription and member context entries after payment updates.
+     *
+     * @param string $subscription_id Authorize.Net subscription identifier.
+     * @param int    $user_id         Related WordPress user ID.
+     */
+    private static function clear_subscription_cache( $subscription_id, $user_id = 0 ) {
+        if ( $subscription_id ) {
+            TTA_Cache::delete( 'sub_last4_' . $subscription_id );
+            TTA_Cache::delete( 'sub_status_' . $subscription_id );
+            TTA_Cache::delete( 'sub_tx_' . $subscription_id );
+        }
+
+        if ( $user_id ) {
+            TTA_Cache::delete( 'member_row_' . intval( $user_id ) );
+        }
     }
 }
 
