@@ -225,7 +225,7 @@ class TTA_Comms_Admin {
 
     public function render_page(){
         $tabs = [
-            'templates' => __( 'Email Templates', 'tta' ),
+            'templates' => __( 'Communication Templates', 'tta' ),
             'mass'      => __( 'Mass Communications', 'tta' ),
             'logs'      => __( 'Email Logs', 'tta' ),
             'history'   => __( 'Email History', 'tta' ),

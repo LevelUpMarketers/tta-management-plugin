@@ -2,7 +2,7 @@
 
 The plugin sends automated notifications to members. Administrators can manage these messages from **TTA Email & SMS** in the WordPress admin. The page contains four tabs:
 
-1. **Email Templates** – existing template editor described below.
+1. **Communication Templates** – editor for email and SMS message content described below.
 2. **Mass Communications** – send a one-off email to all verified attendees of a selected event.
 3. **Email Logs** – lists scheduled reminder and thank‑you emails grouped by event. Reminder jobs are automatically queued whenever an event is created or its start time changes and are scheduled using the site's timezone setting. Post-event thank‑you emails are also scheduled when the event is created and run 18 hours after the event ends for attendees who checked in. Each entry shows the send time in `MM-DD-YYYY HH:MMAM/PM` format along with a live `HH H, MM M, SS S` countdown using the site's timezone, exposes its current recipient list via AJAX, and can be deleted before it runs.
 4. **Email History** – a running log of all attempted emails including recipient address and delivery result. A **Clear Log** button removes all entries.
@@ -62,6 +62,10 @@ Default values are provided on initial install:
 - **Host and Volunteer Reminders**: internal messages mirror attendee reminders at 24 and 2 hours before the event.
 
 Links to the member dashboard now output the full site URL and include direct links to each dashboard tab, including the waitlist view.
+
+## Scheduled SMS Reminders
+
+For the **24-Hour Event Reminder**, **2-Hour Event Reminder**, and **Post-Event Thank You** templates, the cron jobs that already schedule reminder emails now also queue SMS messages. When those hooks fire, the SMS handler compiles the template text using the same token replacements as emails and sends messages through Twilio to each verified attendee who opted in to SMS updates during checkout. Attendees who unchecked the **text me updates about this event** box or do not have a phone number on file are skipped automatically, and sandbox mode continues to redirect all messages to the configured sandbox number.
 
 ## Previews and Tokens
 

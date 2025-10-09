@@ -674,12 +674,12 @@ function tta_get_event_attendees_with_status( $event_ute_id ) {
     $tickets_table   = $wpdb->prefix . 'tta_tickets';
     $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
 
-    $sql = "(SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.assistance_note, a.status
+    $sql = "(SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.assistance_note, a.status, a.opt_in_sms
                FROM {$att_table} a
                JOIN {$tickets_table} t ON a.ticket_id = t.id
               WHERE t.event_ute_id = %s)
            UNION ALL
-            (SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.assistance_note, a.status
+            (SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.assistance_note, a.status, a.opt_in_sms
                FROM {$att_archive} a
                JOIN {$tickets_archive} t ON a.ticket_id = t.id
               WHERE t.event_ute_id = %s)
@@ -723,6 +723,7 @@ function tta_get_event_attendees_with_status( $event_ute_id ) {
         $r['email']         = sanitize_email( $r['email'] );
         $r['phone']         = sanitize_text_field( $r['phone'] );
         $r['status']        = sanitize_text_field( $r['status'] );
+        $r['opt_in_sms']    = isset( $r['opt_in_sms'] ) ? intval( $r['opt_in_sms'] ) : 0;
         $r['attended_count'] = tta_get_attended_event_count_by_email( $r['email'] );
         $r['no_show_count']  = tta_get_no_show_event_count_by_email( $r['email'] );
         $note = trim( $r['assistance_note'] ?? '' );

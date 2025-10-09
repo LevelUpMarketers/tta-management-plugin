@@ -253,6 +253,7 @@ require_once TTA_PLUGIN_DIR . 'includes/email/class-email-handler.php';
 require_once TTA_PLUGIN_DIR . 'includes/email/class-email-customizer.php';
 require_once TTA_PLUGIN_DIR . 'includes/email/class-email-reminders.php';
 require_once TTA_PLUGIN_DIR . 'includes/sms/class-sms-handler.php';
+require_once TTA_PLUGIN_DIR . 'includes/sms/class-sms-reminders.php';
 require_once TTA_PLUGIN_DIR . 'includes/waitlist/class-waitlist.php';
 require_once TTA_PLUGIN_DIR . 'includes/ajax/class-ajax-handler.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-members-admin.php';
@@ -323,6 +324,7 @@ class TTA_Plugin {
         TTA_Email_Customizer::init();
         TTA_Email_Handler::get_instance();
         TTA_SMS_Handler::get_instance();
+        TTA_SMS_Reminders::init();
         TTA_Email_Reminders::init();
 
         // Expired cart cleanup

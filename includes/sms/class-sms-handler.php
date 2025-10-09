@@ -124,6 +124,46 @@ class TTA_SMS_Handler {
         return $m->invoke( $email, $event, $member, $attendees, $refund );
     }
 
+    /**
+     * Render a template string into a final SMS body.
+     *
+     * @param string $template_text Template contents containing tokens.
+     * @param array  $event         Event data for token replacement.
+     * @param array  $member        Member context for token replacement.
+     * @param array  $attendees     Attendee list for token replacement.
+     * @param array  $refund        Refund data for token replacement.
+     * @return string
+     */
+    public function compile_message( $template_text, array $event, array $member, array $attendees, array $refund = [] ) {
+        $template_text = (string) $template_text;
+        if ( '' === trim( $template_text ) ) {
+            return '';
+        }
+
+        $tokens  = $this->build_tokens( $event, $member, $attendees, $refund );
+        $msg_raw = tta_expand_anchor_tokens( $template_text, $tokens );
+
+        return tta_strip_bold( strtr( $msg_raw, $tokens ) );
+    }
+
+    /**
+     * Send an SMS message to multiple recipients, respecting sandbox overrides.
+     *
+     * @param array  $numbers Recipient phone numbers.
+     * @param string $message Message body.
+     * @return void
+     */
+    public function send_bulk_sms( array $numbers, $message ) {
+        $message = trim( (string) $message );
+        if ( '' === $message ) {
+            return;
+        }
+
+        foreach ( $this->normalize_numbers( $numbers ) as $num ) {
+            $this->send_sms( $num, $message );
+        }
+    }
+
     public function send_purchase_texts( array $items, $user_id ) {
         $templates = tta_get_comm_templates();
         if ( empty( $templates['purchase']['sms_text'] ) ) {
