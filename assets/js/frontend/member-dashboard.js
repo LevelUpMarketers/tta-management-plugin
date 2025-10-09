@@ -534,6 +534,14 @@ jQuery(function($){
             $('#tta-card-last4').text(data.last4);
           }
           $form[0].reset();
+          if(data.reloadAfter){
+            var wait = parseInt(data.reloadAfter, 10);
+            if(!isNaN(wait) && wait > 0){
+              setTimeout(function(){
+                window.location.reload();
+              }, wait * 1000);
+            }
+          }
         }else{
           var msg = data && data.message ? data.message : 'Error';
           controls.resp.addClass('error').removeClass('updated').text(msg);
