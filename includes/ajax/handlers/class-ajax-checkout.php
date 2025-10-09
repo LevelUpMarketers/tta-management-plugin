@@ -114,6 +114,8 @@ class TTA_Ajax_Checkout {
             $transaction_id = $res['transaction_id'];
         }
 
+        $flush_membership_cache = false;
+
         if ( $membership_total > 0 && $transaction_id ) {
             $membership_key = $ticket_total > 0 ? substr( $checkout_key, 0, 46 ) . '-m' : $checkout_key;
             TTA_Transaction_Logger::log(
@@ -140,6 +142,7 @@ class TTA_Ajax_Checkout {
                 tta_reset_no_show_offset( get_current_user_id() );
                 tta_send_banned_reinstatement_email( get_current_user_id() );
                 unset( $_SESSION['tta_membership_purchase'] );
+                $flush_membership_cache = true;
             } else {
                 $api = new TTA_AuthorizeNet_API();
                 $existing_sub = tta_get_user_subscription_id( get_current_user_id() );
@@ -155,7 +158,12 @@ class TTA_Ajax_Checkout {
                 tta_update_user_membership_level( get_current_user_id(), $membership_level, $sub['subscription_id'], 'active' );
                 $_SESSION['tta_checkout_sub'] = [ 'subscription_id' => $sub['subscription_id'] ];
                 unset( $_SESSION['tta_membership_purchase'] );
+                $flush_membership_cache = true;
             }
+        }
+
+        if ( $flush_membership_cache ) {
+            TTA_Cache::flush();
         }
 
         $attendees   = $_POST['attendees'] ?? [];
