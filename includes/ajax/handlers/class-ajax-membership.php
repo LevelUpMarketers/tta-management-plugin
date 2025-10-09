@@ -197,10 +197,9 @@ class TTA_Ajax_Membership {
         }
 
         wp_send_json_success( [
-            'message'     => __( 'Your payment method has been successfully updated. Thanks for being proactive and keeping your membership current!', 'tta' ),
-            'status'      => $status ?: 'active',
-            'last4'       => $last4_form,
-            'reloadAfter' => 5,
+            'message' => __( 'Your payment method has been successfully updated. Thanks for being proactive and keeping your membership current!', 'tta' ),
+            'status'  => $status ?: 'active',
+            'last4'   => $last4_form,
         ] );
     }
 
