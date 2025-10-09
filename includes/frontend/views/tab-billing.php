@@ -9,22 +9,16 @@
   $status = strtolower( $ctx['subscription_status'] ?? '' );
   $sub_id = $ctx['subscription_id'] ?? '';
   $last4  = $sub_id ? tta_get_subscription_card_last4( $sub_id ) : '';
-  $cancel = ( 'cancelled' === $status ) ? tta_get_last_membership_cancellation( get_current_user_id() ) : null;
+  $is_cancelled_state = in_array( $status, [ 'cancelled', 'terminated' ], true );
+  $cancel             = $is_cancelled_state ? tta_get_last_membership_cancellation( get_current_user_id() ) : null;
   if ( ! $sub_id ) :
   ?>
     <p><?php esc_html_e( 'You do not currently have a paid membership.', 'tta' ); ?></p>
-  <?php elseif ( 'cancelled' === $status ) :
-    $prev_level = $cancel['level'] ?? 'basic';
+  <?php elseif ( $is_cancelled_state ) :
+    $prev_level = $cancel['level'] ?? ( 'free' !== $level ? $level : 'basic' );
     ?>
     <p>
-      <?php
-      printf(
-        esc_html__( 'Your %1$s membership was cancelled on %2$s by %3$s.', 'tta' ),
-        esc_html( tta_get_membership_label( $prev_level ) ),
-        esc_html( date_i18n( 'F j, Y', strtotime( $cancel['date'] ?? current_time( 'mysql' ) ) ) ),
-        ( ( $cancel['by'] ?? 'member' ) === 'admin' ) ? esc_html__( 'an administrator', 'tta' ) : esc_html__( 'you', 'tta' )
-      );
-      ?>
+      <?php esc_html_e( 'Your latest Membership was either manually cancelled, or automatically cancelled due to declined payments or an expired payment method.', 'tta' ); ?>
     </p>
     <?php if ( ! empty( $cancel['card_last4'] ) ) : ?>
       <p><?php esc_html_e( 'Last Card Used:', 'tta' ); ?> **** <?php echo esc_html( $cancel['card_last4'] ); ?></p>
