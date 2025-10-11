@@ -1,5 +1,5 @@
 <!-- BILLING & MEMBERSHIP INFO -->
-<div id="tab-billing" class="tta-dashboard-section">
+<div id="tab-billing" class="tta-dashboard-section notranslate" data-nosnippet>
   <h3><?php esc_html_e( 'Billing & Membership Info', 'tta' ); ?></h3>
   <?php
   tta_sync_subscription_status( get_current_user_id() );

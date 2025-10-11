@@ -5,10 +5,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $bio = stripslashes( $member['biography'] );
 $hide_attendance = intval( $member['hide_event_attendance'] );
+$dob_value = $member['dob'];
+$dob_display = '—';
+if ( $dob_value ) {
+    $dob_timestamp = strtotime( $dob_value );
+    $dob_display   = $dob_timestamp ? date_i18n( 'm-d-Y', $dob_timestamp ) : $dob_value;
+}
 
 // Assume $member, $street_address, $address_2, $city, $state, $zip are already defined above
 ?>
-<div id="tab-profile" class="tta-dashboard-section">
+<div id="tab-profile" class="tta-dashboard-section notranslate" data-nosnippet>
 
   <form id="tta-member-dashboard-form"
         method="post"
@@ -123,12 +129,12 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
             <label for="dob"><?php esc_html_e( 'Date of Birth', 'tta' ); ?></label>
           </th>
           <td>
-            <span class="view-value"><?php echo esc_html( $member['dob'] ?: '—' ); ?></span>
+            <span class="view-value"><?php echo esc_html( $dob_display ); ?></span>
             <input class="edit-input"
                    type="date"
                    name="dob"
                    id="dob"
-                   value="<?php echo esc_attr( $member['dob'] ); ?>">
+                   value="<?php echo esc_attr( $dob_value ); ?>">
           </td>
         </tr>
 
