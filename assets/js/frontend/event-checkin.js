@@ -117,6 +117,53 @@ jQuery(function($){
     }, 'json');
   });
 
+  // Email all attendees from the check-in view
+  $(document).on('click', '.tta-email-attendees__send', function(e){
+    e.preventDefault();
+    var $btn   = $(this);
+    if ($btn.prop('disabled')) { return; }
+    var $wrap  = $btn.closest('.tta-email-attendees');
+    var $text  = $wrap.find('.tta-email-attendees__message');
+    var message = $text.val() || '';
+    var trimmed = $.trim(message);
+    var ute    = $btn.data('event-ute-id');
+    var $spin  = $wrap.find('.tta-progress-spinner .tta-admin-progress-spinner-svg');
+    var $resp  = $wrap.find('.tta-admin-progress-response-p');
+    if (!trimmed.length) {
+      $resp.text(TTA_Checkin.email_required || 'Please type a message before sending.');
+      $text.focus();
+      return;
+    }
+    $resp.text('');
+    $spin.css({display:'inline-block',opacity:0}).fadeTo(200,1);
+    $btn.prop('disabled', true).addClass('disabled');
+    $.ajax({
+      url: TTA_Checkin.ajax_url,
+      method: 'POST',
+      dataType: 'json',
+      data: {
+        action: 'tta_email_event_attendees',
+        nonce: TTA_Checkin.email_nonce,
+        event_ute_id: ute,
+        message: message
+      }
+    }).done(function(res){
+      if (res && res.success) {
+        var success = (res.data && res.data.message) ? res.data.message : (TTA_Checkin.email_success || 'Email sent to all attendees.');
+        $resp.text(success);
+        $text.val('');
+      } else {
+        var error = (res && res.data && res.data.message) ? res.data.message : (TTA_Checkin.email_failed || 'Unable to send the email. Please try again.');
+        $resp.text(error);
+      }
+    }).fail(function(){
+      $resp.text(TTA_Checkin.email_failed || 'Unable to send the email. Please try again.');
+    }).always(function(){
+      $spin.fadeOut(200);
+      $btn.prop('disabled', false).removeClass('disabled');
+    });
+  });
+
   $(window).on('load', function(){
     var params = new URLSearchParams(window.location.search);
     var open   = params.get('event');

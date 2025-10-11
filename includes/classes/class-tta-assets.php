@@ -130,6 +130,7 @@ class TTA_Assets {
                     'email_logs_nonce'    => wp_create_nonce( 'tta_email_logs_action' ),
                     'email_log_clear_nonce' => wp_create_nonce( 'tta_email_clear_action' ),
                     'banned_members_nonce' => wp_create_nonce( 'tta_banned_members_action' ),
+                    'checkinPreviewPlaceholder' => __( '[Message typed on the Event Check-In page]', 'tta' ),
                     'sample_event'        => ( function() {
                         $e = tta_get_next_event();
                         if ( ! $e ) {
@@ -661,9 +662,13 @@ class TTA_Assets {
                     'ajax_url'  => admin_url( 'admin-ajax.php' ),
                     'get_nonce' => wp_create_nonce( 'tta_get_attendance_action' ),
                     'set_nonce' => wp_create_nonce( 'tta_set_attendance_action' ),
+                    'email_nonce' => wp_create_nonce( 'tta_email_attendees_action' ),
                     'attendance_label' => __( 'Event Attendance & No-Shows:', 'tta' ),
                     'attended_label'   => __( 'Events Attended', 'tta' ),
                     'noshow_label'     => __( 'No-Shows', 'tta' ),
+                    'email_required'   => __( 'Please type a message before sending.', 'tta' ),
+                    'email_success'    => __( 'Email sent to all attendees.', 'tta' ),
+                    'email_failed'     => __( 'Unable to send the email. Please try again.', 'tta' ),
                 ]
             );
         }

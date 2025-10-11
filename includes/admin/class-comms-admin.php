@@ -172,6 +172,17 @@ class TTA_Comms_Admin {
                 'email_body'  => __('Your volunteer shift begins in two hours. Event details are below.', 'tta'),
                 'sms_text'    => '',
             ],
+            'checkin_broadcast' => [
+                'label'       => __( 'Host & Volunteer Check-In Page Email', 'tta' ),
+                'type'        => 'Internal',
+                'category'    => 'Event Coordination',
+                'description' => __( 'Used on the Event Check-In page to email all attendees, hosts, and volunteers.', 'tta' ),
+                'email_subject' => __( 'Important update about your event', 'tta' ),
+                'email_body'    => '',
+                'email_opening' => __( 'Hi {attendee_first_name},', 'tta' ),
+                'email_closing' => __( 'Thanks from the Trying to Adult Team', 'tta' ),
+                'sms_text'      => '',
+            ],
             'post_event_review' => [
                 'label'       => __( 'Post-Event Thank You', 'tta' ),
                 'type'        => 'External',
@@ -259,7 +270,13 @@ class TTA_Comms_Admin {
         if ( isset( $_POST['template_key'] ) && isset( $_POST['tta_comms_save_nonce'] ) && check_admin_referer( 'tta_comms_save_action', 'tta_comms_save_nonce' ) ) {
             $key       = sanitize_key( $_POST['template_key'] );
             $templates[ $key ]['email_subject'] = tta_sanitize_text_field( $_POST['email_subject'] ?? $templates[ $key ]['email_subject'] );
-            $templates[ $key ]['email_body']    = tta_sanitize_textarea_field( $_POST['email_body'] ?? $templates[ $key ]['email_body'] );
+            if ( 'checkin_broadcast' === $key ) {
+                $templates[ $key ]['email_opening'] = tta_sanitize_text_field( $_POST['email_opening'] ?? ( $templates[ $key ]['email_opening'] ?? '' ) );
+                $templates[ $key ]['email_closing'] = tta_sanitize_text_field( $_POST['email_closing'] ?? ( $templates[ $key ]['email_closing'] ?? '' ) );
+                $templates[ $key ]['email_body']    = '';
+            } else {
+                $templates[ $key ]['email_body']    = tta_sanitize_textarea_field( $_POST['email_body'] ?? $templates[ $key ]['email_body'] );
+            }
             $templates[ $key ]['sms_text']      = tta_sanitize_textarea_field( $_POST['sms_text'] ?? $templates[ $key ]['sms_text'] );
             update_option( 'tta_comms_templates', $templates, false );
             echo '<div class="updated"><p>'.esc_html__( 'Template saved.', 'tta' ).'</p></div>';
@@ -281,9 +298,12 @@ class TTA_Comms_Admin {
             echo '<td class="tta-toggle-cell"><img src="'.esc_url( TTA_PLUGIN_URL.'assets/images/admin/arrow.svg' ).'" class="tta-toggle-arrow" width="10" height="10" alt="Toggle"></td>';
             echo '</tr>';
 
+            $is_checkin_template = ( 'checkin_broadcast' === $key );
+            $form_attrs          = $is_checkin_template ? ' data-checkin-template="1"' : '';
+
             echo '<tr class="tta-inline-row" style="display:none;">';
             echo '<td colspan="5"><div class="tta-inline-container" style="display:none;">';
-            echo '<form method="post" class="tta-comms-form">';
+            echo '<form method="post" class="tta-comms-form"' . $form_attrs . '>';
             wp_nonce_field( 'tta_comms_save_action', 'tta_comms_save_nonce' );
             echo '<input type="hidden" name="template_key" value="'.esc_attr( $key ).'">';
             if ( ! empty( $vals['description'] ) ) {
@@ -291,7 +311,14 @@ class TTA_Comms_Admin {
             }
             echo '<table class="form-table">';
             echo '<tr><th scope="row">' . esc_html__( 'Email Subject', 'tta' ) . '</th><td><input type="text" name="email_subject" value="' . esc_attr( $vals['email_subject'] ) . '" class="regular-text tta-comm-input"></td></tr>';
-            echo '<tr><th scope="row">' . esc_html__( 'Email Body', 'tta' ) . '</th><td><textarea name="email_body" rows="4" class="large-text tta-comm-input">' . esc_textarea( $vals['email_body'] ) . '</textarea></td></tr>';
+            if ( $is_checkin_template ) {
+                $opening = isset( $vals['email_opening'] ) ? $vals['email_opening'] : '';
+                $closing = isset( $vals['email_closing'] ) ? $vals['email_closing'] : '';
+                echo '<tr><th scope="row">' . esc_html__( 'Opening Greeting', 'tta' ) . '</th><td><input type="text" name="email_opening" value="' . esc_attr( $opening ) . '" class="regular-text tta-comm-input"></td></tr>';
+                echo '<tr><th scope="row">' . esc_html__( 'Closing Statement', 'tta' ) . '</th><td><input type="text" name="email_closing" value="' . esc_attr( $closing ) . '" class="regular-text tta-comm-input"></td></tr>';
+            } else {
+                echo '<tr><th scope="row">' . esc_html__( 'Email Body', 'tta' ) . '</th><td><textarea name="email_body" rows="4" class="large-text tta-comm-input">' . esc_textarea( $vals['email_body'] ) . '</textarea></td></tr>';
+            }
             echo '<tr><th scope="row">' . esc_html__( 'SMS Text', 'tta' ) . '</th><td><textarea name="sms_text" rows="2" class="large-text tta-comm-input">' . esc_textarea( $vals['sms_text'] ) . '</textarea><br><span class="tta-sms-count">0</span>/160</td></tr>';
             echo '<tr><th scope="row">' . esc_html__( 'Insert Token', 'tta' ) . '</th><td>';
             echo '<div class="tta-token-section"><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Details about the event.', 'tta' ) . '"><img src="' . esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ) . '" alt="?"></span><strong>' . esc_html__( 'Event Information', 'tta' ) . '</strong> ';

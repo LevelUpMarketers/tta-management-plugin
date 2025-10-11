@@ -96,6 +96,27 @@ function tta_sanitize_textarea_field( $value ) {
 }
 
 /**
+ * Sanitize bulk attendee messages authored on the check-in page.
+ *
+ * Strips HTML tags, control characters, and emoji/dingbat symbols while
+ * preserving line breaks so the final email body remains plain text.
+ *
+ * @param mixed $value Raw textarea value from the browser.
+ * @return string Sanitized message.
+ */
+function tta_sanitize_checkin_email_message( $value ) {
+    $value = tta_unslash( $value );
+    $value = wp_strip_all_tags( (string) $value, false );
+    // Remove ASCII control characters except newlines and tabs.
+    $value = preg_replace( '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $value );
+    // Strip common emoji, pictographs, and dingbats that can break plain emails.
+    $value = preg_replace( '/[\x{1F100}-\x{1FFFF}\x{2600}-\x{27BF}]/u', '', $value );
+    // Collapse excessive blank lines.
+    $value = preg_replace( "#\n{3,}#", "\n\n", $value );
+    return trim( $value );
+}
+
+/**
  * Sanitize email input preserving apostrophes.
  *
  * @param mixed $value

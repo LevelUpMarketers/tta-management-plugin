@@ -32,6 +32,7 @@ Select an event from the dropdown to automatically load the email addresses of a
 | `host_reminder_2hr` | Reminder to event hosts two hours before their event. |
 | `volunteer_reminder_24hr` | Reminder to volunteers 24 hours before their event. |
 | `volunteer_reminder_2hr` | Reminder to volunteers two hours before their event. |
+| `checkin_broadcast` | Opening/closing text for the email hosts send from the Event Check-In page. |
 | `assistance_request` | Sent to event hosts when a member asks for help finding the group. |
 | `post_event_review` | Sent 18 hours after an event ends to attendees marked as checked in. |
 
@@ -40,7 +41,8 @@ Each template stores:
 - **Type** – whether the message is sent to members (External) or used internally
 - **Category** – grouping such as Event Reminder or Event Confirmation
 - **Email Subject** – subject line of the email
-- **Email Body** – text shown above the automatically generated event details
+- **Email Body** – text shown above the automatically generated event details (all templates except `checkin_broadcast`)
+- **Opening Greeting / Closing Statement** – only for the `checkin_broadcast` template; the message typed on the Event Check-In page is inserted between these two fields when the email is sent
 - **SMS Text** – short message sent via SMS
 
 All fields are sanitized with the helper functions from `InputSanitization.md`. This strips WordPress slashes so apostrophes display correctly in the admin preview and in the actual emails.
@@ -66,6 +68,17 @@ Links to the member dashboard now output the full site URL and include direct li
 ## Scheduled SMS Reminders
 
 For the **24-Hour Event Reminder**, **2-Hour Event Reminder**, and **Post-Event Thank You** templates, the cron jobs that already schedule reminder emails now also queue SMS messages. When those hooks fire, the SMS handler compiles the template text using the same token replacements as emails and sends messages through Twilio to each verified attendee who opted in to SMS updates during checkout. Attendees who unchecked the **text me updates about this event** box or do not have a phone number on file are skipped automatically, and sandbox mode continues to redirect all messages to the configured sandbox number.
+
+## Event Check-In Broadcasts
+
+Hosts and volunteers can send an on-the-fly update to everyone associated with an event from the **Email All Attendees** panel on the Event Check-In page. The admin template `checkin_broadcast` supplies the reusable pieces of that message: the subject line plus the opening greeting and closing statement. When a host submits the form:
+
+- The message typed on the check-in page is sanitized to strip HTML, emoji, and control characters while preserving line breaks.
+- Tokens in the subject, greeting, closing, and typed message are replaced per recipient using the same `build_tokens()` helper as other communications, so placeholders such as `{attendee_first_name}` personalize each email.
+- The system emails every verified attendee regardless of check-in status as well as all hosts and volunteers tied to the event.
+- The final email body inserts the typed message between the stored opening and closing text with blank lines separating each section.
+
+If no recipients are found or the template is missing, the interface returns an error and no mail is sent.
 
 ## Previews and Tokens
 

@@ -9,6 +9,7 @@ class TTA_Ajax_Attendance {
         add_action( 'wp_ajax_tta_refund_attendee', [ __CLASS__, 'refund_attendee' ] );
         add_action( 'wp_ajax_tta_cancel_attendance', [ __CLASS__, 'cancel_attendance' ] );
         add_action( 'wp_ajax_tta_mark_pending_no_show', [ __CLASS__, 'mark_pending_no_show' ] );
+        add_action( 'wp_ajax_tta_email_event_attendees', [ __CLASS__, 'email_event_attendees' ] );
     }
 
     public static function get_event_attendance() {
@@ -29,6 +30,43 @@ class TTA_Ajax_Attendance {
         include TTA_PLUGIN_DIR . 'includes/frontend/views/attendance-list.php';
         $html = ob_get_clean();
         wp_send_json_success( [ 'html' => $html ] );
+    }
+
+    public static function email_event_attendees() {
+        check_ajax_referer( 'tta_email_attendees_action', 'nonce' );
+
+        if ( ! is_user_logged_in() ) {
+            wp_send_json_error( [ 'message' => __( 'Please sign in to send emails.', 'tta' ) ] );
+        }
+
+        $ute     = tta_sanitize_text_field( $_POST['event_ute_id'] ?? '' );
+        $message = isset( $_POST['message'] ) ? tta_sanitize_checkin_email_message( $_POST['message'] ) : '';
+
+        if ( '' === $ute ) {
+            wp_send_json_error( [ 'message' => __( 'Missing event identifier.', 'tta' ) ] );
+        }
+
+        if ( '' === $message ) {
+            wp_send_json_error( [ 'message' => __( 'Please provide a message to send.', 'tta' ) ] );
+        }
+
+        $length = function_exists( 'mb_strlen' ) ? mb_strlen( $message ) : strlen( $message );
+        if ( $length > 2000 ) {
+            wp_send_json_error( [ 'message' => __( 'Messages must be 2,000 characters or fewer.', 'tta' ) ] );
+        }
+
+        if ( ! class_exists( 'TTA_Email_Handler' ) ) {
+            require_once TTA_PLUGIN_DIR . 'includes/email/class-email-handler.php';
+        }
+
+        $handler = TTA_Email_Handler::get_instance();
+        $sent    = $handler->send_checkin_broadcast( $ute, $message );
+
+        if ( is_wp_error( $sent ) ) {
+            wp_send_json_error( [ 'message' => $sent->get_error_message() ] );
+        }
+
+        wp_send_json_success( [ 'message' => sprintf( _n( 'Email sent to %d recipient.', 'Email sent to %d recipients.', $sent, 'tta' ), $sent ) ] );
     }
 
     public static function set_attendance() {
