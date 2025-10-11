@@ -39,8 +39,9 @@ class TTA_Ajax_Attendance {
             wp_send_json_error( [ 'message' => __( 'Please sign in to send emails.', 'tta' ) ] );
         }
 
-        $ute     = tta_sanitize_text_field( $_POST['event_ute_id'] ?? '' );
-        $message = isset( $_POST['message'] ) ? tta_sanitize_checkin_email_message( $_POST['message'] ) : '';
+        $ute        = tta_sanitize_text_field( $_POST['event_ute_id'] ?? '' );
+        $message    = isset( $_POST['message'] ) ? tta_sanitize_checkin_email_message( $_POST['message'] ) : '';
+        $min_length = tta_get_checkin_email_min_length();
 
         if ( '' === $ute ) {
             wp_send_json_error( [ 'message' => __( 'Missing event identifier.', 'tta' ) ] );
@@ -50,7 +51,21 @@ class TTA_Ajax_Attendance {
             wp_send_json_error( [ 'message' => __( 'Please provide a message to send.', 'tta' ) ] );
         }
 
-        $length = function_exists( 'mb_strlen' ) ? mb_strlen( $message ) : strlen( $message );
+        $normalized = trim( preg_replace( '/\s+/', ' ', $message ) );
+        $length     = function_exists( 'mb_strlen' ) ? mb_strlen( $normalized ) : strlen( $normalized );
+
+        if ( $length < $min_length ) {
+            wp_send_json_error(
+                [
+                    'message' => sprintf(
+                        /* translators: %d: minimum number of characters required for the message. */
+                        __( 'Please enter at least %d characters before sending.', 'tta' ),
+                        $min_length
+                    ),
+                ]
+            );
+        }
+
         if ( $length > 2000 ) {
             wp_send_json_error( [ 'message' => __( 'Messages must be 2,000 characters or fewer.', 'tta' ) ] );
         }

@@ -422,6 +422,10 @@ class TTA_Email_Handler {
             return new \WP_Error( 'missing_event', __( 'Event not found.', 'tta' ) );
         }
 
+        if ( ! class_exists( 'TTA_Email_Reminders' ) ) {
+            require_once TTA_PLUGIN_DIR . 'includes/email/class-email-reminders.php';
+        }
+
         $attendees  = tta_get_event_attendees_with_status( $event_ute_id );
         $recipients = [];
         foreach ( (array) $attendees as $att ) {
@@ -458,6 +462,8 @@ class TTA_Email_Handler {
         $tpl     = $templates['checkin_broadcast'];
         $headers = [ 'Content-Type: text/html; charset=UTF-8' ];
         $count   = 0;
+
+        $event_id = intval( $event['id'] ?? 0 );
 
         foreach ( $recipients as $key => $recipient ) {
             $email = $recipient['email'];
@@ -511,8 +517,15 @@ class TTA_Email_Handler {
             $body_plain = implode( "\n\n", $parts );
             $body_html  = nl2br( tta_convert_bold( tta_convert_links( $body_plain ) ) );
 
-            wp_mail( $email, $subject, $body_html, $headers );
-            $count++;
+            $sent = wp_mail( $email, $subject, $body_html, $headers );
+
+            if ( method_exists( 'TTA_Email_Reminders', 'record_email_log' ) ) {
+                TTA_Email_Reminders::record_email_log( $event_id, 'checkin_broadcast', $email, (bool) $sent );
+            }
+
+            if ( $sent ) {
+                $count++;
+            }
         }
 
         return $count;

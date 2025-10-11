@@ -1,14 +1,47 @@
 jQuery(function($){
+  var minLength = parseInt(TTA_Checkin.email_min_length, 10) || 20;
+  var minLengthMessage = TTA_Checkin.email_too_short || ('Please enter at least ' + minLength + ' characters before sending.');
+
+  function normalizedLength(value){
+    if (!value) {
+      return 0;
+    }
+    return value.replace(/\s+/g, ' ').trim().length;
+  }
+
+  function refreshEmailButton($wrap){
+    var $btn = $wrap.find('.tta-email-attendees__send');
+    if (!$btn.length) {
+      return;
+    }
+    var len = normalizedLength($wrap.find('.tta-email-attendees__message').val());
+    if (len >= minLength) {
+      $btn.prop('disabled', false).removeClass('disabled');
+    } else {
+      $btn.prop('disabled', true).addClass('disabled');
+    }
+  }
+
+  function initEmailPanels($context){
+    $context.find('.tta-email-attendees').each(function(){
+      refreshEmailButton($(this));
+    });
+  }
+
+  $(document).on('input', '.tta-email-attendees__message', function(){
+    refreshEmailButton($(this).closest('.tta-email-attendees'));
+  });
+
   // Toggle event rows
   $(document).on('click', '.tta-event-row', function(e){
     if ($(e.target).is('button, a')) return;
-    var $row       = $(this),
-        $arrow     = $row.find('.tta-toggle-arrow'),
-        ute        = $row.data('event-ute-id'),
-        isMobile   = window.matchMedia('(max-width:1199px)').matches,
-        $toggleCell= $row.find('.tta-toggle-cell'),
-        $container = $toggleCell.find('.tta-inline-container'),
-        $ex        = $row.next('.tta-inline-row');
+    var $row        = $(this),
+        $arrow      = $row.find('.tta-toggle-arrow'),
+        ute         = $row.data('event-ute-id'),
+        isMobile    = window.matchMedia('(max-width:1199px)').matches,
+        $toggleCell = $row.find('.tta-toggle-cell'),
+        $container  = $toggleCell.find('.tta-inline-container'),
+        $ex         = $row.next('.tta-inline-row');
 
     if (isMobile){
       if ($toggleCell.hasClass('open')){
@@ -25,6 +58,7 @@ jQuery(function($){
       $.post(TTA_Checkin.ajax_url, { action:'tta_get_event_attendance', nonce:TTA_Checkin.get_nonce, event_ute_id: ute }, function(res){
         if(!res.success) return;
         $container.html(res.data.html).slideDown();
+        initEmailPanels($container);
         $arrow.addClass('open');
         $row.addClass('open');
         $toggleCell.addClass('open');
@@ -53,6 +87,7 @@ jQuery(function($){
       $new.find('.tta-inline-wrapper').slideDown(200);
       $arrow.addClass('open');
       $row.addClass('open');
+      initEmailPanels($new);
     }, 'json');
   });
 
@@ -113,6 +148,7 @@ jQuery(function($){
         var $target = $btn.closest('.tta-inline-wrapper');
         if(!$target.length){ $target = $btn.closest('.tta-inline-container'); }
         $target.html(r.data.html);
+        initEmailPanels($target);
       }, 'json');
     }, 'json');
   });
@@ -129,11 +165,20 @@ jQuery(function($){
     var ute    = $btn.data('event-ute-id');
     var $spin  = $wrap.find('.tta-progress-spinner .tta-admin-progress-spinner-svg');
     var $resp  = $wrap.find('.tta-admin-progress-response-p');
+    var lengthNormalized = normalizedLength(message);
+
     if (!trimmed.length) {
       $resp.text(TTA_Checkin.email_required || 'Please type a message before sending.');
       $text.focus();
       return;
     }
+
+    if (lengthNormalized < minLength) {
+      $resp.text(minLengthMessage);
+      $text.focus();
+      return;
+    }
+
     $resp.text('');
     $spin.css({display:'inline-block',opacity:0}).fadeTo(200,1);
     $btn.prop('disabled', true).addClass('disabled');
@@ -151,7 +196,7 @@ jQuery(function($){
       if (res && res.success) {
         var success = (res.data && res.data.message) ? res.data.message : (TTA_Checkin.email_success || 'Email sent to all attendees.');
         $resp.text(success);
-        $text.val('');
+        $text.val('').trigger('input');
       } else {
         var error = (res && res.data && res.data.message) ? res.data.message : (TTA_Checkin.email_failed || 'Unable to send the email. Please try again.');
         $resp.text(error);
@@ -160,7 +205,7 @@ jQuery(function($){
       $resp.text(TTA_Checkin.email_failed || 'Unable to send the email. Please try again.');
     }).always(function(){
       $spin.fadeOut(200);
-      $btn.prop('disabled', false).removeClass('disabled');
+      refreshEmailButton($wrap);
     });
   });
 
@@ -176,4 +221,6 @@ jQuery(function($){
       }
     }
   });
+
+  initEmailPanels($(document));
 });

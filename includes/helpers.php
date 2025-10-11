@@ -117,6 +117,18 @@ function tta_sanitize_checkin_email_message( $value ) {
 }
 
 /**
+ * Retrieve the minimum character length required for check-in broadcast messages.
+ *
+ * @return int Positive integer threshold.
+ */
+function tta_get_checkin_email_min_length() {
+    $min = apply_filters( 'tta_checkin_email_min_length', 20 );
+    $min = intval( $min );
+
+    return $min > 0 ? $min : 1;
+}
+
+/**
  * Sanitize email input preserving apostrophes.
  *
  * @param mixed $value

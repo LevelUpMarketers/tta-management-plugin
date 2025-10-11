@@ -77,6 +77,7 @@ Hosts and volunteers can send an on-the-fly update to everyone associated with a
 - Tokens in the subject, greeting, closing, and typed message are replaced per recipient using the same `build_tokens()` helper as other communications, so placeholders such as `{attendee_first_name}` personalize each email.
 - The system emails every verified attendee regardless of check-in status as well as all hosts and volunteers tied to the event.
 - The final email body inserts the typed message between the stored opening and closing text with blank lines separating each section.
+- Each send is written to the **Email History** tab, and the host-facing textarea requires at least 20 substantive characters before the **Send Email** button becomes active to avoid empty blasts.
 
 If no recipients are found or the template is missing, the interface returns an error and no mail is sent.
 

@@ -655,6 +655,8 @@ class TTA_Assets {
                 TTA_PLUGIN_VERSION,
                 true
             );
+            $min_length = tta_get_checkin_email_min_length();
+
             wp_localize_script(
                 'tta-checkin-js',
                 'TTA_Checkin',
@@ -669,6 +671,12 @@ class TTA_Assets {
                     'email_required'   => __( 'Please type a message before sending.', 'tta' ),
                     'email_success'    => __( 'Email sent to all attendees.', 'tta' ),
                     'email_failed'     => __( 'Unable to send the email. Please try again.', 'tta' ),
+                    'email_min_length' => $min_length,
+                    'email_too_short'  => sprintf(
+                        /* translators: %d: minimum number of characters required for the message. */
+                        __( 'Please enter at least %d characters before sending.', 'tta' ),
+                        $min_length
+                    ),
                 ]
             );
         }

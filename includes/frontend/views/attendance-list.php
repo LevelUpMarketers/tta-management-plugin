@@ -36,7 +36,7 @@ $instructions  = __( 'Need to send Attendees an update? Type your message below.
   <p><?php echo wp_kses( $instructions, array( 'span' => array( 'style' => array() ), 'strong' => array() ) ); ?></p>
   <textarea id="<?php echo esc_attr( $textarea_id ); ?>" class="widefat tta-email-attendees__message" rows="6" placeholder="<?php esc_attr_e( 'Type your message here…', 'tta' ); ?>"></textarea>
   <div class="tta-email-attendees__actions">
-    <button type="button" class="button button-primary tta-email-attendees__send" data-event-ute-id="<?php echo esc_attr( $event['ute_id'] ); ?>"><?php esc_html_e( 'Send Email', 'tta' ); ?></button>
+    <button type="button" class="button button-primary tta-email-attendees__send disabled" data-event-ute-id="<?php echo esc_attr( $event['ute_id'] ); ?>" disabled="disabled"><?php esc_html_e( 'Send Email', 'tta' ); ?></button>
     <span class="tta-progress-spinner"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" /></span>
     <span class="tta-admin-progress-response-p"></span>
   </div>
