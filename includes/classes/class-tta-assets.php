@@ -162,6 +162,42 @@ class TTA_Assets {
                     ]
                 );
             }
+
+            if ( 'tta-members' === $page ) {
+                $use_sandbox = (bool) get_option( 'tta_authnet_use_sandbox', get_option( 'tta_authnet_sandbox', false ) );
+                $login       = $use_sandbox ? get_option( 'tta_authnet_login_id_sandbox', '' ) : get_option( 'tta_authnet_login_id_live', '' );
+                $client_key  = $use_sandbox ? get_option( 'tta_authnet_public_client_key_sandbox', '' ) : get_option( 'tta_authnet_public_client_key_live', '' );
+                if ( ! $client_key && defined( 'TTA_AUTHNET_CLIENT_KEY' ) ) {
+                    $client_key = TTA_AUTHNET_CLIENT_KEY;
+                }
+                $accept_url  = $use_sandbox ? 'https://jstest.authorize.net/v1/Accept.js' : 'https://js.authorize.net/v1/Accept.js';
+
+                wp_enqueue_script(
+                    'tta-acceptjs',
+                    $accept_url,
+                    [],
+                    null,
+                    true
+                );
+
+                wp_enqueue_script(
+                    'tta-admin-membership-payments',
+                    TTA_PLUGIN_URL . 'assets/js/backend/membership-payments.js',
+                    [ 'tta-admin-js', 'tta-acceptjs', 'jquery' ],
+                    TTA_PLUGIN_VERSION,
+                    true
+                );
+
+                wp_localize_script(
+                    'tta-admin-membership-payments',
+                    'TTA_ACCEPT_ADMIN',
+                    [
+                        'loginId'        => $login,
+                        'clientKey'      => $client_key,
+                        'failureMessage' => wp_kses_post( __( "Encryption of your payment information failed! Please try again later. If you're still having trouble, please contact us using the form on our <a href=\"/contact\">Contact Page</a>.", 'tta' ) ),
+                    ]
+                );
+            }
         }
     }
 
