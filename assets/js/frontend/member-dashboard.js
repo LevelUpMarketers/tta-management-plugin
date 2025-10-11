@@ -325,6 +325,10 @@ jQuery(function($){
               .find('.view-value img')
               .attr('src', updatedSrc);
 
+            if ( typeof dataObj.data.profileimgid !== 'undefined' ) {
+              $form.find('#profileimgid').val( dataObj.data.profileimgid );
+            }
+
             // exit edit-mode
             $wrapper.removeClass('is-editing');
             $('#toggle-edit-mode').text('Edit Profile');

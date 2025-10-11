@@ -12,6 +12,11 @@ If a member is banned the dashboard displays a prominent notice at the top. Inde
 Non-admin users never see the WordPress dashboard. On login the page simply reloads, and any attempt to access `/wp-admin/` redirects back to the front end.
 
 
+## Profile Info Tab
+
+The **Profile Info** tab exposes every editable field from the member record, including contact information, biography, interests, communication preferences, privacy controls, and the profile image uploader. Submitting the form triggers the `tta_front_update_member` AJAX endpoint, which validates matching email fields, rejects duplicate addresses, sanitizes each value, and stores the updates directly in `tta_members`. When a new profile photo is chosen the file is uploaded through WordPress’ media handlers before the record is updated. The handler also synchronizes the associated WordPress user’s first name, last name, display name, and email so logins stay consistent. After the update succeeds the plugin flushes its cache layer and returns the refreshed thumbnail markup along with the new attachment ID, allowing the dashboard to swap in the updated preview immediately without a full page reload.
+
+
 ## Upcoming Events Tab
 
 The **Your Upcoming Events** tab lists future events you have tickets for. Each event

@@ -464,29 +464,195 @@ class TTA_Ajax_Members {
     public static function update_member_front() {
         check_ajax_referer( 'tta_member_front_update', 'tta_member_front_update_nonce' );
         if ( ! is_user_logged_in() ) {
-            wp_send_json_error([ 'message'=>'You must be logged in.' ]);
+            wp_send_json_error( [ 'message' => 'You must be logged in.' ] );
         }
 
         global $wpdb;
         $table      = $wpdb->prefix . 'tta_members';
         $wpuid      = get_current_user_id();
         $member_row = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM {$table} WHERE wpuserid = %d",$wpuid),
+            $wpdb->prepare( "SELECT * FROM {$table} WHERE wpuserid = %d", $wpuid ),
             ARRAY_A
         );
         if ( ! $member_row ) {
-            wp_send_json_error([ 'message'=>'Member record not found.' ]);
+            wp_send_json_error( [ 'message' => 'Member record not found.' ] );
         }
 
-        $member_id = intval($member_row['id']);
+        $member_id = intval( $member_row['id'] );
 
-        // Handle image file if uploaded...
-        // (similar logic to save_member)
+        $first_name = tta_sanitize_text_field( $_POST['first_name'] ?? '' );
+        $last_name  = tta_sanitize_text_field( $_POST['last_name'] ?? '' );
+        $email      = tta_sanitize_email( $_POST['email'] ?? '' );
+        $email_v    = tta_sanitize_email( $_POST['email_verify'] ?? '' );
 
-        // Collect fields same as update_member()
+        if ( '' === $first_name || '' === $last_name || '' === $email ) {
+            wp_send_json_error( [ 'message' => 'First name, last name, and email are required.' ] );
+        }
 
-        // Run update...
-        wp_send_json_success([ 'message'=>'Profile updated successfully!' ]);
+        if ( $email_v && strtolower( $email ) !== strtolower( $email_v ) ) {
+            wp_send_json_error( [ 'message' => 'Emails do not match.' ] );
+        }
+
+        if ( ! is_email( $email ) ) {
+            wp_send_json_error( [ 'message' => 'Please provide a valid email address.' ] );
+        }
+
+        $email_changed = strtolower( $email ) !== strtolower( $member_row['email'] );
+        if ( $email_changed ) {
+            $existing_user = get_user_by( 'email', $email );
+            if ( $existing_user && intval( $existing_user->ID ) !== $wpuid ) {
+                wp_send_json_error( [ 'message' => 'That email address is already associated with another account.' ] );
+            }
+
+            $existing_member = tta_get_member_row_by_email( $email );
+            if ( $existing_member && intval( $existing_member['id'] ?? 0 ) !== $member_id ) {
+                wp_send_json_error( [ 'message' => 'Another member is already using that email address.' ] );
+            }
+        }
+
+        $phone     = tta_sanitize_text_field( $_POST['phone'] ?? '' );
+        $dob       = tta_sanitize_text_field( $_POST['dob'] ?? '' );
+        $facebook  = tta_esc_url_raw( $_POST['facebook'] ?? '' );
+        $linkedin  = tta_esc_url_raw( $_POST['linkedin'] ?? '' );
+        $instagram = tta_esc_url_raw( $_POST['instagram'] ?? '' );
+        $twitter   = tta_esc_url_raw( $_POST['twitter'] ?? '' );
+        $biography = tta_sanitize_textarea_field( $_POST['biography'] ?? '' );
+
+        $street = tta_sanitize_text_field( $_POST['street_address'] ?? '' );
+        $addr2  = tta_sanitize_text_field( $_POST['address_2'] ?? '' );
+        $city   = tta_sanitize_text_field( $_POST['city'] ?? '' );
+        $state  = tta_sanitize_text_field( $_POST['state'] ?? '' );
+        $zip    = tta_sanitize_text_field( $_POST['zip'] ?? '' );
+        $address = implode( ' – ', [ $street, $addr2, $city, $state, $zip ] );
+
+        $interests_arr = array_filter( array_map( 'sanitize_text_field', (array) ( $_POST['interests'] ?? [] ) ) );
+        $interests     = $interests_arr ? implode( ',', $interests_arr ) : '';
+
+        $opt_marketing_email = ! empty( $_POST['opt_in_marketing_email'] ) ? 1 : 0;
+        $opt_marketing_sms   = ! empty( $_POST['opt_in_marketing_sms'] ) ? 1 : 0;
+        $opt_update_email    = ! empty( $_POST['opt_in_event_update_email'] ) ? 1 : 0;
+        $opt_update_sms      = ! empty( $_POST['opt_in_event_update_sms'] ) ? 1 : 0;
+        $hide_attendance     = ! empty( $_POST['hide_event_attendance'] ) ? 1 : 0;
+
+        $profileimgid = intval( $_POST['profileimgid'] ?? $member_row['profileimgid'] );
+        $uploaded_id  = 0;
+        if ( ! empty( $_FILES['profile_image_file']['name'] ?? '' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            require_once ABSPATH . 'wp-admin/includes/media.php';
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+
+            $attachment_id = media_handle_upload( 'profile_image_file', 0 );
+            if ( is_wp_error( $attachment_id ) ) {
+                wp_send_json_error( [ 'message' => 'Image upload failed: ' . $attachment_id->get_error_message() ] );
+            }
+
+            $profileimgid = intval( $attachment_id );
+            $uploaded_id  = $profileimgid;
+        }
+
+        $update_data = [
+            'first_name'                => $first_name,
+            'last_name'                 => $last_name,
+            'email'                     => $email,
+            'phone'                     => $phone,
+            'dob'                       => $dob,
+            'address'                   => $address,
+            'facebook'                  => $facebook,
+            'linkedin'                  => $linkedin,
+            'instagram'                 => $instagram,
+            'twitter'                   => $twitter,
+            'biography'                 => $biography,
+            'interests'                 => $interests,
+            'opt_in_marketing_email'    => $opt_marketing_email,
+            'opt_in_marketing_sms'      => $opt_marketing_sms,
+            'opt_in_event_update_email' => $opt_update_email,
+            'opt_in_event_update_sms'   => $opt_update_sms,
+            'hide_event_attendance'     => $hide_attendance,
+            'profileimgid'              => $profileimgid,
+        ];
+
+        $formats = [
+            '%s','%s','%s','%s','%s',
+            '%s','%s','%s','%s','%s',
+            '%s','%s','%d','%d','%d',
+            '%d','%d'
+        ];
+
+        $updated = $wpdb->update( $table, $update_data, [ 'id' => $member_id ], $formats, [ '%d' ] );
+        if ( false === $updated ) {
+            if ( $uploaded_id && $uploaded_id !== intval( $member_row['profileimgid'] ) ) {
+                wp_delete_attachment( $uploaded_id, true );
+            }
+            wp_send_json_error( [ 'message' => 'Failed to update member.' ] );
+        }
+
+        $display_name = trim( $first_name . ' ' . $last_name );
+        $user_update  = [
+            'ID'         => $wpuid,
+            'user_email' => $email,
+            'first_name' => $first_name,
+            'last_name'  => $last_name,
+        ];
+        if ( $display_name ) {
+            $user_update['display_name'] = $display_name;
+        }
+
+        $user_result = wp_update_user( $user_update );
+        if ( is_wp_error( $user_result ) ) {
+            $rollback = [
+                'first_name'                => $member_row['first_name'],
+                'last_name'                 => $member_row['last_name'],
+                'email'                     => $member_row['email'],
+                'phone'                     => $member_row['phone'],
+                'dob'                       => $member_row['dob'],
+                'address'                   => $member_row['address'],
+                'facebook'                  => $member_row['facebook'],
+                'linkedin'                  => $member_row['linkedin'],
+                'instagram'                 => $member_row['instagram'],
+                'twitter'                   => $member_row['twitter'],
+                'biography'                 => $member_row['biography'],
+                'interests'                 => $member_row['interests'],
+                'opt_in_marketing_email'    => intval( $member_row['opt_in_marketing_email'] ),
+                'opt_in_marketing_sms'      => intval( $member_row['opt_in_marketing_sms'] ),
+                'opt_in_event_update_email' => intval( $member_row['opt_in_event_update_email'] ),
+                'opt_in_event_update_sms'   => intval( $member_row['opt_in_event_update_sms'] ),
+                'hide_event_attendance'     => intval( $member_row['hide_event_attendance'] ),
+                'profileimgid'              => intval( $member_row['profileimgid'] ),
+            ];
+            $wpdb->update( $table, $rollback, [ 'id' => $member_id ], $formats, [ '%d' ] );
+
+            if ( $uploaded_id && $uploaded_id !== intval( $member_row['profileimgid'] ) ) {
+                wp_delete_attachment( $uploaded_id, true );
+            }
+
+            wp_send_json_error( [ 'message' => 'Unable to sync your account: ' . $user_result->get_error_message() ] );
+        }
+
+        update_user_meta( $wpuid, 'profileimgid', $profileimgid );
+
+        // Ensure cached dashboards reflect the updated details immediately.
+        TTA_Cache::flush();
+
+        $preview_html = '';
+        if ( $profileimgid ) {
+            $img = wp_get_attachment_image( $profileimgid, 'thumbnail', false, [
+                'alt' => $first_name,
+            ] );
+            if ( $img ) {
+                $preview_html = $img;
+            }
+        } else {
+            $placeholder = TTA_PLUGIN_URL . 'assets/images/admin/placeholder-profile.svg';
+            $preview_html = '<img src="' . esc_url( $placeholder ) . '" class="attachment-thumbnail size-thumbnail" alt="Placeholder">';
+        }
+
+        wp_send_json_success(
+            [
+                'message'      => 'Profile updated successfully!',
+                'preview'      => $preview_html,
+                'profileimgid' => $profileimgid,
+            ]
+        );
     }
 }
 
