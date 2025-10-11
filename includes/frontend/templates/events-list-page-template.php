@@ -137,7 +137,7 @@ $next_url = $next_allowed ? add_query_arg( [ 'cal_year' => $next_year, 'cal_mont
         </div>
 
         <?php if ( $friend_imgs ) : ?>
-        <div class="tta-join-friends tta-event-image-gallery-accordion">
+        <div class="tta-join-friends tta-event-image-gallery-accordion notranslate" data-nosnippet>
             <div class="tta-accordion">
                 <?php $friend_count = count( $friend_imgs ); ?>
                 <div class="tta-accordion-content<?php echo ( $friend_count <= 12 ) ? ' tta-auto-height' : ''; ?>">
