@@ -62,6 +62,14 @@
 .tta-cart-actions .tta-cart-checkout-button { order: 2; }
 .tta-cart-actions .tta-cart-browse-button { order: 1; }
 
+.tta-checkout-browse {
+  margin: 20px 0;
+}
+
+.tta-checkout-browse .tta-cart-browse-button {
+  margin-right: 0;
+}
+
 /* Notice displayed when cart contents change unexpectedly */
 .tta-cart-notice {
   color: #b00;
@@ -189,6 +197,9 @@
   }
   .tta-cart-checkout-button,
   .tta-cart-browse-button { display:block; width:100%; box-sizing:border-box; text-align:center; }
+  .tta-checkout-browse {
+    margin: 20px 0;
+  }
   .tta-checkout-summary thead { display:none; }
   .tta-checkout-summary, .tta-checkout-summary tbody, .tta-checkout-summary tr, .tta-checkout-summary td { display:block; width:100%; }
   .tta-checkout-summary tr { margin-bottom:15px; }

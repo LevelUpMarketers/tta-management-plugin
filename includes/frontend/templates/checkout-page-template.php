@@ -63,11 +63,12 @@ echo do_shortcode( $header_shortcode );
 
  $items         = $cart->get_items();
  $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
-$sub_details   = $_SESSION['tta_checkout_sub'] ?? null;
-$user          = wp_get_current_user();
-$is_logged_in  = is_user_logged_in();
-$payment_disabled = ! $is_logged_in || $is_free_checkout;
-$has_tickets   = false;
+$sub_details        = $_SESSION['tta_checkout_sub'] ?? null;
+$user               = wp_get_current_user();
+$is_logged_in       = is_user_logged_in();
+$payment_disabled   = ! $is_logged_in || $is_free_checkout;
+$has_tickets        = false;
+$browse_events_url  = tta_get_last_events_url();
 if ( $checkout_done ) {
     $sent_emails  = $_SESSION['tta_checkout_emails']     ?? [];
     $member_level = $_SESSION['tta_checkout_membership'] ?? '';
@@ -161,6 +162,13 @@ if ( $checkout_done ) {
         <form id="tta-checkout-form" method="post">
             <?php wp_nonce_field( 'tta_checkout_action', 'tta_checkout_nonce' ); ?>
             <?php echo tta_render_checkout_summary( $cart, $discount_codes ); ?>
+            <?php if ( $browse_events_url ) : ?>
+                <div class="tta-checkout-browse">
+                    <a class="tta-cart-browse-button tta-checkout-browse-button" href="<?php echo esc_url( $browse_events_url ); ?>">
+                        <?php esc_html_e( 'Browse More Events', 'tta' ); ?>
+                    </a>
+                </div>
+            <?php endif; ?>
             <div class="tta-checkout-grid">
                 <?php if ( $items ) : ?>
                 <div class="tta-checkout-left<?php echo $is_logged_in ? '' : ' tta-disabled'; ?>">
