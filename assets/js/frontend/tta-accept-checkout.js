@@ -1,8 +1,17 @@
 (function($){
   function showMessage(msg, isError){
     var $resp = $('#tta-checkout-response');
-    $resp.text(msg || '');
-    if(isError){ $resp.addClass('error'); } else { $resp.removeClass('error'); }
+    var message = msg || '';
+    if(/<[a-z][\s\S]*>/i.test(message)){
+      $resp.html(message);
+    }else{
+      $resp.text(message);
+    }
+    if(isError){
+      $resp.addClass('error').removeClass('updated');
+    }else{
+      $resp.removeClass('error');
+    }
   }
 
   $(function(){
@@ -12,6 +21,17 @@
     var $btn  = $form.find('button[name="tta_do_checkout"]');
     var $spin = $form.find('.tta-admin-progress-spinner-svg');
     var $resp = $('#tta-checkout-response');
+    var encryptionFailedMessage = ((window.tta_checkout && window.tta_checkout.encryption_failed_html) || 'Encryption of your payment information failed! Please try again later. If you\'re still having trouble, please contact us using the form on our Contact Page.');
+
+    function encryptionFailed(debug){
+      showMessage(encryptionFailedMessage, true);
+      $spin.fadeOut(200);
+      $btn.prop('disabled', false);
+      sessionStorage.removeItem('ttaCheckout');
+      if(debug){
+        console.error('Accept.js encryption failed', debug);
+      }
+    }
 
     function finalizeResponse(res){
       var data = res && res.data ? res.data : res;
@@ -134,24 +154,41 @@
         return;
       }
 
+      if(typeof Accept === 'undefined' || !Accept || typeof Accept.dispatchData !== 'function'){
+        encryptionFailed('Accept.js unavailable');
+        return;
+      }
+
       exp = exp.replace(/\s+/g,'');
       if(/^[0-9]{4}$/.test(exp)) exp = exp.substring(0,2)+'/'+exp.substring(2);
       var parts = exp.split(/[\/\-]/); var month = parts[0]; var year = parts[1]; if(year && year.length===2) year='20'+year;
 
-      Accept.dispatchData({
-        authData:{clientKey:cfg.clientKey,apiLoginID:cfg.loginId},
-        cardData:{cardNumber:cardNumber,month:month,year:year,cardCode:cvc}
-      }, function(response){
-        if(response.messages.resultCode !== 'Ok'){
-          var errors = (response.messages.message||[]).map(function(m){return m.text;});
-          showMessage(errors.join(' | ') || 'Payment error', true);
-          $spin.fadeOut(200);
-          $btn.prop('disabled', false);
-          sessionStorage.removeItem('ttaCheckout');
-          return;
-        }
-        sendCheckout(response.opaqueData, billing, cardNumber);
-      });
+      try {
+        Accept.dispatchData({
+          authData:{clientKey:cfg.clientKey,apiLoginID:cfg.loginId},
+          cardData:{cardNumber:cardNumber,month:month,year:year,cardCode:cvc}
+        }, function(response){
+          if(!response || !response.messages){
+            encryptionFailed('Empty Accept.js response');
+            return;
+          }
+          if(response.messages.resultCode !== 'Ok'){
+            var errors = (response.messages.message||[]).map(function(m){return m.text;}).filter(Boolean);
+            if(!errors.length){
+              encryptionFailed(response);
+              return;
+            }
+            showMessage(errors.join(' | '), true);
+            $spin.fadeOut(200);
+            $btn.prop('disabled', false);
+            sessionStorage.removeItem('ttaCheckout');
+            return;
+          }
+          sendCheckout(response.opaqueData, billing, cardNumber);
+        });
+      } catch(err){
+        encryptionFailed(err);
+      }
     });
   });
 })(jQuery);

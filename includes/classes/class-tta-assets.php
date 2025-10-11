@@ -530,6 +530,7 @@ class TTA_Assets {
                     'basic_price'    => TTA_BASIC_MEMBERSHIP_PRICE,
                     'premium_price'  => TTA_PREMIUM_MEMBERSHIP_PRICE,
                     'checkout_key'   => sanitize_text_field( $_SESSION['tta_checkout_key'] ?? '' ),
+                    'encryption_failed_html' => wp_kses_post( __( "Encryption of your payment information failed! Please try again later. If you're still having trouble, please contact us using the form on our <a href=\"/contact\">Contact Page</a>.", 'tta' ) ),
                 ]
             );
 

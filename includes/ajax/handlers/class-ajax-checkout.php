@@ -70,6 +70,15 @@ class TTA_Ajax_Checkout {
         $membership_total = in_array( $membership_level, [ 'basic', 'premium', 'reentry' ], true ) ? tta_get_membership_price( $membership_level ) : 0;
         $amount           = $ticket_total + $membership_total;
 
+        if ( $membership_total > 0 ) {
+            $context       = tta_get_current_user_context();
+            $current_level = strtolower( $context['membership_level'] ?? '' );
+            if ( 'premium' === $current_level && in_array( $membership_level, [ 'basic', 'premium' ], true ) ) {
+                unset( $_SESSION['tta_membership_purchase'] );
+                wp_send_json_error( [ 'message' => __( 'Premium members cannot purchase another membership.', 'tta' ) ] );
+            }
+        }
+
         $billing = isset( $_POST['billing'] ) && is_array( $_POST['billing'] ) ? $_POST['billing'] : [];
         $billing_clean = [
             'first_name' => tta_sanitize_text_field( $billing['first_name'] ?? '' ),
