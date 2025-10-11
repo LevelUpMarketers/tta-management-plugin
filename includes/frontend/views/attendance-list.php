@@ -28,6 +28,20 @@ if ( ! defined( 'ABSPATH' ) ) exit;
   <span class="tta-admin-progress-response-p"></span>
 </div>
 <?php
+$textarea_id   = 'tta-email-message-' . sanitize_key( $event['ute_id'] );
+$instructions  = __( 'Need to send Attendees an update? Type your message below. <span style="font-weight:bold;color:red;">DO NOT INCLUDE</span> any opening or closing statements, such as <strong>"Hi there,"</strong> or <strong>"See you soon!"</strong> or <strong>"Thanks!"</strong>, as these will be included automatically. Simply type the message you want sent below. When you click the "Send Email" button, an email will be sent to ALL Attendees - regardless of attendance status - as well as Event Hosts & Volunteers.', 'tta' );
+?>
+<div class="tta-email-attendees">
+  <h4><?php esc_html_e( 'Email All Attendees', 'tta' ); ?></h4>
+  <p><?php echo wp_kses( $instructions, array( 'span' => array( 'style' => array() ), 'strong' => array() ) ); ?></p>
+  <textarea id="<?php echo esc_attr( $textarea_id ); ?>" class="widefat tta-email-attendees__message" rows="6" placeholder="<?php esc_attr_e( 'Type your message here…', 'tta' ); ?>"></textarea>
+  <div class="tta-email-attendees__actions">
+    <button type="button" class="button button-primary tta-email-attendees__send" data-event-ute-id="<?php echo esc_attr( $event['ute_id'] ); ?>"><?php esc_html_e( 'Send Email', 'tta' ); ?></button>
+    <span class="tta-progress-spinner"><img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" /></span>
+    <span class="tta-admin-progress-response-p"></span>
+  </div>
+</div>
+<?php
 $assist_notes = array_filter(
     $attendees,
     function ( $a ) {
