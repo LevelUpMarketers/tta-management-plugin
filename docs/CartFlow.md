@@ -19,6 +19,7 @@ This document summarizes the current logic around the cart and checkout process 
    - The **Cart Page** template renders the current cart contents using `tta_render_cart_contents()`.
    - The cart table is wrapped in a `.tta-cart-table-wrapper` element so it can scroll horizontally on narrower screens, and CSS now stacks table cells for easier reading on phones.
    - A WPBakery hero banner appears above the cart using `do_shortcode()`.
+   - A **Browse More Events** button sits beside the Checkout action. It links back to the most recent events list page the visitor viewed so they can continue exploring without relying on the browser back button.
    - If a visitor selected a membership on the Become a Member page, that membership appears as its own line item labeled **Standard Membership** or **Premium Membership**.
    - Premium members cannot add another membership at all. Attempts to add Standard or Premium memberships are rejected.
    - Membership rows never display the **Ticket Reserved for…** column. When tickets are also present, the membership's **Event or Item** cell spans both columns so the layout remains aligned. Pricing shows "Per Month" in the price and subtotal columns, and the total row also displays "Per Month".

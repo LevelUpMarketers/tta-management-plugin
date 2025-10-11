@@ -96,6 +96,32 @@ function tta_sanitize_textarea_field( $value ) {
 }
 
 /**
+ * Retrieve the full URL for the current front-end request.
+ *
+ * @return string Current URL including query arguments.
+ */
+function tta_get_current_url() {
+    global $wp;
+
+    $request = isset( $wp->request ) ? $wp->request : '';
+    $path    = $request ? '/' . ltrim( $request, '/' ) : '/';
+    $url     = home_url( $path );
+
+    if ( ! empty( $_GET ) && is_array( $_GET ) ) {
+        $query_args = [];
+        foreach ( wp_unslash( $_GET ) as $key => $value ) {
+            $query_args[ $key ] = $value;
+        }
+
+        if ( ! empty( $query_args ) ) {
+            $url = add_query_arg( $query_args, $url );
+        }
+    }
+
+    return $url;
+}
+
+/**
  * Sanitize bulk attendee messages authored on the check-in page.
  *
  * Strips HTML tags, control characters, and emoji/dingbat symbols while
@@ -492,6 +518,53 @@ function tta_get_cart_notice() {
     $msg = sanitize_text_field( $_SESSION['tta_cart_notice'] );
     unset( $_SESSION['tta_cart_notice'] );
     return $msg;
+}
+
+/**
+ * Persist the most recent events listing URL for quick navigation.
+ *
+ * @param string $url Absolute URL to the events listing page.
+ */
+function tta_set_last_events_url( $url ) {
+    $url = esc_url_raw( $url );
+    if ( empty( $url ) ) {
+        return;
+    }
+
+    if ( ! session_id() ) {
+        session_start();
+    }
+
+    $home_host = wp_parse_url( home_url(), PHP_URL_HOST );
+    $url_host  = wp_parse_url( $url, PHP_URL_HOST );
+
+    if ( $home_host && $url_host && strcasecmp( $home_host, $url_host ) !== 0 ) {
+        return;
+    }
+
+    $_SESSION['tta_last_events_url'] = $url;
+}
+
+/**
+ * Retrieve the last stored events listing URL or the default events page.
+ *
+ * @return string Absolute URL to the events listing page.
+ */
+function tta_get_last_events_url() {
+    if ( ! session_id() ) {
+        session_start();
+    }
+
+    $url = '';
+    if ( ! empty( $_SESSION['tta_last_events_url'] ) ) {
+        $url = esc_url_raw( wp_unslash( $_SESSION['tta_last_events_url'] ) );
+    }
+
+    if ( empty( $url ) ) {
+        $url = home_url( '/events/' );
+    }
+
+    return $url;
 }
 
 /**

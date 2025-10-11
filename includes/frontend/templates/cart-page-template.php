@@ -20,6 +20,7 @@ echo do_shortcode( $header_shortcode );
 $discount_codes = $_SESSION['tta_discount_codes'] ?? [];
 $notice        = tta_get_cart_notice();
 $waitlist_ctx  = tta_get_waitlist_context();
+$browse_events_url = tta_get_last_events_url();
 
 if ( $waitlist_ctx ) {
     wp_enqueue_style(
@@ -72,11 +73,14 @@ $has_membership = ! empty( $_SESSION['tta_membership_purchase'] );
         </div>
     </form>
     <?php $disabled = empty( $items ) && ! $has_membership; ?>
-    <p>
+    <div class="tta-cart-actions">
         <a class="tta-cart-checkout-button<?php echo $disabled ? ' tta-disabled' : ''; ?>" href="<?php echo esc_url( home_url( '/checkout' ) ); ?>"<?php echo $disabled ? ' disabled aria-disabled="true"' : ''; ?>>
             <?php esc_html_e( 'Checkout', 'tta' ); ?>
         </a>
-    </p>
+        <a class="tta-cart-browse-button" href="<?php echo esc_url( $browse_events_url ); ?>">
+            <?php esc_html_e( 'Browse More Events', 'tta' ); ?>
+        </a>
+    </div>
     <span class="tta-progress-spinner">
         <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
     </span>

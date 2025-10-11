@@ -34,7 +34,8 @@
   text-align: left;
 }
 
-.tta-cart-checkout-button {
+.tta-cart-checkout-button,
+.tta-cart-browse-button {
   display: inline-block;
   padding: 10px 20px;
   background-color: #0073aa;
@@ -44,10 +45,22 @@
   cursor: pointer;
 }
 
-.tta-cart-checkout-button:hover {
+.tta-cart-checkout-button:hover,
+.tta-cart-browse-button:hover {
   background-color: #2f516a;
   text-decoration: none !important;
 }
+
+.tta-cart-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.tta-cart-actions .tta-cart-checkout-button { order: 2; }
+.tta-cart-actions .tta-cart-browse-button { order: 1; }
 
 /* Notice displayed when cart contents change unexpectedly */
 .tta-cart-notice {
@@ -166,7 +179,16 @@
   .tta-cart-table tr { margin-bottom:30px; }
   .tta-cart-table td { text-align:right; padding-left:50%; position:relative; margin-bottom: 10px;}
   .tta-cart-table td::before { content: attr(data-label); position:absolute; left:10px; top:0; text-align:left; font-weight:bold; }
-  .tta-cart-checkout-button { display:block; width:100%; box-sizing:border-box; text-align:center; }
+  .tta-cart-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tta-cart-actions .tta-cart-checkout-button,
+  .tta-cart-actions .tta-cart-browse-button {
+    order: initial;
+  }
+  .tta-cart-checkout-button,
+  .tta-cart-browse-button { display:block; width:100%; box-sizing:border-box; text-align:center; }
   .tta-checkout-summary thead { display:none; }
   .tta-checkout-summary, .tta-checkout-summary tbody, .tta-checkout-summary tr, .tta-checkout-summary td { display:block; width:100%; }
   .tta-checkout-summary tr { margin-bottom:15px; }
@@ -314,7 +336,16 @@ select[disabled]::before {
   pointer-events: none;
 }
 @media (max-width: 782px) {
-  .tta-cart-checkout-button { display:block; width:100%; box-sizing:border-box; text-align:center; }
+  .tta-cart-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tta-cart-actions .tta-cart-checkout-button,
+  .tta-cart-actions .tta-cart-browse-button {
+    order: initial;
+  }
+  .tta-cart-checkout-button,
+  .tta-cart-browse-button { display:block; width:100%; box-sizing:border-box; text-align:center; }
   .tta-login-accordion .tta-cancel-register { display:block; }
 }
 .tta-button-primary{
