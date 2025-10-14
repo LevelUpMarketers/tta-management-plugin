@@ -402,6 +402,21 @@ if ( $dob_value ) {
               <label><input type="checkbox" name="opt_in_event_update_email" value="1" <?php checked( $opt_update_email, 1 ); ?> /> <?php esc_html_e( 'Event Update Emails', 'tta' ); ?></label>
               <label><input type="checkbox" name="opt_in_event_update_sms"   value="1" <?php checked( $opt_update_sms, 1 ); ?> /> <?php esc_html_e( 'Event Update SMS', 'tta' ); ?></label>
             </fieldset>
+            <?php
+            $optin_notice = sprintf(
+                /* translators: %s: privacy policy URL */
+                __( 'By checking the boxes above, you agree to receive marketing and/or non-marketing emails & text messages from Trying To Adult RVA, to include communications such as event sign-up confirmations, 24-hour & 3-hour event reminders, and other communications from event Hosts & Volunteers in the event of last-minute event changes or other relevant information to provide you with the best experience possible. <a href="%s">Read our Privacy Policy here.</a>', 'tta' ),
+                esc_url( home_url( '/privacy-policy/' ) )
+            );
+            echo '<p class="edit-input tta-optin-help">' . wp_kses(
+                $optin_notice,
+                [
+                    'a' => [
+                        'href' => [],
+                    ],
+                ]
+            ) . '</p>';
+            ?>
           </td>
         </tr>
 

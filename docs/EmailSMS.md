@@ -67,7 +67,7 @@ Links to the member dashboard now output the full site URL and include direct li
 
 ## Scheduled SMS Reminders
 
-For the **24-Hour Event Reminder**, **2-Hour Event Reminder**, and **Post-Event Thank You** templates, the cron jobs that already schedule reminder emails now also queue SMS messages. When those hooks fire, the SMS handler compiles the template text using the same token replacements as emails and sends messages through Twilio to each verified attendee who opted in to SMS updates during checkout. Attendees who unchecked the **text me updates about this event** box or do not have a phone number on file are skipped automatically, and sandbox mode continues to redirect all messages to the configured sandbox number.
+For the **24-Hour Event Reminder**, **2-Hour Event Reminder**, and **Post-Event Thank You** templates, the cron jobs that already schedule reminder emails now also queue SMS messages. When those hooks fire, the SMS handler compiles the template text using the same token replacements as emails and sends messages through Twilio to each verified attendee who opted in to SMS updates during checkout. Attendees who unchecked the consent checkbox (“I agree to receive non-marketing text messages from Trying to Adult RVA about my event sign-up, including 24-hour and 3-hours event reminder texts. Read our Privacy Policy here.”) or do not have a phone number on file are skipped automatically, and sandbox mode continues to redirect all messages to the configured sandbox number.
 
 ## Event Check-In Broadcasts
 

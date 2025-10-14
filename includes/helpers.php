@@ -5221,8 +5221,24 @@ function tta_render_attendee_fields( TTA_Cart $cart, $disabled = false ) {
                 }
                 echo '<label><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Phone used for event updates or issues.', 'tta' ) . '"><img src="' . $img . '" alt="?"></span>' . esc_html__( 'Phone', 'tta' ) . '<br />';
                 echo '<input type="tel" name="' . esc_attr( $base . '[phone]' ) . '" value="' . $ph_val . '"' . $d_attr . '></label>';
-                echo '<div class="optin-container"><label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_sms]' ) . '" ' . $sms_chk . $d_attr . '> <span class="tta-ticket-opt-text">' . esc_html__( 'text me updates about this event', 'tta' ) . '</span></label>';
-                echo '<label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_email]' ) . '" ' . $em_chk . $d_attr . '><span class="tta-ticket-opt-text">' . esc_html__( 'email me updates about this event', 'tta' ) . '</span></label></div>';
+                $privacy_url = esc_url( home_url( '/privacy-policy/' ) );
+                $sms_message = sprintf(
+                    /* translators: %s: privacy policy URL */
+                    __( 'I agree to receive non-marketing text messages from Trying to Adult RVA about my event sign-up, including 24-hour and 3-hours event reminder texts. <a href="%s">Read our Privacy Policy here.</a>', 'tta' ),
+                    $privacy_url
+                );
+                $email_message = sprintf(
+                    /* translators: %s: privacy policy URL */
+                    __( 'I agree to receive non-marketing emails from Trying to Adult RVA about my event sign-up, including 24-hour and 3-hours event reminder emails. <a href="%s">Read our Privacy Policy here.</a>', 'tta' ),
+                    $privacy_url
+                );
+                $allowed_link = [
+                    'a' => [
+                        'href' => [],
+                    ],
+                ];
+                echo '<div class="optin-container"><label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_sms]' ) . '" ' . $sms_chk . $d_attr . '> <span class="tta-ticket-opt-text">' . wp_kses( $sms_message, $allowed_link ) . '</span></label>';
+                echo '<label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_email]' ) . '" ' . $em_chk . $d_attr . '><span class="tta-ticket-opt-text">' . wp_kses( $email_message, $allowed_link ) . '</span></label></div>';
                 echo '</div>';
             }
         }
