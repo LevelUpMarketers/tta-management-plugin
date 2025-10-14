@@ -5186,8 +5186,8 @@ function tta_render_attendee_fields( TTA_Cart $cart, $disabled = false ) {
                 $ln_val  = '';
                 $em_val  = '';
                 $ph_val  = '';
-                $sms_chk = 'checked';
-                $em_chk  = 'checked';
+                $sms_chk = '';
+                $em_chk  = '';
                 $locked = '';
                 if ( ! $used_default && $context['member'] ) {
                     $fn_val  = esc_attr( $context['member']['first_name'] );
