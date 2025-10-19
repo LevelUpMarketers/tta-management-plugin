@@ -2492,11 +2492,26 @@ function tta_get_member_upcoming_events( $wp_user_id ) {
         }
 
         if ( $tx_ids ) {
-            $placeholders = implode( ',', array_fill( 0, count( $tx_ids ), '%d' ) );
-            $counts       = $wpdb->get_results(
+            $placeholders   = implode( ',', array_fill( 0, count( $tx_ids ), '%d' ) );
+            $attendees      = $wpdb->prefix . 'tta_attendees';
+            $att_archive    = $wpdb->prefix . 'tta_attendees_archive';
+            $counts_sql     = "SELECT transaction_id, SUM(cnt) AS cnt
+                                 FROM (
+                                     SELECT transaction_id, COUNT(*) AS cnt
+                                       FROM {$attendees}
+                                      WHERE transaction_id IN ($placeholders)
+                                      GROUP BY transaction_id
+                                     UNION ALL
+                                     SELECT transaction_id, COUNT(*) AS cnt
+                                       FROM {$att_archive}
+                                      WHERE transaction_id IN ($placeholders)
+                                      GROUP BY transaction_id
+                                 ) AS combined
+                                GROUP BY transaction_id";
+            $counts         = $wpdb->get_results(
                 $wpdb->prepare(
-                    "SELECT transaction_id, COUNT(*) AS cnt FROM {$wpdb->prefix}tta_attendees WHERE transaction_id IN ($placeholders) GROUP BY transaction_id",
-                    ...array_values( $tx_ids )
+                    $counts_sql,
+                    ...array_merge( array_values( $tx_ids ), array_values( $tx_ids ) )
                 ),
                 ARRAY_A
             );
@@ -2938,11 +2953,26 @@ function tta_get_member_past_events( $wp_user_id ) {
         }
 
         if ( $tx_ids ) {
-            $placeholders = implode( ',', array_fill( 0, count( $tx_ids ), '%d' ) );
-            $counts       = $wpdb->get_results(
+            $placeholders   = implode( ',', array_fill( 0, count( $tx_ids ), '%d' ) );
+            $attendees      = $wpdb->prefix . 'tta_attendees';
+            $att_archive    = $wpdb->prefix . 'tta_attendees_archive';
+            $counts_sql     = "SELECT transaction_id, SUM(cnt) AS cnt
+                                 FROM (
+                                     SELECT transaction_id, COUNT(*) AS cnt
+                                       FROM {$attendees}
+                                      WHERE transaction_id IN ($placeholders)
+                                      GROUP BY transaction_id
+                                     UNION ALL
+                                     SELECT transaction_id, COUNT(*) AS cnt
+                                       FROM {$att_archive}
+                                      WHERE transaction_id IN ($placeholders)
+                                      GROUP BY transaction_id
+                                 ) AS combined
+                                GROUP BY transaction_id";
+            $counts         = $wpdb->get_results(
                 $wpdb->prepare(
-                    "SELECT transaction_id, COUNT(*) AS cnt FROM {$wpdb->prefix}tta_attendees WHERE transaction_id IN ($placeholders) GROUP BY transaction_id",
-                    ...array_values( $tx_ids )
+                    $counts_sql,
+                    ...array_merge( array_values( $tx_ids ), array_values( $tx_ids ) )
                 ),
                 ARRAY_A
             );
