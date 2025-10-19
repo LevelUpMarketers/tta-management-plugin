@@ -749,21 +749,33 @@ function tta_get_event_attendees( $event_ute_id ) {
     $tickets_table   = $wpdb->prefix . 'tta_tickets';
     $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
 
-    $sql = "(SELECT a.first_name, a.last_name, a.email, a.ticket_id
+    $sql = "(SELECT a.id AS attendee_id, a.first_name, a.last_name, a.email, a.ticket_id
               FROM {$att_table} a
               JOIN {$tickets_table} t ON a.ticket_id = t.id
              WHERE t.event_ute_id = %s)
             UNION ALL
-            (SELECT a.first_name, a.last_name, a.email, a.ticket_id
+            (SELECT a.id AS attendee_id, a.first_name, a.last_name, a.email, a.ticket_id
               FROM {$att_archive} a
               JOIN {$tickets_archive} t ON a.ticket_id = t.id
              WHERE t.event_ute_id = %s)
             ORDER BY first_name, last_name";
 
-    return $wpdb->get_results(
-        $wpdb->prepare( $sql, $event_ute_id, $event_ute_id ),
-        ARRAY_A
-    );
+    $rows    = $wpdb->get_results( $wpdb->prepare( $sql, $event_ute_id, $event_ute_id ), ARRAY_A );
+    $seen    = [];
+    $results = [];
+    foreach ( $rows as $row ) {
+        $att_id = intval( $row['attendee_id'] );
+        if ( $att_id && isset( $seen[ $att_id ] ) ) {
+            continue;
+        }
+        if ( $att_id ) {
+            $seen[ $att_id ] = true;
+        }
+        unset( $row['attendee_id'] );
+        $results[] = $row;
+    }
+
+    return $results;
 }
 
 /**
@@ -791,7 +803,19 @@ function tta_get_event_attendees_with_status( $event_ute_id ) {
               WHERE t.event_ute_id = %s)
             ORDER BY first_name, last_name";
 
-    $rows = $wpdb->get_results( $wpdb->prepare( $sql, $event_ute_id, $event_ute_id ), ARRAY_A );
+    $raw_rows = $wpdb->get_results( $wpdb->prepare( $sql, $event_ute_id, $event_ute_id ), ARRAY_A );
+    $seen     = [];
+    $rows     = [];
+    foreach ( $raw_rows as $row ) {
+        $att_id = intval( $row['id'] );
+        if ( $att_id && isset( $seen[ $att_id ] ) ) {
+            continue;
+        }
+        if ( $att_id ) {
+            $seen[ $att_id ] = true;
+        }
+        $rows[] = $row;
+    }
 
     $event_id = (int) $wpdb->get_var(
         $wpdb->prepare(
@@ -911,7 +935,20 @@ function tta_get_ticket_attendees( $ticket_id ) {
             (SELECT * FROM {$att_archive} WHERE ticket_id = %d)
             ORDER BY last_name, first_name";
 
-    $rows = $wpdb->get_results( $wpdb->prepare( $sql, $ticket_id, $ticket_id ), ARRAY_A );
+    $raw_rows = $wpdb->get_results( $wpdb->prepare( $sql, $ticket_id, $ticket_id ), ARRAY_A );
+
+    $rows     = [];
+    $seen_ids = [];
+    foreach ( $raw_rows as $row ) {
+        $att_id = intval( $row['id'] );
+        if ( $att_id && isset( $seen_ids[ $att_id ] ) ) {
+            continue;
+        }
+        if ( $att_id ) {
+            $seen_ids[ $att_id ] = true;
+        }
+        $rows[] = $row;
+    }
 
     $txn_ids = [];
     foreach ( $rows as $r ) {
@@ -3465,9 +3502,17 @@ function tta_get_member_event_history( $email ) {
               WHERE LOWER(a.email) = %s)
             ORDER BY date DESC";
 
-    $rows = $wpdb->get_results( $wpdb->prepare( $sql, $email, $email ), ARRAY_A );
-    $events = [];
-    foreach ( $rows as $r ) {
+    $raw_rows = $wpdb->get_results( $wpdb->prepare( $sql, $email, $email ), ARRAY_A );
+    $events   = [];
+    $seen     = [];
+    foreach ( $raw_rows as $r ) {
+        $att_id = intval( $r['att_id'] );
+        if ( $att_id && isset( $seen[ $att_id ] ) ) {
+            continue;
+        }
+        if ( $att_id ) {
+            $seen[ $att_id ] = true;
+        }
         $events[] = [
             'attendee_id' => intval( $r['att_id'] ),
             'name'        => sanitize_text_field( $r['name'] ),
@@ -3597,7 +3642,20 @@ function tta_get_refund_request_attendees( $gateway_tx_id, $event_id, $ticket_id
     $ticket_sql = $ticket_id ? ' AND a.ticket_id = %d' : '';
     $sql = "(SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.status FROM {$att_table} a JOIN {$ticket_table} t ON a.ticket_id = t.id WHERE a.transaction_id = %d AND t.event_ute_id = %s{$ticket_sql}) UNION ALL (SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.status FROM {$att_archive} a JOIN {$ticket_archive} t ON a.ticket_id = t.id WHERE a.transaction_id = %d AND t.event_ute_id = %s{$ticket_sql}) ORDER BY last_name, first_name";
     $params = $ticket_id ? [ $tx['id'], $ute_id, $ticket_id, $tx['id'], $ute_id, $ticket_id ] : [ $tx['id'], $ute_id, $tx['id'], $ute_id ];
-    $rows = $wpdb->get_results( $wpdb->prepare( $sql, ...$params ), ARRAY_A );
+    $raw_rows = $wpdb->get_results( $wpdb->prepare( $sql, ...$params ), ARRAY_A );
+
+    $rows     = [];
+    $seen_ids = [];
+    foreach ( $raw_rows as $row ) {
+        $att_id = intval( $row['id'] );
+        if ( $att_id && isset( $seen_ids[ $att_id ] ) ) {
+            continue;
+        }
+        if ( $att_id ) {
+            $seen_ids[ $att_id ] = true;
+        }
+        $rows[] = $row;
+    }
 
     $details = json_decode( $tx['details'], true );
     $price_map = [];
@@ -4002,12 +4060,12 @@ function tta_get_attended_event_count_by_email( $email ) {
     $archive     = $wpdb->prefix . 'tta_attendees_archive';
 
     $count = (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$att_table} WHERE LOWER(email) = %s AND status = 'checked_in'",
-        $email
-    ) );
-
-    $count += (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$archive} WHERE LOWER(email) = %s AND status = 'checked_in'",
+        "SELECT COUNT(*) FROM (
+            SELECT id FROM {$att_table} WHERE LOWER(email) = %s AND status = 'checked_in'
+            UNION
+            SELECT id FROM {$archive} WHERE LOWER(email) = %s AND status = 'checked_in'
+        ) AS combined",
+        $email,
         $email
     ) );
 
@@ -4038,12 +4096,12 @@ function tta_get_no_show_event_count_by_email( $email, $adjust = true ) {
     $archive   = $wpdb->prefix . 'tta_attendees_archive';
 
     $count = (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$att_table} WHERE LOWER(email) = %s AND status = 'no_show'",
-        $email
-    ) );
-
-    $count += (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$archive} WHERE LOWER(email) = %s AND status = 'no_show'",
+        "SELECT COUNT(*) FROM (
+            SELECT id FROM {$att_table} WHERE LOWER(email) = %s AND status = 'no_show'
+            UNION
+            SELECT id FROM {$archive} WHERE LOWER(email) = %s AND status = 'no_show'
+        ) AS combined",
+        $email,
         $email
     ) );
 
