@@ -36,9 +36,15 @@ class TTA_Event_Archiver {
                 }
                 $attendees = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$att_table} WHERE ticket_id = %d", $t['id'] ), ARRAY_A );
                 foreach ( $attendees as $a ) {
-                    $a_exists = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$att_archive} WHERE id = %d", $a['id'] ) );
+                    $att_id   = intval( $a['id'] );
+                    $a_exists = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$att_archive} WHERE id = %d", $att_id ) );
+                    $inserted = true;
                     if ( ! $a_exists ) {
-                        $wpdb->insert( $att_archive, $a );
+                        $inserted = false !== $wpdb->insert( $att_archive, $a );
+                    }
+
+                    if ( $inserted ) {
+                        $wpdb->delete( $att_table, [ 'id' => $att_id ], [ '%d' ] );
                     }
                 }
             }
