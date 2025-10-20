@@ -126,7 +126,10 @@ class AttendeeArchiveRegressionTest extends TestCase {
                     return [ [ 'id' => 99, 'transaction_id' => 'TX123' ] ];
                 }
                 if ( false !== strpos( $query, 'SELECT transaction_id, COUNT(*) AS cnt FROM wp_tta_attendees WHERE transaction_id IN' ) ) {
-                    return [ [ 'transaction_id' => 99, 'cnt' => 1 ] ];
+                    return $this->count_by_transaction( $this->attendees );
+                }
+                if ( false !== strpos( $query, 'SELECT transaction_id, COUNT(*) AS cnt FROM wp_tta_attendees_archive WHERE transaction_id IN' ) ) {
+                    return $this->count_by_transaction( $this->attendees_archive );
                 }
                 if ( false !== strpos( $query, 'SELECT * FROM wp_tta_attendees WHERE ticket_id' ) && false !== strpos( $query, 'wp_tta_attendees_archive' ) ) {
                     return array_merge( $this->attendees, $this->attendees_archive );
@@ -168,6 +171,24 @@ class AttendeeArchiveRegressionTest extends TestCase {
                 }
                 return 0;
             }
+            public function count_by_transaction( array $rows ) {
+                $map = [];
+                foreach ( $rows as $row ) {
+                    $tid = (int) ( $row['transaction_id'] ?? 0 );
+                    if ( ! $tid ) {
+                        continue;
+                    }
+                    if ( ! isset( $map[ $tid ] ) ) {
+                        $map[ $tid ] = 0;
+                    }
+                    $map[ $tid ]++;
+                }
+                $out = [];
+                foreach ( $map as $tid => $count ) {
+                    $out[] = [ 'transaction_id' => $tid, 'cnt' => $count ];
+                }
+                return $out;
+            }
         };
         require_once __DIR__ . '/../includes/helpers.php';
     }
@@ -180,5 +201,16 @@ class AttendeeArchiveRegressionTest extends TestCase {
 
         $count = tta_get_no_show_event_count_by_email( 'alex@example.com' );
         $this->assertSame( 1, $count );
+    }
+
+    public function test_member_past_events_include_archive_counts(): void {
+        global $wpdb;
+        $wpdb->attendees = [];
+
+        $events = tta_get_member_past_events( 123 );
+
+        $this->assertCount( 1, $events );
+        $this->assertSame( 'Sample Event', $events[0]['name'] );
+        $this->assertNotEmpty( $events[0]['items'] );
     }
 }
