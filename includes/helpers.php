@@ -1014,6 +1014,63 @@ function tta_get_ticket_attendees( $ticket_id ) {
 }
 
 /**
+ * Retrieve attendee counts for a set of transactions from both active and archived tables.
+ *
+ * @param int[] $transaction_ids Internal transaction IDs.
+ * @return array<int,int> Map of transaction ID to attendee count.
+ */
+function tta_get_transaction_attendee_counts( array $transaction_ids ) {
+    $transaction_ids = array_filter( array_map( 'intval', $transaction_ids ) );
+    if ( empty( $transaction_ids ) ) {
+        return [];
+    }
+
+    sort( $transaction_ids );
+    $cache_key = 'tx_attendee_counts_' . md5( implode( ',', $transaction_ids ) );
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $att_table   = $wpdb->prefix . 'tta_attendees';
+    $att_archive = $wpdb->prefix . 'tta_attendees_archive';
+
+    $placeholders = implode( ',', array_fill( 0, count( $transaction_ids ), '%d' ) );
+    $counts       = [];
+
+    $main_rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT transaction_id, COUNT(*) AS cnt FROM {$att_table} WHERE transaction_id IN ($placeholders) GROUP BY transaction_id",
+            ...$transaction_ids
+        ),
+        ARRAY_A
+    );
+
+    foreach ( $main_rows as $row ) {
+        $tid            = intval( $row['transaction_id'] );
+        $counts[ $tid ] = ( $counts[ $tid ] ?? 0 ) + intval( $row['cnt'] );
+    }
+
+    $archive_rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT transaction_id, COUNT(*) AS cnt FROM {$att_archive} WHERE transaction_id IN ($placeholders) GROUP BY transaction_id",
+            ...$transaction_ids
+        ),
+        ARRAY_A
+    );
+
+    foreach ( $archive_rows as $row ) {
+        $tid            = intval( $row['transaction_id'] );
+        $counts[ $tid ] = ( $counts[ $tid ] ?? 0 ) + intval( $row['cnt'] );
+    }
+
+    TTA_Cache::set( $cache_key, $counts, 300 );
+
+    return $counts;
+}
+
+/**
  * Get the WordPress user ID for an attendee.
  *
  * @param int $attendee_id Attendee ID.
@@ -2529,19 +2586,12 @@ function tta_get_member_upcoming_events( $wp_user_id ) {
         }
 
         if ( $tx_ids ) {
-            $placeholders = implode( ',', array_fill( 0, count( $tx_ids ), '%d' ) );
-            $counts       = $wpdb->get_results(
-                $wpdb->prepare(
-                    "SELECT transaction_id, COUNT(*) AS cnt FROM {$wpdb->prefix}tta_attendees WHERE transaction_id IN ($placeholders) GROUP BY transaction_id",
-                    ...array_values( $tx_ids )
-                ),
-                ARRAY_A
-            );
+            $counts = tta_get_transaction_attendee_counts( array_values( $tx_ids ) );
 
-            foreach ( $counts as $c ) {
-                $tid = array_search( intval( $c['transaction_id'] ), $tx_ids, true );
-                if ( $tid ) {
-                    $txn_map[ $tid ] = intval( $c['cnt'] );
+            foreach ( $counts as $internal_id => $count ) {
+                $tid = array_search( $internal_id, $tx_ids, true );
+                if ( false !== $tid ) {
+                    $txn_map[ $tid ] = intval( $count );
                 }
             }
         }
@@ -2975,19 +3025,12 @@ function tta_get_member_past_events( $wp_user_id ) {
         }
 
         if ( $tx_ids ) {
-            $placeholders = implode( ',', array_fill( 0, count( $tx_ids ), '%d' ) );
-            $counts       = $wpdb->get_results(
-                $wpdb->prepare(
-                    "SELECT transaction_id, COUNT(*) AS cnt FROM {$wpdb->prefix}tta_attendees WHERE transaction_id IN ($placeholders) GROUP BY transaction_id",
-                    ...array_values( $tx_ids )
-                ),
-                ARRAY_A
-            );
+            $counts = tta_get_transaction_attendee_counts( array_values( $tx_ids ) );
 
-            foreach ( $counts as $c ) {
-                $tid = array_search( intval( $c['transaction_id'] ), $tx_ids, true );
-                if ( $tid ) {
-                    $txn_map[ $tid ] = intval( $c['cnt'] );
+            foreach ( $counts as $internal_id => $count ) {
+                $tid = array_search( $internal_id, $tx_ids, true );
+                if ( false !== $tid ) {
+                    $txn_map[ $tid ] = intval( $count );
                 }
             }
         }
