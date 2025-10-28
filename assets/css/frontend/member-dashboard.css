@@ -228,6 +228,11 @@
 .is-editing .view-value { display:none!important; }
 .is-editing .edit-input  { display:inline-block !important; }
 
+.edit-input.tta-optin-help {
+  margin-top: 25px;
+  font-style: italic;
+}
+
 /* Hide row until .is-editing */
 .hide-until-edit { display:none !important; }
 .is-editing .hide-until-edit { display:inline-block !important; }

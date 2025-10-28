@@ -356,6 +356,18 @@ class TTA_Email_Reminders {
         update_option( 'tta_email_log', $log, false );
     }
 
+    /**
+     * Public wrapper so other email flows can record history entries.
+     *
+     * @param int    $event_id  Event ID associated with the email.
+     * @param string $template  Template identifier.
+     * @param string $recipient Recipient email address.
+     * @param bool   $sent      Whether wp_mail() reported success.
+     */
+    public static function record_email_log( $event_id, $template, $recipient, $sent ) {
+        self::log_email( $event_id, $template, $recipient, $sent );
+    }
+
     /** Retrieve the stored email log. */
     public static function get_email_log() {
         return get_option( 'tta_email_log', [] );

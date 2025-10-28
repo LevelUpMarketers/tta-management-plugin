@@ -995,7 +995,7 @@ echo '<div id="tta-login-wrap">' . $form_html . $lost_pw_html . '</div>';
       <?php endif; ?>
 
       <?php if ( ! empty( $attendees ) ) : ?>
-        <section class="tta-event-section tta-event-image-gallery-accordion tta-event-attendees-section">
+        <section class="tta-event-section tta-event-image-gallery-accordion tta-event-attendees-section notranslate" data-nosnippet>
           <div class="tta-accordion">
             <div class="tta-accordion-content">
               <h2><?php esc_html_e( 'Attendees', 'tta' ); ?></h2>

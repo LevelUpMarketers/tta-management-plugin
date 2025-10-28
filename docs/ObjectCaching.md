@@ -18,7 +18,7 @@ This document outlines the object caching layer used by the Trying To Adult Mana
 - Member records created or edited by admins also trigger a flush so attendee lists update immediately.
 - This helps prevent confusing situations where an admin edits content but the front‑end still shows old data.
 - Ticket availability changes from cart activity or cleanup delete the affected event's ticket cache so numbers stay current.
-- The checkout process triggers `tta_checkout_complete`, which now calls `TTA_Cache::flush()` so membership upgrades and new purchases appear immediately.
+- The checkout handler flushes caches immediately after any membership purchase so upgraded plans and pricing appear at once, even when the order contained only a membership. Ticket purchases still trigger the `tta_checkout_complete` action, which calls `TTA_Cache::flush()` as part of the completion workflow.
 - `TTA_Cache::flush()` locates all plugin transients and removes them using `delete_transient()` so persistent object caches clear properly.
 - The cache layer is bypassed entirely when viewing the plugin's admin pages so the dashboard always shows the most current data.
 

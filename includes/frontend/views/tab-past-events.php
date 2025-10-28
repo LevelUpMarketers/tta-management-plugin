@@ -1,5 +1,5 @@
 <!-- PAST EVENTS -->
-<div id="tab-past" class="tta-dashboard-section">
+<div id="tab-past" class="tta-dashboard-section notranslate" data-nosnippet>
   <h3><?php esc_html_e( 'Your Past Events', 'tta' ); ?></h3>
   <?php
   $user_id = get_current_user_id();

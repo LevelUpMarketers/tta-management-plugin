@@ -5,10 +5,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $bio = stripslashes( $member['biography'] );
 $hide_attendance = intval( $member['hide_event_attendance'] );
+$dob_value = $member['dob'];
+$dob_display = '—';
+if ( $dob_value ) {
+    $dob_timestamp = strtotime( $dob_value );
+    $dob_display   = $dob_timestamp ? date_i18n( 'm-d-Y', $dob_timestamp ) : $dob_value;
+}
 
 // Assume $member, $street_address, $address_2, $city, $state, $zip are already defined above
 ?>
-<div id="tab-profile" class="tta-dashboard-section">
+<div id="tab-profile" class="tta-dashboard-section notranslate" data-nosnippet>
 
   <form id="tta-member-dashboard-form"
         method="post"
@@ -123,12 +129,12 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
             <label for="dob"><?php esc_html_e( 'Date of Birth', 'tta' ); ?></label>
           </th>
           <td>
-            <span class="view-value"><?php echo esc_html( $member['dob'] ?: '—' ); ?></span>
+            <span class="view-value"><?php echo esc_html( $dob_display ); ?></span>
             <input class="edit-input"
                    type="date"
                    name="dob"
                    id="dob"
-                   value="<?php echo esc_attr( $member['dob'] ); ?>">
+                   value="<?php echo esc_attr( $dob_value ); ?>">
           </td>
         </tr>
 
@@ -396,6 +402,21 @@ $hide_attendance = intval( $member['hide_event_attendance'] );
               <label><input type="checkbox" name="opt_in_event_update_email" value="1" <?php checked( $opt_update_email, 1 ); ?> /> <?php esc_html_e( 'Event Update Emails', 'tta' ); ?></label>
               <label><input type="checkbox" name="opt_in_event_update_sms"   value="1" <?php checked( $opt_update_sms, 1 ); ?> /> <?php esc_html_e( 'Event Update SMS', 'tta' ); ?></label>
             </fieldset>
+            <?php
+            $optin_notice = sprintf(
+                /* translators: %s: privacy policy URL */
+                __( 'By checking the boxes above, you agree to receive marketing and/or non-marketing emails & text messages from Trying To Adult RVA, to include communications such as event sign-up confirmations, 24-hour & 3-hour event reminders, and other communications from event Hosts & Volunteers in the event of last-minute event changes or other relevant information to provide you with the best experience possible. <a href="%s">Read our Privacy Policy here.</a>', 'tta' ),
+                esc_url( home_url( '/privacy-policy/' ) )
+            );
+            echo '<p class="edit-input tta-optin-help">' . wp_kses(
+                $optin_notice,
+                [
+                    'a' => [
+                        'href' => [],
+                    ],
+                ]
+            ) . '</p>';
+            ?>
           </td>
         </tr>
 

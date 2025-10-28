@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Initialize cart early for sessions
-$cart          = new TTA_Cart();
+$cart           = new TTA_Cart();
 $checkout_error = '';
 if ( isset( $_GET['auto'] ) && 'reentry' === $_GET['auto'] && is_user_logged_in() ) {
     $cart->empty_cart();
@@ -21,185 +21,11 @@ if ( isset( $_GET['auto'] ) && 'reentry' === $_GET['auto'] && is_user_logged_in(
 }
 
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['tta_do_checkout'] ) ) {
-    check_admin_referer( 'tta_checkout_action', 'tta_checkout_nonce' );
-
-    $discount_codes   = $_SESSION['tta_discount_codes'] ?? [];
-    $ticket_total     = $cart->get_total( $discount_codes, false );
-    $membership_level = $_SESSION['tta_membership_purchase'] ?? '';
-    $membership_total = $membership_level ? tta_get_membership_price( $membership_level ) : 0;
-    if ( 0 === floatval( $ticket_total + $membership_total ) ) {
-        $attendees = $_POST['attendees'] ?? [];
-        $cart->finalize_purchase( '', 0, $attendees, '', '' );
-
-        $user   = wp_get_current_user();
-        $emails = array_merge( [ $user->user_email ], tta_collect_attendee_emails( $attendees ) );
-        $emails = array_filter( array_map( 'sanitize_email', $emails ) );
-        $unique = [];
-        foreach ( $emails as $email ) {
-            $key = strtolower( $email );
-            if ( ! isset( $unique[ $key ] ) ) {
-                $unique[ $key ] = $email;
-            }
-        }
-        $emails = array_values( $unique );
-        $_SESSION['tta_checkout_emails']      = $emails;
-        $_SESSION['tta_checkout_membership']  = '';
-        $_SESSION['tta_checkout_has_tickets'] = ! empty( $attendees );
-
-        unset( $_SESSION['tta_membership_purchase'] );
-        wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
-        exit;
-    }
-    $context          = tta_get_current_user_context();
-    if ( 'premium' === strtolower( $context['membership_level'] ) ) {
-        if ( in_array( $membership_level, [ 'basic', 'premium' ], true ) ) {
-            unset( $_SESSION['tta_membership_purchase'] );
-            tta_set_cart_notice( __( 'Premium members cannot purchase another membership.', 'tta' ) );
-            wp_safe_redirect( home_url( '/cart' ) );
-            exit;
-        }
-    }
-
-    $exp_input  = tta_sanitize_text_field( $_POST['card_exp'] );
-    $exp_digits = preg_replace( '/\D/', '', $exp_input );
-    $exp_date   = '';
-    if ( strlen( $exp_digits ) === 4 ) {
-        $month = substr( $exp_digits, 0, 2 );
-        $year  = substr( $exp_digits, 2, 2 );
-        if ( (int) $month >= 1 && (int) $month <= 12 ) {
-            $exp_date = '20' . $year . '-' . $month;
-        } else {
-            $checkout_error = __( 'Invalid expiration month.', 'tta' );
-        }
+    $nonce = isset( $_POST['tta_checkout_nonce'] ) ? wp_unslash( $_POST['tta_checkout_nonce'] ) : '';
+    if ( ! $nonce || ! wp_verify_nonce( $nonce, 'tta_checkout_action' ) ) {
+        $checkout_error = __( 'Your checkout session has expired. Please reload the page and try again.', 'tta' );
     } else {
-        $checkout_error = __( 'Invalid expiration date format.', 'tta' );
-    }
-
-    $billing = [
-        'first_name' => tta_sanitize_text_field( $_POST['billing_first_name'] ),
-        'last_name'  => tta_sanitize_text_field( $_POST['billing_last_name'] ),
-        'address'    => tta_sanitize_text_field( $_POST['billing_street'] ),
-        'address2'   => tta_sanitize_text_field( $_POST['billing_street_2'] ?? '' ),
-        'city'       => tta_sanitize_text_field( $_POST['billing_city'] ),
-        'state'      => tta_sanitize_text_field( $_POST['billing_state'] ),
-        'zip'        => tta_sanitize_text_field( $_POST['billing_zip'] ),
-    ];
-
-    if ( empty( $billing['address'] ) || empty( $billing['city'] ) || empty( $billing['state'] ) || empty( $billing['zip'] ) ) {
-        $checkout_error = __( 'Please complete all required billing address fields.', 'tta' );
-    }
-
-    if ( empty( $checkout_error ) ) {
-        $api = new TTA_AuthorizeNet_API();
-        $attendees = $_POST['attendees'] ?? [];
-        $transaction_id = '';
-
-        if ( $membership_total > 0 ) {
-            $charge = $api->charge(
-                $membership_total,
-                preg_replace( '/\D/', '', $_POST['card_number'] ),
-                $exp_date,
-                tta_sanitize_text_field( $_POST['card_cvc'] ),
-                $billing
-            );
-            if ( ! $charge['success'] ) {
-                $checkout_error = $charge['error'];
-            } else {
-                TTA_Transaction_Logger::log(
-                    $charge['transaction_id'],
-                    $membership_total,
-                    [
-                        [
-                            'membership'  => tta_get_membership_label( $membership_level ),
-                            'quantity'    => 1,
-                            'price'       => $membership_total,
-                            'final_price' => $membership_total,
-                        ],
-                    ],
-                    '',
-                    0,
-                    get_current_user_id(),
-                    substr( preg_replace( '/\D/', '', $_POST['card_number'] ), -4 ),
-                    ''
-                );
-
-                if ( 'reentry' === $membership_level ) {
-                    tta_unban_user( get_current_user_id() );
-                    tta_reset_no_show_offset( get_current_user_id() );
-                } else {
-                    $existing_sub = tta_get_user_subscription_id( get_current_user_id() );
-                    if ( $existing_sub ) {
-                        $api->cancel_subscription( $existing_sub );
-                    }
-                    $sub_name = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_NAME : TTA_BASIC_SUBSCRIPTION_NAME;
-                    $sub_desc = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_DESCRIPTION : TTA_BASIC_SUBSCRIPTION_DESCRIPTION;
-                    $sub = $api->create_subscription(
-                        $membership_total,
-                        preg_replace( '/\D/', '', $_POST['card_number'] ),
-                        $exp_date,
-                        tta_sanitize_text_field( $_POST['card_cvc'] ),
-                        $billing,
-                        $sub_name,
-                        $sub_desc,
-                        date( 'Y-m-d', strtotime( '+1 month' ) )
-                    );
-                    if ( $sub['success'] ) {
-                        tta_update_user_membership_level( get_current_user_id(), $membership_level, $sub['subscription_id'], 'active' );
-                        $_SESSION['tta_checkout_sub'] = [
-                            'subscription_id' => $sub['subscription_id'],
-                            'result_code'     => $sub['result_code'] ?? '',
-                            'message_code'    => $sub['message_code'] ?? '',
-                            'message_text'    => $sub['message_text'] ?? '',
-                        ];
-                    } else {
-                        $checkout_error = $sub['error'];
-                    }
-                }
-            }
-        }
-
-        if ( empty( $checkout_error ) && $ticket_total > 0 ) {
-            $result = $api->charge(
-                $ticket_total,
-                preg_replace( '/\D/', '', $_POST['card_number'] ),
-                $exp_date,
-                tta_sanitize_text_field( $_POST['card_cvc'] ),
-                $billing
-            );
-            if ( $result['success'] ) {
-                $transaction_id = $result['transaction_id'];
-            } else {
-                $checkout_error = $result['error'];
-            }
-        }
-
-        if ( empty( $checkout_error ) ) {
-            $last4  = substr( preg_replace( '/\D/', '', $_POST['card_number'] ), -4 );
-            $cart->finalize_purchase( $transaction_id, $ticket_total, $attendees, $last4, '' );
-
-            $user   = wp_get_current_user();
-            $emails = array_merge( [ $user->user_email ], tta_collect_attendee_emails( $attendees ) );
-            $emails = array_filter( array_map( 'sanitize_email', $emails ) );
-            $unique = [];
-            foreach ( $emails as $email ) {
-                $key = strtolower( $email );
-                if ( ! isset( $unique[ $key ] ) ) {
-                    $unique[ $key ] = $email;
-                }
-            }
-            $emails = array_values( $unique );
-            $_SESSION['tta_checkout_emails']      = $emails;
-            $_SESSION['tta_checkout_membership']  = $membership_total > 0 ? $membership_level : '';
-            $_SESSION['tta_checkout_has_tickets'] = ! empty( $attendees );
-
-            unset( $_SESSION['tta_membership_purchase'] );
-            wp_safe_redirect( add_query_arg( 'checkout', 'done', get_permalink() ) );
-            exit;
-        }
-    }
-    // Display any payment error below
-    if ( $checkout_error ) {
-        // countdowns continue normally; no special handling needed
+        $checkout_error = __( "Encryption of your payment information failed! Please try again later. If you're still having trouble, please contact us using the form on our <a href=\"/contact\">Contact Page</a>.", 'tta' );
     }
 }
 
@@ -237,11 +63,12 @@ echo do_shortcode( $header_shortcode );
 
  $items         = $cart->get_items();
  $checkout_done = isset( $_GET['checkout'] ) && 'done' === $_GET['checkout'];
-$sub_details   = $_SESSION['tta_checkout_sub'] ?? null;
-$user          = wp_get_current_user();
-$is_logged_in  = is_user_logged_in();
-$payment_disabled = ! $is_logged_in || $is_free_checkout;
-$has_tickets   = false;
+$sub_details        = $_SESSION['tta_checkout_sub'] ?? null;
+$user               = wp_get_current_user();
+$is_logged_in       = is_user_logged_in();
+$payment_disabled   = ! $is_logged_in || $is_free_checkout;
+$has_tickets        = false;
+$browse_events_url  = tta_get_last_events_url();
 if ( $checkout_done ) {
     $sent_emails  = $_SESSION['tta_checkout_emails']     ?? [];
     $member_level = $_SESSION['tta_checkout_membership'] ?? '';
@@ -318,7 +145,7 @@ if ( $checkout_done ) {
         </div>
     <?php elseif ( $checkout_error ) : ?>
         <p class="tta-checkout-error">
-            <?php echo esc_html( $checkout_error ); ?>
+            <?php echo wp_kses_post( $checkout_error ); ?>
         </p>
     <?php elseif ( ! $items && ! $has_membership ) : ?>
         <p><?php esc_html_e( 'Your cart is empty.', 'tta' ); ?></p>
@@ -335,6 +162,13 @@ if ( $checkout_done ) {
         <form id="tta-checkout-form" method="post">
             <?php wp_nonce_field( 'tta_checkout_action', 'tta_checkout_nonce' ); ?>
             <?php echo tta_render_checkout_summary( $cart, $discount_codes ); ?>
+            <?php if ( $browse_events_url ) : ?>
+                <div class="tta-checkout-browse">
+                    <a class="tta-cart-browse-button tta-checkout-browse-button" href="<?php echo esc_url( $browse_events_url ); ?>">
+                        <?php esc_html_e( 'Browse More Events', 'tta' ); ?>
+                    </a>
+                </div>
+            <?php endif; ?>
             <div class="tta-checkout-grid">
                 <?php if ( $items ) : ?>
                 <div class="tta-checkout-left<?php echo $is_logged_in ? '' : ' tta-disabled'; ?>">

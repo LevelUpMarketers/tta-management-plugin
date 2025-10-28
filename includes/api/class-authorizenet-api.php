@@ -630,9 +630,9 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
      * Create a recurring subscription via the Authorize.Net API.
      *
      * @param float  $amount     Monthly charge amount.
-     * @param string $card_number Credit card number.
-     * @param string $exp_date   Expiration date YYYY-MM.
-     * @param string $card_code  Card code/CVV.
+     * @param string $card_number Credit card number (ignored when opaque token provided).
+     * @param string $exp_date   Expiration date YYYY-MM (ignored when opaque token provided).
+     * @param string $card_code  Card code/CVV (ignored when opaque token provided).
      * @param array  $billing      Billing fields first_name,last_name,address,city,state,zip.
      * @param string $name         Optional subscription name.
      * @param string $description  Optional subscription description.
@@ -647,13 +647,26 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $merchantAuthentication->setName( $this->login_id );
         $merchantAuthentication->setTransactionKey( $this->transaction_key );
 
-        $creditCard = new AnetAPI\CreditCardType();
-        $creditCard->setCardNumber( $card_number );
-        $creditCard->setExpirationDate( $exp_date );
-        $creditCard->setCardCode( $card_code );
+        $use_token = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
 
         $payment = new AnetAPI\PaymentType();
-        $payment->setCreditCard( $creditCard );
+        if ( $use_token ) {
+            $opaque = new AnetAPI\OpaqueDataType();
+            $opaque->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
+            $opaque->setDataValue( $billing['opaqueData']['dataValue'] );
+            $payment->setOpaqueData( $opaque );
+        } else {
+            if ( empty( $card_number ) || empty( $exp_date ) ) {
+                return [ 'success' => false, 'error' => 'Missing payment details for subscription.' ];
+            }
+            $creditCard = new AnetAPI\CreditCardType();
+            $creditCard->setCardNumber( $card_number );
+            $creditCard->setExpirationDate( $exp_date );
+            if ( $card_code ) {
+                $creditCard->setCardCode( $card_code );
+            }
+            $payment->setCreditCard( $creditCard );
+        }
 
         $schedule = new AnetAPI\PaymentScheduleType();
         $interval = new AnetAPI\PaymentScheduleType\IntervalAType();
@@ -884,7 +897,15 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $merchantAuthentication->setTransactionKey( $this->transaction_key );
 
         $subscription = new AnetAPI\ARBSubscriptionType();
-        if ( $card_number && $exp_date ) {
+        $use_token   = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
+        if ( $use_token ) {
+            $payment = new AnetAPI\PaymentType();
+            $opaque  = new AnetAPI\OpaqueDataType();
+            $opaque->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
+            $opaque->setDataValue( $billing['opaqueData']['dataValue'] );
+            $payment->setOpaqueData( $opaque );
+            $subscription->setPayment( $payment );
+        } elseif ( $card_number && $exp_date ) {
             $card = new AnetAPI\CreditCardType();
             $card->setCardNumber( $card_number );
             $card->setExpirationDate( $exp_date );

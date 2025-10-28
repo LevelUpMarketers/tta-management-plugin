@@ -13,6 +13,20 @@ Events remain listed for 24 hours after their scheduled end time, giving hosts
 extra time to check people in or mark no-shows before the event drops off the
 page.
 
+Every expanded event now includes an **Email All Attendees** panel directly
+beneath the bulk no-show controls. Hosts can type a quick update, review the
+template-generated greeting/closing in the admin preview, and click **Send
+Email** to message every attendee, host, and volunteer tied to the event. The
+plugin sanitizes the typed content to remove HTML and emoji, merges it with the
+opening and closing text saved on the Communication Templates tab, and sends the
+personalized message via AJAX without leaving the check-in screen.
+
+Each broadcast is logged under **Email History** on the Communications page so
+administrators can audit which hosts sent updates and who received them. The
+textarea requires a substantive message—at least 20 characters once whitespace
+is collapsed—before the **Send Email** button becomes active, helping prevent
+accidental blank or partial messages.
+
 On screens 1199px wide or narrower, the events table converts into stacked
 cards for easier mobile use. Each event row becomes a full-width block with
 labels for its fields, and tapping the block reveals the attendee list just like

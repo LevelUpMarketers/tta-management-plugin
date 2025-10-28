@@ -96,6 +96,65 @@ function tta_sanitize_textarea_field( $value ) {
 }
 
 /**
+ * Retrieve the full URL for the current front-end request.
+ *
+ * @return string Current URL including query arguments.
+ */
+function tta_get_current_url() {
+    global $wp;
+
+    $request = isset( $wp->request ) ? $wp->request : '';
+    $path    = $request ? '/' . ltrim( $request, '/' ) : '/';
+    $url     = home_url( $path );
+
+    if ( ! empty( $_GET ) && is_array( $_GET ) ) {
+        $query_args = [];
+        foreach ( wp_unslash( $_GET ) as $key => $value ) {
+            $query_args[ $key ] = $value;
+        }
+
+        if ( ! empty( $query_args ) ) {
+            $url = add_query_arg( $query_args, $url );
+        }
+    }
+
+    return $url;
+}
+
+/**
+ * Sanitize bulk attendee messages authored on the check-in page.
+ *
+ * Strips HTML tags, control characters, and emoji/dingbat symbols while
+ * preserving line breaks so the final email body remains plain text.
+ *
+ * @param mixed $value Raw textarea value from the browser.
+ * @return string Sanitized message.
+ */
+function tta_sanitize_checkin_email_message( $value ) {
+    $value = tta_unslash( $value );
+    $value = wp_strip_all_tags( (string) $value, false );
+    // Remove ASCII control characters except newlines and tabs.
+    $value = preg_replace( '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $value );
+    // Strip common emoji, pictographs, and dingbats that can break plain emails.
+    $value = preg_replace( '/[\x{1F100}-\x{1FFFF}\x{2600}-\x{27BF}]/u', '', $value );
+    // Collapse excessive blank lines.
+    $value = preg_replace( "#\n{3,}#", "\n\n", $value );
+    return trim( $value );
+}
+
+/**
+ * Retrieve the minimum character length required for check-in broadcast messages.
+ *
+ * @return int Positive integer threshold.
+ */
+function tta_get_checkin_email_min_length() {
+    $min = apply_filters( 'tta_checkin_email_min_length', 20 );
+    $min = intval( $min );
+
+    return $min > 0 ? $min : 1;
+}
+
+/**
  * Sanitize email input preserving apostrophes.
  *
  * @param mixed $value
@@ -462,6 +521,53 @@ function tta_get_cart_notice() {
 }
 
 /**
+ * Persist the most recent events listing URL for quick navigation.
+ *
+ * @param string $url Absolute URL to the events listing page.
+ */
+function tta_set_last_events_url( $url ) {
+    $url = esc_url_raw( $url );
+    if ( empty( $url ) ) {
+        return;
+    }
+
+    if ( ! session_id() ) {
+        session_start();
+    }
+
+    $home_host = wp_parse_url( home_url(), PHP_URL_HOST );
+    $url_host  = wp_parse_url( $url, PHP_URL_HOST );
+
+    if ( $home_host && $url_host && strcasecmp( $home_host, $url_host ) !== 0 ) {
+        return;
+    }
+
+    $_SESSION['tta_last_events_url'] = $url;
+}
+
+/**
+ * Retrieve the last stored events listing URL or the default events page.
+ *
+ * @return string Absolute URL to the events listing page.
+ */
+function tta_get_last_events_url() {
+    if ( ! session_id() ) {
+        session_start();
+    }
+
+    $url = '';
+    if ( ! empty( $_SESSION['tta_last_events_url'] ) ) {
+        $url = esc_url_raw( wp_unslash( $_SESSION['tta_last_events_url'] ) );
+    }
+
+    if ( empty( $url ) ) {
+        $url = home_url( '/events/' );
+    }
+
+    return $url;
+}
+
+/**
  * Store context data for the waitlist join modal.
  *
  * @param array $context
@@ -643,21 +749,33 @@ function tta_get_event_attendees( $event_ute_id ) {
     $tickets_table   = $wpdb->prefix . 'tta_tickets';
     $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
 
-    $sql = "(SELECT a.first_name, a.last_name, a.email, a.ticket_id
+    $sql = "(SELECT a.id AS attendee_id, a.first_name, a.last_name, a.email, a.ticket_id
               FROM {$att_table} a
               JOIN {$tickets_table} t ON a.ticket_id = t.id
              WHERE t.event_ute_id = %s)
             UNION ALL
-            (SELECT a.first_name, a.last_name, a.email, a.ticket_id
+            (SELECT a.id AS attendee_id, a.first_name, a.last_name, a.email, a.ticket_id
               FROM {$att_archive} a
               JOIN {$tickets_archive} t ON a.ticket_id = t.id
              WHERE t.event_ute_id = %s)
             ORDER BY first_name, last_name";
 
-    return $wpdb->get_results(
-        $wpdb->prepare( $sql, $event_ute_id, $event_ute_id ),
-        ARRAY_A
-    );
+    $rows    = $wpdb->get_results( $wpdb->prepare( $sql, $event_ute_id, $event_ute_id ), ARRAY_A );
+    $seen    = [];
+    $results = [];
+    foreach ( $rows as $row ) {
+        $att_id = intval( $row['attendee_id'] );
+        if ( $att_id && isset( $seen[ $att_id ] ) ) {
+            continue;
+        }
+        if ( $att_id ) {
+            $seen[ $att_id ] = true;
+        }
+        unset( $row['attendee_id'] );
+        $results[] = $row;
+    }
+
+    return $results;
 }
 
 /**
@@ -674,18 +792,30 @@ function tta_get_event_attendees_with_status( $event_ute_id ) {
     $tickets_table   = $wpdb->prefix . 'tta_tickets';
     $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
 
-    $sql = "(SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.assistance_note, a.status
+    $sql = "(SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.assistance_note, a.status, a.opt_in_sms
                FROM {$att_table} a
                JOIN {$tickets_table} t ON a.ticket_id = t.id
               WHERE t.event_ute_id = %s)
            UNION ALL
-            (SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.assistance_note, a.status
+            (SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.assistance_note, a.status, a.opt_in_sms
                FROM {$att_archive} a
                JOIN {$tickets_archive} t ON a.ticket_id = t.id
               WHERE t.event_ute_id = %s)
             ORDER BY first_name, last_name";
 
-    $rows = $wpdb->get_results( $wpdb->prepare( $sql, $event_ute_id, $event_ute_id ), ARRAY_A );
+    $raw_rows = $wpdb->get_results( $wpdb->prepare( $sql, $event_ute_id, $event_ute_id ), ARRAY_A );
+    $seen     = [];
+    $rows     = [];
+    foreach ( $raw_rows as $row ) {
+        $att_id = intval( $row['id'] );
+        if ( $att_id && isset( $seen[ $att_id ] ) ) {
+            continue;
+        }
+        if ( $att_id ) {
+            $seen[ $att_id ] = true;
+        }
+        $rows[] = $row;
+    }
 
     $event_id = (int) $wpdb->get_var(
         $wpdb->prepare(
@@ -723,6 +853,7 @@ function tta_get_event_attendees_with_status( $event_ute_id ) {
         $r['email']         = sanitize_email( $r['email'] );
         $r['phone']         = sanitize_text_field( $r['phone'] );
         $r['status']        = sanitize_text_field( $r['status'] );
+        $r['opt_in_sms']    = isset( $r['opt_in_sms'] ) ? intval( $r['opt_in_sms'] ) : 0;
         $r['attended_count'] = tta_get_attended_event_count_by_email( $r['email'] );
         $r['no_show_count']  = tta_get_no_show_event_count_by_email( $r['email'] );
         $note = trim( $r['assistance_note'] ?? '' );
@@ -804,7 +935,20 @@ function tta_get_ticket_attendees( $ticket_id ) {
             (SELECT * FROM {$att_archive} WHERE ticket_id = %d)
             ORDER BY last_name, first_name";
 
-    $rows = $wpdb->get_results( $wpdb->prepare( $sql, $ticket_id, $ticket_id ), ARRAY_A );
+    $raw_rows = $wpdb->get_results( $wpdb->prepare( $sql, $ticket_id, $ticket_id ), ARRAY_A );
+
+    $rows     = [];
+    $seen_ids = [];
+    foreach ( $raw_rows as $row ) {
+        $att_id = intval( $row['id'] );
+        if ( $att_id && isset( $seen_ids[ $att_id ] ) ) {
+            continue;
+        }
+        if ( $att_id ) {
+            $seen_ids[ $att_id ] = true;
+        }
+        $rows[] = $row;
+    }
 
     $txn_ids = [];
     foreach ( $rows as $r ) {
@@ -867,6 +1011,63 @@ function tta_get_ticket_attendees( $ticket_id ) {
     $ttl = empty( $rows ) ? 60 : 300;
     TTA_Cache::set( $cache_key, $rows, $ttl );
     return $rows;
+}
+
+/**
+ * Retrieve attendee counts for a set of transactions from both active and archived tables.
+ *
+ * @param int[] $transaction_ids Internal transaction IDs.
+ * @return array<int,int> Map of transaction ID to attendee count.
+ */
+function tta_get_transaction_attendee_counts( array $transaction_ids ) {
+    $transaction_ids = array_filter( array_map( 'intval', $transaction_ids ) );
+    if ( empty( $transaction_ids ) ) {
+        return [];
+    }
+
+    sort( $transaction_ids );
+    $cache_key = 'tx_attendee_counts_' . md5( implode( ',', $transaction_ids ) );
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $att_table   = $wpdb->prefix . 'tta_attendees';
+    $att_archive = $wpdb->prefix . 'tta_attendees_archive';
+
+    $placeholders = implode( ',', array_fill( 0, count( $transaction_ids ), '%d' ) );
+    $counts       = [];
+
+    $main_rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT transaction_id, COUNT(*) AS cnt FROM {$att_table} WHERE transaction_id IN ($placeholders) GROUP BY transaction_id",
+            ...$transaction_ids
+        ),
+        ARRAY_A
+    );
+
+    foreach ( $main_rows as $row ) {
+        $tid            = intval( $row['transaction_id'] );
+        $counts[ $tid ] = ( $counts[ $tid ] ?? 0 ) + intval( $row['cnt'] );
+    }
+
+    $archive_rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT transaction_id, COUNT(*) AS cnt FROM {$att_archive} WHERE transaction_id IN ($placeholders) GROUP BY transaction_id",
+            ...$transaction_ids
+        ),
+        ARRAY_A
+    );
+
+    foreach ( $archive_rows as $row ) {
+        $tid            = intval( $row['transaction_id'] );
+        $counts[ $tid ] = ( $counts[ $tid ] ?? 0 ) + intval( $row['cnt'] );
+    }
+
+    TTA_Cache::set( $cache_key, $counts, 300 );
+
+    return $counts;
 }
 
 /**
@@ -2385,19 +2586,12 @@ function tta_get_member_upcoming_events( $wp_user_id ) {
         }
 
         if ( $tx_ids ) {
-            $placeholders = implode( ',', array_fill( 0, count( $tx_ids ), '%d' ) );
-            $counts       = $wpdb->get_results(
-                $wpdb->prepare(
-                    "SELECT transaction_id, COUNT(*) AS cnt FROM {$wpdb->prefix}tta_attendees WHERE transaction_id IN ($placeholders) GROUP BY transaction_id",
-                    ...array_values( $tx_ids )
-                ),
-                ARRAY_A
-            );
+            $counts = tta_get_transaction_attendee_counts( array_values( $tx_ids ) );
 
-            foreach ( $counts as $c ) {
-                $tid = array_search( intval( $c['transaction_id'] ), $tx_ids, true );
-                if ( $tid ) {
-                    $txn_map[ $tid ] = intval( $c['cnt'] );
+            foreach ( $counts as $internal_id => $count ) {
+                $tid = array_search( $internal_id, $tx_ids, true );
+                if ( false !== $tid ) {
+                    $txn_map[ $tid ] = intval( $count );
                 }
             }
         }
@@ -2831,19 +3025,12 @@ function tta_get_member_past_events( $wp_user_id ) {
         }
 
         if ( $tx_ids ) {
-            $placeholders = implode( ',', array_fill( 0, count( $tx_ids ), '%d' ) );
-            $counts       = $wpdb->get_results(
-                $wpdb->prepare(
-                    "SELECT transaction_id, COUNT(*) AS cnt FROM {$wpdb->prefix}tta_attendees WHERE transaction_id IN ($placeholders) GROUP BY transaction_id",
-                    ...array_values( $tx_ids )
-                ),
-                ARRAY_A
-            );
+            $counts = tta_get_transaction_attendee_counts( array_values( $tx_ids ) );
 
-            foreach ( $counts as $c ) {
-                $tid = array_search( intval( $c['transaction_id'] ), $tx_ids, true );
-                if ( $tid ) {
-                    $txn_map[ $tid ] = intval( $c['cnt'] );
+            foreach ( $counts as $internal_id => $count ) {
+                $tid = array_search( $internal_id, $tx_ids, true );
+                if ( false !== $tid ) {
+                    $txn_map[ $tid ] = intval( $count );
                 }
             }
         }
@@ -3358,9 +3545,17 @@ function tta_get_member_event_history( $email ) {
               WHERE LOWER(a.email) = %s)
             ORDER BY date DESC";
 
-    $rows = $wpdb->get_results( $wpdb->prepare( $sql, $email, $email ), ARRAY_A );
-    $events = [];
-    foreach ( $rows as $r ) {
+    $raw_rows = $wpdb->get_results( $wpdb->prepare( $sql, $email, $email ), ARRAY_A );
+    $events   = [];
+    $seen     = [];
+    foreach ( $raw_rows as $r ) {
+        $att_id = intval( $r['att_id'] );
+        if ( $att_id && isset( $seen[ $att_id ] ) ) {
+            continue;
+        }
+        if ( $att_id ) {
+            $seen[ $att_id ] = true;
+        }
         $events[] = [
             'attendee_id' => intval( $r['att_id'] ),
             'name'        => sanitize_text_field( $r['name'] ),
@@ -3490,7 +3685,20 @@ function tta_get_refund_request_attendees( $gateway_tx_id, $event_id, $ticket_id
     $ticket_sql = $ticket_id ? ' AND a.ticket_id = %d' : '';
     $sql = "(SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.status FROM {$att_table} a JOIN {$ticket_table} t ON a.ticket_id = t.id WHERE a.transaction_id = %d AND t.event_ute_id = %s{$ticket_sql}) UNION ALL (SELECT a.id, a.ticket_id, a.first_name, a.last_name, a.email, a.phone, a.status FROM {$att_archive} a JOIN {$ticket_archive} t ON a.ticket_id = t.id WHERE a.transaction_id = %d AND t.event_ute_id = %s{$ticket_sql}) ORDER BY last_name, first_name";
     $params = $ticket_id ? [ $tx['id'], $ute_id, $ticket_id, $tx['id'], $ute_id, $ticket_id ] : [ $tx['id'], $ute_id, $tx['id'], $ute_id ];
-    $rows = $wpdb->get_results( $wpdb->prepare( $sql, ...$params ), ARRAY_A );
+    $raw_rows = $wpdb->get_results( $wpdb->prepare( $sql, ...$params ), ARRAY_A );
+
+    $rows     = [];
+    $seen_ids = [];
+    foreach ( $raw_rows as $row ) {
+        $att_id = intval( $row['id'] );
+        if ( $att_id && isset( $seen_ids[ $att_id ] ) ) {
+            continue;
+        }
+        if ( $att_id ) {
+            $seen_ids[ $att_id ] = true;
+        }
+        $rows[] = $row;
+    }
 
     $details = json_decode( $tx['details'], true );
     $price_map = [];
@@ -3895,12 +4103,12 @@ function tta_get_attended_event_count_by_email( $email ) {
     $archive     = $wpdb->prefix . 'tta_attendees_archive';
 
     $count = (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$att_table} WHERE LOWER(email) = %s AND status = 'checked_in'",
-        $email
-    ) );
-
-    $count += (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$archive} WHERE LOWER(email) = %s AND status = 'checked_in'",
+        "SELECT COUNT(*) FROM (
+            SELECT id FROM {$att_table} WHERE LOWER(email) = %s AND status = 'checked_in'
+            UNION
+            SELECT id FROM {$archive} WHERE LOWER(email) = %s AND status = 'checked_in'
+        ) AS combined",
+        $email,
         $email
     ) );
 
@@ -3931,12 +4139,12 @@ function tta_get_no_show_event_count_by_email( $email, $adjust = true ) {
     $archive   = $wpdb->prefix . 'tta_attendees_archive';
 
     $count = (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$att_table} WHERE LOWER(email) = %s AND status = 'no_show'",
-        $email
-    ) );
-
-    $count += (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$archive} WHERE LOWER(email) = %s AND status = 'no_show'",
+        "SELECT COUNT(*) FROM (
+            SELECT id FROM {$att_table} WHERE LOWER(email) = %s AND status = 'no_show'
+            UNION
+            SELECT id FROM {$archive} WHERE LOWER(email) = %s AND status = 'no_show'
+        ) AS combined",
+        $email,
         $email
     ) );
 
@@ -5079,8 +5287,8 @@ function tta_render_attendee_fields( TTA_Cart $cart, $disabled = false ) {
                 $ln_val  = '';
                 $em_val  = '';
                 $ph_val  = '';
-                $sms_chk = 'checked';
-                $em_chk  = 'checked';
+                $sms_chk = '';
+                $em_chk  = '';
                 $locked = '';
                 if ( ! $used_default && $context['member'] ) {
                     $fn_val  = esc_attr( $context['member']['first_name'] );
@@ -5114,8 +5322,24 @@ function tta_render_attendee_fields( TTA_Cart $cart, $disabled = false ) {
                 }
                 echo '<label><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Phone used for event updates or issues.', 'tta' ) . '"><img src="' . $img . '" alt="?"></span>' . esc_html__( 'Phone', 'tta' ) . '<br />';
                 echo '<input type="tel" name="' . esc_attr( $base . '[phone]' ) . '" value="' . $ph_val . '"' . $d_attr . '></label>';
-                echo '<div class="optin-container"><label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_sms]' ) . '" ' . $sms_chk . $d_attr . '> <span class="tta-ticket-opt-text">' . esc_html__( 'text me updates about this event', 'tta' ) . '</span></label>';
-                echo '<label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_email]' ) . '" ' . $em_chk . $d_attr . '><span class="tta-ticket-opt-text">' . esc_html__( 'email me updates about this event', 'tta' ) . '</span></label></div>';
+                $privacy_url = esc_url( home_url( '/privacy-policy/' ) );
+                $sms_message = sprintf(
+                    /* translators: %s: privacy policy URL */
+                    __( 'I agree to receive non-marketing text messages from Trying to Adult RVA about my event sign-up, including 24-hour and 3-hours event reminder texts. <a href="%s">Read our Privacy Policy here.</a>', 'tta' ),
+                    $privacy_url
+                );
+                $email_message = sprintf(
+                    /* translators: %s: privacy policy URL */
+                    __( 'I agree to receive non-marketing emails from Trying to Adult RVA about my event sign-up, including 24-hour and 3-hours event reminder emails. <a href="%s">Read our Privacy Policy here.</a>', 'tta' ),
+                    $privacy_url
+                );
+                $allowed_link = [
+                    'a' => [
+                        'href' => [],
+                    ],
+                ];
+                echo '<div class="optin-container"><label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_sms]' ) . '" ' . $sms_chk . $d_attr . '> <span class="tta-ticket-opt-text">' . wp_kses( $sms_message, $allowed_link ) . '</span></label>';
+                echo '<label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_email]' ) . '" ' . $em_chk . $d_attr . '><span class="tta-ticket-opt-text">' . wp_kses( $email_message, $allowed_link ) . '</span></label></div>';
                 echo '</div>';
             }
         }

@@ -1,5 +1,5 @@
 <!-- WAITLIST EVENTS -->
-<div id="tab-waitlist" class="tta-dashboard-section" style="display:none;">
+<div id="tab-waitlist" class="tta-dashboard-section notranslate" style="display:none;" data-nosnippet>
   <h3><?php esc_html_e( 'Your Waitlist Events', 'tta' ); ?></h3>
   <?php
   $events = tta_get_member_waitlist_events( get_current_user_id() );

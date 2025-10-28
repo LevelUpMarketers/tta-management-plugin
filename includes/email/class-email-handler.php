@@ -403,4 +403,131 @@ class TTA_Email_Handler {
         }
         return $count;
     }
+
+    /**
+     * Send the check-in broadcast email to all attendees, hosts, and volunteers.
+     *
+     * @param string $event_ute_id Event identifier.
+     * @param string $message_raw  Sanitized message typed on the check-in page.
+     * @return int|WP_Error Number of recipients emailed or WP_Error on failure.
+     */
+    public function send_checkin_broadcast( $event_ute_id, $message_raw ) {
+        $templates = tta_get_comm_templates();
+        if ( empty( $templates['checkin_broadcast'] ) ) {
+            return new \WP_Error( 'missing_template', __( 'The check-in email template is not configured.', 'tta' ) );
+        }
+
+        $event = tta_get_event_for_email( $event_ute_id );
+        if ( empty( $event ) ) {
+            return new \WP_Error( 'missing_event', __( 'Event not found.', 'tta' ) );
+        }
+
+        if ( ! class_exists( 'TTA_Email_Reminders' ) ) {
+            require_once TTA_PLUGIN_DIR . 'includes/email/class-email-reminders.php';
+        }
+
+        $attendees  = tta_get_event_attendees_with_status( $event_ute_id );
+        $recipients = [];
+        foreach ( (array) $attendees as $att ) {
+            $email = sanitize_email( $att['email'] ?? '' );
+            if ( ! $email ) {
+                continue;
+            }
+            $recipients[ strtolower( $email ) ] = [
+                'email'      => $email,
+                'first_name' => $att['first_name'] ?? '',
+                'last_name'  => $att['last_name'] ?? '',
+                'phone'      => $att['phone'] ?? '',
+            ];
+        }
+
+        if ( ! empty( $event['id'] ) ) {
+            foreach ( tta_get_event_host_volunteer_emails( intval( $event['id'] ) ) as $email ) {
+                $email = sanitize_email( $email );
+                if ( ! $email ) {
+                    continue;
+                }
+                $key = strtolower( $email );
+                if ( isset( $recipients[ $key ] ) ) {
+                    continue;
+                }
+                $recipients[ $key ] = [ 'email' => $email ];
+            }
+        }
+
+        if ( empty( $recipients ) ) {
+            return new \WP_Error( 'no_recipients', __( 'No attendees or contacts found for this event.', 'tta' ) );
+        }
+
+        $tpl     = $templates['checkin_broadcast'];
+        $headers = [ 'Content-Type: text/html; charset=UTF-8' ];
+        $count   = 0;
+
+        $event_id = intval( $event['id'] ?? 0 );
+
+        foreach ( $recipients as $key => $recipient ) {
+            $email = $recipient['email'];
+            $att   = [
+                'first_name' => $recipient['first_name'] ?? '',
+                'last_name'  => $recipient['last_name'] ?? '',
+                'email'      => $email,
+                'phone'      => $recipient['phone'] ?? '',
+            ];
+
+            $row = tta_get_member_row_by_email( $email );
+            if ( $row ) {
+                $context = tta_get_user_context_by_id( intval( $row['wpuserid'] ) );
+            } else {
+                $context = [
+                    'wp_user_id'        => 0,
+                    'user_email'        => $email,
+                    'first_name'        => $att['first_name'],
+                    'last_name'         => $att['last_name'],
+                    'member'            => [ 'phone' => '', 'member_type' => '' ],
+                    'membership_level'  => tta_get_membership_level_by_email( $email ),
+                    'subscription_id'   => null,
+                    'subscription_status' => null,
+                    'banned_until'      => null,
+                ];
+            }
+
+            if ( ! $att['first_name'] && ! empty( $context['first_name'] ) ) {
+                $att['first_name'] = $context['first_name'];
+            }
+            if ( ! $att['last_name'] && ! empty( $context['last_name'] ) ) {
+                $att['last_name'] = $context['last_name'];
+            }
+
+            $tokens = $this->build_tokens( $event, $context, [ $att ] );
+
+            $subject_tpl = tta_expand_anchor_tokens( $tpl['email_subject'], $tokens );
+            $subject     = tta_strip_bold( strtr( $subject_tpl, $tokens ) );
+
+            $opening_tpl = tta_expand_anchor_tokens( $tpl['email_opening'] ?? '', $tokens );
+            $closing_tpl = tta_expand_anchor_tokens( $tpl['email_closing'] ?? '', $tokens );
+            $message_tpl = tta_expand_anchor_tokens( $message_raw, $tokens );
+
+            $opening_txt = trim( strtr( $opening_tpl, $tokens ) );
+            $closing_txt = trim( strtr( $closing_tpl, $tokens ) );
+            $message_txt = trim( strtr( $message_tpl, $tokens ) );
+
+            $parts      = array_filter( [ $opening_txt, $message_txt, $closing_txt ], static function ( $part ) {
+                return '' !== $part;
+            } );
+            $body_plain = implode( "\n\n", $parts );
+            $body_html  = nl2br( tta_convert_bold( tta_convert_links( $body_plain ) ) );
+
+            $sent = wp_mail( $email, $subject, $body_html, $headers );
+
+            if ( method_exists( 'TTA_Email_Reminders', 'record_email_log' ) ) {
+                TTA_Email_Reminders::record_email_log( $event_id, 'checkin_broadcast', $email, (bool) $sent );
+            }
+
+            if ( $sent ) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
 }

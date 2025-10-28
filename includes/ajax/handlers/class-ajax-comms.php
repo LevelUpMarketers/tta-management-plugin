@@ -27,7 +27,13 @@ class TTA_Ajax_Comms {
         }
 
         $templates[ $key ]['email_subject'] = tta_sanitize_text_field( $_POST['email_subject'] ?? $templates[ $key ]['email_subject'] );
-        $templates[ $key ]['email_body']    = tta_sanitize_textarea_field( $_POST['email_body'] ?? $templates[ $key ]['email_body'] );
+        if ( 'checkin_broadcast' === $key ) {
+            $templates[ $key ]['email_opening'] = tta_sanitize_text_field( $_POST['email_opening'] ?? ( $templates[ $key ]['email_opening'] ?? '' ) );
+            $templates[ $key ]['email_closing'] = tta_sanitize_text_field( $_POST['email_closing'] ?? ( $templates[ $key ]['email_closing'] ?? '' ) );
+            $templates[ $key ]['email_body']    = '';
+        } else {
+            $templates[ $key ]['email_body']    = tta_sanitize_textarea_field( $_POST['email_body'] ?? $templates[ $key ]['email_body'] );
+        }
         $templates[ $key ]['sms_text']      = tta_sanitize_textarea_field( $_POST['sms_text'] ?? $templates[ $key ]['sms_text'] );
 
         update_option( 'tta_comms_templates', $templates, false );

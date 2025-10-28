@@ -1432,11 +1432,23 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
 
   function renderPreview($form){
     var subj = $form.find('input[name=email_subject]').val() || '';
-    var body = $form.find('textarea[name=email_body]').val() || '';
+    var bodyField = $form.find('textarea[name=email_body]');
+    var body = bodyField.length ? (bodyField.val() || '') : '';
     var sms  = $form.find('textarea[name=sms_text]').val() || '';
+    var isCheckin = $form.data('checkinTemplate') === 1 || $form.data('checkinTemplate') === '1';
     subj = subj.replace(/\\'/g, "'");
     body = body.replace(/\\'/g, "'");
     sms  = sms.replace(/\\'/g, "'");
+    if (isCheckin) {
+      var opening = ($form.find('input[name=email_opening]').val() || '').replace(/\\'/g, "'");
+      var closing = ($form.find('input[name=email_closing]').val() || '').replace(/\\'/g, "'");
+      var placeholder = TTA_Ajax.checkinPreviewPlaceholder || '';
+      var segments = [];
+      if (opening) { segments.push(opening); }
+      if (placeholder) { segments.push(placeholder); }
+      if (closing) { segments.push(closing); }
+      body = segments.join('\n\n');
+    }
     var ev   = TTA_Ajax.sample_event || {};
     var mem  = TTA_Ajax.sample_member || {};
     var map  = {

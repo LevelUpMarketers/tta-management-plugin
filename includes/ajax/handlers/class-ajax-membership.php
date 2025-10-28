@@ -138,11 +138,14 @@ class TTA_Ajax_Membership {
             wp_send_json_error( [ 'message' => __( 'No active subscription found.', 'tta' ) ] );
         }
 
-        $card_number = isset( $_POST['card_number'] ) ? preg_replace( '/\D/', '', $_POST['card_number'] ) : '';
-        $exp         = isset( $_POST['exp_date'] ) ? sanitize_text_field( $_POST['exp_date'] ) : '';
-        $cvc         = isset( $_POST['card_cvc'] ) ? sanitize_text_field( $_POST['card_cvc'] ) : '';
-        if ( ! $card_number || ! $exp ) {
-            wp_send_json_error( [ 'message' => __( 'Payment details incomplete.', 'tta' ) ] );
+        $opaque = [
+            'dataDescriptor' => isset( $_POST['opaqueData']['dataDescriptor'] ) ? preg_replace( '/[^A-Za-z0-9._-]/', '', wp_unslash( $_POST['opaqueData']['dataDescriptor'] ) ) : '',
+            'dataValue'      => isset( $_POST['opaqueData']['dataValue'] ) ? preg_replace( '/[^A-Za-z0-9+=\/._-]/', '', wp_unslash( $_POST['opaqueData']['dataValue'] ) ) : '',
+        ];
+        if ( empty( $opaque['dataDescriptor'] ) || empty( $opaque['dataValue'] ) ) {
+            wp_send_json_error( [
+                'message' => __( "Encryption of your payment information failed! Please try again later. If you're still having trouble, please contact us using the form on our Contact Page.", 'tta' ),
+            ] );
         }
 
         $billing = [
@@ -154,33 +157,68 @@ class TTA_Ajax_Membership {
             'state'      => sanitize_text_field( $_POST['bill_state'] ?? '' ),
             'zip'        => sanitize_text_field( $_POST['bill_zip'] ?? '' ),
         ];
+        $billing['opaqueData'] = $opaque;
 
         $api  = new TTA_AuthorizeNet_API();
-        $res  = $api->update_subscription_payment( $sub_id, $card_number, $exp, $cvc, $billing );
+        $res  = $api->update_subscription_payment( $sub_id, '', '', '', $billing );
         if ( ! $res['success'] ) {
             wp_send_json_error( [ 'message' => $res['error'] ] );
         }
 
-        TTA_Cache::delete( 'sub_last4_' . $sub_id );
+        self::clear_subscription_cache( $sub_id, $user_id );
 
-        // Attempt to retry the failed charge immediately.
-        $retry = $api->retry_subscription_charge( $sub_id );
-        if ( $retry['success'] ) {
-            $prev = get_user_meta( $user_id, 'tta_prev_level', true );
-            if ( ! in_array( $prev, [ 'basic', 'premium' ], true ) ) {
-                $prev = 'basic';
+        $last4      = isset( $_POST['last4'] ) ? preg_replace( '/\D/', '', wp_unslash( $_POST['last4'] ) ) : '';
+        $last4_form = $last4 ? '**** ' . substr( $last4, -4 ) : '';
+
+        $context = tta_get_current_user_context();
+        $status  = strtolower( $context['subscription_status'] ?? '' );
+
+        // Only attempt to charge again if the subscription is currently flagged for payment problems.
+        if ( 'paymentproblem' === $status ) {
+            $retry = $api->retry_subscription_charge( $sub_id );
+            if ( $retry['success'] ) {
+                $prev = get_user_meta( $user_id, 'tta_prev_level', true );
+                if ( ! in_array( $prev, [ 'basic', 'premium' ], true ) ) {
+                    $prev = 'basic';
+                }
+                tta_update_user_membership_level( $user_id, $prev, null, 'active' );
+                delete_user_meta( $user_id, 'tta_prev_level' );
+                tta_log_subscription_status_change( $user_id, 'active' );
+                self::clear_subscription_cache( $sub_id, $user_id );
+                wp_send_json_success( [
+                    'message' => __( 'Payment method updated and charge successful.', 'tta' ),
+                    'status'  => 'active',
+                    'last4'   => $last4_form,
+                ] );
             }
-            tta_update_user_membership_level( $user_id, $prev, null, 'active' );
-            delete_user_meta( $user_id, 'tta_prev_level' );
-            tta_log_subscription_status_change( $user_id, 'active' );
-            wp_send_json_success( [
-                'message' => __( 'Payment method updated and charge successful.', 'tta' ),
-                'status'  => 'active',
-            ] );
+
+            tta_log_subscription_status_change( $user_id, 'paymentproblem' );
+            wp_send_json_error( [ 'message' => sprintf( __( 'Payment profile updated but charge failed: %s', 'tta' ), $retry['error'] ) ] );
         }
 
-        tta_log_subscription_status_change( $user_id, 'paymentproblem' );
-        wp_send_json_error( [ 'message' => sprintf( __( 'Payment profile updated but charge failed: %s', 'tta' ), $retry['error'] ) ] );
+        wp_send_json_success( [
+            'message' => __( 'Your payment method has been successfully updated. Thanks for being proactive and keeping your membership current!', 'tta' ),
+            'status'  => $status ?: 'active',
+            'last4'   => $last4_form,
+        ] );
+    }
+
+    /**
+     * Clear cached subscription and member context entries after payment updates.
+     *
+     * @param string $subscription_id Authorize.Net subscription identifier.
+     * @param int    $user_id         Related WordPress user ID.
+     */
+    private static function clear_subscription_cache( $subscription_id, $user_id = 0 ) {
+        if ( $subscription_id ) {
+            TTA_Cache::delete( 'sub_last4_' . $subscription_id );
+            TTA_Cache::delete( 'sub_status_' . $subscription_id );
+            TTA_Cache::delete( 'sub_tx_' . $subscription_id );
+        }
+
+        if ( $user_id ) {
+            TTA_Cache::delete( 'member_row_' . intval( $user_id ) );
+        }
     }
 }
 

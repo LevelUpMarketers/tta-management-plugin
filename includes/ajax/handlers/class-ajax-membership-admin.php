@@ -33,11 +33,10 @@ class TTA_Ajax_Membership_Admin {
             wp_send_json_error( [ 'message' => __( 'No active subscription found.', 'tta' ) ] );
         }
 
-        $card_number = preg_replace( '/\D/', '', $_POST['card_number'] ?? '' );
-        $exp         = sanitize_text_field( $_POST['exp_date'] ?? '' );
-        $cvc         = sanitize_text_field( $_POST['card_cvc'] ?? '' );
-        if ( ! $card_number || ! $exp ) {
-            wp_send_json_error( [ 'message' => __( 'Payment details incomplete.', 'tta' ) ] );
+        $opaque_descriptor = sanitize_text_field( $_POST['opaqueData']['dataDescriptor'] ?? '' );
+        $opaque_value      = sanitize_text_field( $_POST['opaqueData']['dataValue'] ?? '' );
+        if ( ! $opaque_descriptor || ! $opaque_value ) {
+            wp_send_json_error( [ 'message' => __( 'Encryption of the payment details failed. Please refresh and try again.', 'tta' ) ] );
         }
 
         $billing = [
@@ -48,10 +47,14 @@ class TTA_Ajax_Membership_Admin {
             'city'       => sanitize_text_field( $_POST['bill_city'] ?? '' ),
             'state'      => sanitize_text_field( $_POST['bill_state'] ?? '' ),
             'zip'        => sanitize_text_field( $_POST['bill_zip'] ?? '' ),
+            'opaqueData' => [
+                'dataDescriptor' => $opaque_descriptor,
+                'dataValue'      => $opaque_value,
+            ],
         ];
 
         $api = new TTA_AuthorizeNet_API();
-        $res = $api->update_subscription_payment( $member['subscription_id'], $card_number, $exp, $cvc, $billing );
+        $res = $api->update_subscription_payment( $member['subscription_id'], '', '', '', $billing );
         if ( ! $res['success'] ) {
             wp_send_json_error( [ 'message' => $res['error'] ] );
         }
@@ -98,9 +101,10 @@ class TTA_Ajax_Membership_Admin {
         $use_current = ! empty( $_POST['use_current'] );
         $create_new  = ! empty( $_POST['create_new'] );
         $amount      = floatval( $_POST['amount'] ?? tta_get_membership_price( $level ) );
-        $card       = $use_current ? '' : preg_replace( '/\D/', '', $_POST['card_number'] ?? '' );
-        $exp        = $use_current ? '' : sanitize_text_field( $_POST['exp_date'] ?? '' );
-        $cvc        = $use_current ? '' : sanitize_text_field( $_POST['card_cvc'] ?? '' );
+        $opaque_descriptor = sanitize_text_field( $_POST['opaqueData']['dataDescriptor'] ?? '' );
+        $opaque_value      = sanitize_text_field( $_POST['opaqueData']['dataValue'] ?? '' );
+        $last4             = substr( preg_replace( '/\D/', '', $_POST['last4'] ?? '' ), -4 );
+        $has_token         = ( ! empty( $opaque_descriptor ) && ! empty( $opaque_value ) );
 
         $billing = $use_current ? [] : [
             'first_name' => sanitize_text_field( $_POST['bill_first'] ?? '' ),
@@ -111,6 +115,12 @@ class TTA_Ajax_Membership_Admin {
             'state'      => sanitize_text_field( $_POST['bill_state'] ?? '' ),
             'zip'        => sanitize_text_field( $_POST['bill_zip'] ?? '' ),
         ];
+        if ( ! $use_current && $has_token ) {
+            $billing['opaqueData'] = [
+                'dataDescriptor' => $opaque_descriptor,
+                'dataValue'      => $opaque_value,
+            ];
+        }
 
         $api    = new TTA_AuthorizeNet_API();
         $new_id = $sub_id;
@@ -125,10 +135,10 @@ class TTA_Ajax_Membership_Admin {
                 wp_send_json_error( [ 'message' => __( 'Subscription cancelled or missing. Provide payment details to create a new subscription.', 'tta' ) ] );
             }
         } elseif ( $create_new ) {
-            if ( ! $card || ! $exp ) {
+            if ( ! $has_token ) {
                 wp_send_json_error( [ 'message' => __( 'Payment details required.', 'tta' ) ] );
             }
-            $charge = $api->charge( $amount, $card, $exp, $cvc, $billing );
+            $charge = $api->charge( $amount, '', '', '', $billing );
             if ( ! $charge['success'] ) {
                 wp_send_json_error( [ 'message' => $charge['error'] ] );
             }
@@ -146,32 +156,28 @@ class TTA_Ajax_Membership_Admin {
                 '',
                 0,
                 intval( $member['wpuserid'] ),
-                substr( $card, -4 ),
+                $last4,
                 ''
             );
 
-            $sub = $api->create_subscription( $amount, $card, $exp, $cvc, $billing, ucfirst( $level ) . ' Membership', '', date( 'Y-m-d', strtotime( '+1 month' ) ) );
+            $sub = $api->create_subscription( $amount, '', '', '', $billing, ucfirst( $level ) . ' Membership', '', date( 'Y-m-d', strtotime( '+1 month' ) ) );
             if ( ! $sub['success'] ) {
                 wp_send_json_error( [ 'message' => $sub['error'] ] );
             }
             $new_id = $sub['subscription_id'];
         } elseif ( $sub_id && 'cancelled' !== $status ) {
-            if ( $card && $exp ) {
-                $res = $api->update_subscription_payment( $sub_id, $card, $exp, $cvc, $billing );
-                if ( ! $res['success'] ) {
-                    wp_send_json_error( [ 'message' => $res['error'] ] );
-                }
-            } elseif ( array_filter( $billing ) ) {
-                $res = $api->update_subscription_payment( $sub_id, '', '', '', $billing );
-                if ( ! $res['success'] ) {
-                    wp_send_json_error( [ 'message' => $res['error'] ] );
-                }
-            }
-        } else {
-            if ( ! $card || ! $exp ) {
+            if ( ! $has_token ) {
                 wp_send_json_error( [ 'message' => __( 'Payment details required.', 'tta' ) ] );
             }
-            $sub = $api->create_subscription( $amount, $card, $exp, $cvc, $billing, ucfirst( $level ) . ' Membership' );
+            $res = $api->update_subscription_payment( $sub_id, '', '', '', $billing );
+            if ( ! $res['success'] ) {
+                wp_send_json_error( [ 'message' => $res['error'] ] );
+            }
+        } else {
+            if ( ! $has_token ) {
+                wp_send_json_error( [ 'message' => __( 'Payment details required.', 'tta' ) ] );
+            }
+            $sub = $api->create_subscription( $amount, '', '', '', $billing, ucfirst( $level ) . ' Membership' );
             if ( ! $sub['success'] ) {
                 wp_send_json_error( [ 'message' => $sub['error'] ] );
             }
@@ -231,11 +237,11 @@ class TTA_Ajax_Membership_Admin {
 
         $level  = sanitize_text_field( $_POST['level'] ?? '' );
         $amount = floatval( $_POST['amount'] ?? 0 );
-        $card   = preg_replace( '/\D/', '', $_POST['card_number'] ?? '' );
-        $exp    = sanitize_text_field( $_POST['exp_date'] ?? '' );
-        $cvc    = sanitize_text_field( $_POST['card_cvc'] ?? '' );
+        $opaque_descriptor = sanitize_text_field( $_POST['opaqueData']['dataDescriptor'] ?? '' );
+        $opaque_value      = sanitize_text_field( $_POST['opaqueData']['dataValue'] ?? '' );
+        $last4             = substr( preg_replace( '/\D/', '', $_POST['last4'] ?? '' ), -4 );
 
-        if ( ! in_array( $level, [ 'basic', 'premium' ], true ) || $amount <= 0 || ! $card || ! $exp ) {
+        if ( ! in_array( $level, [ 'basic', 'premium' ], true ) || $amount <= 0 || ! $opaque_descriptor || ! $opaque_value ) {
             wp_send_json_error( [ 'message' => __( 'Invalid details.', 'tta' ) ] );
         }
 
@@ -247,10 +253,14 @@ class TTA_Ajax_Membership_Admin {
             'city'       => sanitize_text_field( $_POST['bill_city'] ?? '' ),
             'state'      => sanitize_text_field( $_POST['bill_state'] ?? '' ),
             'zip'        => sanitize_text_field( $_POST['bill_zip'] ?? '' ),
+            'opaqueData' => [
+                'dataDescriptor' => $opaque_descriptor,
+                'dataValue'      => $opaque_value,
+            ],
         ];
 
         $api = new TTA_AuthorizeNet_API();
-        $charge = $api->charge( $amount, $card, $exp, $cvc, $billing );
+        $charge = $api->charge( $amount, '', '', '', $billing );
         if ( ! $charge['success'] ) {
             wp_send_json_error( [ 'message' => $charge['error'] ] );
         }
@@ -269,11 +279,11 @@ class TTA_Ajax_Membership_Admin {
             '',
             0,
             intval( $member['wpuserid'] ),
-            substr( $card, -4 ),
+            $last4,
             ''
         );
 
-        $sub = $api->create_subscription( $amount, $card, $exp, $cvc, $billing, ucfirst( $level ) . ' Membership', '', date( 'Y-m-d', strtotime( '+1 month' ) ) );
+        $sub = $api->create_subscription( $amount, '', '', '', $billing, ucfirst( $level ) . ' Membership', '', date( 'Y-m-d', strtotime( '+1 month' ) ) );
         if ( ! $sub['success'] ) {
             wp_send_json_error( [ 'message' => $sub['error'] ] );
         }

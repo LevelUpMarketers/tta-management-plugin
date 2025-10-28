@@ -130,6 +130,7 @@ class TTA_Assets {
                     'email_logs_nonce'    => wp_create_nonce( 'tta_email_logs_action' ),
                     'email_log_clear_nonce' => wp_create_nonce( 'tta_email_clear_action' ),
                     'banned_members_nonce' => wp_create_nonce( 'tta_banned_members_action' ),
+                    'checkinPreviewPlaceholder' => __( '[Message typed on the Event Check-In page]', 'tta' ),
                     'sample_event'        => ( function() {
                         $e = tta_get_next_event();
                         if ( ! $e ) {
@@ -159,6 +160,42 @@ class TTA_Assets {
                         'live_key'      => get_option( 'tta_authnet_transaction_key_live', '' ),
                         'sandbox_login' => get_option( 'tta_authnet_login_id_sandbox', '' ),
                         'sandbox_key'   => get_option( 'tta_authnet_transaction_key_sandbox', '' ),
+                    ]
+                );
+            }
+
+            if ( 'tta-members' === $page ) {
+                $use_sandbox = (bool) get_option( 'tta_authnet_use_sandbox', get_option( 'tta_authnet_sandbox', false ) );
+                $login       = $use_sandbox ? get_option( 'tta_authnet_login_id_sandbox', '' ) : get_option( 'tta_authnet_login_id_live', '' );
+                $client_key  = $use_sandbox ? get_option( 'tta_authnet_public_client_key_sandbox', '' ) : get_option( 'tta_authnet_public_client_key_live', '' );
+                if ( ! $client_key && defined( 'TTA_AUTHNET_CLIENT_KEY' ) ) {
+                    $client_key = TTA_AUTHNET_CLIENT_KEY;
+                }
+                $accept_url  = $use_sandbox ? 'https://jstest.authorize.net/v1/Accept.js' : 'https://js.authorize.net/v1/Accept.js';
+
+                wp_enqueue_script(
+                    'tta-acceptjs',
+                    $accept_url,
+                    [],
+                    null,
+                    true
+                );
+
+                wp_enqueue_script(
+                    'tta-admin-membership-payments',
+                    TTA_PLUGIN_URL . 'assets/js/backend/membership-payments.js',
+                    [ 'tta-admin-js', 'tta-acceptjs', 'jquery' ],
+                    TTA_PLUGIN_VERSION,
+                    true
+                );
+
+                wp_localize_script(
+                    'tta-admin-membership-payments',
+                    'TTA_ACCEPT_ADMIN',
+                    [
+                        'loginId'        => $login,
+                        'clientKey'      => $client_key,
+                        'failureMessage' => wp_kses_post( __( "Encryption of your payment information failed! Please try again later. If you're still having trouble, please contact us using the form on our <a href=\"/contact\">Contact Page</a>.", 'tta' ) ),
                     ]
                 );
             }
@@ -530,6 +567,7 @@ class TTA_Assets {
                     'basic_price'    => TTA_BASIC_MEMBERSHIP_PRICE,
                     'premium_price'  => TTA_PREMIUM_MEMBERSHIP_PRICE,
                     'checkout_key'   => sanitize_text_field( $_SESSION['tta_checkout_key'] ?? '' ),
+                    'encryption_failed_html' => wp_kses_post( __( "Encryption of your payment information failed! Please try again later. If you're still having trouble, please contact us using the form on our <a href=\"/contact\">Contact Page</a>.", 'tta' ) ),
                 ]
             );
 
@@ -617,6 +655,8 @@ class TTA_Assets {
                 TTA_PLUGIN_VERSION,
                 true
             );
+            $min_length = tta_get_checkin_email_min_length();
+
             wp_localize_script(
                 'tta-checkin-js',
                 'TTA_Checkin',
@@ -624,9 +664,19 @@ class TTA_Assets {
                     'ajax_url'  => admin_url( 'admin-ajax.php' ),
                     'get_nonce' => wp_create_nonce( 'tta_get_attendance_action' ),
                     'set_nonce' => wp_create_nonce( 'tta_set_attendance_action' ),
+                    'email_nonce' => wp_create_nonce( 'tta_email_attendees_action' ),
                     'attendance_label' => __( 'Event Attendance & No-Shows:', 'tta' ),
                     'attended_label'   => __( 'Events Attended', 'tta' ),
                     'noshow_label'     => __( 'No-Shows', 'tta' ),
+                    'email_required'   => __( 'Please type a message before sending.', 'tta' ),
+                    'email_success'    => __( 'Email sent to all attendees.', 'tta' ),
+                    'email_failed'     => __( 'Unable to send the email. Please try again.', 'tta' ),
+                    'email_min_length' => $min_length,
+                    'email_too_short'  => sprintf(
+                        /* translators: %d: minimum number of characters required for the message. */
+                        __( 'Please enter at least %d characters before sending.', 'tta' ),
+                        $min_length
+                    ),
                 ]
             );
         }

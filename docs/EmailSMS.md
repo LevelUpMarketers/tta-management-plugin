@@ -2,7 +2,7 @@
 
 The plugin sends automated notifications to members. Administrators can manage these messages from **TTA Email & SMS** in the WordPress admin. The page contains four tabs:
 
-1. **Email Templates** – existing template editor described below.
+1. **Communication Templates** – editor for email and SMS message content described below.
 2. **Mass Communications** – send a one-off email to all verified attendees of a selected event.
 3. **Email Logs** – lists scheduled reminder and thank‑you emails grouped by event. Reminder jobs are automatically queued whenever an event is created or its start time changes and are scheduled using the site's timezone setting. Post-event thank‑you emails are also scheduled when the event is created and run 18 hours after the event ends for attendees who checked in. Each entry shows the send time in `MM-DD-YYYY HH:MMAM/PM` format along with a live `HH H, MM M, SS S` countdown using the site's timezone, exposes its current recipient list via AJAX, and can be deleted before it runs.
 4. **Email History** – a running log of all attempted emails including recipient address and delivery result. A **Clear Log** button removes all entries.
@@ -32,6 +32,7 @@ Select an event from the dropdown to automatically load the email addresses of a
 | `host_reminder_2hr` | Reminder to event hosts two hours before their event. |
 | `volunteer_reminder_24hr` | Reminder to volunteers 24 hours before their event. |
 | `volunteer_reminder_2hr` | Reminder to volunteers two hours before their event. |
+| `checkin_broadcast` | Opening/closing text for the email hosts send from the Event Check-In page. |
 | `assistance_request` | Sent to event hosts when a member asks for help finding the group. |
 | `post_event_review` | Sent 18 hours after an event ends to attendees marked as checked in. |
 
@@ -40,7 +41,8 @@ Each template stores:
 - **Type** – whether the message is sent to members (External) or used internally
 - **Category** – grouping such as Event Reminder or Event Confirmation
 - **Email Subject** – subject line of the email
-- **Email Body** – text shown above the automatically generated event details
+- **Email Body** – text shown above the automatically generated event details (all templates except `checkin_broadcast`)
+- **Opening Greeting / Closing Statement** – only for the `checkin_broadcast` template; the message typed on the Event Check-In page is inserted between these two fields when the email is sent
 - **SMS Text** – short message sent via SMS
 
 All fields are sanitized with the helper functions from `InputSanitization.md`. This strips WordPress slashes so apostrophes display correctly in the admin preview and in the actual emails.
@@ -62,6 +64,22 @@ Default values are provided on initial install:
 - **Host and Volunteer Reminders**: internal messages mirror attendee reminders at 24 and 2 hours before the event.
 
 Links to the member dashboard now output the full site URL and include direct links to each dashboard tab, including the waitlist view.
+
+## Scheduled SMS Reminders
+
+For the **24-Hour Event Reminder**, **2-Hour Event Reminder**, and **Post-Event Thank You** templates, the cron jobs that already schedule reminder emails now also queue SMS messages. When those hooks fire, the SMS handler compiles the template text using the same token replacements as emails and sends messages through Twilio to each verified attendee who opted in to SMS updates during checkout. Attendees who unchecked the consent checkbox (“I agree to receive non-marketing text messages from Trying to Adult RVA about my event sign-up, including 24-hour and 3-hours event reminder texts. Read our Privacy Policy here.”) or do not have a phone number on file are skipped automatically, and sandbox mode continues to redirect all messages to the configured sandbox number.
+
+## Event Check-In Broadcasts
+
+Hosts and volunteers can send an on-the-fly update to everyone associated with an event from the **Email All Attendees** panel on the Event Check-In page. The admin template `checkin_broadcast` supplies the reusable pieces of that message: the subject line plus the opening greeting and closing statement. When a host submits the form:
+
+- The message typed on the check-in page is sanitized to strip HTML, emoji, and control characters while preserving line breaks.
+- Tokens in the subject, greeting, closing, and typed message are replaced per recipient using the same `build_tokens()` helper as other communications, so placeholders such as `{attendee_first_name}` personalize each email.
+- The system emails every verified attendee regardless of check-in status as well as all hosts and volunteers tied to the event.
+- The final email body inserts the typed message between the stored opening and closing text with blank lines separating each section.
+- Each send is written to the **Email History** tab, and the host-facing textarea requires at least 20 substantive characters before the **Send Email** button becomes active to avoid empty blasts.
+
+If no recipients are found or the template is missing, the interface returns an error and no mail is sent.
 
 ## Previews and Tokens
 
@@ -239,3 +257,16 @@ the email handler and reads the SMS text from the same template set. When the
 Twilio credentials are configured, members and attendees receive text messages
 for purchases, refunds and waitlist openings. If credentials are missing no SMS
 is dispatched and a notice appears in the WordPress admin.
+
+Twilio credentials can be managed directly from **TTA Settings → API Settings**.
+Provide the Twilio User SID (account SID), API SID, and API Key generated for
+your API credential pair. Supply either a Messaging Service SID or a Sending
+Number so the plugin knows which sender identity to use when delivering SMS
+messages. Select the Twilio Environment (Live or Sandbox) to control where
+messages are delivered during testing. When Sandbox mode is enabled all SMS
+are routed to the configured Twilio Sandbox Number, ensuring real members do
+not receive test messages. When sandbox mode is active without a sandbox number
+the plugin suppresses SMS delivery and displays an admin warning so test sends
+cannot reach real phones by mistake. These values are stored securely in the
+WordPress options table and are also consumable via environment variables for
+deployment flexibility.

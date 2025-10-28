@@ -60,6 +60,11 @@
   .tta-login-wrap input[type="password"]{
     width:100%;
   }
+
+  .tta-no-show-actions .button{
+    margin-left:auto;
+    margin-right:auto;
+  }
 }
 
 
@@ -127,6 +132,9 @@
   margin-bottom:10px;
   width:100%;
   max-width:300px;
+}
+.tta-email-attendees__actions .tta-email-attendees__send{
+  margin-bottom:25px;
 }
 .tta-no-show-actions .tta-progress-spinner,
 .tta-no-show-actions .tta-admin-progress-response-p{

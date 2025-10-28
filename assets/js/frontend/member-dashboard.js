@@ -325,6 +325,10 @@ jQuery(function($){
               .find('.view-value img')
               .attr('src', updatedSrc);
 
+            if ( typeof dataObj.data.profileimgid !== 'undefined' ) {
+              $form.find('#profileimgid').val( dataObj.data.profileimgid );
+            }
+
             // exit edit-mode
             $wrapper.removeClass('is-editing');
             $('#toggle-edit-mode').text('Edit Profile');
@@ -474,6 +478,81 @@ jQuery(function($){
     });
   });
 
+  function ttaShowEncryptionError($resp, $spin, $btn, debug){
+    $spin.fadeOut(200);
+    $btn.prop('disabled', false);
+    var message = TTA_MemberDashboard.encryption_failed_html || 'Encryption of your payment information failed! Please try again later. If you\'re still having trouble, please contact us using the form on our Contact Page.';
+    $resp.removeClass('updated').addClass('error');
+    if(/</.test(message)){
+      $resp.html(message);
+    }else{
+      $resp.text(message);
+    }
+    if(debug){
+      console.error('Accept.js encryption failed', debug);
+    }
+  }
+
+  function ttaGetAcceptConfig(){
+    var cfg = TTA_MemberDashboard.accept || {};
+    if((!cfg.clientKey || !cfg.loginId) && window.TTA_ACCEPT){
+      cfg = window.TTA_ACCEPT;
+    }
+    return cfg || {};
+  }
+
+  function ttaSubmitEncryptedPayment($form, token, last4, controls){
+    var dataArr = $form.serializeArray();
+    var filtered = ['card_number','exp_date','card_cvc'];
+    var payload = new FormData();
+    dataArr.forEach(function(field){
+      if(filtered.indexOf(field.name) !== -1){
+        return;
+      }
+      payload.append(field.name, field.value);
+    });
+    if(token){
+      payload.append('opaqueData[dataDescriptor]', token.dataDescriptor);
+      payload.append('opaqueData[dataValue]', token.dataValue);
+    }
+    if(last4){
+      payload.append('last4', last4);
+    }
+
+    $.ajax({
+      url: TTA_MemberDashboard.ajax_url,
+      method: 'POST',
+      data: payload,
+      processData: false,
+      contentType: false,
+      dataType: 'json'
+    }).done(function(res){
+      var delay = Math.max(0, 5000 - (Date.now()-controls.start));
+      setTimeout(function(){
+        controls.spin.fadeOut(200);
+        controls.btn.prop('disabled', false);
+        var data = res && res.data ? res.data : {};
+        if(res && res.success){
+          controls.resp.addClass('updated').removeClass('error').text(data.message);
+          if(data.last4){
+            $('#tta-card-last4').text(data.last4);
+          }
+          $form[0].reset();
+        }else{
+          var msg = data && data.message ? data.message : 'Error';
+          controls.resp.addClass('error').removeClass('updated').text(msg);
+        }
+      }, delay);
+    }).fail(function(err){
+      var delay = Math.max(0, 5000 - (Date.now()-controls.start));
+      setTimeout(function(){
+        controls.spin.fadeOut(200);
+        controls.btn.prop('disabled', false);
+        controls.resp.addClass('error').removeClass('updated').text('Request failed. Please try again.');
+      }, delay);
+    });
+  }
+
   // Update payment method form
   $(document).on('submit', '#tta-update-card-form', function(e){
     e.preventDefault();
@@ -487,28 +566,42 @@ jQuery(function($){
     $btn.prop('disabled', true);
     $spin.show().css({opacity:0}).fadeTo(200,1);
 
-    $.post(TTA_MemberDashboard.ajax_url, $form.serialize(), function(res){
-      var delay = Math.max(0, 5000 - (Date.now()-start));
-      setTimeout(function(){
-        $spin.fadeOut(200);
-        $btn.prop('disabled', false);
-        if(res.success){
-          $resp.addClass('updated').text(res.data.message);
-          if(res.data.last4){
-            $('#tta-card-last4').text(res.data.last4);
-          }
-          $form[0].reset();
-        }else{
-          $resp.addClass('error').text(res.data.message||'Error');
-        }
-      }, delay);
-    }, 'json').fail(function(){
-      var delay = Math.max(0, 5000 - (Date.now()-start));
-      setTimeout(function(){
-        $spin.fadeOut(200);
-        $btn.prop('disabled', false);
-        $resp.addClass('error').text('Request failed. Please try again.');
-      }, delay);
+    var cfg = ttaGetAcceptConfig();
+    if(!cfg.clientKey || !cfg.loginId || typeof Accept === 'undefined' || typeof Accept.dispatchData !== 'function'){
+      ttaShowEncryptionError($resp, $spin, $btn, 'Missing Accept.js configuration');
+      return;
+    }
+
+    var cardNumber = ($form.find('[name="card_number"]').val() || '').replace(/[^0-9]/g,'');
+    var exp        = ($form.find('[name="exp_date"]').val() || '').replace(/\s+/g,'');
+    var cvc        = ($form.find('[name="card_cvc"]').val() || '').replace(/[^0-9]/g,'');
+    if(/^[0-9]{4}$/.test(exp)){
+      exp = exp.substring(0,2) + '/' + exp.substring(2);
+    }
+    var parts = exp.split(/[\/\-]/);
+    var month = parts[0] || '';
+    var year  = parts[1] || '';
+    if(year.length === 2){
+      year = '20' + year;
+    }
+
+    var controls = { btn: $btn, spin: $spin, resp: $resp, start: start };
+
+    Accept.dispatchData({
+      authData: { clientKey: cfg.clientKey, apiLoginID: cfg.loginId },
+      cardData: { cardNumber: cardNumber, month: month, year: year, cardCode: cvc }
+    }, function(response){
+      if(!response || response.messages.resultCode !== 'Ok' || !response.opaqueData){
+        ttaShowEncryptionError($resp, $spin, $btn, response || 'No response');
+        return;
+      }
+      var token = response.opaqueData;
+      if(!token.dataDescriptor || !token.dataValue){
+        ttaShowEncryptionError($resp, $spin, $btn, token);
+        return;
+      }
+      var last4 = cardNumber.slice(-4);
+      ttaSubmitEncryptedPayment($form, token, last4, controls);
     });
   });
 
