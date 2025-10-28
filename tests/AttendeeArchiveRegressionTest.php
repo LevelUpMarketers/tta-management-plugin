@@ -68,6 +68,7 @@ class AttendeeArchiveRegressionTest extends TestCase {
                         'id'             => 99,
                         'transaction_id' => 'TX123',
                         'created_at'     => '2023-01-01 09:00:00',
+                        'member_id'      => $this->member_id,
                         'wpuserid'       => 123,
                         'details'        => json_encode([
                             [
@@ -124,6 +125,9 @@ class AttendeeArchiveRegressionTest extends TestCase {
                 }
                 if ( false !== strpos( $query, 'SELECT id, transaction_id FROM wp_tta_transactions WHERE transaction_id IN' ) ) {
                     return [ [ 'id' => 99, 'transaction_id' => 'TX123' ] ];
+                }
+                if ( false !== strpos( $query, 'SELECT a.id AS attendee_id, a.status FROM wp_tta_attendees' ) && false !== strpos( $query, 'UNION' ) ) {
+                    return $this->member_status_rows();
                 }
                 if ( false !== strpos( $query, 'SELECT transaction_id, COUNT(*) AS cnt FROM wp_tta_attendees WHERE transaction_id IN' ) ) {
                     return $this->count_by_transaction( $this->attendees );
@@ -189,6 +193,44 @@ class AttendeeArchiveRegressionTest extends TestCase {
                 }
                 return $out;
             }
+            public function member_status_rows() {
+                $results = [];
+                $seen    = [];
+                foreach ( [ $this->attendees, $this->attendees_archive ] as $source ) {
+                    foreach ( $source as $row ) {
+                        $transaction_id = (int) ( $row['transaction_id'] ?? 0 );
+                        if ( ! $transaction_id ) {
+                            continue;
+                        }
+                        if ( ! $this->transaction_matches_member( $transaction_id ) ) {
+                            continue;
+                        }
+                        $att_id = (int) ( $row['id'] ?? 0 );
+                        if ( $att_id && isset( $seen[ $att_id ] ) ) {
+                            continue;
+                        }
+                        if ( $att_id ) {
+                            $seen[ $att_id ] = true;
+                        }
+                        $results[] = [
+                            'attendee_id' => $att_id,
+                            'status'      => $row['status'] ?? 'pending',
+                        ];
+                    }
+                }
+                return $results;
+            }
+            private function transaction_matches_member( int $transaction_id ): bool {
+                foreach ( $this->transactions as $transaction ) {
+                    if ( (int) ( $transaction['id'] ?? 0 ) !== $transaction_id ) {
+                        continue;
+                    }
+                    if ( (int) ( $transaction['member_id'] ?? 0 ) === (int) $this->member_id ) {
+                        return true;
+                    }
+                }
+                return false;
+            }
         };
         require_once __DIR__ . '/../includes/helpers.php';
     }
@@ -212,5 +254,40 @@ class AttendeeArchiveRegressionTest extends TestCase {
         $this->assertCount( 1, $events );
         $this->assertSame( 'Sample Event', $events[0]['name'] );
         $this->assertNotEmpty( $events[0]['items'] );
+    }
+
+    public function test_member_history_summary_deduplicates_attendance(): void {
+        global $wpdb;
+
+        $summary = tta_get_member_history_summary( $wpdb->member_id );
+
+        $this->assertSame( 0, $summary['attended'] );
+        $this->assertSame( 1, $summary['no_show'] );
+    }
+
+    public function test_member_history_summary_counts_archive_only_records(): void {
+        global $wpdb;
+
+        $wpdb->attendees         = [];
+        $wpdb->attendees_archive = [
+            [
+                'id'              => 777,
+                'ticket_id'       => 101,
+                'first_name'      => 'Alex',
+                'last_name'       => 'Doe',
+                'email'           => 'alex@example.com',
+                'phone'           => '555-0000',
+                'status'          => 'checked_in',
+                'transaction_id'  => 99,
+                'assistance_note' => '',
+                'opt_in_sms'      => 0,
+                'created_at'      => '2023-01-01 12:00:00',
+            ],
+        ];
+
+        $summary = tta_get_member_history_summary( $wpdb->member_id );
+
+        $this->assertSame( 1, $summary['attended'] );
+        $this->assertSame( 0, $summary['no_show'] );
     }
 }

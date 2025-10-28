@@ -3195,6 +3195,7 @@ function tta_get_member_history_summary( $member_id, $include_subscription = fal
     $archive_table = $wpdb->prefix . 'tta_events_archive';
     $tx_table      = $wpdb->prefix . 'tta_transactions';
     $att_table     = $wpdb->prefix . 'tta_attendees';
+    $att_archive   = $wpdb->prefix . 'tta_attendees_archive';
     $members_table = $wpdb->prefix . 'tta_members';
 
     $rows = $wpdb->get_results(
@@ -3258,19 +3259,41 @@ function tta_get_member_history_summary( $member_id, $include_subscription = fal
         $summary['total_spent'] -= $amount;
     }
 
+    $status_sql = "(SELECT a.id AS attendee_id, a.status
+                      FROM {$att_table} a
+                      INNER JOIN {$tx_table} t ON a.transaction_id = t.id
+                     WHERE t.member_id = %d)
+                    UNION
+                    (SELECT a.id AS attendee_id, a.status
+                      FROM {$att_archive} a
+                      INNER JOIN {$tx_table} t ON a.transaction_id = t.id
+                     WHERE t.member_id = %d)";
+
     $status_rows = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT a.status FROM {$att_table} a
-             JOIN {$tx_table} t ON a.transaction_id = t.id
-            WHERE t.member_id = %d",
+            $status_sql,
+            $member_id,
             $member_id
         ),
         ARRAY_A
     );
+
+    $seen_attendees = [];
     foreach ( $status_rows as $r ) {
-        if ( 'checked_in' === $r['status'] ) {
+        $attendee_id = intval( $r['attendee_id'] ?? 0 );
+        $status      = sanitize_text_field( $r['status'] ?? '' );
+
+        if ( $attendee_id && isset( $seen_attendees[ $attendee_id ] ) ) {
+            continue;
+        }
+
+        if ( $attendee_id ) {
+            $seen_attendees[ $attendee_id ] = true;
+        }
+
+        if ( 'checked_in' === $status ) {
             $summary['attended']++;
-        } elseif ( 'no_show' === $r['status'] ) {
+        } elseif ( 'no_show' === $status ) {
             $summary['no_show']++;
         }
     }
