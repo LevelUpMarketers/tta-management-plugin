@@ -1099,25 +1099,106 @@ function tta_get_attendee_user_id( $attendee_id ) {
  */
 function tta_set_attendance_status( $attendee_id, $status ) {
     global $wpdb;
-    $att_table   = $wpdb->prefix . 'tta_attendees';
-    $att_archive = $wpdb->prefix . 'tta_attendees_archive';
-    $status      = in_array( $status, [ 'checked_in', 'no_show', 'pending' ], true ) ? $status : 'pending';
 
-    $row   = $wpdb->get_row( $wpdb->prepare( "SELECT email FROM {$att_table} WHERE id = %d", $attendee_id ), ARRAY_A );
-    $table = $att_table;
-    if ( ! $row ) {
-        $row   = $wpdb->get_row( $wpdb->prepare( "SELECT email FROM {$att_archive} WHERE id = %d", $attendee_id ), ARRAY_A );
-        $table = $att_archive;
+    $attendee_id = intval( $attendee_id );
+    if ( ! $attendee_id ) {
+        return;
     }
-    $email = $row ? strtolower( sanitize_email( $row['email'] ) ) : '';
+
+    $att_table        = $wpdb->prefix . 'tta_attendees';
+    $att_archive      = $wpdb->prefix . 'tta_attendees_archive';
+    $tickets_table    = $wpdb->prefix . 'tta_tickets';
+    $tickets_archive  = $wpdb->prefix . 'tta_tickets_archive';
+    $events_table     = $wpdb->prefix . 'tta_events';
+    $events_archive   = $wpdb->prefix . 'tta_events_archive';
+    $status           = in_array( $status, [ 'checked_in', 'no_show', 'pending' ], true ) ? $status : 'pending';
+
+    $active_row  = $wpdb->get_row( $wpdb->prepare( "SELECT email, ticket_id FROM {$att_table} WHERE id = %d", $attendee_id ), ARRAY_A );
+    $archive_row = $wpdb->get_row( $wpdb->prepare( "SELECT email, ticket_id FROM {$att_archive} WHERE id = %d", $attendee_id ), ARRAY_A );
+    $row         = $active_row ?: $archive_row;
+
+    if ( ! $row ) {
+        return;
+    }
+
+    $email     = strtolower( sanitize_email( $row['email'] ?? '' ) );
+    $ticket_id = intval( $row['ticket_id'] ?? 0 );
+
+    $event_date = '';
+    if ( $ticket_id ) {
+        $event_date = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT e.date FROM {$tickets_table} t JOIN {$events_table} e ON t.event_ute_id = e.ute_id WHERE t.id = %d",
+                $ticket_id
+            )
+        );
+
+        if ( ! $event_date ) {
+            $event_date = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT e.date FROM {$tickets_archive} t JOIN {$events_archive} e ON t.event_ute_id = e.ute_id WHERE t.id = %d",
+                    $ticket_id
+                )
+            );
+        }
+
+        if ( ! $event_date ) {
+            $event_date = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT e.date FROM {$tickets_table} t JOIN {$events_archive} e ON t.event_ute_id = e.ute_id WHERE t.id = %d",
+                    $ticket_id
+                )
+            );
+        }
+
+        if ( ! $event_date ) {
+            $event_date = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT e.date FROM {$tickets_archive} t JOIN {$events_table} e ON t.event_ute_id = e.ute_id WHERE t.id = %d",
+                    $ticket_id
+                )
+            );
+        }
+    }
+
+    $should_use_archive = false;
+    if ( $event_date ) {
+        $event_timestamp  = strtotime( $event_date );
+        $archive_cutoff   = strtotime( '-3 days', current_time( 'timestamp' ) );
+        if ( $event_timestamp && $archive_cutoff && $event_timestamp <= $archive_cutoff ) {
+            $should_use_archive = true;
+        }
+    }
+
+    $tables_to_update = [];
+    if ( $should_use_archive ) {
+        if ( $archive_row ) {
+            $tables_to_update[] = $att_archive;
+        } elseif ( $active_row ) {
+            $tables_to_update[] = $att_table;
+        }
+    } else {
+        if ( $active_row ) {
+            $tables_to_update[] = $att_table;
+        } elseif ( $archive_row ) {
+            $tables_to_update[] = $att_archive;
+        }
+    }
+
+    if ( empty( $tables_to_update ) ) {
+        $tables_to_update[] = $active_row ? $att_table : $att_archive;
+    }
 
     $current = tta_get_attendance_status( $attendee_id );
     if ( $current === $status ) {
         return;
     }
 
-    $wpdb->update( $table, [ 'status' => $status ], [ 'id' => intval( $attendee_id ) ], [ '%s' ], [ '%d' ] );
-    TTA_Cache::delete( 'attendance_status_' . intval( $attendee_id ) );
+    foreach ( $tables_to_update as $table ) {
+        $wpdb->update( $table, [ 'status' => $status ], [ 'id' => $attendee_id ], [ '%s' ], [ '%d' ] );
+    }
+
+    TTA_Cache::delete( 'attendance_status_' . $attendee_id );
     if ( $email ) {
         $hash = md5( $email );
         TTA_Cache::delete( 'attended_count_' . $hash );
@@ -1132,7 +1213,7 @@ function tta_set_attendance_status( $attendee_id, $status ) {
     }
 
     if ( 'no_show' === $status && 'no_show' !== $current && $user_id ) {
-        $no_shows        = tta_get_no_show_event_count_by_email( $email );
+        $no_shows         = tta_get_no_show_event_count_by_email( $email );
         $previous_no_show = max( 0, $no_shows - 1 );
         if ( $no_shows >= 5 && $previous_no_show < 5 ) {
             $members_table = $wpdb->prefix . 'tta_members';
@@ -1164,13 +1245,16 @@ function tta_get_attendance_status( $attendee_id ) {
     }
     $att_table   = $wpdb->prefix . 'tta_attendees';
     $att_archive = $wpdb->prefix . 'tta_attendees_archive';
-    $status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$att_table} WHERE id = %d", $attendee_id ) );
+
+    $status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$att_archive} WHERE id = %d", $attendee_id ) );
     if ( ! $status ) {
-        $status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$att_archive} WHERE id = %d", $attendee_id ) );
+        $status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$att_table} WHERE id = %d", $attendee_id ) );
     }
+
     if ( ! $status ) {
         $status = 'pending';
     }
+
     TTA_Cache::set( $cache_key, $status, 300 );
     return $status;
 }
@@ -3555,37 +3639,61 @@ function tta_get_member_event_history( $email ) {
     $events_table    = $wpdb->prefix . 'tta_events';
     $events_archive  = $wpdb->prefix . 'tta_events_archive';
 
-    $sql = "(SELECT a.id AS att_id, a.status, e.name, e.date
+    $sql = "(SELECT a.id AS att_id, a.status, e.name, e.date, 'active' AS src
                FROM {$att_table} a
                JOIN {$tickets_table} t ON a.ticket_id = t.id
                JOIN {$events_table} e ON t.event_ute_id = e.ute_id
               WHERE LOWER(a.email) = %s)
             UNION ALL
-            (SELECT a.id AS att_id, a.status, e.name, e.date
+            (SELECT a.id AS att_id, a.status, e.name, e.date, 'archive' AS src
                FROM {$att_archive} a
                JOIN {$tickets_archive} t ON a.ticket_id = t.id
                JOIN {$events_archive} e ON t.event_ute_id = e.ute_id
-              WHERE LOWER(a.email) = %s)
-            ORDER BY date DESC";
+              WHERE LOWER(a.email) = %s)";
 
     $raw_rows = $wpdb->get_results( $wpdb->prepare( $sql, $email, $email ), ARRAY_A );
-    $events   = [];
-    $seen     = [];
+    $by_attendee = [];
+
     foreach ( $raw_rows as $r ) {
         $att_id = intval( $r['att_id'] );
-        if ( $att_id && isset( $seen[ $att_id ] ) ) {
+        if ( ! $att_id ) {
             continue;
         }
-        if ( $att_id ) {
-            $seen[ $att_id ] = true;
-        }
-        $events[] = [
-            'attendee_id' => intval( $r['att_id'] ),
+
+        $entry = [
+            'attendee_id' => $att_id,
             'name'        => sanitize_text_field( $r['name'] ),
             'date'        => $r['date'],
             'status'      => sanitize_text_field( $r['status'] ),
+            'source'      => isset( $r['src'] ) ? sanitize_text_field( $r['src'] ) : 'active',
         ];
+
+        if ( isset( $by_attendee[ $att_id ] ) ) {
+            if ( 'archive' === $entry['source'] && 'archive' !== $by_attendee[ $att_id ]['source'] ) {
+                $by_attendee[ $att_id ] = $entry;
+            }
+            continue;
+        }
+
+        $by_attendee[ $att_id ] = $entry;
     }
+
+    $events = array_map(
+        function ( $event ) {
+            unset( $event['source'] );
+            return $event;
+        },
+        array_values( $by_attendee )
+    );
+
+    usort(
+        $events,
+        static function ( $a, $b ) {
+            $a_time = strtotime( $a['date'] ?? '' ) ?: 0;
+            $b_time = strtotime( $b['date'] ?? '' ) ?: 0;
+            return $b_time <=> $a_time;
+        }
+    );
 
     $ttl = empty( $events ) ? 60 : 300;
     TTA_Cache::set( $cache_key, $events, $ttl );

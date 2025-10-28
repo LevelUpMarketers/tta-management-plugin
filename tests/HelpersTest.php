@@ -444,7 +444,13 @@ class HelpersTest extends TestCase {
                 $this->updated = [$table, $data, $where];
             }
             public function get_row($query, $output = ARRAY_A) {
-                return ['email' => 'test@example.com'];
+                if ( false !== strpos( $query, 'wp_tta_attendees_archive' ) ) {
+                    return null;
+                }
+                return [ 'email' => 'test@example.com', 'ticket_id' => 55 ];
+            }
+            public function get_var($query) {
+                return '';
             }
             public function prepare($query, ...$args) {
                 return $query;
