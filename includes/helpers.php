@@ -6024,6 +6024,63 @@ function tta_ticket_has_waitlist_entries( $ticket_id ) {
  *
  * @param int $ticket_id Ticket ID.
  */
+function tta_build_waitlist_notification_context( array $entry, array $event ) {
+    $normalized = is_array( $event ) ? $event : [];
+    $entry      = is_array( $entry ) ? $entry : [];
+
+    $ute_id = sanitize_text_field( $entry['event_ute_id'] ?? ( $normalized['ute_id'] ?? '' ) );
+    if ( $ute_id ) {
+        $normalized['ute_id'] = $ute_id;
+    }
+
+    $requires_lookup = empty( $normalized['name'] )
+        || empty( $normalized['date'] )
+        || empty( $normalized['time'] )
+        || empty( $normalized['address'] )
+        || empty( $normalized['venue_name'] );
+
+    if ( $ute_id && ( $requires_lookup || empty( $normalized['page_url'] ) ) ) {
+        $fetched = tta_get_event_for_email( $ute_id );
+        if ( $fetched ) {
+            $normalized = array_merge( $fetched, $normalized );
+        }
+    }
+
+    if ( empty( $normalized['page_url'] ) && ! empty( $normalized['page_id'] ) ) {
+        $normalized['page_url'] = get_permalink( intval( $normalized['page_id'] ) );
+    }
+
+    $address      = $normalized['address'] ?? '';
+    $address_link = $address ? esc_url( 'https://maps.google.com/?q=' . rawurlencode( $address ) ) : '';
+
+    $names = tta_get_event_host_volunteer_names( intval( $normalized['id'] ?? 0 ) );
+    $host  = $names['hosts'] ? implode( ', ', $names['hosts'] ) : 'TBD';
+    $vol   = $names['volunteers'] ? implode( ', ', $names['volunteers'] ) : 'TBD';
+
+    $tokens = [
+        '{event_name}'         => sanitize_text_field( $normalized['name'] ?? '' ),
+        '{event_link}'         => esc_url( $normalized['page_url'] ?? '' ),
+        '{event_date}'         => isset( $normalized['date'] ) ? tta_format_event_date( $normalized['date'] ) : '',
+        '{event_time}'         => isset( $normalized['time'] ) ? tta_format_event_time( $normalized['time'] ) : '',
+        '{venue_name}'         => sanitize_text_field( $normalized['venue_name'] ?? '' ),
+        '{venue_url}'          => esc_url( $normalized['venue_url'] ?? '' ),
+        '{event_address}'      => $address,
+        '{event_address_link}' => $address_link,
+        '{event_host}'         => $host,
+        '{event_hosts}'        => $host,
+        '{event_volunteer}'    => $vol,
+        '{event_volunteers}'   => $vol,
+        '{first_name}'         => sanitize_text_field( $entry['first_name'] ?? '' ),
+        '{last_name}'          => sanitize_text_field( $entry['last_name'] ?? '' ),
+        '{ticket_name}'        => sanitize_text_field( $entry['ticket_name'] ?? ( $normalized['ticket_name'] ?? '' ) ),
+    ];
+
+    return [
+        'event'  => $normalized,
+        'tokens' => $tokens,
+    ];
+}
+
 function tta_notify_waitlist_ticket_available( $ticket_id ) {
     global $wpdb;
     $tickets_table = $wpdb->prefix . 'tta_tickets';
@@ -6045,6 +6102,15 @@ function tta_notify_waitlist_ticket_available( $ticket_id ) {
     if ( empty( $event ) || empty( $event['waitlistavailable'] ) ) {
         return;
     }
+
+    $event_details = tta_get_event_for_email( $ticket['event_ute_id'] );
+    if ( empty( $event_details ) ) {
+        $event_details = [
+            'name'    => sanitize_text_field( $event['name'] ?? '' ),
+            'page_id' => intval( $event['page_id'] ?? 0 ),
+        ];
+    }
+    $event_details['ute_id'] = sanitize_text_field( $ticket['event_ute_id'] );
 
     $entries = $wpdb->get_results(
         $wpdb->prepare("SELECT * FROM {$waitlist_table} WHERE ticket_id = %d ORDER BY added_at ASC", $ticket_id),
@@ -6073,7 +6139,7 @@ function tta_notify_waitlist_ticket_available( $ticket_id ) {
     foreach ( $grouped as $level => $rows ) {
         foreach ( $rows as $row ) {
             $delay = $offsets[ $level ];
-            wp_schedule_single_event( time() + $delay, 'tta_send_waitlist_notification', [ $row, $event ] );
+            wp_schedule_single_event( time() + $delay, 'tta_send_waitlist_notification', [ $row, $event_details ] );
         }
     }
 }
@@ -6090,21 +6156,20 @@ function tta_send_waitlist_notification( $entry, $event ) {
         return;
     }
     $tpl = $templates['waitlist_available'];
-    $tokens = [
-        '{event_name}' => $event['name'] ?? '',
-        '{event_link}' => get_permalink( intval( $event['page_id'] ) ),
-        '{first_name}' => $entry['first_name'] ?? '',
-    ];
+    $context = tta_build_waitlist_notification_context( (array) $entry, (array) $event );
+    $tokens  = $context['tokens'];
+    $event_context = $context['event'];
+
     $sub_raw = tta_expand_anchor_tokens( $tpl['email_subject'], $tokens );
-    $subject = strtr( $sub_raw, $tokens );
+    $subject = tta_strip_bold( strtr( $sub_raw, $tokens ) );
     $body_raw = tta_expand_anchor_tokens( $tpl['email_body'], $tokens );
-    $body_txt = tta_convert_links( strtr( $body_raw, $tokens ) );
+    $body_txt = tta_convert_bold( tta_convert_links( strtr( $body_raw, $tokens ) ) );
     $body    = nl2br( $body_txt );
     $to      = sanitize_email( $entry['email'] ?? '' );
     if ( $to ) {
         wp_mail( $to, $subject, $body, [ 'Content-Type: text/html; charset=UTF-8' ] );
     }
-    TTA_SMS_Handler::get_instance()->send_waitlist_text( $entry, $event );
+    TTA_SMS_Handler::get_instance()->send_waitlist_text( $entry, $event_context );
 }
 add_action( 'tta_send_waitlist_notification', 'tta_send_waitlist_notification', 10, 2 );
 

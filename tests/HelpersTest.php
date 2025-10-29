@@ -1,6 +1,40 @@
 <?php
 use PHPUnit\Framework\TestCase;
 if (!defined('ARRAY_A')) { define('ARRAY_A', 'ARRAY_A'); }
+if (!defined('TTA_PLUGIN_DIR')) { define('TTA_PLUGIN_DIR', dirname(__DIR__) . '/' ); }
+
+if (!function_exists('__')) { function __($s, $d = null) { return $s; } }
+if (!function_exists('_e')) { function _e($s, $d = null) { echo $s; } }
+if (!function_exists('wp_mail')) {
+    function wp_mail($to, $subject, $message, $headers = []) {
+        $GLOBALS['sent_mail'][] = compact('to', 'subject', 'message', 'headers');
+        return true;
+    }
+}
+
+if (!class_exists('TTA_SMS_Handler')) {
+    class TTA_SMS_Handler {
+        public static $last_entry;
+        public static $last_event;
+        public static $last_message;
+
+        public static function get_instance() {
+            return new self();
+        }
+
+        public function send_waitlist_text(array $entry, array $event) {
+            $templates = tta_get_comm_templates();
+            $tpl       = $templates['waitlist_available'] ?? [ 'sms_text' => '' ];
+            $context   = tta_build_waitlist_notification_context( $entry, $event );
+            $tokens    = $context['tokens'];
+
+            $msg_raw = tta_expand_anchor_tokens( $tpl['sms_text'] ?? '', $tokens );
+            self::$last_entry   = $entry;
+            self::$last_event   = $context['event'];
+            self::$last_message = tta_strip_bold( strtr( $msg_raw, $tokens ) );
+        }
+    }
+}
 
 class DummyWpdbHelpers {
     public $prefix = 'wp_';
@@ -1096,6 +1130,70 @@ class HelpersTest extends TestCase {
         $in  = 'Go {dashboard_upcoming_url anchor=""} now.';
         $exp = 'Go http://example.com/member-dashboard/?tab=upcoming now.';
         $this->assertSame( $exp, tta_expand_anchor_tokens( $in, $tokens ) );
+    }
+
+    public function test_waitlist_notification_populates_tokens() {
+        global $wpdb;
+        require_once __DIR__ . '/../includes/helpers.php';
+
+        $GLOBALS['sent_mail'] = [];
+        TTA_SMS_Handler::$last_entry   = null;
+        TTA_SMS_Handler::$last_event   = null;
+        TTA_SMS_Handler::$last_message = null;
+
+        $wpdb->event_row_data = [
+            'hosts'      => 'Host One',
+            'volunteers' => 'Volunteer One',
+        ];
+
+        update_option( 'tta_comms_templates', [
+            'waitlist_available' => [
+                'email_subject' => 'Spot open for {event_name} on {event_date}',
+                'email_body'    => "**Event:** [{event_name}]({event_link})\n**Day:** {event_date}\n**Time:** {event_time}\n**Venue:** [{venue_name}]({venue_url})\n**Address:** [{event_address}]({event_address_link})\n**Event Host(s):** {event_host}\n**Event Volunteers(s):** {event_volunteer}\n**Ticket:** {ticket_name}",
+                'sms_text'      => 'Hi {first_name}, a spot opened for {event_name} on {event_date} at {event_time}.',
+            ],
+        ] );
+
+        $entry = [
+            'email'        => 'waiter@example.com',
+            'first_name'   => 'Casey',
+            'last_name'    => 'Member',
+            'phone'        => '8045551234',
+            'event_ute_id' => 'ute1',
+            'ticket_name'  => 'General Admission',
+        ];
+
+        $event = [
+            'id'          => 12,
+            'name'        => 'Trivia Night',
+            'date'        => '2025-09-17',
+            'time'        => '18:00|20:00',
+            'address'     => '123 Fun St Richmond, VA 23219',
+            'venue_name'  => 'Fun House',
+            'venue_url'   => 'https://example.com',
+            'page_id'     => 42,
+            'page_url'    => 'post/42',
+            'ute_id'      => 'ute1',
+        ];
+
+        tta_send_waitlist_notification( $entry, $event );
+
+        $this->assertNotEmpty( $GLOBALS['sent_mail'] );
+        $mail = $GLOBALS['sent_mail'][0];
+        $this->assertSame( 'waiter@example.com', $mail['to'] );
+        $this->assertSame( 'Spot open for Trivia Night on September 17th, 2025', $mail['subject'] );
+        $this->assertStringContainsString( '<strong>Event:</strong> <a href="post/42">Trivia Night</a>', $mail['message'] );
+        $this->assertStringContainsString( '<strong>Day:</strong> September 17th, 2025', $mail['message'] );
+        $this->assertStringContainsString( '<strong>Time:</strong> 6:00 pm - 8:00 pm', $mail['message'] );
+        $this->assertStringContainsString( '<strong>Venue:</strong> <a href="https://example.com">Fun House</a>', $mail['message'] );
+        $this->assertStringContainsString( '<strong>Address:</strong> <a href="https://maps.google.com/?q=123%20Fun%20St%20Richmond%2C%20VA%2023219">123 Fun St Richmond, VA 23219</a>', $mail['message'] );
+        $this->assertStringContainsString( '<strong>Event Host(s):</strong> Host One', $mail['message'] );
+        $this->assertStringContainsString( '<strong>Event Volunteers(s):</strong> Volunteer One', $mail['message'] );
+        $this->assertStringContainsString( '<strong>Ticket:</strong> General Admission', $mail['message'] );
+
+        $this->assertSame( 'Hi Casey, a spot opened for Trivia Night on September 17th, 2025 at 6:00 pm - 8:00 pm.', TTA_SMS_Handler::$last_message );
+        $this->assertSame( 'Trivia Night', TTA_SMS_Handler::$last_event['name'] ?? '' );
+        $this->assertSame( 'ute1', TTA_SMS_Handler::$last_event['ute_id'] ?? '' );
     }
 
     public function test_convert_bold_and_strip_bold() {
