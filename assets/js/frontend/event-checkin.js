@@ -34,7 +34,9 @@ jQuery(function($){
 
   // Toggle event rows
   $(document).on('click', '.tta-event-row', function(e){
-    if ($(e.target).is('button, a')) return;
+    var $target = $(e.target);
+    if ($target.is('button, a, input, textarea, select')) return;
+    if ($target.closest('.tta-inline-container').length) return;
     var $row        = $(this),
         $arrow      = $row.find('.tta-toggle-arrow'),
         ute         = $row.data('event-ute-id'),
