@@ -250,9 +250,12 @@ class AttendeeArchiveRegressionTest extends TestCase {
             }
             public function member_status_rows() {
                 $results = [];
-                $seen    = [];
-                foreach ( [ $this->attendees, $this->attendees_archive ] as $source ) {
-                    foreach ( $source as $row ) {
+                foreach ( [
+                    [ $this->attendees, 'active' ],
+                    [ $this->attendees_archive, 'archive' ],
+                ] as $set ) {
+                    [ $source_rows, $src ] = $set;
+                    foreach ( $source_rows as $row ) {
                         $transaction_id = (int) ( $row['transaction_id'] ?? 0 );
                         if ( ! $transaction_id ) {
                             continue;
@@ -260,16 +263,10 @@ class AttendeeArchiveRegressionTest extends TestCase {
                         if ( ! $this->transaction_matches_member( $transaction_id ) ) {
                             continue;
                         }
-                        $att_id = (int) ( $row['id'] ?? 0 );
-                        if ( $att_id && isset( $seen[ $att_id ] ) ) {
-                            continue;
-                        }
-                        if ( $att_id ) {
-                            $seen[ $att_id ] = true;
-                        }
                         $results[] = [
-                            'attendee_id' => $att_id,
+                            'attendee_id' => (int) ( $row['id'] ?? 0 ),
                             'status'      => $row['status'] ?? 'pending',
+                            'src'         => $src,
                         ];
                     }
                 }
@@ -361,6 +358,18 @@ class AttendeeArchiveRegressionTest extends TestCase {
                 'created_at'      => '2023-01-01 12:00:00',
             ],
         ];
+
+        $summary = tta_get_member_history_summary( $wpdb->member_id );
+
+        $this->assertSame( 1, $summary['attended'] );
+        $this->assertSame( 0, $summary['no_show'] );
+    }
+
+    public function test_member_history_summary_prefers_archive_status_over_active_row(): void {
+        global $wpdb;
+
+        $wpdb->attendees[0]['status']         = 'no_show';
+        $wpdb->attendees_archive[0]['status'] = 'checked_in';
 
         $summary = tta_get_member_history_summary( $wpdb->member_id );
 

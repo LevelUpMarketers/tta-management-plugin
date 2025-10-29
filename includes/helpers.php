@@ -3343,12 +3343,12 @@ function tta_get_member_history_summary( $member_id, $include_subscription = fal
         $summary['total_spent'] -= $amount;
     }
 
-    $status_sql = "(SELECT a.id AS attendee_id, a.status
+    $status_sql = "(SELECT a.id AS attendee_id, a.status, 'active' AS src
                       FROM {$att_table} a
                       INNER JOIN {$tx_table} t ON a.transaction_id = t.id
                      WHERE t.member_id = %d)
-                    UNION
-                    (SELECT a.id AS attendee_id, a.status
+                    UNION ALL
+                    (SELECT a.id AS attendee_id, a.status, 'archive' AS src
                       FROM {$att_archive} a
                       INNER JOIN {$tx_table} t ON a.transaction_id = t.id
                      WHERE t.member_id = %d)";
@@ -3362,22 +3362,36 @@ function tta_get_member_history_summary( $member_id, $include_subscription = fal
         ARRAY_A
     );
 
-    $seen_attendees = [];
-    foreach ( $status_rows as $r ) {
-        $attendee_id = intval( $r['attendee_id'] ?? 0 );
-        $status      = sanitize_text_field( $r['status'] ?? '' );
-
-        if ( $attendee_id && isset( $seen_attendees[ $attendee_id ] ) ) {
+    $attendee_statuses = [];
+    foreach ( $status_rows as $row ) {
+        $attendee_id = intval( $row['attendee_id'] ?? 0 );
+        if ( ! $attendee_id ) {
             continue;
         }
 
-        if ( $attendee_id ) {
-            $seen_attendees[ $attendee_id ] = true;
+        $status = sanitize_text_field( $row['status'] ?? '' );
+        $source = isset( $row['src'] ) ? sanitize_text_field( $row['src'] ) : 'active';
+
+        if ( isset( $attendee_statuses[ $attendee_id ] ) ) {
+            if ( 'archive' === $source && 'archive' !== $attendee_statuses[ $attendee_id ]['source'] ) {
+                $attendee_statuses[ $attendee_id ] = [
+                    'status' => $status,
+                    'source' => $source,
+                ];
+            }
+            continue;
         }
 
-        if ( 'checked_in' === $status ) {
+        $attendee_statuses[ $attendee_id ] = [
+            'status' => $status,
+            'source' => $source,
+        ];
+    }
+
+    foreach ( $attendee_statuses as $attendee_status ) {
+        if ( 'checked_in' === $attendee_status['status'] ) {
             $summary['attended']++;
-        } elseif ( 'no_show' === $status ) {
+        } elseif ( 'no_show' === $attendee_status['status'] ) {
             $summary['no_show']++;
         }
     }
