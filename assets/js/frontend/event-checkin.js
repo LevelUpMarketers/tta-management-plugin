@@ -28,6 +28,44 @@ jQuery(function($){
     });
   }
 
+  function findEventRow($el){
+    var $row = $el.closest('.tta-event-row');
+    if ($row.length) {
+      return $row;
+    }
+    var $inline = $el.closest('.tta-inline-row');
+    if ($inline.length) {
+      $row = $inline.prev('.tta-event-row');
+    }
+    return $row;
+  }
+
+  function suppressRowToggle($row, suppressed){
+    if (!$row || !$row.length) {
+      return;
+    }
+    if (suppressed) {
+      $row.data('ttaSuppressToggle', true);
+    } else {
+      $row.removeData('ttaSuppressToggle');
+    }
+  }
+
+  function markInlineInteractionStart(){
+    suppressRowToggle(findEventRow($(this)), true);
+  }
+
+  function markInlineInteractionEnd(){
+    var $row = findEventRow($(this));
+    if (!$row || !$row.length) {
+      return;
+    }
+    setTimeout(function(){ suppressRowToggle($row, false); }, 0);
+  }
+
+  $(document).on('mousedown touchstart focusin', '.tta-inline-container :input, .tta-inline-wrapper :input', markInlineInteractionStart);
+  $(document).on('mouseup touchend focusout', '.tta-inline-container :input, .tta-inline-wrapper :input', markInlineInteractionEnd);
+
   $(document).on('input', '.tta-email-attendees__message', function(){
     refreshEmailButton($(this).closest('.tta-email-attendees'));
   });
@@ -35,10 +73,14 @@ jQuery(function($){
   // Toggle event rows
   $(document).on('click', '.tta-event-row', function(e){
     var $target = $(e.target);
+    var $row    = $(this);
+    if ($row.data('ttaSuppressToggle') && !$target.closest('.tta-toggle-cell').length) {
+      return;
+    }
     if ($target.is('button, a, input, textarea, select')) return;
     if ($target.closest('.tta-inline-container').length) return;
-    var $row        = $(this),
-        $arrow      = $row.find('.tta-toggle-arrow'),
+    suppressRowToggle($row, false);
+    var $arrow      = $row.find('.tta-toggle-arrow'),
         ute         = $row.data('event-ute-id'),
         isMobile    = window.matchMedia('(max-width:1199px)').matches,
         $toggleCell = $row.find('.tta-toggle-cell'),
