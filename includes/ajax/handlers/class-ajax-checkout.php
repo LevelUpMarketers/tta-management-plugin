@@ -123,6 +123,8 @@ class TTA_Ajax_Checkout {
         $customer_payment_profile_id = '';
         $last4 = substr( preg_replace( '/\D/', '', $_POST['last4'] ?? '' ), -4 );
 
+        $api = null;
+
         if ( $amount > 0 ) {
             $api = new TTA_AuthorizeNet_API();
             $res = $api->charge( $amount, '', '', '', $billing_clean );
@@ -165,14 +167,28 @@ class TTA_Ajax_Checkout {
                 unset( $_SESSION['tta_membership_purchase'] );
                 $flush_membership_cache = true;
             } else {
-                $api = new TTA_AuthorizeNet_API();
+                $api = $api ?: new TTA_AuthorizeNet_API();
                 if ( $existing_subscription_id ) {
                     $api->cancel_subscription( $existing_subscription_id );
                 }
+
                 $sub_name = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_NAME : TTA_BASIC_SUBSCRIPTION_NAME;
                 $sub_desc = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_DESCRIPTION : TTA_BASIC_SUBSCRIPTION_DESCRIPTION;
-                $sub_profile_error = '';
-                $sub               = [ 'success' => false ];
+                $sub_start = date( 'Y-m-d', strtotime( '+1 month' ) );
+
+                $sub_profile_error    = '';
+                $profile_lookup_error = '';
+                $sub                  = [ 'success' => false ];
+
+                if ( ! $existing_subscription_id && ( '' === $customer_profile_id || '' === $customer_payment_profile_id ) ) {
+                    $profile_lookup = $api->create_profile_from_transaction( $transaction_id );
+                    if ( ! empty( $profile_lookup['success'] ) ) {
+                        $customer_profile_id         = $profile_lookup['customer_profile_id'] ?? '';
+                        $customer_payment_profile_id = $profile_lookup['customer_payment_profile_id'] ?? '';
+                    } else {
+                        $profile_lookup_error = $profile_lookup['error'] ?? '';
+                    }
+                }
 
                 if ( ! $existing_subscription_id && $customer_profile_id && $customer_payment_profile_id ) {
                     $sub = $api->create_subscription_from_profile(
@@ -181,7 +197,7 @@ class TTA_Ajax_Checkout {
                         $membership_total,
                         $sub_name,
                         $sub_desc,
-                        date( 'Y-m-d', strtotime( '+1 month' ) )
+                        $sub_start
                     );
                     if ( empty( $sub['success'] ) ) {
                         $sub_profile_error = $sub['error'] ?? '';
@@ -189,14 +205,22 @@ class TTA_Ajax_Checkout {
                 }
 
                 if ( empty( $sub['success'] ) ) {
-                    $sub = $api->create_subscription_from_transaction( $transaction_id, $membership_total, $sub_name, $sub_desc, date( 'Y-m-d', strtotime( '+1 month' ) ) );
-                    if ( empty( $sub['success'] ) && $sub_profile_error ) {
-                        $sub['error'] = $sub['error'] . ' (Profile attempt: ' . $sub_profile_error . ')';
-                    }
+                    $sub = $api->create_subscription_from_transaction( $transaction_id, $membership_total, $sub_name, $sub_desc, $sub_start );
                 }
 
                 if ( empty( $sub['success'] ) ) {
-                    wp_send_json_error( [ 'message' => $sub['error'] ] );
+                    $error_message = $sub['error'] ?? __( 'Subscription could not be created.', 'tta' );
+                    $notes         = [];
+                    if ( $profile_lookup_error ) {
+                        $notes[] = 'Profile lookup: ' . $profile_lookup_error;
+                    }
+                    if ( $sub_profile_error ) {
+                        $notes[] = 'Profile attempt: ' . $sub_profile_error;
+                    }
+                    if ( $notes ) {
+                        $error_message .= ' (' . implode( '; ', $notes ) . ')';
+                    }
+                    wp_send_json_error( [ 'message' => $error_message ] );
                 }
                 tta_update_user_membership_level( get_current_user_id(), $membership_level, $sub['subscription_id'], 'active' );
                 $_SESSION['tta_checkout_sub'] = [ 'subscription_id' => $sub['subscription_id'] ];

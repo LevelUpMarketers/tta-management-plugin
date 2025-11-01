@@ -353,6 +353,21 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
                 $customer_address_id = (string) $tresponse->getCustomerShippingAddressId();
             }
 
+            if ( ( '' === $customer_profile_id || '' === $customer_payment_profile_id || '' === $customer_address_id ) && method_exists( $tresponse, 'getProfile' ) ) {
+                $profile = $tresponse->getProfile();
+                if ( $profile ) {
+                    if ( '' === $customer_profile_id && method_exists( $profile, 'getCustomerProfileId' ) ) {
+                        $customer_profile_id = (string) $profile->getCustomerProfileId();
+                    }
+                    if ( '' === $customer_payment_profile_id && method_exists( $profile, 'getCustomerPaymentProfileId' ) ) {
+                        $customer_payment_profile_id = (string) $profile->getCustomerPaymentProfileId();
+                    }
+                    if ( '' === $customer_address_id && method_exists( $profile, 'getCustomerAddressId' ) ) {
+                        $customer_address_id = (string) $profile->getCustomerAddressId();
+                    }
+                }
+            }
+
             // Add quick interpretation hints
             if ( $diag['responseCode'] === '2' ) {
                 if ( $diag['avsResultCode'] === 'P' ) $diag['hints'][] = 'AVS=P (not processed) → Issuer/acquirer did not evaluate AVS for this auth.';
@@ -773,6 +788,57 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             'result_code'  => $result_code,
             'message_code' => $message_code,
             'message_text' => $message_text,
+        ];
+    }
+
+    /**
+     * Create or fetch a customer profile from a transaction ID.
+     *
+     * @param string $transaction_id Authorize.Net transaction ID.
+     * @return array { success:bool, customer_profile_id?:string, customer_payment_profile_id?:string, customer_address_id?:string, error?:string }
+     */
+    public function create_profile_from_transaction( $transaction_id ) {
+        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
+        }
+
+        $transaction_id = trim( (string) $transaction_id );
+        if ( '' === $transaction_id ) {
+            return [ 'success' => false, 'error' => 'Missing transaction reference' ];
+        }
+
+        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+        $merchantAuthentication->setName( $this->login_id );
+        $merchantAuthentication->setTransactionKey( $this->transaction_key );
+
+        $profile_request = new AnetAPI\CreateCustomerProfileFromTransactionRequest();
+        $profile_request->setMerchantAuthentication( $merchantAuthentication );
+        $profile_request->setTransId( $transaction_id );
+
+        $profile_controller = new AnetController\CreateCustomerProfileFromTransactionController( $profile_request );
+        $profile_response   = $profile_controller->executeWithApiResponse( $this->environment );
+        $this->log_response( 'create_customer_profile_from_transaction', $profile_response );
+
+        if ( ! $profile_response || 'Ok' !== $profile_response->getMessages()->getResultCode() ) {
+            return [ 'success' => false, 'error' => $this->format_error( $profile_response, null, 'Profile creation failed' ) ];
+        }
+
+        $customer_profile_id = (string) $profile_response->getCustomerProfileId();
+        $payment_profiles     = $profile_response->getCustomerPaymentProfileIdList();
+        $payment_profile_id   = $payment_profiles ? (string) $payment_profiles[0] : '';
+
+        if ( '' === $payment_profile_id ) {
+            return [ 'success' => false, 'error' => 'Payment profile missing' ];
+        }
+
+        $address_ids    = $profile_response->getCustomerShippingAddressIdList();
+        $address_id     = $address_ids ? (string) $address_ids[0] : '';
+
+        return [
+            'success'                    => true,
+            'customer_profile_id'        => $customer_profile_id,
+            'customer_payment_profile_id'=> $payment_profile_id,
+            'customer_address_id'        => $address_id,
         ];
     }
 
@@ -1381,24 +1447,13 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $merchantAuthentication->setName( $this->login_id );
         $merchantAuthentication->setTransactionKey( $this->transaction_key );
 
-        $profile_request = new AnetAPI\CreateCustomerProfileFromTransactionRequest();
-        $profile_request->setMerchantAuthentication( $merchantAuthentication );
-        $profile_request->setTransId( $transaction_id );
-
-        $profile_controller = new AnetController\CreateCustomerProfileFromTransactionController( $profile_request );
-        $profile_response   = $profile_controller->executeWithApiResponse( $this->environment );
-        $this->log_response( 'create_customer_profile_from_transaction', $profile_response );
-
-        if ( ! $profile_response || 'Ok' !== $profile_response->getMessages()->getResultCode() ) {
-            return [ 'success' => false, 'error' => $this->format_error( $profile_response, null, 'Profile creation failed' ) ];
+        $profile = $this->create_profile_from_transaction( $transaction_id );
+        if ( empty( $profile['success'] ) ) {
+            return [ 'success' => false, 'error' => $profile['error'] ?? 'Profile creation failed' ];
         }
 
-        $customer_profile_id = $profile_response->getCustomerProfileId();
-        $payment_profiles    = $profile_response->getCustomerPaymentProfileIdList();
-        $payment_profile_id  = $payment_profiles ? $payment_profiles[0] : null;
-        if ( ! $payment_profile_id ) {
-            return [ 'success' => false, 'error' => 'Payment profile missing' ];
-        }
+        $customer_profile_id = $profile['customer_profile_id'] ?? '';
+        $payment_profile_id  = $profile['customer_payment_profile_id'] ?? '';
 
         $interval = new AnetAPI\PaymentScheduleType\IntervalAType();
         $interval->setLength( 1 );
