@@ -268,11 +268,24 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $transactionRequest->setCustomerIP( $billing['ip'] );
     }
 
-    // Duplicate window
+    // Transaction settings (duplicate window + optional profile creation)
+    $settings = [];
+
     $dup = new AnetAPI\SettingType();
-    $dup->setSettingName('duplicateWindow');
-    $dup->setSettingValue('45');
-    $transactionRequest->setTransactionSettings([$dup]);
+    $dup->setSettingName( 'duplicateWindow' );
+    $dup->setSettingValue( '45' );
+    $settings[] = $dup;
+
+    if ( ! empty( $billing['create_profile'] ) ) {
+        $create_profile = new AnetAPI\SettingType();
+        $create_profile->setSettingName( 'createProfile' );
+        $create_profile->setSettingValue( 'true' );
+        $settings[] = $create_profile;
+    }
+
+    if ( $settings ) {
+        $transactionRequest->setTransactionSettings( $settings );
+    }
 
     $request = new AnetAPI\CreateTransactionRequest();
     $request->setMerchantAuthentication( $merchantAuthentication );
@@ -307,6 +320,10 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         'hints'          => [],
     ];
 
+    $customer_profile_id        = '';
+    $customer_payment_profile_id = '';
+    $customer_address_id        = '';
+
     if ( $response ) {
         $diag['resultCode'] = $response->getMessages() ? $response->getMessages()->getResultCode() : null;
         $tresponse = $response->getTransactionResponse();
@@ -324,6 +341,16 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
                 $e = $tresponse->getErrors()[0];
                 $diag['errorCode'] = $e->getErrorCode();
                 $diag['errorText'] = $e->getErrorText();
+            }
+
+            if ( method_exists( $tresponse, 'getCustomerProfileId' ) ) {
+                $customer_profile_id = (string) $tresponse->getCustomerProfileId();
+            }
+            if ( method_exists( $tresponse, 'getCustomerPaymentProfileId' ) ) {
+                $customer_payment_profile_id = (string) $tresponse->getCustomerPaymentProfileId();
+            }
+            if ( method_exists( $tresponse, 'getCustomerShippingAddressId' ) ) {
+                $customer_address_id = (string) $tresponse->getCustomerShippingAddressId();
             }
 
             // Add quick interpretation hints
@@ -348,6 +375,9 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             return [
                 'success'        => true,
                 'transaction_id' => $tresponse->getTransId(),
+                'customer_profile_id'         => $customer_profile_id,
+                'customer_payment_profile_id' => $customer_payment_profile_id,
+                'customer_address_id'         => $customer_address_id,
                 // 'debug'          => [ 'gateway' => $debug ],
             ];
         }
@@ -743,6 +773,88 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             'result_code'  => $result_code,
             'message_code' => $message_code,
             'message_text' => $message_text,
+        ];
+    }
+
+    /**
+     * Create a recurring subscription using an existing customer/profile pair.
+     *
+     * @param string $customer_profile_id        Authorize.Net customer profile ID.
+     * @param string $payment_profile_id         Authorize.Net customer payment profile ID.
+     * @param float  $amount                     Monthly charge amount.
+     * @param string $name                       Optional subscription name.
+     * @param string $description                Optional subscription description.
+     * @param string $start_date                 Optional YYYY-MM-DD start date.
+     * @return array { success:bool, subscription_id?:string, error?:string }
+     */
+    public function create_subscription_from_profile( $customer_profile_id, $payment_profile_id, $amount, $name = 'Membership Subscription', $description = '', $start_date = null ) {
+        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
+        }
+
+        $customer_profile_id = trim( (string) $customer_profile_id );
+        $payment_profile_id  = trim( (string) $payment_profile_id );
+
+        if ( '' === $customer_profile_id || '' === $payment_profile_id ) {
+            return [ 'success' => false, 'error' => 'Missing customer profile information' ];
+        }
+
+        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+        $merchantAuthentication->setName( $this->login_id );
+        $merchantAuthentication->setTransactionKey( $this->transaction_key );
+
+        $interval = new AnetAPI\PaymentScheduleType\IntervalAType();
+        $interval->setLength( 1 );
+        $interval->setUnit( 'months' );
+
+        $schedule = new AnetAPI\PaymentScheduleType();
+        $schedule->setInterval( $interval );
+        if ( null === $start_date ) {
+            $start_date = date( 'Y-m-d' );
+            if ( $this->environment === ANetEnvironment::SANDBOX ) {
+                $start_date = date( 'Y-m-d', strtotime( '-1 day' ) );
+            }
+        }
+        $schedule->setStartDate( new \DateTime( $start_date ) );
+        $schedule->setTotalOccurrences( 9999 );
+
+        $order = null;
+        if ( $description ) {
+            $order = new AnetAPI\OrderType();
+            $order->setDescription( tta_normalize_authnet_description( $description ) );
+        }
+
+        $profile = new AnetAPI\CustomerProfileIdType();
+        $profile->setCustomerProfileId( $customer_profile_id );
+        $profile->setCustomerPaymentProfileId( $payment_profile_id );
+
+        $subscription = new AnetAPI\ARBSubscriptionType();
+        $subscription->setName( $name );
+        if ( $order ) {
+            $subscription->setOrder( $order );
+        }
+        $subscription->setPaymentSchedule( $schedule );
+        $subscription->setAmount( $amount );
+        $subscription->setProfile( $profile );
+
+        $request = new AnetAPI\ARBCreateSubscriptionRequest();
+        $request->setMerchantAuthentication( $merchantAuthentication );
+        $request->setSubscription( $subscription );
+
+        $controller = new AnetController\ARBCreateSubscriptionController( $request );
+        $response   = $controller->executeWithApiResponse( $this->environment );
+        $this->log_response( 'create_subscription_from_profile', $response );
+
+        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            return [
+                'success'         => true,
+                'subscription_id' => $response->getSubscriptionId(),
+            ];
+        }
+
+        return [
+            'success' => false,
+            'error'   => $this->format_error( $response, null, 'API error' ),
         ];
     }
 
