@@ -63,6 +63,7 @@ class TTA_Settings_Admin {
                 $login           = isset( $_POST['tta_authnet_login_id'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_authnet_login_id'] ) ) : '';
                 $trans           = isset( $_POST['tta_authnet_transaction_key'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_authnet_transaction_key'] ) ) : '';
                 $client          = isset( $_POST['tta_authnet_client_key'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_authnet_client_key'] ) ) : '';
+                $gateway_logging = isset( $_POST['tta_gateway_logging_enabled'] ) ? 1 : 0;
                 $twilio_user_sid   = isset( $_POST['tta_twilio_user_sid'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_twilio_user_sid'] ) ) : '';
                 $twilio_api_sid    = isset( $_POST['tta_twilio_api_sid'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_twilio_api_sid'] ) ) : '';
                 $twilio_api_key    = isset( $_POST['tta_twilio_api_key'] ) ? sanitize_text_field( wp_unslash( $_POST['tta_twilio_api_key'] ) ) : '';
@@ -94,7 +95,13 @@ class TTA_Settings_Admin {
                 update_option( 'tta_twilio_sandbox_number', $twilio_sandbox_to, false );
                 delete_option( 'tta_sendgrid_api_key' );
                 update_option( 'tta_authnet_sandbox', $sandbox ? 1 : 0, false );
+                TTA_Gateway_Diagnostics::set_enabled( (bool) $gateway_logging );
                 echo '<div class="updated"><p>' . esc_html__( 'API settings saved.', 'tta' ) . '</p></div>';
+            }
+
+            if ( isset( $_POST['tta_clear_gateway_diagnostics'] ) && check_admin_referer( 'tta_clear_gateway_diagnostics_action', 'tta_clear_gateway_diagnostics_nonce' ) ) {
+                TTA_Gateway_Diagnostics::clear();
+                echo '<div class="updated"><p>' . esc_html__( 'Gateway diagnostics cleared.', 'tta' ) . '</p></div>';
             }
 
             $convert_results = [];
@@ -187,6 +194,7 @@ class TTA_Settings_Admin {
             $twilio_env         = get_option( 'tta_twilio_environment', 'live' );
             $twilio_sandbox_to  = get_option( 'tta_twilio_sandbox_number', '' );
             $sandbox            = (int) get_option( 'tta_authnet_sandbox', 0 );
+            $gateway_logging_enabled = (bool) get_option( 'tta_gateway_logging_enabled', false );
             $login              = $sandbox ? $login_sandbox : $login_live;
             $trans              = $sandbox ? $trans_sandbox : $trans_live;
             $client             = $sandbox ? $client_sandbox : $client_live;
@@ -313,6 +321,7 @@ class TTA_Settings_Admin {
             echo '<tr><th scope="row"><label for="tta_authnet_login_id">' . esc_html__( 'Authorize.Net Login ID', 'tta' ) . '</label></th><td><input type="password" id="tta_authnet_login_id" name="tta_authnet_login_id" value="' . esc_attr( $login ) . '" /> <button type="button" class="button tta-reveal" data-target="tta_authnet_login_id">' . esc_html__( 'Reveal', 'tta' ) . '</button></td></tr>';
             echo '<tr><th scope="row"><label for="tta_authnet_transaction_key">' . esc_html__( 'Authorize.Net Transaction Key', 'tta' ) . '</label></th><td><input type="password" id="tta_authnet_transaction_key" name="tta_authnet_transaction_key" value="' . esc_attr( $trans ) . '" /> <button type="button" class="button tta-reveal" data-target="tta_authnet_transaction_key">' . esc_html__( 'Reveal', 'tta' ) . '</button></td></tr>';
             echo '<tr><th scope="row"><label for="tta_authnet_client_key">' . esc_html__( 'Authorize.Net Client Key', 'tta' ) . '</label></th><td><input type="password" id="tta_authnet_client_key" name="tta_authnet_client_key" value="' . esc_attr( $client ) . '" /> <button type="button" class="button tta-reveal" data-target="tta_authnet_client_key">' . esc_html__( 'Reveal', 'tta' ) . '</button></td></tr>';
+            echo '<tr><th scope="row"><label for="tta_gateway_logging_enabled">' . esc_html__( 'Enable Gateway Diagnostics', 'tta' ) . '</label></th><td><label><input type="checkbox" id="tta_gateway_logging_enabled" name="tta_gateway_logging_enabled" value="1"' . checked( $gateway_logging_enabled, true, false ) . ' /> ' . esc_html__( 'Capture sanitized Authorize.Net requests and responses for troubleshooting.', 'tta' ) . '</label><p class="description">' . esc_html__( 'Logs are limited to the most recent 200 entries and are displayed below.', 'tta' ) . '</p></td></tr>';
             echo '<tr><th scope="row"><label for="tta_twilio_user_sid">' . esc_html__( 'Twilio User SID', 'tta' ) . '</label></th><td><input type="text" id="tta_twilio_user_sid" name="tta_twilio_user_sid" value="' . esc_attr( $twilio_user_sid ) . '" /></td></tr>';
             echo '<tr><th scope="row"><label for="tta_twilio_api_sid">' . esc_html__( 'Twilio API SID', 'tta' ) . '</label></th><td><input type="text" id="tta_twilio_api_sid" name="tta_twilio_api_sid" value="' . esc_attr( $twilio_api_sid ) . '" /></td></tr>';
             echo '<tr><th scope="row"><label for="tta_twilio_api_key">' . esc_html__( 'Twilio API Key', 'tta' ) . '</label></th><td><input type="password" id="tta_twilio_api_key" name="tta_twilio_api_key" value="' . esc_attr( $twilio_api_key ) . '" /> <button type="button" class="button tta-reveal" data-target="tta_twilio_api_key">' . esc_html__( 'Reveal', 'tta' ) . '</button></td></tr>';
@@ -368,6 +377,17 @@ class TTA_Settings_Admin {
                 }
             }
 
+            $gateway_diagnostic_entries = TTA_Gateway_Diagnostics::get_entries();
+            $gateway_diagnostic_output  = '';
+            if ( ! empty( $gateway_diagnostic_entries ) ) {
+                $encoded = wp_json_encode( $gateway_diagnostic_entries, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+                if ( false !== $encoded ) {
+                    $gateway_diagnostic_output = $encoded;
+                } else {
+                    $gateway_diagnostic_output = print_r( $gateway_diagnostic_entries, true );
+                }
+            }
+
             echo '<hr><h2>' . esc_html__( 'Test Twilio Sandbox SMS', 'tta' ) . '</h2>';
             echo '<form method="post" action="?page=tta-settings&tab=api" class="tta-twilio-sandbox-test">';
             wp_nonce_field( 'tta_test_twilio_sms_action', 'tta_test_twilio_sms_nonce' );
@@ -395,6 +415,24 @@ class TTA_Settings_Admin {
             echo '</tbody>';
             echo '</table>';
             echo '</div>';
+
+            echo '<hr><h2>' . esc_html__( 'Authorize.Net Gateway Diagnostics', 'tta' ) . '</h2>';
+            if ( $gateway_logging_enabled ) {
+                echo '<p>' . esc_html__( 'Diagnostics logging is currently enabled. Disable it above when you no longer need verbose gateway traces.', 'tta' ) . '</p>';
+            } else {
+                echo '<p class="description">' . esc_html__( 'Diagnostics logging is currently disabled. Enable it above to start capturing new entries.', 'tta' ) . '</p>';
+            }
+
+            if ( $gateway_diagnostic_output ) {
+                echo '<textarea readonly style="width:100%;min-height:260px;">' . esc_textarea( $gateway_diagnostic_output ) . '</textarea>';
+            } else {
+                echo '<p>' . esc_html__( 'No gateway diagnostics have been recorded yet.', 'tta' ) . '</p>';
+            }
+
+            echo '<form method="post" action="?page=tta-settings&tab=api">';
+            wp_nonce_field( 'tta_clear_gateway_diagnostics_action', 'tta_clear_gateway_diagnostics_nonce' );
+            echo '<p><input type="submit" name="tta_clear_gateway_diagnostics" class="button" value="' . esc_attr__( 'Clear Diagnostics Log', 'tta' ) . '" /></p>';
+            echo '</form>';
 
             echo '<script>document.querySelectorAll(".tta-reveal").forEach(function(btn){btn.addEventListener("click",function(){var t=document.getElementById(btn.dataset.target);if(t.type==="password"){t.type="text";btn.textContent="' . esc_js( __( 'Hide', 'tta' ) ) . '";}else{t.type="password";btn.textContent="' . esc_js( __( 'Reveal', 'tta' ) ) . '";}});});</script>';
         } elseif ( 'slider' === $active_tab ) {

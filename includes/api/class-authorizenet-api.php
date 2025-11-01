@@ -56,6 +56,8 @@ class TTA_AuthorizeNet_API {
                     $data[ $key ] = '[omitted]';
                 } elseif ( preg_match( '/login|key/i', $key ) ) {
                     $data[ $key ] = $this->mask_value( (string) $value );
+                } elseif ( preg_match( '/datavalue|opaque/i', $key ) ) {
+                    $data[ $key ] = '[token]';
                 }
             }
         }
@@ -79,8 +81,120 @@ class TTA_AuthorizeNet_API {
      * @param mixed  $response Response object returned by the SDK.
      * @return void
      */
-    protected function log_response( $context, $response ) {
-        // Debug logging disabled
+    protected function log_response( $context, $response, array $extra = [] ) {
+        if ( ! class_exists( 'TTA_Gateway_Diagnostics' ) ) {
+            return;
+        }
+
+        $summary = '';
+        if ( isset( $extra['summary'] ) ) {
+            $summary = (string) $extra['summary'];
+            unset( $extra['summary'] );
+        }
+
+        $request = null;
+        if ( isset( $extra['request'] ) ) {
+            if ( is_array( $extra['request'] ) ) {
+                $request = $extra['request'];
+            } else {
+                $request = json_decode( wp_json_encode( $extra['request'] ), true );
+            }
+            unset( $extra['request'] );
+        }
+
+        $diagnostics = null;
+        if ( isset( $extra['diag'] ) ) {
+            $diagnostics = $extra['diag'];
+            unset( $extra['diag'] );
+        }
+
+        $entry = [
+            'context' => $context,
+        ];
+
+        if ( '' !== $summary ) {
+            $entry['summary'] = $summary;
+        }
+
+        if ( $request ) {
+            $entry['request'] = $this->sanitize_response_array( $request );
+        }
+
+        if ( $diagnostics ) {
+            $entry['diagnostics'] = $diagnostics;
+        }
+
+        if ( ! empty( $extra ) ) {
+            $entry['meta'] = $extra;
+        }
+
+        $messages = null;
+        if ( $response && method_exists( $response, 'getMessages' ) ) {
+            $messages = $response->getMessages();
+            if ( $messages && method_exists( $messages, 'getResultCode' ) ) {
+                $entry['resultCode'] = $messages->getResultCode();
+            }
+
+            if ( $messages && method_exists( $messages, 'getMessage' ) ) {
+                $msg_list = $messages->getMessage();
+                if ( is_array( $msg_list ) && isset( $msg_list[0] ) ) {
+                    $msg = $msg_list[0];
+                    if ( method_exists( $msg, 'getCode' ) ) {
+                        $entry['messageCode'] = $msg->getCode();
+                    }
+                    if ( method_exists( $msg, 'getText' ) ) {
+                        $entry['messageText'] = $msg->getText();
+                    }
+                }
+            }
+        }
+
+        $tresponse = null;
+        if ( $response && method_exists( $response, 'getTransactionResponse' ) ) {
+            $tresponse = $response->getTransactionResponse();
+            if ( $tresponse ) {
+                if ( method_exists( $tresponse, 'getResponseCode' ) ) {
+                    $entry['responseCode'] = $tresponse->getResponseCode();
+                }
+                if ( method_exists( $tresponse, 'getTransId' ) ) {
+                    $entry['transId'] = $tresponse->getTransId();
+                }
+                if ( method_exists( $tresponse, 'getAuthCode' ) ) {
+                    $entry['authCode'] = $tresponse->getAuthCode();
+                }
+                if ( $tresponse->getErrors() ) {
+                    $err = $tresponse->getErrors()[0];
+                    if ( method_exists( $err, 'getErrorCode' ) ) {
+                        $entry['errorCode'] = $err->getErrorCode();
+                    }
+                    if ( method_exists( $err, 'getErrorText' ) ) {
+                        $entry['errorText'] = $err->getErrorText();
+                    }
+                }
+            }
+        }
+
+        if ( $response ) {
+            $encoded = wp_json_encode( $response );
+            if ( false !== $encoded ) {
+                $decoded = json_decode( $encoded, true );
+                if ( is_array( $decoded ) ) {
+                    $entry['response'] = $this->sanitize_response_array( $decoded );
+                }
+            } else {
+                $entry['response'] = [ 'note' => 'Unable to encode response' ];
+            }
+        } else {
+            $entry['response'] = [ 'note' => 'No response returned from gateway' ];
+        }
+
+        foreach ( $entry as $key => $value ) {
+            if ( null === $value ) {
+                unset( $entry[ $key ] );
+            }
+        }
+
+        TTA_Gateway_Diagnostics::record( $entry );
     }
 
     /**
@@ -184,7 +298,15 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
     // ];
 
     if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
-        // $debug['fatal'] = 'Credentials not configured';
+        $this->log_response(
+            'charge',
+            null,
+            [
+                'summary'       => sprintf( 'Charge blocked - credentials missing for %s', number_format( (float) $amount, 2 ) ),
+                'success'       => false,
+                'error_message' => 'Authorize.Net credentials not configured',
+            ]
+        );
         return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
     }
 
@@ -342,25 +464,64 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
     // $debug['diag'] = $diag;
 
     // Return results with debug
+    $log_context = [
+        'summary'      => sprintf( 'Charge %s (%s)', $amount, $invoice ),
+        'request'      => $raw_array,
+        'diag'         => $diag,
+        'amount'       => $amount,
+        'invoice'      => $invoice,
+        'description'  => $desc,
+        'email'        => $billing['email'] ?? '',
+        'environment'  => $this->environment,
+        'using_token'  => $use_token,
+    ];
+
     if ( $response && 'Ok' === ($response->getMessages() ? $response->getMessages()->getResultCode() : null) ) {
         $tresponse = $response->getTransactionResponse();
         if ( $tresponse && $tresponse->getResponseCode() === '1' ) {
-            return [
+            $result = [
                 'success'        => true,
                 'transaction_id' => $tresponse->getTransId(),
                 // 'debug'          => [ 'gateway' => $debug ],
             ];
+            $this->log_response( 'charge', $response, array_merge( $log_context, [ 'success' => true ] ) );
+            return $result;
         }
+        $error_message = $this->format_error( $response, $tresponse, 'Transaction failed' );
+        $this->log_response(
+            'charge',
+            $response,
+            array_merge(
+                $log_context,
+                [
+                    'success'       => false,
+                    'error_message' => $error_message,
+                ]
+            )
+        );
         return [
             'success' => false,
-            'error'   => $this->format_error( $response, $tresponse, 'Transaction failed' ),
+            'error'   => $error_message,
             // 'debug'   => [ 'gateway' => $debug ],
         ];
     }
 
+    $error_message = $this->format_error( $response, null, 'API error' );
+    $this->log_response(
+        'charge',
+        $response,
+        array_merge(
+            $log_context,
+            [
+                'success'       => false,
+                'error_message' => $error_message,
+            ]
+        )
+    );
+
     return [
         'success' => false,
-        'error'   => $this->format_error( $response, null, 'API error' ),
+        'error'   => $error_message,
         // 'debug'   => [ 'gateway' => $debug ],
     ];
 }
@@ -398,6 +559,17 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
      */
     public function charge_profile( $profile_id, $payment_profile_id, $amount ) {
         if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            $this->log_response(
+                'charge_profile',
+                null,
+                [
+                    'summary'       => sprintf( 'Profile charge blocked - credentials missing for %s', number_format( (float) $amount, 2 ) ),
+                    'success'       => false,
+                    'profile_id'    => $profile_id,
+                    'payment_profile_id' => $payment_profile_id,
+                    'error_message' => 'Authorize.Net credentials not configured',
+                ]
+            );
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
 
@@ -422,25 +594,60 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
         $controller = new AnetController\CreateTransactionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
-        $this->log_response( 'charge_profile', $response );
+
+        $log_context = [
+            'summary'             => sprintf( 'Profile charge %s for %s', $profile_id, number_format( (float) $amount, 2 ) ),
+            'profile_id'          => $profile_id,
+            'payment_profile_id'  => $payment_profile_id,
+            'amount'              => number_format( (float) $amount, 2, '.', '' ),
+            'environment'         => $this->environment,
+            'request'             => json_decode( wp_json_encode( $request ), true ),
+        ];
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
             $tresponse = $response->getTransactionResponse();
             if ( $tresponse && $tresponse->getResponseCode() === '1' ) {
-                return [
+                $result = [
                     'success'        => true,
                     'transaction_id' => $tresponse->getTransId(),
                 ];
+                $this->log_response( 'charge_profile', $response, array_merge( $log_context, [ 'success' => true ] ) );
+                return $result;
             }
+            $error_message = $this->format_error( $response, $tresponse, 'Transaction failed' );
+            $this->log_response(
+                'charge_profile',
+                $response,
+                array_merge(
+                    $log_context,
+                    [
+                        'success'       => false,
+                        'error_message' => $error_message,
+                    ]
+                )
+            );
             return [
                 'success' => false,
-                'error'   => $this->format_error( $response, $tresponse, 'Transaction failed' ),
+                'error'   => $error_message,
             ];
         }
 
+        $error_message = $this->format_error( $response, null, 'API error' );
+        $this->log_response(
+            'charge_profile',
+            $response,
+            array_merge(
+                $log_context,
+                [
+                    'success'       => false,
+                    'error_message' => $error_message,
+                ]
+            )
+        );
+
         return [
             'success' => false,
-            'error'   => $this->format_error( $response, null, 'API error' ),
+            'error'   => $error_message,
         ];
     }
 
@@ -640,6 +847,17 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
      */
     public function create_subscription( $amount, $card_number, $exp_date, $card_code, array $billing = [], $name = 'Membership Subscription', $description = '', $start_date = null ) {
         if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            $this->log_response(
+                'create_subscription',
+                null,
+                [
+                    'summary'       => sprintf( 'Subscription creation blocked - credentials missing for %s', number_format( (float) $amount, 2 ) ),
+                    'success'       => false,
+                    'error_message' => 'Authorize.Net credentials not configured',
+                    'amount'        => number_format( (float) $amount, 2, '.', '' ),
+                    'subscription'  => $name,
+                ]
+            );
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
 
@@ -657,6 +875,18 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             $payment->setOpaqueData( $opaque );
         } else {
             if ( empty( $card_number ) || empty( $exp_date ) ) {
+                $this->log_response(
+                    'create_subscription',
+                    null,
+                    [
+                        'summary'       => sprintf( 'Subscription creation blocked - missing card data for %s', number_format( (float) $amount, 2 ) ),
+                        'success'       => false,
+                        'error_message' => 'Missing payment details for subscription.',
+                        'amount'        => number_format( (float) $amount, 2, '.', '' ),
+                        'subscription'  => $name,
+                        'using_token'   => false,
+                    ]
+                );
                 return [ 'success' => false, 'error' => 'Missing payment details for subscription.' ];
             }
             $creditCard = new AnetAPI\CreditCardType();
@@ -712,7 +942,17 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
         $controller = new AnetController\ARBCreateSubscriptionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
-        $this->log_response( 'create_subscription', $response );
+
+        $log_context = [
+            'summary'      => sprintf( 'Create subscription %s for %s', $name, number_format( (float) $amount, 2 ) ),
+            'amount'       => number_format( (float) $amount, 2, '.', '' ),
+            'subscription' => $name,
+            'description'  => $description,
+            'environment'  => $this->environment,
+            'using_token'  => $use_token,
+            'email'        => $billing['email'] ?? '',
+            'request'      => json_decode( wp_json_encode( $request ), true ),
+        ];
 
         $result_code  = '';
         $message_code = '';
@@ -728,18 +968,46 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
         if ( $response && 'Ok' === $result_code ) {
             $id = $response->getSubscriptionId();
-            return [
+            $result = [
                 'success'        => true,
                 'subscription_id' => $id,
                 'result_code'    => $result_code,
                 'message_code'   => $message_code,
                 'message_text'   => $message_text,
             ];
+            $this->log_response(
+                'create_subscription',
+                $response,
+                array_merge(
+                    $log_context,
+                    [
+                        'success'         => true,
+                        'subscription_id' => $id,
+                    ]
+                )
+            );
+            return $result;
         }
+
+        $error_message = $this->format_error( $response, null, 'API error' );
+        $this->log_response(
+            'create_subscription',
+            $response,
+            array_merge(
+                $log_context,
+                [
+                    'success'       => false,
+                    'error_message' => $error_message,
+                    'result_code'   => $result_code,
+                    'message_code'  => $message_code,
+                    'message_text'  => $message_text,
+                ]
+            )
+        );
 
         return [
             'success'      => false,
-            'error'        => $this->format_error( $response, null, 'API error' ),
+            'error'        => $error_message,
             'result_code'  => $result_code,
             'message_code' => $message_code,
             'message_text' => $message_text,
@@ -1262,6 +1530,18 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
      */
     public function create_subscription_from_transaction( $transaction_id, $amount, $name, $description = '', $start_date = null ) {
         if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            $this->log_response(
+                'create_subscription_from_transaction',
+                null,
+                [
+                    'summary'       => sprintf( 'Subscription from transaction blocked - credentials missing for %s', $transaction_id ),
+                    'success'       => false,
+                    'transaction_id'=> $transaction_id,
+                    'amount'        => number_format( (float) $amount, 2, '.', '' ),
+                    'subscription'  => $name,
+                    'error_message' => 'Authorize.Net credentials not configured',
+                ]
+            );
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
 
@@ -1275,16 +1555,48 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
         $profile_controller = new AnetController\CreateCustomerProfileFromTransactionController( $profile_request );
         $profile_response   = $profile_controller->executeWithApiResponse( $this->environment );
-        $this->log_response( 'create_customer_profile_from_transaction', $profile_response );
 
-        if ( ! $profile_response || 'Ok' !== $profile_response->getMessages()->getResultCode() ) {
-            return [ 'success' => false, 'error' => $this->format_error( $profile_response, null, 'Profile creation failed' ) ];
+        $profile_log_context = [
+            'summary'       => sprintf( 'Create customer profile from transaction %s', $transaction_id ),
+            'transaction_id'=> $transaction_id,
+            'amount'        => number_format( (float) $amount, 2, '.', '' ),
+            'subscription'  => $name,
+            'environment'   => $this->environment,
+            'request'       => json_decode( wp_json_encode( $profile_request ), true ),
+        ];
+
+        $profile_success = $profile_response && 'Ok' === $profile_response->getMessages()->getResultCode();
+        $profile_error   = '';
+        if ( ! $profile_success ) {
+            $profile_error = $this->format_error( $profile_response, null, 'Profile creation failed' );
+        }
+
+        $profile_log_extra = $profile_success
+            ? array_merge( $profile_log_context, [ 'success' => true ] )
+            : array_merge( $profile_log_context, [ 'success' => false, 'error_message' => $profile_error ] );
+
+        $this->log_response( 'create_customer_profile_from_transaction', $profile_response, $profile_log_extra );
+
+        if ( ! $profile_success ) {
+            return [ 'success' => false, 'error' => $profile_error ];
         }
 
         $customer_profile_id = $profile_response->getCustomerProfileId();
         $payment_profiles    = $profile_response->getCustomerPaymentProfileIdList();
         $payment_profile_id  = $payment_profiles ? $payment_profiles[0] : null;
         if ( ! $payment_profile_id ) {
+            $this->log_response(
+                'create_subscription_from_transaction',
+                null,
+                array_merge(
+                    $profile_log_context,
+                    [
+                        'success'       => false,
+                        'error_message' => 'Payment profile missing',
+                        'customer_profile_id' => $customer_profile_id,
+                    ]
+                )
+            );
             return [ 'success' => false, 'error' => 'Payment profile missing' ];
         }
 
@@ -1319,18 +1631,54 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
         $controller = new AnetController\ARBCreateSubscriptionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
-        $this->log_response( 'create_subscription_from_transaction', $response );
+
+        $subscription_log_context = [
+            'summary'             => sprintf( 'Create subscription from transaction %s', $transaction_id ),
+            'transaction_id'      => $transaction_id,
+            'amount'              => number_format( (float) $amount, 2, '.', '' ),
+            'subscription'        => $name,
+            'description'         => $description,
+            'environment'         => $this->environment,
+            'customer_profile_id' => $customer_profile_id,
+            'payment_profile_id'  => $payment_profile_id,
+            'request'             => json_decode( wp_json_encode( $request ), true ),
+        ];
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            $subscription_id = $response->getSubscriptionId();
+            $this->log_response(
+                'create_subscription_from_transaction',
+                $response,
+                array_merge(
+                    $subscription_log_context,
+                    [
+                        'success'         => true,
+                        'subscription_id' => $subscription_id,
+                    ]
+                )
+            );
             return [
                 'success'         => true,
-                'subscription_id' => $response->getSubscriptionId(),
+                'subscription_id' => $subscription_id,
             ];
         }
 
+        $error_message = $this->format_error( $response, null, 'API error' );
+        $this->log_response(
+            'create_subscription_from_transaction',
+            $response,
+            array_merge(
+                $subscription_log_context,
+                [
+                    'success'       => false,
+                    'error_message' => $error_message,
+                ]
+            )
+        );
+
         return [
             'success' => false,
-            'error'   => $this->format_error( $response, null, 'API error' ),
+            'error'   => $error_message,
         ];
     }
 }

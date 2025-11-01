@@ -43,6 +43,7 @@ if ( ! defined( 'TTA_AUTHNET_IMPORT_MAX_REQUESTS' ) ) {
 
 require_once TTA_PLUGIN_DIR . 'includes/helpers.php';
 require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-debug-logger.php';
+require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-gateway-diagnostics.php';
 TTA_Debug_Logger::init();
 require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-tooltips.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin-bar.php';

@@ -7,7 +7,8 @@ This document provides a repeatable process for ChatGPT Operator to validate eve
 1. Ensure the plugin is installed and activated.
 2. Reference [TestingInformation.md](TestingInformation.md) for test account credentials. Each membership level and user role is represented there.
 3. The debug log is available from **TTA Settings → Logging** at `/wp-admin/admin.php?page=tta-settings&tab=logging`.
-4. Do **not** test the `/become-a-member/` page or other links in the site's header or footer.
+4. Authorize.Net diagnostics can be toggled under **TTA Settings → API Settings**. Enable **Gateway Diagnostics** to capture sanitized request/response details and review them in the diagnostics textarea at the bottom of that tab.
+5. Do **not** test the `/become-a-member/` page or other links in the site's header or footer.
 
 ## Testing Checklist
 
@@ -43,6 +44,7 @@ For each of the sample events (`/dinner-at-crawleys/`, `/roller-skating/`, `/buf
 
 ### 5. Logging and Error Handling
 - Review the debug log after each major action. Clear it between scenarios so new entries are easy to spot.
+- When payment issues arise, enable the gateway diagnostics toggle, reproduce the issue, and capture the entries shown in the **Authorize.Net Gateway Diagnostics** textarea before clearing it.
 - Note any warnings or notices that appear and include them in your report.
 
 ## Reporting Results
