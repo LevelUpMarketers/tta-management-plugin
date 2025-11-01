@@ -92,14 +92,6 @@ class TTA_Ajax_Checkout {
             'country'    => 'USA',
         ];
 
-        $existing_subscription_id = null;
-        if ( $membership_total > 0 ) {
-            $existing_subscription_id = tta_get_user_subscription_id( get_current_user_id() );
-            if ( ! $existing_subscription_id ) {
-                $billing_clean['create_profile'] = true;
-            }
-        }
-
         $opaque = isset( $_POST['opaqueData'] ) && is_array( $_POST['opaqueData'] ) ? $_POST['opaqueData'] : [];
         $has_token = ! empty( $opaque['dataDescriptor'] ) && ! empty( $opaque['dataValue'] );
 
@@ -119,8 +111,6 @@ class TTA_Ajax_Checkout {
         $billing_clean['ip']          = self::get_client_ip();
 
         $transaction_id = '';
-        $customer_profile_id         = '';
-        $customer_payment_profile_id = '';
         $last4 = substr( preg_replace( '/\D/', '', $_POST['last4'] ?? '' ), -4 );
 
         if ( $amount > 0 ) {
@@ -131,8 +121,6 @@ class TTA_Ajax_Checkout {
                 wp_send_json_error( [ 'message' => $res['error'] ?? __( 'Payment failed', 'tta' ) ] );
             }
             $transaction_id = $res['transaction_id'];
-            $customer_profile_id         = $res['customer_profile_id'] ?? '';
-            $customer_payment_profile_id = $res['customer_payment_profile_id'] ?? '';
         }
 
         $flush_membership_cache = false;
@@ -166,36 +154,14 @@ class TTA_Ajax_Checkout {
                 $flush_membership_cache = true;
             } else {
                 $api = new TTA_AuthorizeNet_API();
-                if ( $existing_subscription_id ) {
-                    $api->cancel_subscription( $existing_subscription_id );
+                $existing_sub = tta_get_user_subscription_id( get_current_user_id() );
+                if ( $existing_sub ) {
+                    $api->cancel_subscription( $existing_sub );
                 }
                 $sub_name = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_NAME : TTA_BASIC_SUBSCRIPTION_NAME;
                 $sub_desc = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_DESCRIPTION : TTA_BASIC_SUBSCRIPTION_DESCRIPTION;
-                $sub_profile_error = '';
-                $sub               = [ 'success' => false ];
-
-                if ( ! $existing_subscription_id && $customer_profile_id && $customer_payment_profile_id ) {
-                    $sub = $api->create_subscription_from_profile(
-                        $customer_profile_id,
-                        $customer_payment_profile_id,
-                        $membership_total,
-                        $sub_name,
-                        $sub_desc,
-                        date( 'Y-m-d', strtotime( '+1 month' ) )
-                    );
-                    if ( empty( $sub['success'] ) ) {
-                        $sub_profile_error = $sub['error'] ?? '';
-                    }
-                }
-
-                if ( empty( $sub['success'] ) ) {
-                    $sub = $api->create_subscription_from_transaction( $transaction_id, $membership_total, $sub_name, $sub_desc, date( 'Y-m-d', strtotime( '+1 month' ) ) );
-                    if ( empty( $sub['success'] ) && $sub_profile_error ) {
-                        $sub['error'] = $sub['error'] . ' (Profile attempt: ' . $sub_profile_error . ')';
-                    }
-                }
-
-                if ( empty( $sub['success'] ) ) {
+                $sub      = $api->create_subscription_from_transaction( $transaction_id, $membership_total, $sub_name, $sub_desc, date( 'Y-m-d', strtotime( '+1 month' ) ) );
+                if ( ! $sub['success'] ) {
                     wp_send_json_error( [ 'message' => $sub['error'] ] );
                 }
                 tta_update_user_membership_level( get_current_user_id(), $membership_level, $sub['subscription_id'], 'active' );
