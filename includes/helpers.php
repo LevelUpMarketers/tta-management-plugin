@@ -1099,25 +1099,106 @@ function tta_get_attendee_user_id( $attendee_id ) {
  */
 function tta_set_attendance_status( $attendee_id, $status ) {
     global $wpdb;
-    $att_table   = $wpdb->prefix . 'tta_attendees';
-    $att_archive = $wpdb->prefix . 'tta_attendees_archive';
-    $status      = in_array( $status, [ 'checked_in', 'no_show', 'pending' ], true ) ? $status : 'pending';
 
-    $row   = $wpdb->get_row( $wpdb->prepare( "SELECT email FROM {$att_table} WHERE id = %d", $attendee_id ), ARRAY_A );
-    $table = $att_table;
-    if ( ! $row ) {
-        $row   = $wpdb->get_row( $wpdb->prepare( "SELECT email FROM {$att_archive} WHERE id = %d", $attendee_id ), ARRAY_A );
-        $table = $att_archive;
+    $attendee_id = intval( $attendee_id );
+    if ( ! $attendee_id ) {
+        return;
     }
-    $email = $row ? strtolower( sanitize_email( $row['email'] ) ) : '';
+
+    $att_table        = $wpdb->prefix . 'tta_attendees';
+    $att_archive      = $wpdb->prefix . 'tta_attendees_archive';
+    $tickets_table    = $wpdb->prefix . 'tta_tickets';
+    $tickets_archive  = $wpdb->prefix . 'tta_tickets_archive';
+    $events_table     = $wpdb->prefix . 'tta_events';
+    $events_archive   = $wpdb->prefix . 'tta_events_archive';
+    $status           = in_array( $status, [ 'checked_in', 'no_show', 'pending' ], true ) ? $status : 'pending';
+
+    $active_row  = $wpdb->get_row( $wpdb->prepare( "SELECT email, ticket_id FROM {$att_table} WHERE id = %d", $attendee_id ), ARRAY_A );
+    $archive_row = $wpdb->get_row( $wpdb->prepare( "SELECT email, ticket_id FROM {$att_archive} WHERE id = %d", $attendee_id ), ARRAY_A );
+    $row         = $active_row ?: $archive_row;
+
+    if ( ! $row ) {
+        return;
+    }
+
+    $email     = strtolower( sanitize_email( $row['email'] ?? '' ) );
+    $ticket_id = intval( $row['ticket_id'] ?? 0 );
+
+    $event_date = '';
+    if ( $ticket_id ) {
+        $event_date = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT e.date FROM {$tickets_table} t JOIN {$events_table} e ON t.event_ute_id = e.ute_id WHERE t.id = %d",
+                $ticket_id
+            )
+        );
+
+        if ( ! $event_date ) {
+            $event_date = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT e.date FROM {$tickets_archive} t JOIN {$events_archive} e ON t.event_ute_id = e.ute_id WHERE t.id = %d",
+                    $ticket_id
+                )
+            );
+        }
+
+        if ( ! $event_date ) {
+            $event_date = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT e.date FROM {$tickets_table} t JOIN {$events_archive} e ON t.event_ute_id = e.ute_id WHERE t.id = %d",
+                    $ticket_id
+                )
+            );
+        }
+
+        if ( ! $event_date ) {
+            $event_date = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT e.date FROM {$tickets_archive} t JOIN {$events_table} e ON t.event_ute_id = e.ute_id WHERE t.id = %d",
+                    $ticket_id
+                )
+            );
+        }
+    }
+
+    $should_use_archive = false;
+    if ( $event_date ) {
+        $event_timestamp  = strtotime( $event_date );
+        $archive_cutoff   = strtotime( '-3 days', current_time( 'timestamp' ) );
+        if ( $event_timestamp && $archive_cutoff && $event_timestamp <= $archive_cutoff ) {
+            $should_use_archive = true;
+        }
+    }
+
+    $tables_to_update = [];
+    if ( $should_use_archive ) {
+        if ( $archive_row ) {
+            $tables_to_update[] = $att_archive;
+        } elseif ( $active_row ) {
+            $tables_to_update[] = $att_table;
+        }
+    } else {
+        if ( $active_row ) {
+            $tables_to_update[] = $att_table;
+        } elseif ( $archive_row ) {
+            $tables_to_update[] = $att_archive;
+        }
+    }
+
+    if ( empty( $tables_to_update ) ) {
+        $tables_to_update[] = $active_row ? $att_table : $att_archive;
+    }
 
     $current = tta_get_attendance_status( $attendee_id );
     if ( $current === $status ) {
         return;
     }
 
-    $wpdb->update( $table, [ 'status' => $status ], [ 'id' => intval( $attendee_id ) ], [ '%s' ], [ '%d' ] );
-    TTA_Cache::delete( 'attendance_status_' . intval( $attendee_id ) );
+    foreach ( $tables_to_update as $table ) {
+        $wpdb->update( $table, [ 'status' => $status ], [ 'id' => $attendee_id ], [ '%s' ], [ '%d' ] );
+    }
+
+    TTA_Cache::delete( 'attendance_status_' . $attendee_id );
     if ( $email ) {
         $hash = md5( $email );
         TTA_Cache::delete( 'attended_count_' . $hash );
@@ -1132,7 +1213,7 @@ function tta_set_attendance_status( $attendee_id, $status ) {
     }
 
     if ( 'no_show' === $status && 'no_show' !== $current && $user_id ) {
-        $no_shows        = tta_get_no_show_event_count_by_email( $email );
+        $no_shows         = tta_get_no_show_event_count_by_email( $email );
         $previous_no_show = max( 0, $no_shows - 1 );
         if ( $no_shows >= 5 && $previous_no_show < 5 ) {
             $members_table = $wpdb->prefix . 'tta_members';
@@ -1164,13 +1245,16 @@ function tta_get_attendance_status( $attendee_id ) {
     }
     $att_table   = $wpdb->prefix . 'tta_attendees';
     $att_archive = $wpdb->prefix . 'tta_attendees_archive';
-    $status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$att_table} WHERE id = %d", $attendee_id ) );
+
+    $status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$att_archive} WHERE id = %d", $attendee_id ) );
     if ( ! $status ) {
-        $status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$att_archive} WHERE id = %d", $attendee_id ) );
+        $status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$att_table} WHERE id = %d", $attendee_id ) );
     }
+
     if ( ! $status ) {
         $status = 'pending';
     }
+
     TTA_Cache::set( $cache_key, $status, 300 );
     return $status;
 }
@@ -3195,6 +3279,7 @@ function tta_get_member_history_summary( $member_id, $include_subscription = fal
     $archive_table = $wpdb->prefix . 'tta_events_archive';
     $tx_table      = $wpdb->prefix . 'tta_transactions';
     $att_table     = $wpdb->prefix . 'tta_attendees';
+    $att_archive   = $wpdb->prefix . 'tta_attendees_archive';
     $members_table = $wpdb->prefix . 'tta_members';
 
     $rows = $wpdb->get_results(
@@ -3258,19 +3343,55 @@ function tta_get_member_history_summary( $member_id, $include_subscription = fal
         $summary['total_spent'] -= $amount;
     }
 
+    $status_sql = "(SELECT a.id AS attendee_id, a.status, 'active' AS src
+                      FROM {$att_table} a
+                      INNER JOIN {$tx_table} t ON a.transaction_id = t.id
+                     WHERE t.member_id = %d)
+                    UNION ALL
+                    (SELECT a.id AS attendee_id, a.status, 'archive' AS src
+                      FROM {$att_archive} a
+                      INNER JOIN {$tx_table} t ON a.transaction_id = t.id
+                     WHERE t.member_id = %d)";
+
     $status_rows = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT a.status FROM {$att_table} a
-             JOIN {$tx_table} t ON a.transaction_id = t.id
-            WHERE t.member_id = %d",
+            $status_sql,
+            $member_id,
             $member_id
         ),
         ARRAY_A
     );
-    foreach ( $status_rows as $r ) {
-        if ( 'checked_in' === $r['status'] ) {
+
+    $attendee_statuses = [];
+    foreach ( $status_rows as $row ) {
+        $attendee_id = intval( $row['attendee_id'] ?? 0 );
+        if ( ! $attendee_id ) {
+            continue;
+        }
+
+        $status = sanitize_text_field( $row['status'] ?? '' );
+        $source = isset( $row['src'] ) ? sanitize_text_field( $row['src'] ) : 'active';
+
+        if ( isset( $attendee_statuses[ $attendee_id ] ) ) {
+            if ( 'archive' === $source && 'archive' !== $attendee_statuses[ $attendee_id ]['source'] ) {
+                $attendee_statuses[ $attendee_id ] = [
+                    'status' => $status,
+                    'source' => $source,
+                ];
+            }
+            continue;
+        }
+
+        $attendee_statuses[ $attendee_id ] = [
+            'status' => $status,
+            'source' => $source,
+        ];
+    }
+
+    foreach ( $attendee_statuses as $attendee_status ) {
+        if ( 'checked_in' === $attendee_status['status'] ) {
             $summary['attended']++;
-        } elseif ( 'no_show' === $r['status'] ) {
+        } elseif ( 'no_show' === $attendee_status['status'] ) {
             $summary['no_show']++;
         }
     }
@@ -3532,37 +3653,61 @@ function tta_get_member_event_history( $email ) {
     $events_table    = $wpdb->prefix . 'tta_events';
     $events_archive  = $wpdb->prefix . 'tta_events_archive';
 
-    $sql = "(SELECT a.id AS att_id, a.status, e.name, e.date
+    $sql = "(SELECT a.id AS att_id, a.status, e.name, e.date, 'active' AS src
                FROM {$att_table} a
                JOIN {$tickets_table} t ON a.ticket_id = t.id
                JOIN {$events_table} e ON t.event_ute_id = e.ute_id
               WHERE LOWER(a.email) = %s)
             UNION ALL
-            (SELECT a.id AS att_id, a.status, e.name, e.date
+            (SELECT a.id AS att_id, a.status, e.name, e.date, 'archive' AS src
                FROM {$att_archive} a
                JOIN {$tickets_archive} t ON a.ticket_id = t.id
                JOIN {$events_archive} e ON t.event_ute_id = e.ute_id
-              WHERE LOWER(a.email) = %s)
-            ORDER BY date DESC";
+              WHERE LOWER(a.email) = %s)";
 
     $raw_rows = $wpdb->get_results( $wpdb->prepare( $sql, $email, $email ), ARRAY_A );
-    $events   = [];
-    $seen     = [];
+    $by_attendee = [];
+
     foreach ( $raw_rows as $r ) {
         $att_id = intval( $r['att_id'] );
-        if ( $att_id && isset( $seen[ $att_id ] ) ) {
+        if ( ! $att_id ) {
             continue;
         }
-        if ( $att_id ) {
-            $seen[ $att_id ] = true;
-        }
-        $events[] = [
-            'attendee_id' => intval( $r['att_id'] ),
+
+        $entry = [
+            'attendee_id' => $att_id,
             'name'        => sanitize_text_field( $r['name'] ),
             'date'        => $r['date'],
             'status'      => sanitize_text_field( $r['status'] ),
+            'source'      => isset( $r['src'] ) ? sanitize_text_field( $r['src'] ) : 'active',
         ];
+
+        if ( isset( $by_attendee[ $att_id ] ) ) {
+            if ( 'archive' === $entry['source'] && 'archive' !== $by_attendee[ $att_id ]['source'] ) {
+                $by_attendee[ $att_id ] = $entry;
+            }
+            continue;
+        }
+
+        $by_attendee[ $att_id ] = $entry;
     }
+
+    $events = array_map(
+        function ( $event ) {
+            unset( $event['source'] );
+            return $event;
+        },
+        array_values( $by_attendee )
+    );
+
+    usort(
+        $events,
+        static function ( $a, $b ) {
+            $a_time = strtotime( $a['date'] ?? '' ) ?: 0;
+            $b_time = strtotime( $b['date'] ?? '' ) ?: 0;
+            return $b_time <=> $a_time;
+        }
+    );
 
     $ttl = empty( $events ) ? 60 : 300;
     TTA_Cache::set( $cache_key, $events, $ttl );
@@ -5323,19 +5468,34 @@ function tta_render_attendee_fields( TTA_Cart $cart, $disabled = false ) {
                 echo '<label><span class="tta-tooltip-icon" data-tooltip="' . esc_attr__( 'Phone used for event updates or issues.', 'tta' ) . '"><img src="' . $img . '" alt="?"></span>' . esc_html__( 'Phone', 'tta' ) . '<br />';
                 echo '<input type="tel" name="' . esc_attr( $base . '[phone]' ) . '" value="' . $ph_val . '"' . $d_attr . '></label>';
                 $privacy_url = esc_url( home_url( '/privacy-policy/' ) );
+                $terms_url   = esc_url( home_url( '/terms/' ) );
+
                 $sms_message = sprintf(
-                    /* translators: %s: privacy policy URL */
-                    __( 'I agree to receive non-marketing text messages from Trying to Adult RVA about my event sign-up, including 24-hour and 3-hours event reminder texts. <a href="%s">Read our Privacy Policy here.</a>', 'tta' ),
-                    $privacy_url
+                    /* translators: 1: privacy policy URL, 2: terms and conditions URL */
+                    __(
+                        'I agree to receive <strong>event update text messages</strong> from <strong>Trying to Adult RVA</strong> related to my registration (e.g., confirmation, 24-hour and 3-hour reminders, last-minute changes). <span class="tta-sms-disclosure">Message frequency varies. Msg &amp; data rates may apply. Reply <strong>STOP</strong> to opt out, <strong>HELP</strong> for help.</span> <a href="%1$s">Privacy Policy</a> · <a href="%2$s">Terms & Conditions</a>',
+                        'tta'
+                    ),
+                    $privacy_url,
+                    $terms_url
                 );
+
                 $email_message = sprintf(
-                    /* translators: %s: privacy policy URL */
-                    __( 'I agree to receive non-marketing emails from Trying to Adult RVA about my event sign-up, including 24-hour and 3-hours event reminder emails. <a href="%s">Read our Privacy Policy here.</a>', 'tta' ),
-                    $privacy_url
+                    /* translators: 1: privacy policy URL, 2: terms and conditions URL */
+                    __(
+                        'I agree to receive <strong>event update emails</strong> from <strong>Trying to Adult RVA</strong> related to my registration (e.g., confirmation, 24-hour and 3-hour reminders, last-minute changes). <a href="%1$s">Privacy Policy</a> · <a href="%2$s">Terms & Conditions</a>',
+                        'tta'
+                    ),
+                    $privacy_url,
+                    $terms_url
                 );
                 $allowed_link = [
-                    'a' => [
+                    'a'      => [
                         'href' => [],
+                    ],
+                    'strong' => [],
+                    'span'   => [
+                        'class' => [],
                     ],
                 ];
                 echo '<div class="optin-container"><label class="tta-ticket-optin"><input type="checkbox" name="' . esc_attr( $base . '[opt_in_sms]' ) . '" ' . $sms_chk . $d_attr . '> <span class="tta-ticket-opt-text">' . wp_kses( $sms_message, $allowed_link ) . '</span></label>';
@@ -5864,6 +6024,63 @@ function tta_ticket_has_waitlist_entries( $ticket_id ) {
  *
  * @param int $ticket_id Ticket ID.
  */
+function tta_build_waitlist_notification_context( array $entry, array $event ) {
+    $normalized = is_array( $event ) ? $event : [];
+    $entry      = is_array( $entry ) ? $entry : [];
+
+    $ute_id = sanitize_text_field( $entry['event_ute_id'] ?? ( $normalized['ute_id'] ?? '' ) );
+    if ( $ute_id ) {
+        $normalized['ute_id'] = $ute_id;
+    }
+
+    $requires_lookup = empty( $normalized['name'] )
+        || empty( $normalized['date'] )
+        || empty( $normalized['time'] )
+        || empty( $normalized['address'] )
+        || empty( $normalized['venue_name'] );
+
+    if ( $ute_id && ( $requires_lookup || empty( $normalized['page_url'] ) ) ) {
+        $fetched = tta_get_event_for_email( $ute_id );
+        if ( $fetched ) {
+            $normalized = array_merge( $fetched, $normalized );
+        }
+    }
+
+    if ( empty( $normalized['page_url'] ) && ! empty( $normalized['page_id'] ) ) {
+        $normalized['page_url'] = get_permalink( intval( $normalized['page_id'] ) );
+    }
+
+    $address      = $normalized['address'] ?? '';
+    $address_link = $address ? esc_url( 'https://maps.google.com/?q=' . rawurlencode( $address ) ) : '';
+
+    $names = tta_get_event_host_volunteer_names( intval( $normalized['id'] ?? 0 ) );
+    $host  = $names['hosts'] ? implode( ', ', $names['hosts'] ) : 'TBD';
+    $vol   = $names['volunteers'] ? implode( ', ', $names['volunteers'] ) : 'TBD';
+
+    $tokens = [
+        '{event_name}'         => sanitize_text_field( $normalized['name'] ?? '' ),
+        '{event_link}'         => esc_url( $normalized['page_url'] ?? '' ),
+        '{event_date}'         => isset( $normalized['date'] ) ? tta_format_event_date( $normalized['date'] ) : '',
+        '{event_time}'         => isset( $normalized['time'] ) ? tta_format_event_time( $normalized['time'] ) : '',
+        '{venue_name}'         => sanitize_text_field( $normalized['venue_name'] ?? '' ),
+        '{venue_url}'          => esc_url( $normalized['venue_url'] ?? '' ),
+        '{event_address}'      => $address,
+        '{event_address_link}' => $address_link,
+        '{event_host}'         => $host,
+        '{event_hosts}'        => $host,
+        '{event_volunteer}'    => $vol,
+        '{event_volunteers}'   => $vol,
+        '{first_name}'         => sanitize_text_field( $entry['first_name'] ?? '' ),
+        '{last_name}'          => sanitize_text_field( $entry['last_name'] ?? '' ),
+        '{ticket_name}'        => sanitize_text_field( $entry['ticket_name'] ?? ( $normalized['ticket_name'] ?? '' ) ),
+    ];
+
+    return [
+        'event'  => $normalized,
+        'tokens' => $tokens,
+    ];
+}
+
 function tta_notify_waitlist_ticket_available( $ticket_id ) {
     global $wpdb;
     $tickets_table = $wpdb->prefix . 'tta_tickets';
@@ -5885,6 +6102,15 @@ function tta_notify_waitlist_ticket_available( $ticket_id ) {
     if ( empty( $event ) || empty( $event['waitlistavailable'] ) ) {
         return;
     }
+
+    $event_details = tta_get_event_for_email( $ticket['event_ute_id'] );
+    if ( empty( $event_details ) ) {
+        $event_details = [
+            'name'    => sanitize_text_field( $event['name'] ?? '' ),
+            'page_id' => intval( $event['page_id'] ?? 0 ),
+        ];
+    }
+    $event_details['ute_id'] = sanitize_text_field( $ticket['event_ute_id'] );
 
     $entries = $wpdb->get_results(
         $wpdb->prepare("SELECT * FROM {$waitlist_table} WHERE ticket_id = %d ORDER BY added_at ASC", $ticket_id),
@@ -5913,7 +6139,7 @@ function tta_notify_waitlist_ticket_available( $ticket_id ) {
     foreach ( $grouped as $level => $rows ) {
         foreach ( $rows as $row ) {
             $delay = $offsets[ $level ];
-            wp_schedule_single_event( time() + $delay, 'tta_send_waitlist_notification', [ $row, $event ] );
+            wp_schedule_single_event( time() + $delay, 'tta_send_waitlist_notification', [ $row, $event_details ] );
         }
     }
 }
@@ -5930,21 +6156,20 @@ function tta_send_waitlist_notification( $entry, $event ) {
         return;
     }
     $tpl = $templates['waitlist_available'];
-    $tokens = [
-        '{event_name}' => $event['name'] ?? '',
-        '{event_link}' => get_permalink( intval( $event['page_id'] ) ),
-        '{first_name}' => $entry['first_name'] ?? '',
-    ];
+    $context = tta_build_waitlist_notification_context( (array) $entry, (array) $event );
+    $tokens  = $context['tokens'];
+    $event_context = $context['event'];
+
     $sub_raw = tta_expand_anchor_tokens( $tpl['email_subject'], $tokens );
-    $subject = strtr( $sub_raw, $tokens );
+    $subject = tta_strip_bold( strtr( $sub_raw, $tokens ) );
     $body_raw = tta_expand_anchor_tokens( $tpl['email_body'], $tokens );
-    $body_txt = tta_convert_links( strtr( $body_raw, $tokens ) );
+    $body_txt = tta_convert_bold( tta_convert_links( strtr( $body_raw, $tokens ) ) );
     $body    = nl2br( $body_txt );
     $to      = sanitize_email( $entry['email'] ?? '' );
     if ( $to ) {
         wp_mail( $to, $subject, $body, [ 'Content-Type: text/html; charset=UTF-8' ] );
     }
-    TTA_SMS_Handler::get_instance()->send_waitlist_text( $entry, $event );
+    TTA_SMS_Handler::get_instance()->send_waitlist_text( $entry, $event_context );
 }
 add_action( 'tta_send_waitlist_notification', 'tta_send_waitlist_notification', 10, 2 );
 

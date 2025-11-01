@@ -255,11 +255,8 @@ class TTA_SMS_Handler {
         }
         $tpl = $templates['waitlist_available'];
 
-        $tokens = [
-            '{event_name}' => $event['name'] ?? '',
-            '{event_link}' => get_permalink( intval( $event['page_id'] ) ),
-            '{first_name}' => $entry['first_name'] ?? '',
-        ];
+        $context = tta_build_waitlist_notification_context( $entry, $event );
+        $tokens  = $context['tokens'];
 
         $msg_raw = tta_expand_anchor_tokens( $tpl['sms_text'], $tokens );
         $message = tta_strip_bold( strtr( $msg_raw, $tokens ) );
