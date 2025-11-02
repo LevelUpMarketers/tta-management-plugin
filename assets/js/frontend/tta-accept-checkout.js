@@ -1,16 +1,31 @@
 (function($){
-  function showMessage(msg, isError){
+  function showMessage(msg, isError, options){
+    var opts = options || {};
     var $resp = $('#tta-checkout-response');
     var message = msg || '';
-    if(/<[a-z][\s\S]*>/i.test(message)){
-      $resp.html(message);
+
+    var applyMessage = function(){
+      if(/<[a-z][\s\S]*>/i.test(message)){
+        $resp.html(message);
+      }else{
+        $resp.text(message);
+      }
+      if(isError){
+        $resp.addClass('error').removeClass('updated');
+      }else{
+        $resp.removeClass('error');
+      }
+    };
+
+    if(opts.animate){
+      var fadeOut = typeof opts.fadeOutDuration === 'number' ? opts.fadeOutDuration : 200;
+      var fadeIn = typeof opts.fadeInDuration === 'number' ? opts.fadeInDuration : 200;
+      $resp.stop(true, true).fadeTo(fadeOut, 0, function(){
+        applyMessage();
+        $resp.fadeTo(fadeIn, 1);
+      });
     }else{
-      $resp.text(message);
-    }
-    if(isError){
-      $resp.addClass('error').removeClass('updated');
-    }else{
-      $resp.removeClass('error');
+      applyMessage();
     }
   }
 
@@ -81,13 +96,20 @@
       if(data && data.debug){
         debugLog('Checkout response debug bundle', data.debug);
       }
-      $spin.fadeOut(200);
-      $btn.prop('disabled', false);
+      var cleanup = function(){
+        $spin.fadeOut(200);
+        $btn.prop('disabled', false);
+      };
+
+      var hasRetry = !!(data && data.subscription_retrying);
+      var pendingSubscription = !!(data && data.subscription_pending);
+
       if(res && res.success){
-        var html = '';
-        if(data.membership){
-          if(data.membership === 'reentry'){
-            html += '<p>Thanks for purchasing your Re-Entry Ticket! You can once again register for events. An email will be sent to ' + tta_checkout.user_email + ' for your records. Thanks again, and welcome back!</p>';
+        var renderSuccess = function(){
+          var html = '';
+          if(data.membership){
+            if(data.membership === 'reentry'){
+              html += '<p>Thanks for purchasing your Re-Entry Ticket! You can once again register for events. An email will be sent to ' + tta_checkout.user_email + ' for your records. Thanks again, and welcome back!</p>';
           } else {
             var amt = data.membership === 'premium' ? tta_checkout.premium_price : tta_checkout.basic_price;
             var levelName = data.membership === 'premium' ? 'Premium' : 'Standard';
@@ -118,9 +140,27 @@
           transactionId: data.transaction_id || null,
           membership: data.membership || null,
           hasTickets: !!data.has_tickets,
-          emailCount: Array.isArray(data.emails) ? data.emails.length : 0
+          emailCount: Array.isArray(data.emails) ? data.emails.length : 0,
+          subscriptionPending: pendingSubscription,
+          subscriptionRetrying: hasRetry
         });
+        cleanup();
+      };
+
+        if(hasRetry){
+          var startTime = Date.now();
+          showMessage("We're still processing! Please keep this window open.", false, { animate: true });
+          var ensureDelay = function(){
+            var elapsed = Date.now() - startTime;
+            var remaining = Math.max(0, 5000 - elapsed);
+            setTimeout(renderSuccess, remaining);
+          };
+          ensureDelay();
+        } else {
+          renderSuccess();
+        }
       } else {
+        cleanup();
         $resp.removeClass('updated').addClass('error').text(data.message || 'Error processing payment');
         sessionStorage.removeItem('ttaCheckout');
         debugWarn('Checkout failed', {

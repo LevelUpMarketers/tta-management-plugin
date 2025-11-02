@@ -219,16 +219,43 @@ class TTA_Ajax_Checkout {
                 }
                 $sub_name = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_NAME : TTA_BASIC_SUBSCRIPTION_NAME;
                 $sub_desc = ( 'premium' === $membership_level ) ? TTA_PREMIUM_SUBSCRIPTION_DESCRIPTION : TTA_BASIC_SUBSCRIPTION_DESCRIPTION;
-                $sub      = $api->create_subscription_from_transaction( $transaction_id, $membership_total, $sub_name, $sub_desc, date( 'Y-m-d', strtotime( '+1 month' ) ) );
+                $sub      = $api->create_subscription_from_transaction(
+                    $transaction_id,
+                    $membership_total,
+                    $sub_name,
+                    $sub_desc,
+                    date( 'Y-m-d', strtotime( '+1 month' ) ),
+                    [
+                        'user_id'          => get_current_user_id(),
+                        'membership_level' => $membership_level,
+                        'checkout_key'     => $membership_key,
+                    ]
+                );
                 $debug_bundle['subscription'] = $sub;
-                if ( ! $sub['success'] ) {
+                if ( empty( $sub['success'] ) ) {
                     if ( function_exists( 'tta_log_payment_event' ) ) {
                         tta_log_payment_event( 'Checkout halted: subscription creation failed', $debug_bundle, 'error' );
                     }
                     wp_send_json_error( [ 'message' => $sub['error'], 'debug' => $debug_bundle ] );
                 }
-                tta_update_user_membership_level( get_current_user_id(), $membership_level, $sub['subscription_id'], 'active' );
-                $_SESSION['tta_checkout_sub'] = [ 'subscription_id' => $sub['subscription_id'] ];
+                $subscription_id      = $sub['subscription_id'] ?? '';
+                $subscription_pending = ! empty( $sub['scheduled_retry'] );
+                $subscription_retry   = ! empty( $sub['retry_details']['retrying'] );
+
+                if ( $subscription_pending ) {
+                    tta_update_user_membership_level( get_current_user_id(), $membership_level, null, 'active' );
+                    $_SESSION['tta_checkout_sub'] = [
+                        'subscription_id' => '',
+                        'pending'         => true,
+                        'token'           => $sub['retry_details']['scheduled']['token'] ?? '',
+                    ];
+                } else {
+                    tta_update_user_membership_level( get_current_user_id(), $membership_level, $subscription_id, 'active' );
+                    $_SESSION['tta_checkout_sub'] = [ 'subscription_id' => $subscription_id ];
+                }
+
+                $debug_bundle['subscription_pending'] = $subscription_pending;
+                $debug_bundle['subscription_retrying'] = $subscription_retry;
                 unset( $_SESSION['tta_membership_purchase'] );
                 $flush_membership_cache = true;
             }
@@ -276,10 +303,12 @@ class TTA_Ajax_Checkout {
 
         $message = __( 'Thank you for your purchase!', 'tta' );
         $debug_bundle['result'] = [
-            'transaction_id' => $transaction_id,
-            'emails'         => $emails,
-            'membership'     => $_SESSION['tta_checkout_membership'],
-            'has_tickets'    => $has_tickets,
+            'transaction_id'         => $transaction_id,
+            'emails'                 => $emails,
+            'membership'             => $_SESSION['tta_checkout_membership'],
+            'has_tickets'            => $has_tickets,
+            'subscription_pending'   => $debug_bundle['subscription_pending'] ?? false,
+            'subscription_retrying'  => $debug_bundle['subscription_retrying'] ?? false,
         ];
 
         if ( function_exists( 'tta_log_payment_event' ) ) {
@@ -293,6 +322,8 @@ class TTA_Ajax_Checkout {
                 'emails'         => $emails,
                 'membership'     => $_SESSION['tta_checkout_membership'],
                 'has_tickets'    => $has_tickets,
+                'subscription_pending'  => $debug_bundle['subscription_pending'] ?? false,
+                'subscription_retrying' => $debug_bundle['subscription_retrying'] ?? false,
                 'debug'          => $debug_bundle,
             ]
         );

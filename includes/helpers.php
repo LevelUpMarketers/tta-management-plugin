@@ -6760,6 +6760,218 @@ function tta_log_payment_event( $message, array $context = [], $level = 'info' )
 }
 
 /**
+ * Schedule a deferred Authorize.Net subscription creation attempt.
+ *
+ * @param array $payload Arguments for the retry.
+ * @return array
+ */
+function tta_schedule_subscription_retry( array $payload ) {
+    $defaults = [
+        'transaction_id'   => '',
+        'amount'           => 0.0,
+        'name'             => '',
+        'description'      => '',
+        'start_date'       => null,
+        'user_id'          => 0,
+        'membership_level' => '',
+        'checkout_key'     => '',
+        'retry_origin'     => 'checkout',
+        'retry_token'      => '',
+        'attempts'         => [],
+        'last_error'       => '',
+    ];
+
+    $payload = wp_parse_args( $payload, $defaults );
+
+    if ( empty( $payload['transaction_id'] ) ) {
+        return [];
+    }
+
+    if ( empty( $payload['retry_token'] ) && function_exists( 'wp_generate_uuid4' ) ) {
+        $payload['retry_token'] = wp_generate_uuid4();
+    } elseif ( empty( $payload['retry_token'] ) ) {
+        $payload['retry_token'] = uniqid( 'tta_sub_', true );
+    }
+
+    $schedule_for = time() + ( 30 * MINUTE_IN_SECONDS );
+    $payload['scheduled_for'] = $schedule_for;
+
+    $transient_key = 'tta_subscription_retry_' . $payload['retry_token'];
+    set_transient( $transient_key, $payload, DAY_IN_SECONDS );
+
+    if ( function_exists( 'wp_next_scheduled' ) ) {
+        $existing = wp_next_scheduled( 'tta_retry_membership_subscription', [ $payload['retry_token'] ] );
+        if ( $existing && function_exists( 'wp_unschedule_event' ) ) {
+            wp_unschedule_event( $existing, 'tta_retry_membership_subscription', [ $payload['retry_token'] ] );
+        }
+    }
+
+    if ( function_exists( 'wp_schedule_single_event' ) ) {
+        wp_schedule_single_event( $schedule_for, 'tta_retry_membership_subscription', [ $payload['retry_token'] ] );
+    }
+
+    if ( $payload['user_id'] ) {
+        update_user_meta(
+            (int) $payload['user_id'],
+            '_tta_pending_subscription_retry',
+            [
+                'token'            => $payload['retry_token'],
+                'transaction_id'   => $payload['transaction_id'],
+                'membership_level' => $payload['membership_level'],
+                'scheduled_for'    => $schedule_for,
+                'amount'           => $payload['amount'],
+                'status'           => 'pending',
+                'last_error'       => $payload['last_error'],
+            ]
+        );
+    }
+
+    if ( function_exists( 'tta_log_payment_event' ) ) {
+        tta_log_payment_event(
+            'Subscription retry scheduled',
+            [
+                'transaction_id' => $payload['transaction_id'],
+                'user_id'        => $payload['user_id'],
+                'scheduled_for'  => $schedule_for,
+                'token'          => $payload['retry_token'],
+                'membership'     => $payload['membership_level'],
+                'amount'         => $payload['amount'],
+            ],
+            'info'
+        );
+    }
+
+    return [
+        'token'         => $payload['retry_token'],
+        'scheduled_for' => $schedule_for,
+    ];
+}
+
+/**
+ * Retrieve deferred subscription payload for a retry token.
+ *
+ * @param string $token Retry token.
+ * @return array|null
+ */
+function tta_get_subscription_retry_payload( $token ) {
+    $token = sanitize_text_field( (string) $token );
+    if ( '' === $token ) {
+        return null;
+    }
+
+    $payload = get_transient( 'tta_subscription_retry_' . $token );
+    return is_array( $payload ) ? $payload : null;
+}
+
+/**
+ * Clear stored retry payload and related metadata.
+ *
+ * @param string $token   Retry token.
+ * @param int    $user_id User ID associated with the retry.
+ * @return void
+ */
+function tta_clear_subscription_retry_payload( $token, $user_id = 0 ) {
+    $token = sanitize_text_field( (string) $token );
+    if ( '' !== $token ) {
+        delete_transient( 'tta_subscription_retry_' . $token );
+    }
+
+    if ( $user_id ) {
+        delete_user_meta( (int) $user_id, '_tta_pending_subscription_retry' );
+    }
+}
+
+/**
+ * Cron handler for retrying subscription creation.
+ *
+ * @param string $token Retry token.
+ * @return void
+ */
+function tta_handle_subscription_retry( $token ) {
+    $payload = tta_get_subscription_retry_payload( $token );
+    if ( ! $payload ) {
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            tta_log_payment_event(
+                'Subscription retry token missing payload',
+                [ 'token' => $token ],
+                'error'
+            );
+        }
+        return;
+    }
+
+    $api      = new TTA_AuthorizeNet_API();
+    $context  = [
+        'user_id'          => (int) $payload['user_id'],
+        'membership_level' => $payload['membership_level'],
+        'checkout_key'     => $payload['checkout_key'] ?? '',
+        'allow_deferred'   => false,
+        'retry_origin'     => 'cron',
+        'retry_token'      => $payload['retry_token'],
+    ];
+    $result   = $api->create_subscription_from_transaction(
+        $payload['transaction_id'],
+        $payload['amount'],
+        $payload['name'],
+        $payload['description'],
+        $payload['start_date'],
+        $context
+    );
+
+    if ( ! empty( $result['success'] ) && ! empty( $result['subscription_id'] ) ) {
+        if ( $payload['user_id'] ) {
+            tta_update_user_subscription_id( (int) $payload['user_id'], $result['subscription_id'] );
+            tta_update_user_subscription_status( (int) $payload['user_id'], 'active' );
+        }
+        tta_clear_subscription_retry_payload( $payload['retry_token'], (int) $payload['user_id'] );
+
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            tta_log_payment_event(
+                'Deferred subscription created successfully',
+                [
+                    'transaction_id'  => $payload['transaction_id'],
+                    'subscription_id' => $result['subscription_id'],
+                    'user_id'         => $payload['user_id'],
+                    'token'           => $payload['retry_token'],
+                ]
+            );
+        }
+        return;
+    }
+
+    if ( $payload['user_id'] ) {
+        update_user_meta(
+            (int) $payload['user_id'],
+            '_tta_pending_subscription_retry',
+            [
+                'token'            => $payload['retry_token'],
+                'transaction_id'   => $payload['transaction_id'],
+                'membership_level' => $payload['membership_level'],
+                'scheduled_for'    => $payload['scheduled_for'],
+                'amount'           => $payload['amount'],
+                'status'           => 'failed',
+                'last_error'       => $result['error'] ?? ( $result['retry_details']['last_error'] ?? __( 'Unknown error', 'tta' ) ),
+                'updated'          => time(),
+            ]
+        );
+    }
+
+    if ( function_exists( 'tta_log_payment_event' ) ) {
+        tta_log_payment_event(
+            'Deferred subscription retry failed',
+            [
+                'transaction_id' => $payload['transaction_id'],
+                'user_id'        => $payload['user_id'],
+                'token'          => $payload['retry_token'],
+                'error'          => $result['error'] ?? ( $result['retry_details']['last_error'] ?? 'Unknown error' ),
+            ],
+            'error'
+        );
+    }
+}
+add_action( 'tta_retry_membership_subscription', 'tta_handle_subscription_retry', 10, 1 );
+
+/**
  * Handle admin-post request for exporting member metrics.
  */
 function tta_handle_member_metrics_export() {

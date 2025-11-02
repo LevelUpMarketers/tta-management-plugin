@@ -140,7 +140,18 @@ class TTA_Settings_Admin {
                             }
                         }
 
-                        $result = $api->create_subscription_from_transaction( $transaction_id, $amount, $tag ?: 'Membership Subscription', $tag );
+                        $result = $api->create_subscription_from_transaction(
+                            $transaction_id,
+                            $amount,
+                            $tag ?: 'Membership Subscription',
+                            $tag,
+                            null,
+                            [
+                                'allow_deferred'   => false,
+                                'retry_origin'     => 'admin',
+                                'membership_level' => $level,
+                            ]
+                        );
 
                         if ( empty( $result['success'] ) ) {
                             $error            = isset( $result['error'] ) ? $result['error'] : __( 'Subscription creation failed', 'tta' );
