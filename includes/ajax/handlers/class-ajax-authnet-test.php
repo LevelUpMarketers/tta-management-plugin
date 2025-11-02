@@ -36,7 +36,9 @@ class TTA_Ajax_Authnet_Test {
             'value' => session_id(),
         ] ) ];
 
-        // TTA_Debug_Logger::log( 'Authorize.Net test suite started.' );
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            tta_log_payment_event( 'Authorize.Net test suite started' );
+        }
 
         $scenarios = [
             'single_ticket'           => [ 'tickets' => 1, 'membership' => false ],
@@ -50,16 +52,22 @@ class TTA_Ajax_Authnet_Test {
             sleep( 2 );
         }
 
-        // TTA_Debug_Logger::log( 'Authorize.Net test suite finished.' );
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            tta_log_payment_event( 'Authorize.Net test suite finished' );
+        }
         wp_send_json_success( [ 'message' => 'Test run complete. Check debug log.' ] );
     }
 
     protected static function run_scenario( $label, $config, $cookies ) {
-        // TTA_Debug_Logger::log( 'Scenario: ' . $label );
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            tta_log_payment_event( 'Authorize.Net test scenario started', [ 'scenario' => $label, 'config' => $config ] );
+        }
 
         $event = tta_get_next_event();
         if ( ! $event ) {
-            // TTA_Debug_Logger::log( 'No upcoming events found.' );
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event( 'Authorize.Net test scenario aborted: no upcoming events', [ 'scenario' => $label ], 'warning' );
+            }
             return;
         }
 
@@ -67,7 +75,9 @@ class TTA_Ajax_Authnet_Test {
         $ute  = $wpdb->get_var( $wpdb->prepare( "SELECT ute_id FROM {$wpdb->prefix}tta_events WHERE id = %d", $event['id'] ) );
         $ticket_id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}tta_tickets WHERE event_ute_id = %s LIMIT 1", $ute ) );
         if ( ! $ticket_id ) {
-            // TTA_Debug_Logger::log( 'No ticket found for event.' );
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event( 'Authorize.Net test scenario aborted: no ticket found', [ 'scenario' => $label, 'event_id' => $event['id'] ], 'warning' );
+            }
             return;
         }
 
@@ -79,10 +89,14 @@ class TTA_Ajax_Authnet_Test {
             ], $cookies );
             if ( empty( $res['success'] ) ) {
                 $msg = $res['data']['message'] ?? ( $res['error'] ?? 'Add to cart error' );
-                // TTA_Debug_Logger::log( 'Add to cart failed: ' . $msg );
+                if ( function_exists( 'tta_log_payment_event' ) ) {
+                    tta_log_payment_event( 'Authorize.Net test scenario add-to-cart failed', [ 'scenario' => $label, 'message' => $msg ], 'error' );
+                }
                 return;
             }
-            // TTA_Debug_Logger::log( 'Added ' . $config['tickets'] . ' tickets to cart.' );
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event( 'Authorize.Net test scenario added tickets', [ 'scenario' => $label, 'tickets' => $config['tickets'] ] );
+            }
         }
 
         if ( $config['membership'] ) {
@@ -93,10 +107,14 @@ class TTA_Ajax_Authnet_Test {
             ], $cookies );
             if ( empty( $res['success'] ) ) {
                 $msg = $res['data']['message'] ?? ( $res['error'] ?? 'Membership error' );
-                // TTA_Debug_Logger::log( 'Add membership failed: ' . $msg );
+                if ( function_exists( 'tta_log_payment_event' ) ) {
+                    tta_log_payment_event( 'Authorize.Net test scenario membership add failed', [ 'scenario' => $label, 'message' => $msg ], 'error' );
+                }
                 return;
             }
-            // TTA_Debug_Logger::log( 'Added membership to cart.' );
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event( 'Authorize.Net test scenario added membership', [ 'scenario' => $label ] );
+            }
         }
 
         $member = tta_get_sample_member();
@@ -115,10 +133,14 @@ class TTA_Ajax_Authnet_Test {
         ], $cookies );
         if ( empty( $res['success'] ) ) {
             $msg = $res['data']['message'] ?? ( $res['error'] ?? 'Checkout error' );
-            // TTA_Debug_Logger::log( 'Checkout failed: ' . $msg );
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event( 'Authorize.Net test scenario checkout failed', [ 'scenario' => $label, 'message' => $msg ], 'error' );
+            }
             return;
         }
-        // TTA_Debug_Logger::log( 'Checkout success.' );
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            tta_log_payment_event( 'Authorize.Net test scenario checkout succeeded', [ 'scenario' => $label ] );
+        }
     }
 }
 

@@ -80,7 +80,29 @@ class TTA_AuthorizeNet_API {
      * @return void
      */
     protected function log_response( $context, $response ) {
-        // Debug logging disabled
+        if ( ! function_exists( 'tta_log_payment_event' ) ) {
+            return;
+        }
+
+        if ( function_exists( 'tta_payment_debug_enabled' ) && ! tta_payment_debug_enabled() ) {
+            return;
+        }
+
+        $payload = $response;
+        if ( is_object( $response ) || is_array( $response ) ) {
+            $payload = json_decode( wp_json_encode( $response ), true );
+            if ( is_array( $payload ) ) {
+                $payload = $this->sanitize_response_array( $payload );
+            }
+        }
+
+        tta_log_payment_event(
+            'Authorize.Net response received',
+            [
+                'context'  => $context,
+                'response' => $payload,
+            ]
+        );
     }
 
     /**
@@ -165,33 +187,29 @@ class TTA_AuthorizeNet_API {
  * @return array { success:bool, transaction_id?:string, error?:string, debug?:array }
  */
 public function charge( $amount, $card_number, $exp_date, $card_code, array $billing = [] ) {
-
-    // error_log("In the 'charge() function");
-
-    // $debug = [
-    //     'stage'            => 'charge_entry',
-    //     'when'             => gmdate('c'),
-    //     'env'              => property_exists($this, 'environment') ? $this->environment : 'n/a',
-    //     'login_id'         => $this->login_id,          // UNMASKED (dev per request)
-    //     'transaction_key'  => $this->transaction_key,   // UNMASKED (dev per request)
-    //     'amount_input'     => $amount,
-    //     'card_input'       => [
-    //         'number' => $card_number,
-    //         'exp'    => $exp_date,
-    //         'cvv'    => $card_code,
-    //     ],
-    //     'billing_input'    => $billing,
-    // ];
+    if ( function_exists( 'tta_log_payment_event' ) ) {
+        tta_log_payment_event(
+            'Authorize.Net charge requested',
+            [
+                'amount'      => $amount,
+                'billing'     => $billing,
+                'has_token'   => isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] ),
+                'environment' => $this->environment,
+            ]
+        );
+    }
 
     if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
-        // $debug['fatal'] = 'Credentials not configured';
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            tta_log_payment_event( 'Authorize.Net charge aborted: credentials not configured', [], 'error' );
+        }
         return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
     }
 
     // Normalize
     $amount      = number_format( (float) $amount, 2, '.', '' );
-    $card_number = preg_replace('/\D+/', '', (string) $card_number);
-    $card_code   = preg_replace('/\D+/', '', (string) $card_code);
+    $card_number = preg_replace( '/\D+/', '', (string) $card_number );
+    $card_code   = preg_replace( '/\D+/', '', (string) $card_code );
     $exp_date    = (string) $exp_date;
     $country     = strtoupper( trim( (string) ( $billing['country'] ?? 'USA' ) ) );
     $zip_clean   = preg_replace( '/\s+/', '', (string) ( $billing['zip'] ?? '' ) );
@@ -200,13 +218,16 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
     if ( ! $use_token ) {
         if ( ! preg_match( '/^\d{4}-\d{2}$/', $exp_date ) ) {
-            // error_log( 'WARN: exp_date not YYYY-MM: ' . $exp_date );
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event( 'Authorize.Net charge warning: exp_date not YYYY-MM', [ 'exp_date' => $exp_date ], 'warning' );
+            }
         }
         if ( strlen( $card_code ) < 3 || strlen( $card_code ) > 4 ) {
-            // error_log( 'WARN: CVV length unusual: ' . strlen( $card_code ) );
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event( 'Authorize.Net charge warning: CVV length unusual', [ 'length' => strlen( $card_code ) ], 'warning' );
+            }
         }
     }
-    // $debug['use_token'] = $use_token ? 'yes' : 'no';
 
     // Build API objects
     $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
@@ -215,13 +236,11 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
     $paymentOne = new AnetAPI\PaymentType();
     if ( $use_token ) {
-        // error_log("In the use_token if");
         $od = new AnetAPI\OpaqueDataType();
         $od->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
         $od->setDataValue( $billing['opaqueData']['dataValue'] );
         $paymentOne->setOpaqueData( $od );
     } else {
-        // error_log("In the use_token else");
         $creditCard = new AnetAPI\CreditCardType();
         $creditCard->setCardNumber( $card_number );
         $creditCard->setExpirationDate( $exp_date );
@@ -283,14 +302,28 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
     $root         = $mapper->getXmlName( ( new \ReflectionClass( $request ) )->getName() );
     $request_json = [ $root => $request ];
     $raw_array    = json_decode( wp_json_encode( $request_json ), true ); // RAW
-    // $debug['request_raw_array'] = $raw_array;
+    $sanitized_request = $this->sanitize_response_array( $raw_array );
+
+    if ( function_exists( 'tta_log_payment_event' ) ) {
+        tta_log_payment_event(
+            'Authorize.Net charge payload prepared',
+            [
+                'amount'     => $amount,
+                'use_token'  => $use_token,
+                'invoice'    => $invoice,
+                'request'    => $sanitized_request,
+                'billing'    => $billing,
+                'card_hint'  => $use_token ? 'opaqueData' : substr( $card_number, -4 ),
+                'ip'         => $billing['ip'] ?? '',
+            ]
+        );
+    }
 
     // Send
     $controller = new AnetController\CreateTransactionController( $request );
     $response   = $this->send_request( $controller );
 
-    // Dump response (raw print_r plus structured pull)
-    // $debug['response_dump_print_r'] = print_r( $response, true );
+    $this->log_response( 'charge', $response );
 
     $diag = [
         'resultCode'     => null,
@@ -339,30 +372,41 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $diag['hints'][] = 'Empty response from gateway (network or endpoint issue).';
     }
 
-    // $debug['diag'] = $diag;
-
-    // Return results with debug
-    if ( $response && 'Ok' === ($response->getMessages() ? $response->getMessages()->getResultCode() : null) ) {
-        $tresponse = $response->getTransactionResponse();
-        if ( $tresponse && $tresponse->getResponseCode() === '1' ) {
-            return [
-                'success'        => true,
-                'transaction_id' => $tresponse->getTransId(),
-                // 'debug'          => [ 'gateway' => $debug ],
-            ];
-        }
-        return [
-            'success' => false,
-            'error'   => $this->format_error( $response, $tresponse, 'Transaction failed' ),
-            // 'debug'   => [ 'gateway' => $debug ],
-        ];
-    }
-
-    return [
+    $result = [
         'success' => false,
         'error'   => $this->format_error( $response, null, 'API error' ),
-        // 'debug'   => [ 'gateway' => $debug ],
     ];
+
+    if ( $response && 'Ok' === ( $response->getMessages() ? $response->getMessages()->getResultCode() : null ) ) {
+        $tresponse = $response->getTransactionResponse();
+        if ( $tresponse && $tresponse->getResponseCode() === '1' ) {
+            $result = [
+                'success'        => true,
+                'transaction_id' => $tresponse->getTransId(),
+            ];
+        } else {
+            $result = [
+                'success' => false,
+                'error'   => $this->format_error( $response, $tresponse, 'Transaction failed' ),
+            ];
+        }
+    }
+
+    if ( function_exists( 'tta_log_payment_event' ) ) {
+        tta_log_payment_event(
+            'Authorize.Net charge result',
+            [
+                'success'        => $result['success'],
+                'transaction_id' => $result['success'] ? ( $result['transaction_id'] ?? '' ) : '',
+                'error'          => $result['success'] ? '' : ( $result['error'] ?? '' ),
+                'diag'           => $diag,
+                'request'        => $sanitized_request,
+            ],
+            $result['success'] ? 'info' : 'error'
+        );
+    }
+
+    return $result;
 }
 
 

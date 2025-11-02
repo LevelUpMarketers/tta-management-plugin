@@ -6688,6 +6688,78 @@ function tta_get_slider_images() {
 }
 
 /**
+ * Determine whether verbose payment debugging is enabled.
+ *
+ * Toggle via the TTA_PAYMENT_DEBUG constant, the
+ * `tta_payment_debug_enabled` option, or the
+ * `tta_payment_debug_enabled` filter.
+ *
+ * @return bool
+ */
+function tta_payment_debug_enabled() {
+    static $enabled = null;
+
+    if ( null !== $enabled ) {
+        return $enabled;
+    }
+
+    if ( defined( 'TTA_PAYMENT_DEBUG' ) ) {
+        $enabled = (bool) TTA_PAYMENT_DEBUG;
+    } else {
+        $stored  = get_option( 'tta_payment_debug_enabled', null );
+        if ( null === $stored ) {
+            $enabled = true;
+        } else {
+            $enabled = (bool) $stored;
+        }
+    }
+
+    /**
+     * Filter whether verbose payment debugging is enabled.
+     *
+     * @param bool $enabled Current state.
+     */
+    $enabled = (bool) apply_filters( 'tta_payment_debug_enabled', $enabled );
+
+    return $enabled;
+}
+
+/**
+ * Write a payment debug entry to the error log and plugin debug log.
+ *
+ * @param string $message Short description of the event.
+ * @param array  $context Additional context to include in the log entry.
+ * @param string $level   Optional severity label.
+ *
+ * @return void
+ */
+function tta_log_payment_event( $message, array $context = [], $level = 'info' ) {
+    if ( ! tta_payment_debug_enabled() ) {
+        return;
+    }
+
+    $entry = [
+        'level'   => $level,
+        'time'    => gmdate( 'c' ),
+        'message' => $message,
+    ];
+
+    if ( ! empty( $context ) ) {
+        $entry['context'] = $context;
+    }
+
+    $json = wp_json_encode( $entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+
+    if ( class_exists( 'TTA_Debug_Logger' ) ) {
+        TTA_Debug_Logger::log( '[payment-debug] ' . $json );
+    }
+
+    if ( function_exists( 'error_log' ) ) {
+        error_log( 'TTA payment debug: ' . $json );
+    }
+}
+
+/**
  * Handle admin-post request for exporting member metrics.
  */
 function tta_handle_member_metrics_export() {
