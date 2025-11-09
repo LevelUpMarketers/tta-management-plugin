@@ -381,40 +381,70 @@ if ( $dob_value ) {
           </th>
           <td>
             <?php
+            // Current saved opt-in values
             $opt_email        = intval( $member['opt_in_marketing_email'] );
             $opt_sms          = intval( $member['opt_in_marketing_sms'] );
             $opt_update_email = intval( $member['opt_in_event_update_email'] );
             $opt_update_sms   = intval( $member['opt_in_event_update_sms'] );
+
+            // Reusable links
+            $privacy_url = esc_url( home_url( '/privacy-policy/' ) );
+            $terms_url   = esc_url( home_url( '/terms/' ) );
             ?>
+
             <p class="view-value">
               <?php
                 $opts = [];
-                if ( $opt_email )        $opts[] = __( 'Marketing Emails', 'tta' );
-                if ( $opt_sms )          $opts[] = __( 'Marketing SMS', 'tta' );
-                if ( $opt_update_email ) $opts[] = __( 'Event Update Emails', 'tta' );
-                if ( $opt_update_sms )   $opts[] = __( 'Event Update SMS', 'tta' );
+                if ( $opt_email )        { $opts[] = __( 'Marketing Emails', 'tta' ); }
+                if ( $opt_sms )          { $opts[] = __( 'Marketing SMS', 'tta' ); }
+                if ( $opt_update_email ) { $opts[] = __( 'Event Update Emails', 'tta' ); }
+                if ( $opt_update_sms )   { $opts[] = __( 'Event Update SMS', 'tta' ); }
                 echo $opts ? esc_html( implode( ', ', $opts ) ) : '—';
               ?>
             </p>
+
             <fieldset class="edit-input">
-              <label><input type="checkbox" name="opt_in_marketing_email"    value="1" <?php checked( $opt_email, 1 ); ?> /> <?php esc_html_e( 'Marketing Emails', 'tta' ); ?></label>
-              <label><input type="checkbox" name="opt_in_marketing_sms"      value="1" <?php checked( $opt_sms, 1 ); ?> /> <?php esc_html_e( 'Marketing SMS', 'tta' ); ?></label>
-              <label><input type="checkbox" name="opt_in_event_update_email" value="1" <?php checked( $opt_update_email, 1 ); ?> /> <?php esc_html_e( 'Event Update Emails', 'tta' ); ?></label>
-              <label><input type="checkbox" name="opt_in_event_update_sms"   value="1" <?php checked( $opt_update_sms, 1 ); ?> /> <?php esc_html_e( 'Event Update SMS', 'tta' ); ?></label>
+              <label>
+                <input type="checkbox" name="opt_in_marketing_email" value="1" <?php checked( $opt_email, 1 ); ?> />
+                <?php esc_html_e( 'Marketing Emails', 'tta' ); ?>
+              </label>
+
+              <label>
+                <input type="checkbox" name="opt_in_marketing_sms" value="1" <?php checked( $opt_sms, 1 ); ?> />
+                <?php esc_html_e( 'Marketing SMS', 'tta' ); ?>
+              </label>
+
+              <label>
+                <input type="checkbox" name="opt_in_event_update_email" value="1" <?php checked( $opt_update_email, 1 ); ?> />
+                <?php esc_html_e( 'Event Update Emails', 'tta' ); ?>
+              </label>
+
+              <label>
+                <input type="checkbox" name="opt_in_event_update_sms" value="1" <?php checked( $opt_update_sms, 1 ); ?> />
+                <?php esc_html_e( 'Event Update SMS', 'tta' ); ?>
+              </label>
             </fieldset>
+
             <?php
+            // Twilio/CTIA-compliant on-page disclosure
             $optin_notice = sprintf(
-                /* translators: %s: privacy policy URL */
-                __( 'By checking the boxes above, you agree to receive marketing and/or non-marketing emails & text messages from Trying To Adult RVA, to include communications such as event sign-up confirmations, 24-hour & 3-hour event reminders, and other communications from event Hosts & Volunteers in the event of last-minute event changes or other relevant information to provide you with the best experience possible. <a href="%s">Read our Privacy Policy here.</a>', 'tta' ),
-                esc_url( home_url( '/privacy-policy/' ) )
+              /* translators: 1: Privacy Policy URL, 2: Terms URL */
+              __(
+                'By checking the boxes above, you agree to receive marketing and/or event update emails and text messages from <strong>Trying to Adult RVA</strong>. These may include communications such as event confirmations, 24-hour and 3-hour reminders, important updates, or relevant offers.<br><br><span class="tta-sms-disclosure"><strong>For text messages:</strong> Message frequency varies. Msg &amp; data rates may apply. Reply <strong>STOP</strong> to opt out, <strong>HELP</strong> for help. <strong>Consent to marketing SMS is not a condition of purchase.</strong></span><br><br><a href="%1$s">Privacy Policy</a> &middot; <a href="%2$s">Terms &amp; Conditions</a>',
+                'tta'
+              ),
+              $privacy_url,
+              $terms_url
             );
+
             echo '<p class="edit-input tta-optin-help">' . wp_kses(
-                $optin_notice,
-                [
-                    'a' => [
-                        'href' => [],
-                    ],
-                ]
+              $optin_notice,
+              [
+                'a'      => [ 'href' => [] ],
+                'strong' => [],
+                'br'     => [],
+                'span'   => [ 'class' => [] ],
+              ]
             ) . '</p>';
             ?>
           </td>

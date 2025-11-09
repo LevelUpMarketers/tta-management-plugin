@@ -9,7 +9,14 @@ if ( ! function_exists( 'add_action' ) ) { function add_action( $hook, $callback
 if ( ! function_exists( 'add_filter' ) ) { function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {} }
 if ( ! function_exists( 'apply_filters' ) ) { function apply_filters( $hook, $value ) { return $value; } }
 if ( ! function_exists( '__' ) ) { function __( $text ) { return $text; } }
-if ( ! function_exists( 'current_time' ) ) { function current_time( $type ) { return '2024-01-10'; } }
+if ( ! function_exists( 'current_time' ) ) {
+    function current_time( $type ) {
+        if ( 'timestamp' === $type ) {
+            return strtotime( '2024-01-10 00:00:00' );
+        }
+        return '2024-01-10';
+    }
+}
 if ( ! function_exists( 'get_userdata' ) ) { function get_userdata( $id ) { return (object) [ 'user_email' => 'buyer@example.com' ]; } }
 if ( ! function_exists( 'get_permalink' ) ) { function get_permalink( $id ) { return 'https://example.com/page/' . intval( $id ); } }
 if ( ! function_exists( 'wp_json_encode' ) ) { function wp_json_encode( $data ) { return json_encode( $data ); } }
@@ -68,6 +75,7 @@ class AttendeeArchiveRegressionTest extends TestCase {
                         'id'             => 99,
                         'transaction_id' => 'TX123',
                         'created_at'     => '2023-01-01 09:00:00',
+                        'member_id'      => $this->member_id,
                         'wpuserid'       => 123,
                         'details'        => json_encode([
                             [
@@ -103,6 +111,14 @@ class AttendeeArchiveRegressionTest extends TestCase {
                         'refunds'    => 1,
                     ],
                 ];
+                $this->tickets = [
+                    [ 'id' => 101, 'event_ute_id' => 'event-ute' ],
+                ];
+                $this->tickets_archive = $this->tickets;
+                $this->events = [
+                    [ 'ute_id' => 'event-ute', 'date' => '2023-01-01' ],
+                ];
+                $this->events_archive = $this->events;
             }
             public function prepare( $query, ...$args ) {
                 foreach ( $args as $arg ) {
@@ -125,6 +141,9 @@ class AttendeeArchiveRegressionTest extends TestCase {
                 if ( false !== strpos( $query, 'SELECT id, transaction_id FROM wp_tta_transactions WHERE transaction_id IN' ) ) {
                     return [ [ 'id' => 99, 'transaction_id' => 'TX123' ] ];
                 }
+                if ( false !== strpos( $query, 'SELECT a.id AS attendee_id, a.status FROM wp_tta_attendees' ) && false !== strpos( $query, 'UNION' ) ) {
+                    return $this->member_status_rows();
+                }
                 if ( false !== strpos( $query, 'SELECT transaction_id, COUNT(*) AS cnt FROM wp_tta_attendees WHERE transaction_id IN' ) ) {
                     return $this->count_by_transaction( $this->attendees );
                 }
@@ -140,6 +159,9 @@ class AttendeeArchiveRegressionTest extends TestCase {
                 if ( false !== strpos( $query, 'FROM wp_tta_memberhistory' ) && false !== strpos( $query, "action_type = 'refund'" ) ) {
                     return [];
                 }
+                if ( false !== strpos( $query, "SELECT a.id AS att_id" ) && false !== strpos( $query, "'archive' AS src" ) ) {
+                    return $this->event_history_rows();
+                }
                 if ( false !== strpos( $query, 'FROM wp_tta_attendees_archive WHERE ticket_id' ) ) {
                     return $this->attendees_archive;
                 }
@@ -151,6 +173,18 @@ class AttendeeArchiveRegressionTest extends TestCase {
             public function get_var( $query ) {
                 if ( false !== strpos( $query, 'FROM wp_tta_members WHERE wpuserid' ) ) {
                     return $this->member_id;
+                }
+                if ( false !== strpos( $query, 'FROM wp_tta_tickets t JOIN wp_tta_events ' ) ) {
+                    return $this->events[0]['date'];
+                }
+                if ( false !== strpos( $query, 'FROM wp_tta_tickets_archive t JOIN wp_tta_events_archive' ) ) {
+                    return $this->events_archive[0]['date'];
+                }
+                if ( false !== strpos( $query, 'FROM wp_tta_tickets t JOIN wp_tta_events_archive' ) ) {
+                    return $this->events_archive[0]['date'];
+                }
+                if ( false !== strpos( $query, 'FROM wp_tta_tickets_archive t JOIN wp_tta_events ' ) ) {
+                    return $this->events[0]['date'];
                 }
                 if ( false !== strpos( $query, 'COUNT(*) FROM (' ) && false !== strpos( $query, 'wp_tta_attendees WHERE' ) ) {
                     $unique = [];
@@ -171,6 +205,31 @@ class AttendeeArchiveRegressionTest extends TestCase {
                 }
                 return 0;
             }
+            public function get_row( $query, $output = ARRAY_A ) {
+                if ( false !== strpos( $query, 'FROM wp_tta_attendees WHERE id' ) ) {
+                    if ( preg_match( '/WHERE id = (\d+)/', $query, $m ) ) {
+                        $id = (int) $m[1];
+                        foreach ( $this->attendees as $row ) {
+                            if ( (int) ( $row['id'] ?? 0 ) === $id ) {
+                                return $row;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                if ( false !== strpos( $query, 'FROM wp_tta_attendees_archive WHERE id' ) ) {
+                    if ( preg_match( '/WHERE id = (\d+)/', $query, $m ) ) {
+                        $id = (int) $m[1];
+                        foreach ( $this->attendees_archive as $row ) {
+                            if ( (int) ( $row['id'] ?? 0 ) === $id ) {
+                                return $row;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                return null;
+            }
             public function count_by_transaction( array $rows ) {
                 $map = [];
                 foreach ( $rows as $row ) {
@@ -188,6 +247,63 @@ class AttendeeArchiveRegressionTest extends TestCase {
                     $out[] = [ 'transaction_id' => $tid, 'cnt' => $count ];
                 }
                 return $out;
+            }
+            public function member_status_rows() {
+                $results = [];
+                foreach ( [
+                    [ $this->attendees, 'active' ],
+                    [ $this->attendees_archive, 'archive' ],
+                ] as $set ) {
+                    [ $source_rows, $src ] = $set;
+                    foreach ( $source_rows as $row ) {
+                        $transaction_id = (int) ( $row['transaction_id'] ?? 0 );
+                        if ( ! $transaction_id ) {
+                            continue;
+                        }
+                        if ( ! $this->transaction_matches_member( $transaction_id ) ) {
+                            continue;
+                        }
+                        $results[] = [
+                            'attendee_id' => (int) ( $row['id'] ?? 0 ),
+                            'status'      => $row['status'] ?? 'pending',
+                            'src'         => $src,
+                        ];
+                    }
+                }
+                return $results;
+            }
+            private function transaction_matches_member( int $transaction_id ): bool {
+                foreach ( $this->transactions as $transaction ) {
+                    if ( (int) ( $transaction['id'] ?? 0 ) !== $transaction_id ) {
+                        continue;
+                    }
+                    if ( (int) ( $transaction['member_id'] ?? 0 ) === (int) $this->member_id ) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            public function event_history_rows() {
+                $rows = [];
+                foreach ( $this->attendees as $row ) {
+                    $rows[] = [
+                        'att_id' => $row['id'],
+                        'status' => $row['status'],
+                        'name'   => 'Sample Event',
+                        'date'   => '2023-01-01',
+                        'src'    => 'active',
+                    ];
+                }
+                foreach ( $this->attendees_archive as $row ) {
+                    $rows[] = [
+                        'att_id' => $row['id'],
+                        'status' => $row['status'],
+                        'name'   => 'Sample Event',
+                        'date'   => '2023-01-01',
+                        'src'    => 'archive',
+                    ];
+                }
+                return $rows;
             }
         };
         require_once __DIR__ . '/../includes/helpers.php';
@@ -212,5 +328,64 @@ class AttendeeArchiveRegressionTest extends TestCase {
         $this->assertCount( 1, $events );
         $this->assertSame( 'Sample Event', $events[0]['name'] );
         $this->assertNotEmpty( $events[0]['items'] );
+    }
+
+    public function test_member_history_summary_deduplicates_attendance(): void {
+        global $wpdb;
+
+        $summary = tta_get_member_history_summary( $wpdb->member_id );
+
+        $this->assertSame( 0, $summary['attended'] );
+        $this->assertSame( 1, $summary['no_show'] );
+    }
+
+    public function test_member_history_summary_counts_archive_only_records(): void {
+        global $wpdb;
+
+        $wpdb->attendees         = [];
+        $wpdb->attendees_archive = [
+            [
+                'id'              => 777,
+                'ticket_id'       => 101,
+                'first_name'      => 'Alex',
+                'last_name'       => 'Doe',
+                'email'           => 'alex@example.com',
+                'phone'           => '555-0000',
+                'status'          => 'checked_in',
+                'transaction_id'  => 99,
+                'assistance_note' => '',
+                'opt_in_sms'      => 0,
+                'created_at'      => '2023-01-01 12:00:00',
+            ],
+        ];
+
+        $summary = tta_get_member_history_summary( $wpdb->member_id );
+
+        $this->assertSame( 1, $summary['attended'] );
+        $this->assertSame( 0, $summary['no_show'] );
+    }
+
+    public function test_member_history_summary_prefers_archive_status_over_active_row(): void {
+        global $wpdb;
+
+        $wpdb->attendees[0]['status']         = 'no_show';
+        $wpdb->attendees_archive[0]['status'] = 'checked_in';
+
+        $summary = tta_get_member_history_summary( $wpdb->member_id );
+
+        $this->assertSame( 1, $summary['attended'] );
+        $this->assertSame( 0, $summary['no_show'] );
+    }
+
+    public function test_event_history_prefers_archive_status_when_available(): void {
+        global $wpdb;
+
+        $wpdb->attendees[0]['status']         = 'no_show';
+        $wpdb->attendees_archive[0]['status'] = 'checked_in';
+
+        $history = tta_get_member_event_history( 'alex@example.com' );
+
+        $this->assertNotEmpty( $history );
+        $this->assertSame( 'checked_in', $history[0]['status'] );
     }
 }
