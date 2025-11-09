@@ -80,7 +80,29 @@ class TTA_AuthorizeNet_API {
      * @return void
      */
     protected function log_response( $context, $response ) {
-        // Debug logging disabled
+        if ( ! function_exists( 'tta_log_payment_event' ) ) {
+            return;
+        }
+
+        if ( function_exists( 'tta_payment_debug_enabled' ) && ! tta_payment_debug_enabled() ) {
+            return;
+        }
+
+        $payload = $response;
+        if ( is_object( $response ) || is_array( $response ) ) {
+            $payload = json_decode( wp_json_encode( $response ), true );
+            if ( is_array( $payload ) ) {
+                $payload = $this->sanitize_response_array( $payload );
+            }
+        }
+
+        tta_log_payment_event(
+            'Authorize.Net response received',
+            [
+                'context'  => $context,
+                'response' => $payload,
+            ]
+        );
     }
 
     /**
@@ -140,6 +162,35 @@ class TTA_AuthorizeNet_API {
         return $map[ $code ] ?? '';
     }
 
+    /**
+     * Extract the top-level message code from an API response.
+     *
+     * @param mixed $response API response.
+     * @return string
+     */
+    protected function extract_message_code( $response ) {
+        if ( ! $response || ! method_exists( $response, 'getMessages' ) ) {
+            return '';
+        }
+
+        $messages = $response->getMessages();
+        if ( ! $messages || ! method_exists( $messages, 'getMessage' ) ) {
+            return '';
+        }
+
+        $items = $messages->getMessage();
+        if ( empty( $items ) ) {
+            return '';
+        }
+
+        $first = is_array( $items ) ? reset( $items ) : $items;
+        if ( $first && method_exists( $first, 'getCode' ) ) {
+            return (string) $first->getCode();
+        }
+
+        return '';
+    }
+
     public function __construct( $login_id = null, $transaction_key = null, $sandbox = null ) {
         $this->login_id        = $login_id        ?: ( defined( 'TTA_AUTHNET_LOGIN_ID' ) ? TTA_AUTHNET_LOGIN_ID : '' );
         $this->transaction_key = $transaction_key ?: ( defined( 'TTA_AUTHNET_TRANSACTION_KEY' ) ? TTA_AUTHNET_TRANSACTION_KEY : '' );
@@ -165,33 +216,29 @@ class TTA_AuthorizeNet_API {
  * @return array { success:bool, transaction_id?:string, error?:string, debug?:array }
  */
 public function charge( $amount, $card_number, $exp_date, $card_code, array $billing = [] ) {
-
-    // error_log("In the 'charge() function");
-
-    // $debug = [
-    //     'stage'            => 'charge_entry',
-    //     'when'             => gmdate('c'),
-    //     'env'              => property_exists($this, 'environment') ? $this->environment : 'n/a',
-    //     'login_id'         => $this->login_id,          // UNMASKED (dev per request)
-    //     'transaction_key'  => $this->transaction_key,   // UNMASKED (dev per request)
-    //     'amount_input'     => $amount,
-    //     'card_input'       => [
-    //         'number' => $card_number,
-    //         'exp'    => $exp_date,
-    //         'cvv'    => $card_code,
-    //     ],
-    //     'billing_input'    => $billing,
-    // ];
+    if ( function_exists( 'tta_log_payment_event' ) ) {
+        tta_log_payment_event(
+            'Authorize.Net charge requested',
+            [
+                'amount'      => $amount,
+                'billing'     => $billing,
+                'has_token'   => isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] ),
+                'environment' => $this->environment,
+            ]
+        );
+    }
 
     if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
-        // $debug['fatal'] = 'Credentials not configured';
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            tta_log_payment_event( 'Authorize.Net charge aborted: credentials not configured', [], 'error' );
+        }
         return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
     }
 
     // Normalize
     $amount      = number_format( (float) $amount, 2, '.', '' );
-    $card_number = preg_replace('/\D+/', '', (string) $card_number);
-    $card_code   = preg_replace('/\D+/', '', (string) $card_code);
+    $card_number = preg_replace( '/\D+/', '', (string) $card_number );
+    $card_code   = preg_replace( '/\D+/', '', (string) $card_code );
     $exp_date    = (string) $exp_date;
     $country     = strtoupper( trim( (string) ( $billing['country'] ?? 'USA' ) ) );
     $zip_clean   = preg_replace( '/\s+/', '', (string) ( $billing['zip'] ?? '' ) );
@@ -200,13 +247,16 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
     if ( ! $use_token ) {
         if ( ! preg_match( '/^\d{4}-\d{2}$/', $exp_date ) ) {
-            // error_log( 'WARN: exp_date not YYYY-MM: ' . $exp_date );
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event( 'Authorize.Net charge warning: exp_date not YYYY-MM', [ 'exp_date' => $exp_date ], 'warning' );
+            }
         }
         if ( strlen( $card_code ) < 3 || strlen( $card_code ) > 4 ) {
-            // error_log( 'WARN: CVV length unusual: ' . strlen( $card_code ) );
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event( 'Authorize.Net charge warning: CVV length unusual', [ 'length' => strlen( $card_code ) ], 'warning' );
+            }
         }
     }
-    // $debug['use_token'] = $use_token ? 'yes' : 'no';
 
     // Build API objects
     $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
@@ -215,13 +265,11 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
     $paymentOne = new AnetAPI\PaymentType();
     if ( $use_token ) {
-        // error_log("In the use_token if");
         $od = new AnetAPI\OpaqueDataType();
         $od->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
         $od->setDataValue( $billing['opaqueData']['dataValue'] );
         $paymentOne->setOpaqueData( $od );
     } else {
-        // error_log("In the use_token else");
         $creditCard = new AnetAPI\CreditCardType();
         $creditCard->setCardNumber( $card_number );
         $creditCard->setExpirationDate( $exp_date );
@@ -283,14 +331,28 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
     $root         = $mapper->getXmlName( ( new \ReflectionClass( $request ) )->getName() );
     $request_json = [ $root => $request ];
     $raw_array    = json_decode( wp_json_encode( $request_json ), true ); // RAW
-    // $debug['request_raw_array'] = $raw_array;
+    $sanitized_request = $this->sanitize_response_array( $raw_array );
+
+    if ( function_exists( 'tta_log_payment_event' ) ) {
+        tta_log_payment_event(
+            'Authorize.Net charge payload prepared',
+            [
+                'amount'     => $amount,
+                'use_token'  => $use_token,
+                'invoice'    => $invoice,
+                'request'    => $sanitized_request,
+                'billing'    => $billing,
+                'card_hint'  => $use_token ? 'opaqueData' : substr( $card_number, -4 ),
+                'ip'         => $billing['ip'] ?? '',
+            ]
+        );
+    }
 
     // Send
     $controller = new AnetController\CreateTransactionController( $request );
     $response   = $this->send_request( $controller );
 
-    // Dump response (raw print_r plus structured pull)
-    // $debug['response_dump_print_r'] = print_r( $response, true );
+    $this->log_response( 'charge', $response );
 
     $diag = [
         'resultCode'     => null,
@@ -339,30 +401,41 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $diag['hints'][] = 'Empty response from gateway (network or endpoint issue).';
     }
 
-    // $debug['diag'] = $diag;
-
-    // Return results with debug
-    if ( $response && 'Ok' === ($response->getMessages() ? $response->getMessages()->getResultCode() : null) ) {
-        $tresponse = $response->getTransactionResponse();
-        if ( $tresponse && $tresponse->getResponseCode() === '1' ) {
-            return [
-                'success'        => true,
-                'transaction_id' => $tresponse->getTransId(),
-                // 'debug'          => [ 'gateway' => $debug ],
-            ];
-        }
-        return [
-            'success' => false,
-            'error'   => $this->format_error( $response, $tresponse, 'Transaction failed' ),
-            // 'debug'   => [ 'gateway' => $debug ],
-        ];
-    }
-
-    return [
+    $result = [
         'success' => false,
         'error'   => $this->format_error( $response, null, 'API error' ),
-        // 'debug'   => [ 'gateway' => $debug ],
     ];
+
+    if ( $response && 'Ok' === ( $response->getMessages() ? $response->getMessages()->getResultCode() : null ) ) {
+        $tresponse = $response->getTransactionResponse();
+        if ( $tresponse && $tresponse->getResponseCode() === '1' ) {
+            $result = [
+                'success'        => true,
+                'transaction_id' => $tresponse->getTransId(),
+            ];
+        } else {
+            $result = [
+                'success' => false,
+                'error'   => $this->format_error( $response, $tresponse, 'Transaction failed' ),
+            ];
+        }
+    }
+
+    if ( function_exists( 'tta_log_payment_event' ) ) {
+        tta_log_payment_event(
+            'Authorize.Net charge result',
+            [
+                'success'        => $result['success'],
+                'transaction_id' => $result['success'] ? ( $result['transaction_id'] ?? '' ) : '',
+                'error'          => $result['success'] ? '' : ( $result['error'] ?? '' ),
+                'diag'           => $diag,
+                'request'        => $sanitized_request,
+            ],
+            $result['success'] ? 'info' : 'error'
+        );
+    }
+
+    return $result;
 }
 
 
@@ -1260,10 +1333,31 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
      * @param string $start_date     YYYY-MM-DD start date.
      * @return array { success:bool, subscription_id?:string, error?:string }
      */
-    public function create_subscription_from_transaction( $transaction_id, $amount, $name, $description = '', $start_date = null ) {
+    public function create_subscription_from_transaction( $transaction_id, $amount, $name, $description = '', $start_date = null, array $context = [] ) {
         if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
+
+        $context = wp_parse_args(
+            $context,
+            [
+                'user_id'          => 0,
+                'membership_level' => '',
+                'checkout_key'     => '',
+                'allow_deferred'   => true,
+                'retry_origin'     => 'checkout',
+                'retry_token'      => '',
+            ]
+        );
+
+        $attempt_log    = [];
+        $total_wait     = 0.0;
+        $retrying       = false;
+        $schedule_info  = [];
+        $last_error     = '';
+        $last_code      = '';
+        $max_wait       = 60.0;
+        $delay_schedule = [ 0, 2, 4, 8, 16, 30 ];
 
         $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
         $merchantAuthentication->setName( $this->login_id );
@@ -1301,6 +1395,10 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         if ( $description ) {
             $order->setDescription( tta_normalize_authnet_description( $description ) );
         }
+        $invoice_number = substr( preg_replace( '/[^A-Za-z0-9]/', '', $transaction_id ), 0, 20 );
+        if ( $invoice_number ) {
+            $order->setInvoiceNumber( $invoice_number );
+        }
 
         $profile = new AnetAPI\CustomerProfileIdType();
         $profile->setCustomerProfileId( $customer_profile_id );
@@ -1317,20 +1415,152 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $request->setMerchantAuthentication( $merchantAuthentication );
         $request->setSubscription( $subscription );
 
-        $controller = new AnetController\ARBCreateSubscriptionController( $request );
-        $response   = $controller->executeWithApiResponse( $this->environment );
-        $this->log_response( 'create_subscription_from_transaction', $response );
+        foreach ( $delay_schedule as $index => $delay ) {
+            $wait_before = 0.0;
+            if ( $index > 0 ) {
+                $jitter      = ( mt_rand( -20, 20 ) / 100 );
+                $wait_before = max( 0.0, $delay + ( $delay * $jitter ) );
+                if ( $total_wait + $wait_before > $max_wait ) {
+                    $wait_before = max( 0.0, $max_wait - $total_wait );
+                }
+                if ( $wait_before > 0 ) {
+                    $retrying   = true;
+                    $total_wait += $wait_before;
+                    if ( function_exists( 'tta_log_payment_event' ) ) {
+                        tta_log_payment_event(
+                            'Waiting before Authorize.Net subscription retry',
+                            [
+                                'transaction_id' => $transaction_id,
+                                'attempt'        => $index + 1,
+                                'wait_seconds'   => $wait_before,
+                                'total_wait'     => $total_wait,
+                                'checkout_key'   => $context['checkout_key'],
+                                'user_id'        => $context['user_id'],
+                            ]
+                        );
+                    }
+                    usleep( (int) round( $wait_before * 1000000 ) );
+                }
+            }
 
-        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            $attempt_start = microtime( true );
+            $controller    = new AnetController\ARBCreateSubscriptionController( $request );
+            $response      = $controller->executeWithApiResponse( $this->environment );
+            $this->log_response( 'create_subscription_from_transaction', $response );
+
+            $result_code = ( $response && method_exists( $response, 'getMessages' ) && $response->getMessages() ) ? $response->getMessages()->getResultCode() : '';
+            $message_code = $this->extract_message_code( $response );
+            $message_text = $this->format_error( $response, null, 'API error' );
+            $duration     = max( 0.0, microtime( true ) - $attempt_start );
+
+            $attempt_entry = [
+                'attempt'      => $index + 1,
+                'waited'       => $wait_before,
+                'total_wait'   => $total_wait,
+                'duration'     => $duration,
+                'result_code'  => $result_code,
+                'message_code' => $message_code,
+                'message'      => $message_text,
+            ];
+            $attempt_log[] = $attempt_entry;
+
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event(
+                    'Authorize.Net subscription attempt completed',
+                    array_merge(
+                        $attempt_entry,
+                        [
+                            'transaction_id' => $transaction_id,
+                            'amount'         => $amount,
+                            'checkout_key'   => $context['checkout_key'],
+                            'user_id'        => $context['user_id'],
+                        ]
+                    ),
+                    ( 'Ok' === $result_code ) ? 'info' : 'warning'
+                );
+            }
+
+            if ( $response && 'Ok' === $result_code ) {
+                return [
+                    'success'       => true,
+                    'subscription_id' => $response->getSubscriptionId(),
+                    'retry_details' => [
+                        'retrying'    => $retrying,
+                        'total_wait'  => $total_wait,
+                        'attempts'    => $attempt_log,
+                        'scheduled'   => [],
+                    ],
+                ];
+            }
+
+            $last_error = $message_text;
+            $last_code  = $message_code;
+
+            $should_retry = ( 'E00040' === $message_code ) && ( $total_wait < $max_wait ) && ( $index < count( $delay_schedule ) - 1 );
+            if ( ! $should_retry ) {
+                break;
+            }
+        }
+
+        if ( 'E00040' === $last_code && $context['allow_deferred'] ) {
+            if ( function_exists( 'tta_schedule_subscription_retry' ) ) {
+                $schedule_info = tta_schedule_subscription_retry(
+                    [
+                        'transaction_id'   => $transaction_id,
+                        'amount'           => $amount,
+                        'name'             => $name,
+                        'description'      => $description,
+                        'start_date'       => $start_date,
+                        'user_id'          => $context['user_id'],
+                        'membership_level' => $context['membership_level'],
+                        'checkout_key'     => $context['checkout_key'],
+                        'retry_origin'     => $context['retry_origin'],
+                        'retry_token'      => $context['retry_token'],
+                        'attempts'         => $attempt_log,
+                        'last_error'       => $last_error,
+                    ]
+                );
+            }
+
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event(
+                    'Authorize.Net subscription deferred for retry',
+                    [
+                        'transaction_id' => $transaction_id,
+                        'amount'         => $amount,
+                        'user_id'        => $context['user_id'],
+                        'checkout_key'   => $context['checkout_key'],
+                        'scheduled'      => $schedule_info,
+                        'attempts'       => $attempt_log,
+                        'last_error'     => $last_error,
+                    ],
+                    'warning'
+                );
+            }
+
             return [
                 'success'         => true,
-                'subscription_id' => $response->getSubscriptionId(),
+                'subscription_id' => null,
+                'scheduled_retry' => true,
+                'retry_details'   => [
+                    'retrying'   => true,
+                    'total_wait' => $total_wait,
+                    'attempts'   => $attempt_log,
+                    'scheduled'  => $schedule_info,
+                    'last_error' => $last_error,
+                ],
             ];
         }
 
         return [
             'success' => false,
-            'error'   => $this->format_error( $response, null, 'API error' ),
+            'error'   => $last_error ? $last_error : __( 'API error', 'tta' ),
+            'retry_details' => [
+                'retrying'   => $retrying,
+                'total_wait' => $total_wait,
+                'attempts'   => $attempt_log,
+                'last_error' => $last_error,
+            ],
         ];
     }
 }

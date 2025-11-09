@@ -1,21 +1,64 @@
 (function($){
-  function showMessage(msg, isError){
+  function showMessage(msg, isError, options){
+    var opts = options || {};
     var $resp = $('#tta-checkout-response');
     var message = msg || '';
-    if(/<[a-z][\s\S]*>/i.test(message)){
-      $resp.html(message);
+
+    var applyMessage = function(){
+      if(/<[a-z][\s\S]*>/i.test(message)){
+        $resp.html(message);
+      }else{
+        $resp.text(message);
+      }
+      if(isError){
+        $resp.addClass('error').removeClass('updated');
+      }else{
+        $resp.removeClass('error');
+      }
+    };
+
+    if(opts.animate){
+      var fadeOut = typeof opts.fadeOutDuration === 'number' ? opts.fadeOutDuration : 200;
+      var fadeIn = typeof opts.fadeInDuration === 'number' ? opts.fadeInDuration : 200;
+      $resp.stop(true, true).fadeTo(fadeOut, 0, function(){
+        applyMessage();
+        $resp.fadeTo(fadeIn, 1);
+      });
     }else{
-      $resp.text(message);
-    }
-    if(isError){
-      $resp.addClass('error').removeClass('updated');
-    }else{
-      $resp.removeClass('error');
+      applyMessage();
     }
   }
 
   $(function(){
     var cfg = window.TTA_ACCEPT || {};
+    var state = window.tta_checkout || {};
+    var debugEnabled = !!state.debug || !!cfg.debug;
+    var debugPrefix = '[TTA checkout]';
+    function debugLog(){
+      if(!debugEnabled || typeof console === 'undefined'){ return; }
+      var fn = console.log || console.info;
+      if(!fn){ return; }
+      var args = Array.prototype.slice.call(arguments);
+      args.unshift(debugPrefix);
+      fn.apply(console, args);
+    }
+    function debugWarn(){
+      if(!debugEnabled || typeof console === 'undefined'){ return; }
+      var fn = console.warn || console.log;
+      if(!fn){ return; }
+      var args = Array.prototype.slice.call(arguments);
+      args.unshift(debugPrefix);
+      fn.apply(console, args);
+    }
+    function debugError(){
+      if(!debugEnabled || typeof console === 'undefined'){ return; }
+      var fn = console.error || console.log;
+      if(!fn){ return; }
+      var args = Array.prototype.slice.call(arguments);
+      args.unshift(debugPrefix);
+      fn.apply(console, args);
+    }
+
     var $form = $('form').has('button[name="tta_do_checkout"]');
     if(!$form.length) return;
     var $btn  = $form.find('button[name="tta_do_checkout"]');
@@ -23,25 +66,50 @@
     var $resp = $('#tta-checkout-response');
     var encryptionFailedMessage = ((window.tta_checkout && window.tta_checkout.encryption_failed_html) || 'Encryption of your payment information failed! Please try again later. If you\'re still having trouble, please contact us using the form on our Contact Page.');
 
+    debugLog('Checkout script initialised', {
+      checkoutKey: state.checkout_key || null,
+      ajaxUrl: state.ajax_url || null,
+      mode: cfg.mode || 'unknown',
+      debugEnabled: debugEnabled
+    });
+
+    $btn.on('click', function(){
+      debugLog('Place Order button clicked', {
+        disabled: $btn.prop('disabled'),
+        spinnerVisible: $spin.is(':visible')
+      });
+    });
+
     function encryptionFailed(debug){
       showMessage(encryptionFailedMessage, true);
       $spin.fadeOut(200);
       $btn.prop('disabled', false);
       sessionStorage.removeItem('ttaCheckout');
       if(debug){
-        console.error('Accept.js encryption failed', debug);
+        debugError('Accept.js encryption failed', debug);
       }
     }
 
     function finalizeResponse(res){
       var data = res && res.data ? res.data : res;
-      $spin.fadeOut(200);
-      $btn.prop('disabled', false);
+      debugLog('Received checkout response', res);
+      if(data && data.debug){
+        debugLog('Checkout response debug bundle', data.debug);
+      }
+      var cleanup = function(){
+        $spin.fadeOut(200);
+        $btn.prop('disabled', false);
+      };
+
+      var hasRetry = !!(data && data.subscription_retrying);
+      var pendingSubscription = !!(data && data.subscription_pending);
+
       if(res && res.success){
-        var html = '';
-        if(data.membership){
-          if(data.membership === 'reentry'){
-            html += '<p>Thanks for purchasing your Re-Entry Ticket! You can once again register for events. An email will be sent to ' + tta_checkout.user_email + ' for your records. Thanks again, and welcome back!</p>';
+        var renderSuccess = function(){
+          var html = '';
+          if(data.membership){
+            if(data.membership === 'reentry'){
+              html += '<p>Thanks for purchasing your Re-Entry Ticket! You can once again register for events. An email will be sent to ' + tta_checkout.user_email + ' for your records. Thanks again, and welcome back!</p>';
           } else {
             var amt = data.membership === 'premium' ? tta_checkout.premium_price : tta_checkout.basic_price;
             var levelName = data.membership === 'premium' ? 'Premium' : 'Standard';
@@ -68,9 +136,37 @@
         }
         $resp.removeClass('error').addClass('updated').html(html);
         sessionStorage.removeItem('ttaCheckout');
+        debugLog('Checkout completed successfully', {
+          transactionId: data.transaction_id || null,
+          membership: data.membership || null,
+          hasTickets: !!data.has_tickets,
+          emailCount: Array.isArray(data.emails) ? data.emails.length : 0,
+          subscriptionPending: pendingSubscription,
+          subscriptionRetrying: hasRetry
+        });
+        cleanup();
+      };
+
+        if(hasRetry){
+          var startTime = Date.now();
+          showMessage("We're still processing! Please keep this window open.", false, { animate: true });
+          var ensureDelay = function(){
+            var elapsed = Date.now() - startTime;
+            var remaining = Math.max(0, 5000 - elapsed);
+            setTimeout(renderSuccess, remaining);
+          };
+          ensureDelay();
+        } else {
+          renderSuccess();
+        }
       } else {
+        cleanup();
         $resp.removeClass('updated').addClass('error').text(data.message || 'Error processing payment');
         sessionStorage.removeItem('ttaCheckout');
+        debugWarn('Checkout failed', {
+          message: data && data.message ? data.message : null,
+          transactionId: data && data.transaction_id ? data.transaction_id : null
+        });
       }
     }
 
@@ -97,6 +193,27 @@
         formData.append('opaqueData[dataValue]', token.dataValue);
       }
       sessionStorage.setItem('ttaCheckout', JSON.stringify({checkout_key: tta_checkout.checkout_key, timestamp: Date.now()}));
+
+      if(debugEnabled && typeof formData.forEach === 'function'){
+        var preview = {};
+        formData.forEach(function(value, key){
+          if(Object.prototype.hasOwnProperty.call(preview, key)){
+            if(Array.isArray(preview[key])){
+              preview[key].push(value);
+            }else{
+              preview[key] = [preview[key], value];
+            }
+          }else{
+            preview[key] = value;
+          }
+        });
+        debugLog('Dispatching checkout AJAX request', {
+          token: token || null,
+          billing: billing,
+          formData: preview
+        });
+      }
+
       $.ajax({
         url: tta_checkout.ajax_url,
         method: 'POST',
@@ -104,11 +221,16 @@
         processData: false,
         contentType: false,
         dataType: 'json'
-      }).done(finalizeResponse).fail(function(){
+      }).done(finalizeResponse).fail(function(jqXHR, textStatus){
         $spin.fadeOut(200);
         $btn.prop('disabled', false);
         $resp.removeClass('updated').addClass('error').text('Request failed. Please try again.');
         sessionStorage.removeItem('ttaCheckout');
+        debugError('Checkout AJAX request failed', {
+          status: textStatus,
+          xhrStatus: jqXHR && jqXHR.status,
+          response: jqXHR && jqXHR.responseText
+        });
       });
     }
 
@@ -133,6 +255,11 @@
       $btn.prop('disabled', true);
       $spin.css({display:'inline-block',opacity:0}).fadeTo(200,1);
       showMessage(isFree ? 'Submitting order…' : 'Processing payment…');
+      debugLog('Checkout form submitted', {
+        amount: amount,
+        isFree: isFree,
+        paymentDisabled: paymentDisabled
+      });
 
       var cardNumber = $.trim($form.find('[name="card_number"]').val());
       var exp = $.trim($form.find('[name="card_exp"]').val());
@@ -164,6 +291,12 @@
       var parts = exp.split(/[\/\-]/); var month = parts[0]; var year = parts[1]; if(year && year.length===2) year='20'+year;
 
       try {
+        debugLog('Dispatching Accept.js tokenisation', {
+          hasCardNumber: !!cardNumber,
+          month: month,
+          year: year,
+          hasCvc: !!cvc
+        });
         Accept.dispatchData({
           authData:{clientKey:cfg.clientKey,apiLoginID:cfg.loginId},
           cardData:{cardNumber:cardNumber,month:month,year:year,cardCode:cvc}
@@ -172,6 +305,7 @@
             encryptionFailed('Empty Accept.js response');
             return;
           }
+          debugLog('Accept.js response received', response);
           if(response.messages.resultCode !== 'Ok'){
             var errors = (response.messages.message||[]).map(function(m){return m.text;}).filter(Boolean);
             if(!errors.length){
@@ -184,10 +318,12 @@
             sessionStorage.removeItem('ttaCheckout');
             return;
           }
+          debugLog('Accept.js token created', response.opaqueData);
           sendCheckout(response.opaqueData, billing, cardNumber);
         });
       } catch(err){
         encryptionFailed(err);
+        debugError('Accept.js threw an exception', err);
       }
     });
   });
