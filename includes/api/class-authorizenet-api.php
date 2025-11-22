@@ -944,38 +944,10 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
                         if ( $ts instanceof \DateTime ) {
                             $ts = $ts->format( 'Y-m-d H:i:s' );
                         }
-                        $response_code_raw = method_exists( $tx, 'getResponseCode' ) ? $tx->getResponseCode() : null;
-                        $response_code    = is_numeric( $response_code_raw ) ? intval( $response_code_raw ) : null;
-                        $reason_code      = method_exists( $tx, 'getResponseReasonCode' ) ? $tx->getResponseReasonCode() : '';
-                        $reason_message   = method_exists( $tx, 'getResponseReasonDescription' ) ? $tx->getResponseReasonDescription() : '';
-                        $tx_status       = '';
-                        if ( '' !== $response_code ) {
-                            $response_code = (string) $response_code;
-                            switch ( intval( $response_code ) ) {
-                                case 1:
-                                    $tx_status = 'approved';
-                                    break;
-                                case 2:
-                                    $tx_status = 'declined';
-                                    break;
-                                case 3:
-                                    $tx_status = 'error';
-                                    break;
-                                case 4:
-                                    $tx_status = 'held';
-                                    break;
-                            }
-                        } elseif ( method_exists( $tx, 'getStatus' ) ) {
-                            $tx_status = strtolower( (string) $tx->getStatus() );
-                        }
                         $txn_list[] = [
                             'id'    => $tx->getTransId(),
                             'date'  => $ts,
                             'amount'=> $amount,
-                            'response_code'  => $response_code,
-                            'response_reason'=> $reason_code,
-                            'response_text'  => $reason_message,
-                            'status'         => $tx_status,
                         ];
                     }
                 }
