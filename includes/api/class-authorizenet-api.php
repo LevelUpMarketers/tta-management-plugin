@@ -192,8 +192,6 @@ class TTA_AuthorizeNet_API {
     }
 
     public function __construct( $login_id = null, $transaction_key = null, $sandbox = null ) {
-        $this->login_id        = $login_id        ?: ( defined( 'TTA_AUTHNET_LOGIN_ID' ) ? TTA_AUTHNET_LOGIN_ID : '' );
-        $this->transaction_key = $transaction_key ?: ( defined( 'TTA_AUTHNET_TRANSACTION_KEY' ) ? TTA_AUTHNET_TRANSACTION_KEY : '' );
         if ( null === $sandbox ) {
             if ( defined( 'TTA_AUTHNET_SANDBOX' ) ) {
                 $sandbox = TTA_AUTHNET_SANDBOX;
@@ -203,7 +201,18 @@ class TTA_AuthorizeNet_API {
                 $sandbox = (bool) get_option( 'tta_authnet_sandbox', false );
             }
         }
-        $this->environment = $sandbox ? ANetEnvironment::SANDBOX : ANetEnvironment::PRODUCTION;
+
+        // Prefer runtime credentials from the database so Accept.js tokens and
+        // server calls always share the same merchant configuration.
+        if ( ( null === $login_id || null === $transaction_key ) && function_exists( 'tta_get_authnet_credentials' ) ) {
+            $creds        = tta_get_authnet_credentials( (bool) $sandbox );
+            $login_id     = $login_id ?? $creds['login_id'];
+            $transaction_key = $transaction_key ?? $creds['transaction_key'];
+        }
+
+        $this->login_id        = $login_id        ?: ( defined( 'TTA_AUTHNET_LOGIN_ID' ) ? TTA_AUTHNET_LOGIN_ID : '' );
+        $this->transaction_key = $transaction_key ?: ( defined( 'TTA_AUTHNET_TRANSACTION_KEY' ) ? TTA_AUTHNET_TRANSACTION_KEY : '' );
+        $this->environment     = $sandbox ? ANetEnvironment::SANDBOX : ANetEnvironment::PRODUCTION;
     }
 
 /**
@@ -1003,6 +1012,17 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             $subscription->setBillTo( $bill );
         }
 
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            tta_log_payment_event(
+                'Authorize.Net subscription payment update requested',
+                [
+                    'subscription_id' => $subscription_id,
+                    'has_token'       => $use_token,
+                    'environment'     => $this->environment,
+                ]
+            );
+        }
+
         $request = new AnetAPI\ARBUpdateSubscriptionRequest();
         $request->setMerchantAuthentication( $merchantAuthentication );
         $request->setSubscriptionId( $subscription_id );
@@ -1010,7 +1030,6 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
         $controller = new AnetController\ARBUpdateSubscriptionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
-        $this->log_response( 'update_subscription_amount', $response );
         $this->log_response( 'update_subscription_payment', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
