@@ -944,9 +944,10 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
                         if ( $ts instanceof \DateTime ) {
                             $ts = $ts->format( 'Y-m-d H:i:s' );
                         }
-                        $response_code   = method_exists( $tx, 'getResponseCode' ) ? $tx->getResponseCode() : '';
-                        $reason_code     = method_exists( $tx, 'getResponseReasonCode' ) ? $tx->getResponseReasonCode() : '';
-                        $reason_message  = method_exists( $tx, 'getResponseReasonDescription' ) ? $tx->getResponseReasonDescription() : '';
+                        $response_code_raw = method_exists( $tx, 'getResponseCode' ) ? $tx->getResponseCode() : null;
+                        $response_code    = is_numeric( $response_code_raw ) ? intval( $response_code_raw ) : null;
+                        $reason_code      = method_exists( $tx, 'getResponseReasonCode' ) ? $tx->getResponseReasonCode() : '';
+                        $reason_message   = method_exists( $tx, 'getResponseReasonDescription' ) ? $tx->getResponseReasonDescription() : '';
                         $tx_status       = '';
                         if ( '' !== $response_code ) {
                             $response_code = (string) $response_code;
