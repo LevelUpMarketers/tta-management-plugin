@@ -167,18 +167,24 @@ function tta_sanitize_email( $value ) {
 /**
  * Determine whether Authorize.Net sandbox mode is enabled.
  *
- * Prefers the `tta_authnet_use_sandbox` override and falls back to the legacy
- * `tta_authnet_sandbox` option for compatibility.
+ * Uses the admin "Authorize.Net Environment" setting as the source of truth
+ * and only falls back to the legacy `tta_authnet_use_sandbox` override when no
+ * environment selection has been stored.
  *
  * @return bool
  */
 function tta_authnet_is_sandbox() {
+    $sandbox = get_option( 'tta_authnet_sandbox', null );
+    if ( null !== $sandbox ) {
+        return (bool) $sandbox;
+    }
+
     $override = get_option( 'tta_authnet_use_sandbox', null );
     if ( null !== $override ) {
         return (bool) $override;
     }
 
-    return (bool) get_option( 'tta_authnet_sandbox', false );
+    return false;
 }
 
 /**
