@@ -165,7 +165,7 @@ class TTA_AuthorizeNet_API {
             $sub = $response->getSubscription();
             if ( $sub ) {
                 $profile  = method_exists( $sub, 'getProfile' ) ? $sub->getProfile() : null;
-                $pay_prof = $profile && method_exists( $profile, 'getPaymentProfile' ) ? $profile->getPaymentProfile() : null;
+                $pay_prof = method_exists( $sub, 'getPaymentProfile' ) ? $sub->getPaymentProfile() : null;
                 $payment  = $pay_prof && method_exists( $pay_prof, 'getPayment' ) ? $pay_prof->getPayment() : null;
                 $bill     = $pay_prof && method_exists( $pay_prof, 'getBillTo' ) ? $pay_prof->getBillTo() : null;
 
@@ -1040,13 +1040,13 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $raw_payload = $include_raw ? $this->extract_subscription_raw_payload( $response ) : null;
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
-            $sub      = $response->getSubscription();
-            $status   = $sub && method_exists( $sub, 'getStatus' ) ? strtolower( $sub->getStatus() ) : '';
-            $profile  = $sub ? $sub->getProfile() : null;
-            $pay_prof = $profile ? $profile->getPaymentProfile() : null;
+            $sub        = $response->getSubscription();
+            $status     = $sub && method_exists( $sub, 'getStatus' ) ? strtolower( $sub->getStatus() ) : '';
+            $profile    = $sub ? $sub->getProfile() : null;
+            $pay_prof   = $sub && method_exists( $sub, 'getPaymentProfile' ) ? $sub->getPaymentProfile() : null;
             $profile_id = $profile && method_exists( $profile, 'getCustomerProfileId' ) ? $profile->getCustomerProfileId() : '';
-            $payment_profile_id = $profile && method_exists( $profile, 'getCustomerPaymentProfileId' ) ? $profile->getCustomerPaymentProfileId() : '';
-            $payment  = $pay_prof ? $pay_prof->getPayment() : null;
+            $payment_profile_id = $pay_prof && method_exists( $pay_prof, 'getCustomerPaymentProfileId' ) ? $pay_prof->getCustomerPaymentProfileId() : '';
+            $payment    = $pay_prof ? $pay_prof->getPayment() : null;
             $card     = $payment ? $payment->getCreditCard() : null;
             $masked   = $card ? $card->getCardNumber() : '';
             $last4    = preg_match( '/(\d{4})$/', $masked, $m ) ? $m[1] : '';
