@@ -880,12 +880,24 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $this->log_response( 'get_subscription_details', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
-            $sub      = $response->getSubscription();
-            $status   = $sub && method_exists( $sub, 'getStatus' ) ? strtolower( $sub->getStatus() ) : '';
-            $profile  = $sub ? $sub->getProfile() : null;
-            $pay_prof = $profile ? $profile->getPaymentProfile() : null;
+            $sub        = $response->getSubscription();
+            $status     = $sub && method_exists( $sub, 'getStatus' ) ? strtolower( $sub->getStatus() ) : '';
+            $profile    = $sub ? $sub->getProfile() : null;
+            $pay_prof   = $profile ? $profile->getPaymentProfile() : null;
+            $sub_pay_pr = ( ! $pay_prof && $sub && method_exists( $sub, 'getPaymentProfile' ) ) ? $sub->getPaymentProfile() : null;
+            if ( $sub_pay_pr ) {
+                $pay_prof = $pay_prof ?: $sub_pay_pr;
+            }
+
             $profile_id = $profile && method_exists( $profile, 'getCustomerProfileId' ) ? $profile->getCustomerProfileId() : '';
+            if ( ! $profile_id && $pay_prof && method_exists( $pay_prof, 'getCustomerProfileId' ) ) {
+                $profile_id = $pay_prof->getCustomerProfileId();
+            }
+
             $payment_profile_id = $profile && method_exists( $profile, 'getCustomerPaymentProfileId' ) ? $profile->getCustomerPaymentProfileId() : '';
+            if ( ! $payment_profile_id && $pay_prof && method_exists( $pay_prof, 'getCustomerPaymentProfileId' ) ) {
+                $payment_profile_id = $pay_prof->getCustomerPaymentProfileId();
+            }
             $payment  = $pay_prof ? $pay_prof->getPayment() : null;
             $card     = $payment ? $payment->getCreditCard() : null;
             $masked   = $card ? $card->getCardNumber() : '';
@@ -965,20 +977,36 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
 
+        $use_token = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
+        if ( $use_token ) {
+            $details = $this->get_subscription_details( $subscription_id );
+            if ( ! $details['success'] ) {
+                return [ 'success' => false, 'error' => $details['error'] ];
+            }
+
+            if ( empty( $details['profile_id'] ) || empty( $details['payment_profile_id'] ) ) {
+                return [
+                    'success' => false,
+                    'error'   => 'Customer profile not found for subscription',
+                ];
+            }
+
+            return $this->update_customer_payment_profile(
+                $details['profile_id'],
+                $details['payment_profile_id'],
+                $billing,
+                $card_number,
+                $exp_date,
+                $card_code
+            );
+        }
+
         $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
         $merchantAuthentication->setName( $this->login_id );
         $merchantAuthentication->setTransactionKey( $this->transaction_key );
 
         $subscription = new AnetAPI\ARBSubscriptionType();
-        $use_token   = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
-        if ( $use_token ) {
-            $payment = new AnetAPI\PaymentType();
-            $opaque  = new AnetAPI\OpaqueDataType();
-            $opaque->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
-            $opaque->setDataValue( $billing['opaqueData']['dataValue'] );
-            $payment->setOpaqueData( $opaque );
-            $subscription->setPayment( $payment );
-        } elseif ( $card_number && $exp_date ) {
+        if ( $card_number && $exp_date ) {
             $card = new AnetAPI\CreditCardType();
             $card->setCardNumber( $card_number );
             $card->setExpirationDate( $exp_date );
@@ -1010,6 +1038,78 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $response   = $controller->executeWithApiResponse( $this->environment );
         $this->log_response( 'update_subscription_amount', $response );
         $this->log_response( 'update_subscription_payment', $response );
+
+        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            return [ 'success' => true ];
+        }
+
+        return [
+            'success' => false,
+            'error'   => $this->format_error( $response, null, 'API error' ),
+        ];
+    }
+
+    /**
+     * Update a stored customer payment profile with new billing/payment data.
+     *
+     * @param string $customer_profile_id  Authorize.Net customer profile ID.
+     * @param string $payment_profile_id   Authorize.Net customer payment profile ID.
+     * @param array  $billing              Billing data including opaque token or raw card fields.
+     * @param string $card_number          Optional credit card number.
+     * @param string $exp_date             Optional expiration date (YYYY-MM).
+     * @param string $card_code            Optional CVV/CVC.
+     * @return array { success:bool, error?:string }
+     */
+    private function update_customer_payment_profile( $customer_profile_id, $payment_profile_id, array $billing = [], $card_number = '', $exp_date = '', $card_code = '' ) {
+        $merchant_auth = new AnetAPI\MerchantAuthenticationType();
+        $merchant_auth->setName( $this->login_id );
+        $merchant_auth->setTransactionKey( $this->transaction_key );
+
+        $use_token = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
+
+        $payment_profile = new AnetAPI\CustomerPaymentProfileExType();
+        $payment_profile->setCustomerPaymentProfileId( $payment_profile_id );
+
+        $payment = new AnetAPI\PaymentType();
+        if ( $use_token ) {
+            $opaque = new AnetAPI\OpaqueDataType();
+            $opaque->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
+            $opaque->setDataValue( $billing['opaqueData']['dataValue'] );
+            $payment->setOpaqueData( $opaque );
+        } elseif ( $card_number && $exp_date ) {
+            $card = new AnetAPI\CreditCardType();
+            $card->setCardNumber( $card_number );
+            $card->setExpirationDate( $exp_date );
+            if ( $card_code ) {
+                $card->setCardCode( $card_code );
+            }
+            $payment->setCreditCard( $card );
+        }
+
+        if ( $payment->getOpaqueData() || $payment->getCreditCard() ) {
+            $payment_profile->setPayment( $payment );
+        }
+
+        if ( $billing ) {
+            $address = new AnetAPI\CustomerAddressType();
+            $address->setFirstName( $billing['first_name'] ?? '' );
+            $address->setLastName( $billing['last_name'] ?? '' );
+            $address->setAddress( $billing['address'] ?? '' );
+            $address->setCity( $billing['city'] ?? '' );
+            $address->setState( $billing['state'] ?? '' );
+            $address->setZip( $billing['zip'] ?? '' );
+            $payment_profile->setBillTo( $address );
+        }
+
+        $request = new AnetAPI\UpdateCustomerPaymentProfileRequest();
+        $request->setMerchantAuthentication( $merchant_auth );
+        $request->setCustomerProfileId( $customer_profile_id );
+        $request->setPaymentProfile( $payment_profile );
+        $request->setValidationMode( $this->validation_mode );
+
+        $controller = new AnetController\UpdateCustomerPaymentProfileController( $request );
+        $response   = $controller->executeWithApiResponse( $this->environment );
+        $this->log_response( 'update_customer_payment_profile', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
             return [ 'success' => true ];
