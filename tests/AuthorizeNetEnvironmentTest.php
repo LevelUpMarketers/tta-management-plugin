@@ -56,5 +56,32 @@ class AuthorizeNetEnvironmentTest extends TestCase {
         $prop->setAccessible( true );
         $this->assertSame( \net\authorize\api\constants\ANetEnvironment::PRODUCTION, $prop->getValue( $api ) );
     }
+
+    /**
+     * @runInSeparateProcess
+     */
+    public function test_constant_only_used_when_no_runtime_setting() {
+        update_option( 'tta_authnet_sandbox', 1 );
+        define( 'TTA_AUTHNET_SANDBOX', false );
+
+        $api  = new TTA_AuthorizeNet_API();
+        $ref  = new ReflectionClass( $api );
+        $prop = $ref->getProperty( 'environment' );
+        $prop->setAccessible( true );
+        $this->assertSame( \net\authorize\api\constants\ANetEnvironment::SANDBOX, $prop->getValue( $api ) );
+    }
+
+    /**
+     * @runInSeparateProcess
+     */
+    public function test_constant_used_when_no_settings_exist() {
+        define( 'TTA_AUTHNET_SANDBOX', true );
+
+        $api  = new TTA_AuthorizeNet_API( 'id', 'key', null );
+        $ref  = new ReflectionClass( $api );
+        $prop = $ref->getProperty( 'environment' );
+        $prop->setAccessible( true );
+        $this->assertSame( \net\authorize\api\constants\ANetEnvironment::SANDBOX, $prop->getValue( $api ) );
+    }
 }
 ?>

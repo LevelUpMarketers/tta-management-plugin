@@ -193,10 +193,15 @@ class TTA_AuthorizeNet_API {
 
     public function __construct( $login_id = null, $transaction_key = null, $sandbox = null ) {
         if ( null === $sandbox ) {
-            if ( defined( 'TTA_AUTHNET_SANDBOX' ) ) {
+            if ( function_exists( 'tta_authnet_is_sandbox' ) ) {
+                $sandbox     = tta_authnet_is_sandbox();
+                $has_setting = ( null !== get_option( 'tta_authnet_sandbox', null ) || null !== get_option( 'tta_authnet_use_sandbox', null ) );
+                if ( ! $has_setting && defined( 'TTA_AUTHNET_SANDBOX' ) ) {
+                    // Only fall back to constants when no runtime selection exists to avoid mismatches with Accept.js tokens.
+                    $sandbox = TTA_AUTHNET_SANDBOX;
+                }
+            } elseif ( defined( 'TTA_AUTHNET_SANDBOX' ) ) {
                 $sandbox = TTA_AUTHNET_SANDBOX;
-            } elseif ( function_exists( 'tta_authnet_is_sandbox' ) ) {
-                $sandbox = tta_authnet_is_sandbox();
             } else {
                 $sandbox = (bool) get_option( 'tta_authnet_sandbox', false );
             }
