@@ -56,5 +56,22 @@ class AuthorizeNetCredentialsTest extends TestCase {
         $this->assertSame( 'liveLogin', $creds['login_id'] );
         $this->assertSame( 'liveClient', $creds['client_key'] );
     }
+
+    public function test_uses_environment_variables_when_options_are_missing() {
+        putenv( 'TTA_AUTHNET_LOGIN_ID=envLogin' );
+        putenv( 'TTA_AUTHNET_TRANSACTION_KEY=envKey' );
+        putenv( 'TTA_AUTHNET_CLIENT_KEY=envClient' );
+
+        $creds = tta_get_authnet_credentials( false );
+
+        $this->assertSame( 'envLogin', $creds['login_id'] );
+        $this->assertSame( 'envKey', $creds['transaction_key'] );
+        $this->assertSame( 'envClient', $creds['client_key'] );
+
+        // Clear environment variables to avoid cross-test pollution.
+        putenv( 'TTA_AUTHNET_LOGIN_ID' );
+        putenv( 'TTA_AUTHNET_TRANSACTION_KEY' );
+        putenv( 'TTA_AUTHNET_CLIENT_KEY' );
+    }
 }
 ?>

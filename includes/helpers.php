@@ -195,10 +195,26 @@ function tta_get_authnet_credentials( $sandbox = null ) {
     $key_option    = $sandbox ? 'tta_authnet_transaction_key_sandbox' : 'tta_authnet_transaction_key_live';
     $client_option = $sandbox ? 'tta_authnet_public_client_key_sandbox' : 'tta_authnet_public_client_key_live';
 
+    $login_id        = get_option( $login_option, '' );
+    $transaction_key = get_option( $key_option, '' );
+    $client_key      = get_option( $client_option, '' );
+
+    // Fall back to constants or environment variables when options are empty so
+    // both Accept.js and server-side API calls share the same credentials.
+    if ( ! $login_id ) {
+        $login_id = defined( 'TTA_AUTHNET_LOGIN_ID' ) ? TTA_AUTHNET_LOGIN_ID : getenv( 'TTA_AUTHNET_LOGIN_ID' );
+    }
+    if ( ! $transaction_key ) {
+        $transaction_key = defined( 'TTA_AUTHNET_TRANSACTION_KEY' ) ? TTA_AUTHNET_TRANSACTION_KEY : getenv( 'TTA_AUTHNET_TRANSACTION_KEY' );
+    }
+    if ( ! $client_key ) {
+        $client_key = defined( 'TTA_AUTHNET_CLIENT_KEY' ) ? TTA_AUTHNET_CLIENT_KEY : getenv( 'TTA_AUTHNET_CLIENT_KEY' );
+    }
+
     return [
-        'login_id'        => get_option( $login_option, '' ),
-        'transaction_key' => get_option( $key_option, '' ),
-        'client_key'      => get_option( $client_option, '' ),
+        'login_id'        => (string) $login_id,
+        'transaction_key' => (string) $transaction_key,
+        'client_key'      => (string) $client_key,
     ];
 }
 

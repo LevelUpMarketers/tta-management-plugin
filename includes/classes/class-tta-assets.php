@@ -166,11 +166,9 @@ class TTA_Assets {
 
             if ( 'tta-members' === $page ) {
                 $use_sandbox = tta_authnet_is_sandbox();
-                $login       = $use_sandbox ? get_option( 'tta_authnet_login_id_sandbox', '' ) : get_option( 'tta_authnet_login_id_live', '' );
-                $client_key  = $use_sandbox ? get_option( 'tta_authnet_public_client_key_sandbox', '' ) : get_option( 'tta_authnet_public_client_key_live', '' );
-                if ( ! $client_key && defined( 'TTA_AUTHNET_CLIENT_KEY' ) ) {
-                    $client_key = TTA_AUTHNET_CLIENT_KEY;
-                }
+                $creds       = tta_get_authnet_credentials( $use_sandbox );
+                $login       = $creds['login_id'];
+                $client_key  = $creds['client_key'];
                 $accept_url  = $use_sandbox ? 'https://jstest.authorize.net/v1/Accept.js' : 'https://js.authorize.net/v1/Accept.js';
 
                 wp_enqueue_script(
@@ -573,11 +571,9 @@ class TTA_Assets {
             );
 
             $use_sandbox = tta_authnet_is_sandbox();
-            $login       = $use_sandbox ? get_option( 'tta_authnet_login_id_sandbox', '' ) : get_option( 'tta_authnet_login_id_live', '' );
-            $client_key  = $use_sandbox ? get_option( 'tta_authnet_public_client_key_sandbox', '' ) : get_option( 'tta_authnet_public_client_key_live', '' );
-            if ( ! $client_key && defined( 'TTA_AUTHNET_CLIENT_KEY' ) ) {
-                $client_key = TTA_AUTHNET_CLIENT_KEY;
-            }
+            $creds       = tta_get_authnet_credentials( $use_sandbox );
+            $login       = $creds['login_id'];
+            $client_key  = $creds['client_key'];
             $mode        = $use_sandbox ? 'sandbox' : 'live';
             $accept_url  = $use_sandbox ? 'https://jstest.authorize.net/v1/Accept.js' : 'https://js.authorize.net/v1/Accept.js';
 
