@@ -264,21 +264,25 @@
         </tr>
       </thead>
       <tbody>
-        <?php foreach ( $history as $row ) : ?>
+        <?php foreach ( $history as $row ) :
+            $is_declined   = ! empty( $row['declined'] );
+            $decline_class = $is_declined ? ' tta-billing-declined' : '';
+            $type_text     = ucwords( $row['type'] );
+        ?>
           <tr>
             <td><?php echo esc_html( date_i18n( 'F j, Y', strtotime( $row['date'] ) ) ); ?></td>
             <td>
               <?php if ( ! empty( $row['url'] ) ) : ?>
                 <a href="<?php echo esc_url( $row['url'] ); ?>">
-                  <?php echo esc_html( $row['description'] ); ?>
+                  <span class="<?php echo esc_attr( trim( $decline_class ) ); ?>"><?php echo esc_html( $row['description'] ); ?></span>
                 </a>
               <?php else : ?>
-                <?php echo esc_html( $row['description'] ); ?>
+                <span class="<?php echo esc_attr( trim( $decline_class ) ); ?>"><?php echo esc_html( $row['description'] ); ?></span>
               <?php endif; ?>
             </td>
             <td>$<?php echo esc_html( number_format( $row['amount'], 2 ) ); ?></td>
             <td><?php echo esc_html( $row['transaction_id'] ?? '' ); ?></td>
-            <td><?php echo esc_html( ucwords( $row['type'] ) ); ?></td>
+            <td><span class="<?php echo esc_attr( trim( $decline_class ) ); ?>"><?php echo esc_html( $type_text ); ?></span></td>
             <td><?php echo esc_html( $row['method'] ); ?></td>
           </tr>
         <?php endforeach; ?>
@@ -286,19 +290,23 @@
     </table>
 
     <div class="tta-billing-history-mobile">
-      <?php foreach ( $history as $row ) : ?>
+      <?php foreach ( $history as $row ) :
+        $is_declined   = ! empty( $row['declined'] );
+        $decline_class = $is_declined ? ' tta-billing-declined' : '';
+        $type_text     = ucwords( $row['type'] );
+      ?>
         <div class="tta-billing-history-mobile-row">
           <div class="tta-bhm-field tta-bhm-date"><strong><?php esc_html_e( 'Date', 'tta' ); ?>:</strong> <?php echo esc_html( date_i18n( 'F j, Y', strtotime( $row['date'] ) ) ); ?></div>
-          <div class="tta-bhm-field tta-bhm-item"><strong><?php esc_html_e( 'Item', 'tta' ); ?>:</strong> 
+          <div class="tta-bhm-field tta-bhm-item"><strong><?php esc_html_e( 'Item', 'tta' ); ?>:</strong>
             <?php if ( ! empty( $row['url'] ) ) : ?>
-              <a href="<?php echo esc_url( $row['url'] ); ?>"><?php echo esc_html( $row['description'] ); ?></a>
+              <a href="<?php echo esc_url( $row['url'] ); ?>" class="<?php echo esc_attr( trim( $decline_class ) ); ?>"><?php echo esc_html( $row['description'] ); ?></a>
             <?php else : ?>
-              <?php echo esc_html( $row['description'] ); ?>
+              <span class="<?php echo esc_attr( trim( $decline_class ) ); ?>"><?php echo esc_html( $row['description'] ); ?></span>
             <?php endif; ?>
           </div>
           <div class="tta-bhm-field tta-bhm-amount"><strong><?php esc_html_e( 'Amount', 'tta' ); ?>:</strong> $<?php echo esc_html( number_format( $row['amount'], 2 ) ); ?></div>
           <div class="tta-bhm-field tta-bhm-transaction"><strong><?php esc_html_e( 'Transaction ID', 'tta' ); ?>:</strong> <?php echo esc_html( $row['transaction_id'] ?? '' ); ?></div>
-          <div class="tta-bhm-field tta-bhm-type"><strong><?php esc_html_e( 'Type', 'tta' ); ?>:</strong> <?php echo esc_html( ucwords( $row['type'] ) ); ?></div>
+          <div class="tta-bhm-field tta-bhm-type"><strong><?php esc_html_e( 'Type', 'tta' ); ?>:</strong> <span class="<?php echo esc_attr( trim( $decline_class ) ); ?>"><?php echo esc_html( $type_text ); ?></span></div>
           <div class="tta-bhm-field tta-bhm-method"><strong><?php esc_html_e( 'Payment Method', 'tta' ); ?>:</strong> <?php echo esc_html( $row['method'] ); ?></div>
         </div>
       <?php endforeach; ?>

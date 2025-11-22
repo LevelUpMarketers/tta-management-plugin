@@ -417,6 +417,11 @@
   margin-top:10px;
 }
 
+.tta-billing-declined {
+  color: #c0392b;
+  font-weight: 600;
+}
+
 .tta-billing-history-mobile {
   display: none;
 }
