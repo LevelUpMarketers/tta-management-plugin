@@ -9,6 +9,7 @@ The checkout page now uses [Authorize.Net Accept.js](https://developer.authorize
 - The script blocks submission when encryption fails (e.g., Accept.js unavailable) and surfaces the localized "Encryption of your payment information failed…" message so the member can retry or contact support.
 - Admin membership forms use `assets/js/backend/membership-payments.js` to tokenize the **Update Payment**, **Reactivate Membership**, and **Assign Membership** actions before they hit `admin-ajax.php`. The script mirrors the member dashboard flow and prevents submissions entirely if Accept.js cannot respond, so raw card data never reaches WordPress.
 - The script requires the API Login ID and a public **client key**. Enter this Client Key under **TTA Settings → API Settings**; the value is stored in the `tta_authnet_public_client_key_*` options or may come from the `TTA_AUTHNET_CLIENT_KEY` environment variable.
+- Member-dashboard updates now refresh the Customer Information Manager (CIM) payment profile with the Accept.js token before reattaching it to the ARB subscription. This avoids reusing an OTS token directly against the subscription and keeps the payment profile and billing address in sync.
 
 ## AJAX flow
 1. The token and billing details are posted to `admin-ajax.php` via the `tta_checkout` action.
