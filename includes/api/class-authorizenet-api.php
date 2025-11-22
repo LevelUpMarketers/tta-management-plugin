@@ -1087,7 +1087,9 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             return [ 'success' => false, 'error' => $profile_error ];
         }
 
-        if ( $billing ) {
+        $can_set_bill_to = $billing && ! $payment_set && ! $profile_id && ! $payment_profile_id;
+
+        if ( $can_set_bill_to ) {
             $bill = new AnetAPI\NameAndAddressType();
             $bill->setFirstName( $billing['first_name'] ?? '' );
             $bill->setLastName( $billing['last_name'] ?? '' );
