@@ -3607,14 +3607,22 @@ function tta_get_member_billing_history( $wp_user_id ) {
         $last4  = tta_get_subscription_card_last4( $sub_id );
         $method = $last4 ? sprintf( __( 'Credit Card (**** **** **** %s)', 'tta' ), $last4 ) : __( 'Credit Card', 'tta' );
         foreach ( tta_get_subscription_transactions( $sub_id ) as $sub_tx ) {
-            $label = __( 'Membership Charge', 'tta' );
+            $label          = __( 'Membership Charge', 'tta' );
+            $status         = strtolower( $sub_tx['status'] ?? '' );
+            $response_code  = isset( $sub_tx['response_code'] ) && '' !== $sub_tx['response_code'] ? $sub_tx['response_code'] : null;
+            $response_code  = is_numeric( $response_code ) ? intval( $response_code ) : null;
+            $is_declined    = ( 'declined' === $status ) || ( null !== $response_code && 2 === $response_code );
+            $description    = $label . ( $is_declined ? ' - ' . __( 'Declined', 'tta' ) : '' );
+            $type_label     = 'membership subscription' . ( $is_declined ? ' - declined' : '' );
+
             $history[] = [
                 'date'           => $sub_tx['date'],
-                'description'    => $label,
+                'description'    => $description,
                 'amount'         => floatval( $sub_tx['amount'] ),
-                'type'           => 'membership subscription',
+                'type'           => $type_label,
                 'method'         => $method,
                 'transaction_id' => $sub_tx['id'],
+                'declined'       => $is_declined,
             ];
         }
     }
