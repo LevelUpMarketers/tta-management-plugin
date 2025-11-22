@@ -1011,11 +1011,16 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         }
 
         $subscription_profile = $this->get_subscription_details( $subscription_id, false, true );
+        $subscription_raw     = $subscription_profile['raw_response'] ?? null;
         $profile_id           = $subscription_profile['profile_id'] ?? '';
         $payment_profile_id   = $subscription_profile['payment_profile_id'] ?? '';
         if ( ! $subscription_profile['success'] || ! $profile_id || ! $payment_profile_id ) {
             $error = $subscription_profile['error'] ?? 'Payment profile details missing for this subscription.';
-            return [ 'success' => false, 'error' => $error ];
+            return [
+                'success'          => false,
+                'error'            => $error,
+                'subscription_raw' => $subscription_raw,
+            ];
         }
 
         if ( function_exists( 'tta_log_payment_event' ) ) {
@@ -1036,8 +1041,19 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             );
         }
 
+        if ( function_exists( 'tta_log_payment_event' ) && $subscription_raw ) {
+            tta_log_payment_event(
+                'Authorize.Net subscription raw response',
+                [
+                    'subscription_id' => $subscription_id,
+                    'raw_response'    => $subscription_raw,
+                ]
+            );
+        }
+
         $updated = $this->update_payment_profile( $profile_id, $payment_profile_id, $billing );
         if ( ! $updated['success'] ) {
+            $updated['subscription_raw'] = $subscription_raw;
             return $updated;
         }
 
@@ -1053,11 +1069,10 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             );
         }
 
-        $data = [ 'success' => true ];
-
-        if ( isset( $subscription_profile['raw_response'] ) ) {
-            $data['subscription_raw'] = $subscription_profile['raw_response'];
-        }
+        $data = [
+            'success'          => true,
+            'subscription_raw' => $subscription_raw,
+        ];
 
         return $data;
     }
