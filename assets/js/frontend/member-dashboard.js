@@ -493,6 +493,22 @@ jQuery(function($){
     }
   }
 
+  function ttaMask(str){
+    if(!str){ return ''; }
+    var s = String(str);
+    if(s.length <= 6){
+      return s[0] + '***' + s.slice(-1);
+    }
+    return s.slice(0, 3) + '***' + s.slice(-3);
+  }
+
+  function ttaDebug(label, payload){
+    var ts = new Date().toISOString();
+    if(window.console && console.log){
+      console.log('[TTA Payment Debug]', ts, label, payload || '');
+    }
+  }
+
   function ttaGetAcceptConfig(){
     var cfg = TTA_MemberDashboard.accept || {};
     if((!cfg.clientKey || !cfg.loginId) && window.TTA_ACCEPT){
@@ -501,7 +517,7 @@ jQuery(function($){
     return cfg || {};
   }
 
-  function ttaSubmitEncryptedPayment($form, token, last4, controls){
+  function ttaSubmitEncryptedPayment($form, token, last4, controls, debugMeta){
     var dataArr = $form.serializeArray();
     var filtered = ['card_number','exp_date','card_cvc'];
     var payload = new FormData();
@@ -518,6 +534,17 @@ jQuery(function($){
     if(last4){
       payload.append('last4', last4);
     }
+    if(debugMeta){
+      payload.append('debug_meta', JSON.stringify(debugMeta));
+    }
+
+    ttaDebug('AJAX payload prepared', {
+      hasToken: !!token,
+      tokenDescriptor: token && token.dataDescriptor,
+      tokenValueLength: token && token.dataValue ? token.dataValue.length : 0,
+      last4: last4,
+      debugMeta: debugMeta
+    });
 
     $.ajax({
       url: TTA_MemberDashboard.ajax_url,
@@ -532,6 +559,7 @@ jQuery(function($){
         controls.spin.fadeOut(200);
         controls.btn.prop('disabled', false);
         var data = res && res.data ? res.data : {};
+        ttaDebug('AJAX response received', { res: res, elapsedMs: Date.now() - controls.start });
         if(res && res.success){
           controls.resp.addClass('updated').removeClass('error').text(data.message);
           if(data.last4){
@@ -549,6 +577,7 @@ jQuery(function($){
         controls.spin.fadeOut(200);
         controls.btn.prop('disabled', false);
         controls.resp.addClass('error').removeClass('updated').text('Request failed. Please try again.');
+        ttaDebug('AJAX request failed', { error: err, elapsedMs: Date.now() - controls.start });
       }, delay);
     });
   }
@@ -567,6 +596,17 @@ jQuery(function($){
     $spin.show().css({opacity:0}).fadeTo(200,1);
 
     var cfg = ttaGetAcceptConfig();
+    var debugMeta = {
+      stage: 'init',
+      submittedAt: new Date(start).toISOString(),
+      acceptConfig: {
+        loginId: cfg.loginId,
+        clientKey: ttaMask(cfg.clientKey),
+        script: cfg.url,
+        sandbox: cfg.sandbox
+      }
+    };
+    ttaDebug('Update payment clicked', debugMeta);
     if(!cfg.clientKey || !cfg.loginId || typeof Accept === 'undefined' || typeof Accept.dispatchData !== 'function'){
       ttaShowEncryptionError($resp, $spin, $btn, 'Missing Accept.js configuration');
       return;
@@ -587,6 +627,24 @@ jQuery(function($){
 
     var controls = { btn: $btn, spin: $spin, resp: $resp, start: start };
 
+    debugMeta.stage = 'pre-dispatch';
+    debugMeta.card = {
+      last4: cardNumber.slice(-4),
+      expRaw: exp,
+      month: month,
+      year: year,
+      cvcLength: cvc.length
+    };
+    debugMeta.billing = {
+      first: $form.find('[name="bill_first"]').val(),
+      last: $form.find('[name="bill_last"]').val(),
+      address: $form.find('[name="bill_address"]').val(),
+      city: $form.find('[name="bill_city"]').val(),
+      state: $form.find('[name="bill_state"]').val(),
+      zip: $form.find('[name="bill_zip"]').val()
+    };
+    ttaDebug('Dispatching Accept.dispatchData', debugMeta);
+
     Accept.dispatchData({
       authData: { clientKey: cfg.clientKey, apiLoginID: cfg.loginId },
       cardData: { cardNumber: cardNumber, month: month, year: year, cardCode: cvc }
@@ -601,7 +659,15 @@ jQuery(function($){
         return;
       }
       var last4 = cardNumber.slice(-4);
-      ttaSubmitEncryptedPayment($form, token, last4, controls);
+      debugMeta.stage = 'tokenized';
+      debugMeta.tokenCreatedAt = new Date().toISOString();
+      debugMeta.token = {
+        descriptor: token.dataDescriptor,
+        valueLength: token.dataValue.length,
+        last4: last4
+      };
+      ttaDebug('Accept.js token received', debugMeta);
+      ttaSubmitEncryptedPayment($form, token, last4, controls, debugMeta);
     });
   });
 

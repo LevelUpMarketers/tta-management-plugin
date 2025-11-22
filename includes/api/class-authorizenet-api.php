@@ -994,6 +994,24 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $use_token    = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
         $payment_set  = false;
 
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            $token_value = $billing['opaqueData']['dataValue'] ?? '';
+            tta_log_payment_event(
+                'Authorize.Net subscription payment update payload',
+                [
+                    'subscription_id'    => $subscription_id,
+                    'profile_id'         => $profile_id,
+                    'payment_profile_id' => $payment_profile_id,
+                    'use_token'          => $use_token,
+                    'opaque_descriptor'  => $billing['opaqueData']['dataDescriptor'] ?? '',
+                    'opaque_value'       => $token_value,
+                    'opaque_length'      => strlen( $token_value ),
+                    'billing'            => $billing,
+                    'environment'        => $this->environment,
+                ]
+            );
+        }
+
         if ( $use_token && $profile_id && $payment_profile_id ) {
             $updated = $this->update_payment_profile( $profile_id, $payment_profile_id, $billing );
             if ( ! $updated['success'] ) {
@@ -1102,6 +1120,22 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $payment_profile->setCustomerPaymentProfileId( $payment_profile_id );
 
         $use_token = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
+
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            $token_value = $billing['opaqueData']['dataValue'] ?? '';
+            tta_log_payment_event(
+                'Authorize.Net payment profile update payload',
+                [
+                    'profile_id'        => $profile_id,
+                    'payment_profile_id'=> $payment_profile_id,
+                    'use_token'         => $use_token,
+                    'opaque_descriptor' => $billing['opaqueData']['dataDescriptor'] ?? '',
+                    'opaque_value'      => $token_value,
+                    'opaque_length'     => strlen( $token_value ),
+                    'billing'           => $billing,
+                ]
+            );
+        }
 
         if ( $use_token ) {
             $opaque = new AnetAPI\OpaqueDataType();

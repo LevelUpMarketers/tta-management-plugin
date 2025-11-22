@@ -148,6 +148,12 @@ class TTA_Ajax_Membership {
             ] );
         }
 
+        $debug_meta_raw = isset( $_POST['debug_meta'] ) ? wp_unslash( $_POST['debug_meta'] ) : '';
+        $debug_meta     = json_decode( $debug_meta_raw, true );
+        if ( ! is_array( $debug_meta ) ) {
+            $debug_meta = [];
+        }
+
         $billing = [
             'first_name' => sanitize_text_field( $_POST['bill_first'] ?? '' ),
             'last_name'  => sanitize_text_field( $_POST['bill_last'] ?? '' ),
@@ -159,9 +165,36 @@ class TTA_Ajax_Membership {
         ];
         $billing['opaqueData'] = $opaque;
 
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            tta_log_payment_event(
+                'Member dashboard payment update submission received',
+                [
+                    'user_id'        => $user_id,
+                    'subscription_id' => $sub_id,
+                    'opaque_desc'    => $opaque['dataDescriptor'],
+                    'opaque_length'  => strlen( $opaque['dataValue'] ),
+                    'billing'        => $billing,
+                    'debug_meta'     => $debug_meta,
+                    'timestamp'      => gmdate( 'c' ),
+                ]
+            );
+        }
+
         $api  = new TTA_AuthorizeNet_API();
         $res  = $api->update_subscription_payment( $sub_id, '', '', '', $billing );
         if ( ! $res['success'] ) {
+            if ( function_exists( 'tta_log_payment_event' ) ) {
+                tta_log_payment_event(
+                    'Member dashboard payment update failed',
+                    [
+                        'subscription_id' => $sub_id,
+                        'user_id'         => $user_id,
+                        'error'           => $res['error'],
+                        'debug_meta'      => $debug_meta,
+                    ],
+                    'error'
+                );
+            }
             wp_send_json_error( [ 'message' => $res['error'] ] );
         }
 
@@ -172,6 +205,19 @@ class TTA_Ajax_Membership {
 
         $context = tta_get_current_user_context();
         $status  = strtolower( $context['subscription_status'] ?? '' );
+
+        if ( function_exists( 'tta_log_payment_event' ) ) {
+            tta_log_payment_event(
+                'Member dashboard payment update succeeded',
+                [
+                    'subscription_id' => $sub_id,
+                    'user_id'         => $user_id,
+                    'status'          => $status,
+                    'last4'           => $last4_form,
+                    'debug_meta'      => $debug_meta,
+                ]
+            );
+        }
 
         // Only attempt to charge again if the subscription is currently flagged for payment problems.
         if ( 'paymentproblem' === $status ) {
