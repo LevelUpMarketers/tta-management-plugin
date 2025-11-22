@@ -197,6 +197,8 @@ class TTA_AuthorizeNet_API {
         if ( null === $sandbox ) {
             if ( defined( 'TTA_AUTHNET_SANDBOX' ) ) {
                 $sandbox = TTA_AUTHNET_SANDBOX;
+            } elseif ( function_exists( 'tta_authnet_is_sandbox' ) ) {
+                $sandbox = tta_authnet_is_sandbox();
             } else {
                 $sandbox = (bool) get_option( 'tta_authnet_sandbox', false );
             }

@@ -48,7 +48,7 @@ require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-tooltips.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin-bar.php';
 
 // Load Authorize.Net credentials from the database or environment variables.
-$tta_authnet_sandbox     = get_option( 'tta_authnet_sandbox', false );
+$tta_authnet_sandbox     = tta_authnet_is_sandbox();
 $creds                   = tta_get_authnet_credentials( (bool) $tta_authnet_sandbox );
 $tta_authnet_login       = $creds['login_id'];
 $tta_authnet_transaction = $creds['transaction_key'];

@@ -165,7 +165,7 @@ class TTA_Assets {
             }
 
             if ( 'tta-members' === $page ) {
-                $use_sandbox = (bool) get_option( 'tta_authnet_use_sandbox', get_option( 'tta_authnet_sandbox', false ) );
+                $use_sandbox = tta_authnet_is_sandbox();
                 $login       = $use_sandbox ? get_option( 'tta_authnet_login_id_sandbox', '' ) : get_option( 'tta_authnet_login_id_live', '' );
                 $client_key  = $use_sandbox ? get_option( 'tta_authnet_public_client_key_sandbox', '' ) : get_option( 'tta_authnet_public_client_key_live', '' );
                 if ( ! $client_key && defined( 'TTA_AUTHNET_CLIENT_KEY' ) ) {
@@ -572,7 +572,7 @@ class TTA_Assets {
                 ]
             );
 
-            $use_sandbox = (bool) get_option( 'tta_authnet_use_sandbox', get_option( 'tta_authnet_sandbox', false ) );
+            $use_sandbox = tta_authnet_is_sandbox();
             $login       = $use_sandbox ? get_option( 'tta_authnet_login_id_sandbox', '' ) : get_option( 'tta_authnet_login_id_live', '' );
             $client_key  = $use_sandbox ? get_option( 'tta_authnet_public_client_key_sandbox', '' ) : get_option( 'tta_authnet_public_client_key_live', '' );
             if ( ! $client_key && defined( 'TTA_AUTHNET_CLIENT_KEY' ) ) {

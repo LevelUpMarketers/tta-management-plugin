@@ -14,6 +14,7 @@ class AuthorizeNetEnvironmentTest extends TestCase {
             define( 'ABSPATH', sys_get_temp_dir() . '/wp/' );
         }
         require_once __DIR__ . '/../vendor/autoload.php';
+        require_once __DIR__ . '/../includes/helpers.php';
         require_once __DIR__ . '/../includes/api/class-authorizenet-api.php';
     }
 
@@ -33,6 +34,17 @@ class AuthorizeNetEnvironmentTest extends TestCase {
         $prop = $ref->getProperty( 'environment' );
         $prop->setAccessible( true );
         $this->assertSame( \net\authorize\api\constants\ANetEnvironment::PRODUCTION, $prop->getValue( $api ) );
+    }
+
+    public function test_use_sandbox_override_takes_precedence() {
+        update_option( 'tta_authnet_sandbox', 0 );
+        update_option( 'tta_authnet_use_sandbox', 1 );
+
+        $api  = new TTA_AuthorizeNet_API();
+        $ref  = new ReflectionClass( $api );
+        $prop = $ref->getProperty( 'environment' );
+        $prop->setAccessible( true );
+        $this->assertSame( \net\authorize\api\constants\ANetEnvironment::SANDBOX, $prop->getValue( $api ) );
     }
 }
 ?>

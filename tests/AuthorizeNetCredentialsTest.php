@@ -42,6 +42,15 @@ class AuthorizeNetCredentialsTest extends TestCase {
         $this->assertSame( 'sandKey', $creds['transaction_key'] );
         $this->assertSame( 'sandClient', $creds['client_key'] );
 
+        update_option( 'tta_authnet_use_sandbox', 1 );
+        update_option( 'tta_authnet_sandbox', 0 );
+        $creds = tta_get_authnet_credentials();
+        $this->assertSame( 'sandLogin', $creds['login_id'] );
+
+        update_option( 'tta_authnet_use_sandbox', 0 );
+        $creds = tta_get_authnet_credentials();
+        $this->assertSame( 'liveLogin', $creds['login_id'] );
+
         // Explicit parameter overrides option
         $creds = tta_get_authnet_credentials( false );
         $this->assertSame( 'liveLogin', $creds['login_id'] );

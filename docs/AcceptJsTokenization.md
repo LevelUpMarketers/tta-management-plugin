@@ -4,6 +4,7 @@ The checkout page now uses [Authorize.Net Accept.js](https://developer.authorize
 
 ## Assets
 - `Accept.js` is loaded from Authorize.Net's CDN based on the sandbox or live mode.
+- Sandbox/live selection now comes from a single shared setting so the browser tokenization environment always matches the API calls that process it.
 - Handler script: `assets/js/frontend/tta-accept-checkout.js` intercepts the checkout form and exchanges card data for an opaque token.
 - The script blocks submission when encryption fails (e.g., Accept.js unavailable) and surfaces the localized "Encryption of your payment information failed…" message so the member can retry or contact support.
 - Admin membership forms use `assets/js/backend/membership-payments.js` to tokenize the **Update Payment**, **Reactivate Membership**, and **Assign Membership** actions before they hit `admin-ajax.php`. The script mirrors the member dashboard flow and prevents submissions entirely if Accept.js cannot respond, so raw card data never reaches WordPress.
