@@ -63,6 +63,148 @@ class TTA_AuthorizeNet_API {
     }
 
     /**
+     * Extract billing address fields from a bill-to object.
+     *
+     * @param mixed $bill Bill-to object from Authorize.Net response.
+     * @return array
+     */
+    protected function extract_bill_to_payload( $bill ) {
+        if ( ! $bill ) {
+            return [];
+        }
+
+        return [
+            'first_name' => method_exists( $bill, 'getFirstName' ) ? $bill->getFirstName() : '',
+            'last_name'  => method_exists( $bill, 'getLastName' ) ? $bill->getLastName() : '',
+            'company'    => method_exists( $bill, 'getCompany' ) ? $bill->getCompany() : '',
+            'address'    => method_exists( $bill, 'getAddress' ) ? $bill->getAddress() : '',
+            'city'       => method_exists( $bill, 'getCity' ) ? $bill->getCity() : '',
+            'state'      => method_exists( $bill, 'getState' ) ? $bill->getState() : '',
+            'zip'        => method_exists( $bill, 'getZip' ) ? $bill->getZip() : '',
+            'country'    => method_exists( $bill, 'getCountry' ) ? $bill->getCountry() : '',
+            'phone'      => method_exists( $bill, 'getPhoneNumber' ) ? $bill->getPhoneNumber() : '',
+        ];
+    }
+
+    /**
+     * Extract payment payload (masked) from a payment object.
+     *
+     * @param mixed $payment Payment object from Authorize.Net response.
+     * @return array
+     */
+    protected function extract_payment_payload( $payment ) {
+        if ( ! $payment ) {
+            return [];
+        }
+
+        $card = method_exists( $payment, 'getCreditCard' ) ? $payment->getCreditCard() : null;
+
+        return [
+            'card' => [
+                'number' => $card && method_exists( $card, 'getCardNumber' ) ? $card->getCardNumber() : '',
+                'exp'    => $card && method_exists( $card, 'getExpirationDate' ) ? $card->getExpirationDate() : '',
+                'type'   => $card && method_exists( $card, 'getCardType' ) ? $card->getCardType() : '',
+            ],
+        ];
+    }
+
+    /**
+     * Extract payment profile payload from a profile object.
+     *
+     * @param mixed $profile Payment profile object from Authorize.Net response.
+     * @return array
+     */
+    protected function extract_payment_profile_payload( $profile ) {
+        if ( ! $profile ) {
+            return [];
+        }
+
+        $payment = method_exists( $profile, 'getPayment' ) ? $profile->getPayment() : null;
+        $bill    = method_exists( $profile, 'getBillTo' ) ? $profile->getBillTo() : null;
+
+        return [
+            'customerProfileId'        => method_exists( $profile, 'getCustomerProfileId' ) ? $profile->getCustomerProfileId() : '',
+            'customerPaymentProfileId' => method_exists( $profile, 'getCustomerPaymentProfileId' ) ? $profile->getCustomerPaymentProfileId() : '',
+            'payment'                  => $this->extract_payment_payload( $payment ),
+            'billTo'                   => $this->extract_bill_to_payload( $bill ),
+        ];
+    }
+
+    /**
+     * Extract a sanitized raw payload from an ARB subscription response.
+     *
+     * @param mixed $response ARBGetSubscription response object.
+     * @return array|null
+     */
+    protected function extract_subscription_raw_payload( $response ) {
+        if ( ! $response ) {
+            return null;
+        }
+
+        $payload = [];
+
+        if ( method_exists( $response, 'getMessages' ) && $response->getMessages() ) {
+            $msgs = $response->getMessages();
+            $msg_list = [];
+            if ( method_exists( $msgs, 'getMessage' ) && $msgs->getMessage() ) {
+                foreach ( (array) $msgs->getMessage() as $m ) {
+                    $msg_list[] = [
+                        'code' => method_exists( $m, 'getCode' ) ? $m->getCode() : '',
+                        'text' => method_exists( $m, 'getText' ) ? $m->getText() : '',
+                    ];
+                }
+            }
+
+            $payload['messages'] = [
+                'resultCode' => method_exists( $msgs, 'getResultCode' ) ? $msgs->getResultCode() : '',
+                'message'    => $msg_list,
+            ];
+        }
+
+        if ( method_exists( $response, 'getSubscription' ) ) {
+            $sub = $response->getSubscription();
+            if ( $sub ) {
+                $profile  = method_exists( $sub, 'getProfile' ) ? $sub->getProfile() : null;
+                $pay_prof = $profile && method_exists( $profile, 'getPaymentProfile' ) ? $profile->getPaymentProfile() : null;
+                $payment  = $pay_prof && method_exists( $pay_prof, 'getPayment' ) ? $pay_prof->getPayment() : null;
+                $bill     = $pay_prof && method_exists( $pay_prof, 'getBillTo' ) ? $pay_prof->getBillTo() : null;
+
+                $payload['subscription'] = [
+                    'id'                 => method_exists( $sub, 'getId' ) ? $sub->getId() : '',
+                    'name'               => method_exists( $sub, 'getName' ) ? $sub->getName() : '',
+                    'status'             => method_exists( $sub, 'getStatus' ) ? $sub->getStatus() : '',
+                    'amount'             => method_exists( $sub, 'getAmount' ) ? $sub->getAmount() : '',
+                    'profile'            => $this->extract_payment_profile_payload( $profile ),
+                    'paymentProfile'     => $this->extract_payment_profile_payload( $pay_prof ),
+                    'payment'            => $this->extract_payment_payload( $payment ),
+                    'billTo'             => $this->extract_bill_to_payload( $bill ),
+                    'payNum'             => method_exists( $sub, 'getPayNum' ) ? $sub->getPayNum() : '',
+                    'trialAmount'        => method_exists( $sub, 'getTrialAmount' ) ? $sub->getTrialAmount() : '',
+                    'trialOccurrences'   => method_exists( $sub, 'getTrialOccurrences' ) ? $sub->getTrialOccurrences() : '',
+                    'totalOccurrences'   => method_exists( $sub, 'getTotalOccurrences' ) ? $sub->getTotalOccurrences() : '',
+                    'startDate'          => method_exists( $sub, 'getStartDate' ) ? $sub->getStartDate() : '',
+                    'customer'           => method_exists( $sub, 'getCustomer' ) && $sub->getCustomer() ? $this->sanitize_response_array( json_decode( wp_json_encode( $sub->getCustomer() ), true ) ) : [],
+                    'order'              => method_exists( $sub, 'getOrder' ) && $sub->getOrder() ? $this->sanitize_response_array( json_decode( wp_json_encode( $sub->getOrder() ), true ) ) : [],
+                    'paymentSchedule'    => method_exists( $sub, 'getPaymentSchedule' ) && $sub->getPaymentSchedule() ? $this->sanitize_response_array( json_decode( wp_json_encode( $sub->getPaymentSchedule() ), true ) ) : [],
+                ];
+            }
+        }
+
+        if ( empty( $payload ) ) {
+            $payload = $response;
+            if ( is_object( $payload ) || is_array( $payload ) ) {
+                $payload = json_decode( wp_json_encode( $payload ), true );
+            }
+        }
+
+        if ( is_array( $payload ) ) {
+            $payload = $this->sanitize_response_array( $payload );
+        }
+
+        return $payload;
+    }
+
+    /**
      * Execute an API request using the provided controller.
      *
      * @param object $controller SDK controller instance.
@@ -895,16 +1037,7 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $response   = $controller->executeWithApiResponse( $this->environment );
         $this->log_response( 'get_subscription_details', $response );
 
-        $raw_payload = null;
-        if ( $include_raw ) {
-            $raw_payload = $response;
-            if ( is_object( $response ) || is_array( $response ) ) {
-                $raw_payload = json_decode( wp_json_encode( $response ), true );
-                if ( is_array( $raw_payload ) ) {
-                    $raw_payload = $this->sanitize_response_array( $raw_payload );
-                }
-            }
-        }
+        $raw_payload = $include_raw ? $this->extract_subscription_raw_payload( $response ) : null;
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
             $sub      = $response->getSubscription();
