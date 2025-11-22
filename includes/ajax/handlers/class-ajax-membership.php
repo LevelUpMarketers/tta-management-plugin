@@ -180,8 +180,21 @@ class TTA_Ajax_Membership {
             );
         }
 
-        $api  = new TTA_AuthorizeNet_API();
-        $res  = $api->update_subscription_payment( $sub_id, '', '', '', $billing );
+        $user  = wp_get_current_user();
+        $email = $user instanceof WP_User ? $user->user_email : '';
+
+        $api = new TTA_AuthorizeNet_API();
+        $res = $api->update_subscription_payment(
+            $sub_id,
+            '',
+            '',
+            '',
+            $billing,
+            [
+                'user_id' => $user_id,
+                'email'   => $email,
+            ]
+        );
         if ( ! $res['success'] ) {
             if ( function_exists( 'tta_log_payment_event' ) ) {
                 tta_log_payment_event(

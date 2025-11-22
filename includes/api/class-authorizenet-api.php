@@ -974,9 +974,11 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
      * @param string $card_number      Credit card number.
      * @param string $exp_date         Expiration date YYYY-MM.
      * @param string $card_code        Card code/CVV.
+     * @param array  $billing          Billing data including opaqueData or card fields.
+     * @param array  $context          Additional context such as email/user_id.
      * @return array { success:bool, error?:string }
      */
-    public function update_subscription_payment( $subscription_id, $card_number = '', $exp_date = '', $card_code = '', array $billing = [] ) {
+    public function update_subscription_payment( $subscription_id, $card_number = '', $exp_date = '', $card_code = '', array $billing = [], array $context = [] ) {
         if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
@@ -985,6 +987,11 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $profile_id           = $subscription_profile['profile_id'] ?? '';
         $payment_profile_id   = $subscription_profile['payment_profile_id'] ?? '';
         $profile_error        = $subscription_profile['success'] ? '' : ( $subscription_profile['error'] ?? '' );
+        $email                = isset( $context['email'] ) ? sanitize_email( $context['email'] ) : '';
+        if ( ! $email && isset( $context['user_id'] ) ) {
+            $host  = parse_url( home_url(), PHP_URL_HOST );
+            $email = sprintf( 'user-%d@%s', intval( $context['user_id'] ), $host ? $host : 'example.invalid' );
+        }
 
         $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
         $merchantAuthentication->setName( $this->login_id );
@@ -1023,24 +1030,52 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             $profile->setCustomerPaymentProfileId( $payment_profile_id );
             $subscription->setProfile( $profile );
             $payment_set = true;
-        } elseif ( $use_token ) {
-            $payment = new AnetAPI\PaymentType();
-            $opaque  = new AnetAPI\OpaqueDataType();
-            $opaque->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
-            $opaque->setDataValue( $billing['opaqueData']['dataValue'] );
-            $payment->setOpaqueData( $opaque );
-            $subscription->setPayment( $payment );
-            $payment_set = true;
-        } elseif ( $card_number && $exp_date ) {
-            $card = new AnetAPI\CreditCardType();
-            $card->setCardNumber( $card_number );
-            $card->setExpirationDate( $exp_date );
-            if ( $card_code ) {
-                $card->setCardCode( $card_code );
+        } elseif ( $use_token && $profile_id && ! $payment_profile_id ) {
+            $created = $this->create_payment_profile( $profile_id, $billing );
+            if ( ! $created['success'] ) {
+                return $created;
             }
-            $payment = new AnetAPI\PaymentType();
-            $payment->setCreditCard( $card );
-            $subscription->setPayment( $payment );
+
+            $payment_profile_id = $created['payment_profile_id'];
+            $profile            = new AnetAPI\CustomerProfileIdType();
+            $profile->setCustomerProfileId( $profile_id );
+            $profile->setCustomerPaymentProfileId( $payment_profile_id );
+            $subscription->setProfile( $profile );
+            $payment_set = true;
+        } elseif ( $use_token && ! $profile_id ) {
+            $created = $this->create_customer_profile_with_payment( $email, $billing );
+            if ( ! $created['success'] ) {
+                return $created;
+            }
+
+            $profile_id         = $created['profile_id'];
+            $payment_profile_id = $created['payment_profile_id'];
+            if ( ! $payment_profile_id ) {
+                $created_profile = $this->create_payment_profile( $profile_id, $billing );
+                if ( ! $created_profile['success'] ) {
+                    return $created_profile;
+                }
+                $payment_profile_id = $created_profile['payment_profile_id'];
+            }
+            $profile            = new AnetAPI\CustomerProfileIdType();
+            $profile->setCustomerProfileId( $profile_id );
+            $profile->setCustomerPaymentProfileId( $payment_profile_id );
+            $subscription->setProfile( $profile );
+            $payment_set = true;
+        } elseif ( $card_number && $exp_date && $profile_id ) {
+            $created = $this->create_payment_profile( $profile_id, [
+                'card_number' => $card_number,
+                'exp_date'    => $exp_date,
+                'card_code'   => $card_code,
+            ] + $billing );
+            if ( ! $created['success'] ) {
+                return $created;
+            }
+            $payment_profile_id = $created['payment_profile_id'];
+            $profile            = new AnetAPI\CustomerProfileIdType();
+            $profile->setCustomerProfileId( $profile_id );
+            $profile->setCustomerPaymentProfileId( $payment_profile_id );
+            $subscription->setProfile( $profile );
             $payment_set = true;
         } elseif ( $profile_id && $payment_profile_id ) {
             $profile = new AnetAPI\CustomerProfileIdType();
@@ -1183,6 +1218,187 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         return [
             'success' => false,
             'error'   => $this->format_error( $response, null, 'Payment profile update failed' ),
+        ];
+    }
+
+    /**
+     * Create a new payment profile using opaque data or raw card details.
+     *
+     * @param string $profile_id Customer profile ID.
+     * @param array  $billing    Billing data including opaqueData or card fields.
+     * @return array { success:bool, payment_profile_id?:string, error?:string }
+     */
+    public function create_payment_profile( $profile_id, array $billing = [] ) {
+        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
+        }
+
+        $use_token = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
+
+        if ( ! $use_token && ( empty( $billing['card_number'] ) || empty( $billing['exp_date'] ) ) ) {
+            return [ 'success' => false, 'error' => 'No payment details supplied for profile creation.' ];
+        }
+
+        $merchant_auth = new AnetAPI\MerchantAuthenticationType();
+        $merchant_auth->setName( $this->login_id );
+        $merchant_auth->setTransactionKey( $this->transaction_key );
+
+        $payment_profile = new AnetAPI\CustomerPaymentProfileType();
+        $payment         = new AnetAPI\PaymentType();
+        if ( $use_token ) {
+            $opaque = new AnetAPI\OpaqueDataType();
+            $opaque->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
+            $opaque->setDataValue( $billing['opaqueData']['dataValue'] );
+            $payment->setOpaqueData( $opaque );
+        } else {
+            $card = new AnetAPI\CreditCardType();
+            $card->setCardNumber( preg_replace( '/\D+/', '', $billing['card_number'] ) );
+            $card->setExpirationDate( $billing['exp_date'] );
+            if ( ! empty( $billing['card_code'] ) ) {
+                $card->setCardCode( $billing['card_code'] );
+            }
+            $payment->setCreditCard( $card );
+        }
+        $payment_profile->setPayment( $payment );
+
+        $bill = new AnetAPI\CustomerAddressType();
+        $bill->setFirstName( $billing['first_name'] ?? '' );
+        $bill->setLastName( $billing['last_name'] ?? '' );
+        $bill->setAddress( $billing['address'] ?? '' );
+        $bill->setCity( $billing['city'] ?? '' );
+        $bill->setState( $billing['state'] ?? '' );
+        $bill->setZip( $billing['zip'] ?? '' );
+        $bill->setCountry( 'USA' );
+        $payment_profile->setBillTo( $bill );
+
+        $request = new AnetAPI\CreateCustomerPaymentProfileRequest();
+        $request->setMerchantAuthentication( $merchant_auth );
+        $request->setCustomerProfileId( $profile_id );
+        $request->setPaymentProfile( $payment_profile );
+        $request->setValidationMode( ANetEnvironment::SANDBOX === $this->environment ? 'testMode' : 'liveMode' );
+
+        $controller = new AnetController\CreateCustomerPaymentProfileController( $request );
+        $response   = $controller->executeWithApiResponse( $this->environment );
+        $this->log_response( 'create_payment_profile', $response );
+
+        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            $id = method_exists( $response, 'getCustomerPaymentProfileId' ) ? $response->getCustomerPaymentProfileId() : '';
+            return [ 'success' => true, 'payment_profile_id' => (string) $id ];
+        }
+
+        return [
+            'success' => false,
+            'error'   => $this->format_error( $response, null, 'Payment profile creation failed' ),
+        ];
+    }
+
+    /**
+     * Create a new customer profile with an attached payment profile.
+     *
+     * @param string $email   Customer email address.
+     * @param array  $billing Billing data including opaqueData or card fields.
+     * @return array { success:bool, profile_id?:string, payment_profile_id?:string, error?:string }
+     */
+    public function create_customer_profile_with_payment( $email, array $billing = [] ) {
+        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
+        }
+
+        $email = sanitize_email( $email );
+        if ( ! $email && function_exists( 'wp_generate_uuid4' ) ) {
+            $host  = parse_url( home_url(), PHP_URL_HOST );
+            $email = sprintf( 'member-%s@%s', wp_generate_uuid4(), $host ? $host : 'example.invalid' );
+        }
+
+        $use_token = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
+
+        if ( ! $use_token && ( empty( $billing['card_number'] ) || empty( $billing['exp_date'] ) ) ) {
+            return [ 'success' => false, 'error' => 'No payment details supplied for profile creation.' ];
+        }
+
+        $merchant_auth = new AnetAPI\MerchantAuthenticationType();
+        $merchant_auth->setName( $this->login_id );
+        $merchant_auth->setTransactionKey( $this->transaction_key );
+
+        $payment_profile = new AnetAPI\CustomerPaymentProfileType();
+        $payment         = new AnetAPI\PaymentType();
+        if ( $use_token ) {
+            $opaque = new AnetAPI\OpaqueDataType();
+            $opaque->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
+            $opaque->setDataValue( $billing['opaqueData']['dataValue'] );
+            $payment->setOpaqueData( $opaque );
+        } else {
+            $card = new AnetAPI\CreditCardType();
+            $card->setCardNumber( preg_replace( '/\D+/', '', $billing['card_number'] ) );
+            $card->setExpirationDate( $billing['exp_date'] );
+            if ( ! empty( $billing['card_code'] ) ) {
+                $card->setCardCode( $billing['card_code'] );
+            }
+            $payment->setCreditCard( $card );
+        }
+        $payment_profile->setPayment( $payment );
+
+        $bill = new AnetAPI\CustomerAddressType();
+        $bill->setFirstName( $billing['first_name'] ?? '' );
+        $bill->setLastName( $billing['last_name'] ?? '' );
+        $bill->setAddress( $billing['address'] ?? '' );
+        $bill->setCity( $billing['city'] ?? '' );
+        $bill->setState( $billing['state'] ?? '' );
+        $bill->setZip( $billing['zip'] ?? '' );
+        $bill->setCountry( 'USA' );
+        $payment_profile->setBillTo( $bill );
+
+        $profile = new AnetAPI\CustomerProfileType();
+        $profile->setEmail( $email );
+        $profile->setDescription( tta_normalize_authnet_description( trim( ( $billing['first_name'] ?? '' ) . ' ' . ( $billing['last_name'] ?? '' ) ) ) );
+        $profile->setPaymentProfiles( [ $payment_profile ] );
+
+        $request = new AnetAPI\CreateCustomerProfileRequest();
+        $request->setMerchantAuthentication( $merchant_auth );
+        $request->setProfile( $profile );
+        $request->setValidationMode( ANetEnvironment::SANDBOX === $this->environment ? 'testMode' : 'liveMode' );
+
+        $controller = new AnetController\CreateCustomerProfileController( $request );
+        $response   = $controller->executeWithApiResponse( $this->environment );
+        $this->log_response( 'create_customer_profile_with_payment', $response );
+
+        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            $profile_id         = (string) $response->getCustomerProfileId();
+            $payment_profiles   = $response->getCustomerPaymentProfileIdList();
+            $payment_profile_id = $payment_profiles ? (string) $payment_profiles[0] : '';
+
+            return [
+                'success'            => true,
+                'profile_id'         => $profile_id,
+                'payment_profile_id' => $payment_profile_id,
+            ];
+        }
+
+        $code    = $this->extract_message_code( $response );
+        $message = $this->format_error( $response, null, 'Profile creation failed' );
+
+        // Handle duplicate profile by attempting to parse the ID from the message so we can continue.
+        if ( 'E00039' === $code && $response && method_exists( $response, 'getMessages' ) ) {
+            $messages = $response->getMessages();
+            if ( $messages && method_exists( $messages, 'getMessage' ) ) {
+                $items = $messages->getMessage();
+                $first = is_array( $items ) ? reset( $items ) : $items;
+                if ( $first && method_exists( $first, 'getText' ) ) {
+                    $text = (string) $first->getText();
+                    if ( preg_match( '/ID\s+(\d+)/', $text, $matches ) ) {
+                        return [
+                            'success'            => true,
+                            'profile_id'         => $matches[1],
+                            'payment_profile_id' => '',
+                        ];
+                    }
+                }
+            }
+        }
+
+        return [
+            'success' => false,
+            'error'   => $message,
         ];
     }
 
