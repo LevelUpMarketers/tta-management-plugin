@@ -1047,6 +1047,9 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             $status     = $sub && method_exists( $sub, 'getStatus' ) ? strtolower( $sub->getStatus() ) : '';
             $profile    = $sub ? $sub->getProfile() : null;
             $pay_prof   = $sub && method_exists( $sub, 'getPaymentProfile' ) ? $sub->getPaymentProfile() : null;
+            if ( is_array( $pay_prof ) ) {
+                $pay_prof = reset( $pay_prof );
+            }
             $profile_id = $profile && method_exists( $profile, 'getCustomerProfileId' ) ? $profile->getCustomerProfileId() : '';
             $payment_profile_id = $pay_prof && method_exists( $pay_prof, 'getCustomerPaymentProfileId' ) ? $pay_prof->getCustomerPaymentProfileId() : '';
             $payment    = $pay_prof ? $pay_prof->getPayment() : null;
@@ -1081,6 +1084,12 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
 
             if ( $include_raw ) {
                 $data['raw_response'] = $raw_payload;
+                if ( ! $profile_id ) {
+                    $data['profile_id'] = $raw_payload['subscription']['profile']['customerProfileId'] ?? '';
+                }
+                if ( ! $payment_profile_id ) {
+                    $data['payment_profile_id'] = $raw_payload['subscription']['paymentProfile']['customerPaymentProfileId'] ?? '';
+                }
             }
 
             if ( $include_transactions ) {
