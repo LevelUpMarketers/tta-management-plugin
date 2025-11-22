@@ -643,6 +643,8 @@ jQuery(function($){
       state: $form.find('[name="bill_state"]').val(),
       zip: $form.find('[name="bill_zip"]').val()
     };
+    debugMeta.subscriptionId = $form.find('[name="subscription_id"]').val();
+    debugMeta.email = $form.find('[name="email"]').val();
     ttaDebug('Dispatching Accept.dispatchData', debugMeta);
 
     Accept.dispatchData({

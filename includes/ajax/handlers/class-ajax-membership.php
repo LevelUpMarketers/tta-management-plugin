@@ -132,9 +132,10 @@ class TTA_Ajax_Membership {
             wp_send_json_error( [ 'message' => __( 'You must be logged in.', 'tta' ) ] );
         }
 
-        $user_id = get_current_user_id();
-        $sub_id  = tta_get_user_subscription_id( $user_id );
-        if ( ! $sub_id ) {
+        $user_id       = get_current_user_id();
+        $posted_sub_id = isset( $_POST['subscription_id'] ) ? preg_replace( '/\D/', '', wp_unslash( $_POST['subscription_id'] ) ) : '';
+        $sub_id        = tta_get_user_subscription_id( $user_id );
+        if ( ! $sub_id || ! $posted_sub_id || $posted_sub_id !== $sub_id ) {
             wp_send_json_error( [ 'message' => __( 'No active subscription found.', 'tta' ) ] );
         }
 
@@ -180,8 +181,9 @@ class TTA_Ajax_Membership {
             );
         }
 
-        $user  = wp_get_current_user();
-        $email = $user instanceof WP_User ? $user->user_email : '';
+        $posted_email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+        $user         = wp_get_current_user();
+        $email        = $posted_email ?: ( $user instanceof WP_User ? $user->user_email : '' );
 
         $api = new TTA_AuthorizeNet_API();
         $res = $api->update_subscription_payment(

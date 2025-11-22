@@ -127,10 +127,7 @@ class TTA_Ajax_Membership_Admin {
 
         if ( $use_current ) {
             if ( $sub_id && 'cancelled' !== $status ) {
-                $res = $api->update_subscription_payment( $sub_id );
-                if ( ! $res['success'] ) {
-                    wp_send_json_error( [ 'message' => $res['error'] ] );
-                }
+                $res = [ 'success' => true ];
             } else {
                 wp_send_json_error( [ 'message' => __( 'Subscription cancelled or missing. Provide payment details to create a new subscription.', 'tta' ) ] );
             }

@@ -983,35 +983,30 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
 
+        $use_token = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
+        if ( ! $use_token ) {
+            return [ 'success' => false, 'error' => 'Payment method update failed: no opaque payment token received.' ];
+        }
+
         $subscription_profile = $this->get_subscription_details( $subscription_id );
         $profile_id           = $subscription_profile['profile_id'] ?? '';
         $payment_profile_id   = $subscription_profile['payment_profile_id'] ?? '';
-        $profile_error        = $subscription_profile['success'] ? '' : ( $subscription_profile['error'] ?? '' );
-        $email                = isset( $context['email'] ) ? sanitize_email( $context['email'] ) : '';
-        if ( ! $email && isset( $context['user_id'] ) ) {
-            $host  = parse_url( home_url(), PHP_URL_HOST );
-            $email = sprintf( 'user-%d@%s', intval( $context['user_id'] ), $host ? $host : 'example.invalid' );
+        if ( ! $subscription_profile['success'] || ! $profile_id || ! $payment_profile_id ) {
+            $error = $subscription_profile['error'] ?? 'Payment profile details missing for this subscription.';
+            return [ 'success' => false, 'error' => $error ];
         }
-
-        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-        $merchantAuthentication->setName( $this->login_id );
-        $merchantAuthentication->setTransactionKey( $this->transaction_key );
-
-        $subscription = new AnetAPI\ARBSubscriptionType();
-        $use_token    = isset( $billing['opaqueData']['dataDescriptor'], $billing['opaqueData']['dataValue'] );
-        $payment_set  = false;
 
         if ( function_exists( 'tta_log_payment_event' ) ) {
             $token_value = $billing['opaqueData']['dataValue'] ?? '';
             tta_log_payment_event(
-                'Authorize.Net subscription payment update payload',
+                'Authorize.Net subscription payment profile update payload',
                 [
                     'subscription_id'    => $subscription_id,
                     'profile_id'         => $profile_id,
                     'payment_profile_id' => $payment_profile_id,
                     'use_token'          => $use_token,
                     'opaque_descriptor'  => $billing['opaqueData']['dataDescriptor'] ?? '',
-                    'opaque_value'       => $token_value,
+                    'opaque_value'       => $this->mask_opaque_value( $token_value ),
                     'opaque_length'      => strlen( $token_value ),
                     'billing'            => $billing,
                     'environment'        => $this->environment,
@@ -1019,121 +1014,45 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             );
         }
 
-        if ( $use_token && $profile_id && $payment_profile_id ) {
-            $updated = $this->update_payment_profile( $profile_id, $payment_profile_id, $billing );
-            if ( ! $updated['success'] ) {
-                return $updated;
-            }
-
-            $profile = new AnetAPI\CustomerProfileIdType();
-            $profile->setCustomerProfileId( $profile_id );
-            $profile->setCustomerPaymentProfileId( $payment_profile_id );
-            $subscription->setProfile( $profile );
-            $payment_set = true;
-        } elseif ( $use_token && $profile_id && ! $payment_profile_id ) {
-            $created = $this->create_payment_profile( $profile_id, $billing );
-            if ( ! $created['success'] ) {
-                return $created;
-            }
-
-            $payment_profile_id = $created['payment_profile_id'];
-            $profile            = new AnetAPI\CustomerProfileIdType();
-            $profile->setCustomerProfileId( $profile_id );
-            $profile->setCustomerPaymentProfileId( $payment_profile_id );
-            $subscription->setProfile( $profile );
-            $payment_set = true;
-        } elseif ( $use_token && ! $profile_id ) {
-            $created = $this->create_customer_profile_with_payment( $email, $billing );
-            if ( ! $created['success'] ) {
-                return $created;
-            }
-
-            $profile_id         = $created['profile_id'];
-            $payment_profile_id = $created['payment_profile_id'];
-            if ( ! $payment_profile_id ) {
-                $created_profile = $this->create_payment_profile( $profile_id, $billing );
-                if ( ! $created_profile['success'] ) {
-                    return $created_profile;
-                }
-                $payment_profile_id = $created_profile['payment_profile_id'];
-            }
-            $profile            = new AnetAPI\CustomerProfileIdType();
-            $profile->setCustomerProfileId( $profile_id );
-            $profile->setCustomerPaymentProfileId( $payment_profile_id );
-            $subscription->setProfile( $profile );
-            $payment_set = true;
-        } elseif ( $card_number && $exp_date && $profile_id ) {
-            $created = $this->create_payment_profile( $profile_id, [
-                'card_number' => $card_number,
-                'exp_date'    => $exp_date,
-                'card_code'   => $card_code,
-            ] + $billing );
-            if ( ! $created['success'] ) {
-                return $created;
-            }
-            $payment_profile_id = $created['payment_profile_id'];
-            $profile            = new AnetAPI\CustomerProfileIdType();
-            $profile->setCustomerProfileId( $profile_id );
-            $profile->setCustomerPaymentProfileId( $payment_profile_id );
-            $subscription->setProfile( $profile );
-            $payment_set = true;
-        } elseif ( $profile_id && $payment_profile_id ) {
-            $profile = new AnetAPI\CustomerProfileIdType();
-            $profile->setCustomerProfileId( $profile_id );
-            $profile->setCustomerPaymentProfileId( $payment_profile_id );
-            $subscription->setProfile( $profile );
-            $payment_set = true;
-        } elseif ( $profile_error ) {
-            return [ 'success' => false, 'error' => $profile_error ];
-        }
-
-        $can_set_bill_to = $billing && ! $payment_set && ! $profile_id && ! $payment_profile_id;
-
-        if ( $can_set_bill_to ) {
-            $bill = new AnetAPI\NameAndAddressType();
-            $bill->setFirstName( $billing['first_name'] ?? '' );
-            $bill->setLastName( $billing['last_name'] ?? '' );
-            $bill->setAddress( $billing['address'] ?? '' );
-            $bill->setCity( $billing['city'] ?? '' );
-            $bill->setState( $billing['state'] ?? '' );
-            $bill->setZip( $billing['zip'] ?? '' );
-            $subscription->setBillTo( $bill );
-        }
-
-        if ( ! $payment_set ) {
-            return [ 'success' => false, 'error' => 'Payment method update failed: no valid payment details found for this subscription.' ];
+        $updated = $this->update_payment_profile( $profile_id, $payment_profile_id, $billing );
+        if ( ! $updated['success'] ) {
+            return $updated;
         }
 
         if ( function_exists( 'tta_log_payment_event' ) ) {
             tta_log_payment_event(
-                'Authorize.Net subscription payment update requested',
+                'Authorize.Net subscription payment profile updated',
                 [
-                    'subscription_id' => $subscription_id,
-                    'has_token'       => $use_token,
-                    'environment'     => $this->environment,
-                    'profile_id'      => $profile_id,
-                    'payment_profile' => $payment_profile_id,
+                    'subscription_id'    => $subscription_id,
+                    'profile_id'         => $profile_id,
+                    'payment_profile_id' => $payment_profile_id,
+                    'environment'        => $this->environment,
                 ]
             );
         }
 
-        $request = new AnetAPI\ARBUpdateSubscriptionRequest();
-        $request->setMerchantAuthentication( $merchantAuthentication );
-        $request->setSubscriptionId( $subscription_id );
-        $request->setSubscription( $subscription );
+        return [ 'success' => true ];
+    }
 
-        $controller = new AnetController\ARBUpdateSubscriptionController( $request );
-        $response   = $controller->executeWithApiResponse( $this->environment );
-        $this->log_response( 'update_subscription_payment', $response );
+    /**
+     * Mask opaque payment token values for logging.
+     *
+     * @param string $value Token value.
+     * @return string Masked token.
+     */
+    protected function mask_opaque_value( $value ) {
+        $value = (string) $value;
+        $len   = strlen( $value );
 
-        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
-            return [ 'success' => true ];
+        if ( 0 === $len ) {
+            return '';
         }
 
-        return [
-            'success' => false,
-            'error'   => $this->format_error( $response, null, 'API error' ),
-        ];
+        if ( $len <= 6 ) {
+            return str_repeat( '*', $len );
+        }
+
+        return substr( $value, 0, 3 ) . str_repeat( '*', $len - 6 ) . substr( $value, -3 );
     }
 
     /**
@@ -1167,7 +1086,7 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
                     'payment_profile_id'=> $payment_profile_id,
                     'use_token'         => $use_token,
                     'opaque_descriptor' => $billing['opaqueData']['dataDescriptor'] ?? '',
-                    'opaque_value'      => $token_value,
+                    'opaque_value'      => $this->mask_opaque_value( $token_value ),
                     'opaque_length'     => strlen( $token_value ),
                     'billing'           => $billing,
                 ]

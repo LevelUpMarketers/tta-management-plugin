@@ -9,6 +9,11 @@
   $status = strtolower( $ctx['subscription_status'] ?? '' );
   $sub_id = $ctx['subscription_id'] ?? '';
   $last4  = $sub_id ? tta_get_subscription_card_last4( $sub_id ) : '';
+  $user   = wp_get_current_user();
+  $email  = ( $user instanceof WP_User ) ? $user->user_email : '';
+  if ( ! $email && ! empty( $member['email'] ) ) {
+      $email = $member['email'];
+  }
   $is_cancelled_state = in_array( $status, [ 'cancelled', 'terminated' ], true );
   $cancel             = $is_cancelled_state ? tta_get_last_membership_cancellation( get_current_user_id() ) : null;
   if ( ! $sub_id ) :
@@ -49,6 +54,8 @@
         <form id="tta-update-card-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" class="tta-update-card-form">
           <?php wp_nonce_field( 'tta_member_front_update', 'nonce' ); ?>
           <input type="hidden" name="action" value="tta_update_payment" />
+          <input type="hidden" name="subscription_id" value="<?php echo esc_attr( $sub_id ); ?>" />
+          <input type="hidden" name="email" value="<?php echo esc_attr( $email ); ?>" />
           <p>
             <label>
               <?php esc_html_e( 'Card Number', 'tta' ); ?><br />
@@ -173,6 +180,8 @@
       <form id="tta-update-card-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" class="tta-update-card-form">
         <?php wp_nonce_field( 'tta_member_front_update', 'nonce' ); ?>
         <input type="hidden" name="action" value="tta_update_payment" />
+        <input type="hidden" name="subscription_id" value="<?php echo esc_attr( $sub_id ); ?>" />
+        <input type="hidden" name="email" value="<?php echo esc_attr( $email ); ?>" />
         <p>
           <label>
             <?php esc_html_e( 'Card Number', 'tta' ); ?><br />
