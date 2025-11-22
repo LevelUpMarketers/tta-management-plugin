@@ -73,5 +73,21 @@ class AuthorizeNetCredentialsTest extends TestCase {
         putenv( 'TTA_AUTHNET_TRANSACTION_KEY' );
         putenv( 'TTA_AUTHNET_CLIENT_KEY' );
     }
+
+    public function test_does_not_mix_partial_option_credentials_with_constants() {
+        // Only provide login ID in options; other values must not be filled from constants.
+        update_option( 'tta_authnet_login_id_live', 'liveOnlyLogin' );
+        putenv( 'TTA_AUTHNET_TRANSACTION_KEY=envKey' );
+        putenv( 'TTA_AUTHNET_CLIENT_KEY=envClient' );
+
+        $creds = tta_get_authnet_credentials( false );
+
+        $this->assertSame( 'liveOnlyLogin', $creds['login_id'] );
+        $this->assertSame( '', $creds['transaction_key'], 'Partial option values should not be combined with constants' );
+        $this->assertSame( '', $creds['client_key'], 'Partial option values should not be combined with constants' );
+
+        putenv( 'TTA_AUTHNET_TRANSACTION_KEY' );
+        putenv( 'TTA_AUTHNET_CLIENT_KEY' );
+    }
 }
 ?>

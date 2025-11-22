@@ -201,26 +201,44 @@ function tta_get_authnet_credentials( $sandbox = null ) {
     $key_option    = $sandbox ? 'tta_authnet_transaction_key_sandbox' : 'tta_authnet_transaction_key_live';
     $client_option = $sandbox ? 'tta_authnet_public_client_key_sandbox' : 'tta_authnet_public_client_key_live';
 
-    $login_id        = get_option( $login_option, '' );
-    $transaction_key = get_option( $key_option, '' );
-    $client_key      = get_option( $client_option, '' );
+    $login_id        = trim( (string) get_option( $login_option, '' ) );
+    $transaction_key = trim( (string) get_option( $key_option, '' ) );
+    $client_key      = trim( (string) get_option( $client_option, '' ) );
 
-    // Fall back to constants or environment variables when options are empty so
-    // both Accept.js and server-side API calls share the same credentials.
-    if ( ! $login_id ) {
-        $login_id = defined( 'TTA_AUTHNET_LOGIN_ID' ) ? TTA_AUTHNET_LOGIN_ID : getenv( 'TTA_AUTHNET_LOGIN_ID' );
+    $has_option_creds = ( '' !== $login_id || '' !== $transaction_key || '' !== $client_key );
+
+    // Only fall back to constants/environment variables when *no* credentials
+    // are provided in the options for the selected environment. Mixing sources
+    // can invalidate Accept.js tokens when keys belong to different accounts.
+    if ( ! $has_option_creds ) {
+        if ( defined( 'TTA_AUTHNET_LOGIN_ID' ) || getenv( 'TTA_AUTHNET_LOGIN_ID' ) ) {
+            $login_id = trim( (string) ( defined( 'TTA_AUTHNET_LOGIN_ID' ) ? TTA_AUTHNET_LOGIN_ID : getenv( 'TTA_AUTHNET_LOGIN_ID' ) ) );
+        }
+        if ( defined( 'TTA_AUTHNET_TRANSACTION_KEY' ) || getenv( 'TTA_AUTHNET_TRANSACTION_KEY' ) ) {
+            $transaction_key = trim( (string) ( defined( 'TTA_AUTHNET_TRANSACTION_KEY' ) ? TTA_AUTHNET_TRANSACTION_KEY : getenv( 'TTA_AUTHNET_TRANSACTION_KEY' ) ) );
+        }
+        if ( defined( 'TTA_AUTHNET_CLIENT_KEY' ) || getenv( 'TTA_AUTHNET_CLIENT_KEY' ) ) {
+            $client_key = trim( (string) ( defined( 'TTA_AUTHNET_CLIENT_KEY' ) ? TTA_AUTHNET_CLIENT_KEY : getenv( 'TTA_AUTHNET_CLIENT_KEY' ) ) );
+        }
     }
-    if ( ! $transaction_key ) {
-        $transaction_key = defined( 'TTA_AUTHNET_TRANSACTION_KEY' ) ? TTA_AUTHNET_TRANSACTION_KEY : getenv( 'TTA_AUTHNET_TRANSACTION_KEY' );
-    }
-    if ( ! $client_key ) {
-        $client_key = defined( 'TTA_AUTHNET_CLIENT_KEY' ) ? TTA_AUTHNET_CLIENT_KEY : getenv( 'TTA_AUTHNET_CLIENT_KEY' );
+
+    if ( function_exists( 'tta_log_payment_event' ) && function_exists( 'tta_payment_debug_enabled' ) && tta_payment_debug_enabled() ) {
+        tta_log_payment_event(
+            'Authorize.Net credentials loaded',
+            [
+                'sandbox'          => (bool) $sandbox,
+                'source'           => $has_option_creds ? 'options' : 'constants/env',
+                'login_id_masked'  => $login_id ? substr( $login_id, 0, 2 ) . '***' . substr( $login_id, -2 ) : '',
+                'has_txn_key'      => (bool) $transaction_key,
+                'has_client_key'   => (bool) $client_key,
+            ]
+        );
     }
 
     return [
-        'login_id'        => (string) $login_id,
-        'transaction_key' => (string) $transaction_key,
-        'client_key'      => (string) $client_key,
+        'login_id'        => $login_id,
+        'transaction_key' => $transaction_key,
+        'client_key'      => $client_key,
     ];
 }
 
