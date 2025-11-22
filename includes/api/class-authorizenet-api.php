@@ -875,7 +875,7 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
      * @param boolean $include_transactions Whether to return the ARB transaction list.
      * @return array { success:bool, card_last4?:string, transactions?:array, error?:string }
      */
-    public function get_subscription_details( $subscription_id, $include_transactions = false ) {
+    public function get_subscription_details( $subscription_id, $include_transactions = false, $include_raw = false ) {
         if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
             return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
         }
@@ -894,6 +894,17 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $controller = new AnetController\ARBGetSubscriptionController( $request );
         $response   = $controller->executeWithApiResponse( $this->environment );
         $this->log_response( 'get_subscription_details', $response );
+
+        $raw_payload = null;
+        if ( $include_raw ) {
+            $raw_payload = $response;
+            if ( is_object( $response ) || is_array( $response ) ) {
+                $raw_payload = json_decode( wp_json_encode( $response ), true );
+                if ( is_array( $raw_payload ) ) {
+                    $raw_payload = $this->sanitize_response_array( $raw_payload );
+                }
+            }
+        }
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
             $sub      = $response->getSubscription();
@@ -932,6 +943,10 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
                 'payment_profile_id' => $payment_profile_id,
             ];
 
+            if ( $include_raw ) {
+                $data['raw_response'] = $raw_payload;
+            }
+
             if ( $include_transactions ) {
                 $amount   = $sub->getAmount();
                 $txn_list = [];
@@ -961,10 +976,17 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             return $data;
         }
 
-        return [
+        $error = $this->format_error( $response, null, 'API error' );
+        $data  = [
             'success' => false,
-            'error'   => $this->format_error( $response, null, 'API error' ),
+            'error'   => $error,
         ];
+
+        if ( $include_raw ) {
+            $data['raw_response'] = $raw_payload;
+        }
+
+        return $data;
     }
 
     /**
@@ -988,7 +1010,7 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             return [ 'success' => false, 'error' => 'Payment method update failed: no opaque payment token received.' ];
         }
 
-        $subscription_profile = $this->get_subscription_details( $subscription_id );
+        $subscription_profile = $this->get_subscription_details( $subscription_id, false, true );
         $profile_id           = $subscription_profile['profile_id'] ?? '';
         $payment_profile_id   = $subscription_profile['payment_profile_id'] ?? '';
         if ( ! $subscription_profile['success'] || ! $profile_id || ! $payment_profile_id ) {
@@ -1031,7 +1053,13 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
             );
         }
 
-        return [ 'success' => true ];
+        $data = [ 'success' => true ];
+
+        if ( isset( $subscription_profile['raw_response'] ) ) {
+            $data['subscription_raw'] = $subscription_profile['raw_response'];
+        }
+
+        return $data;
     }
 
     /**

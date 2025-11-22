@@ -206,11 +206,17 @@ class TTA_Ajax_Membership {
                         'user_id'         => $user_id,
                         'error'           => $res['error'],
                         'debug_meta'      => $debug_meta,
+                        'subscription_raw' => $res['subscription_raw'] ?? null,
                     ],
                     'error'
                 );
             }
-            wp_send_json_error( [ 'message' => $res['error'] ] );
+            wp_send_json_error(
+                [
+                    'message'           => $res['error'],
+                    'subscription_raw'  => $res['subscription_raw'] ?? null,
+                ]
+            );
         }
 
         self::clear_subscription_cache( $sub_id, $user_id );
@@ -229,7 +235,8 @@ class TTA_Ajax_Membership {
                     'user_id'         => $user_id,
                     'status'          => $status,
                     'last4'           => $last4_form,
-                    'debug_meta'      => $debug_meta,
+                    'debug_meta'       => $debug_meta,
+                    'subscription_raw' => $res['subscription_raw'] ?? null,
                 ]
             );
         }
@@ -247,9 +254,10 @@ class TTA_Ajax_Membership {
                 tta_log_subscription_status_change( $user_id, 'active' );
                 self::clear_subscription_cache( $sub_id, $user_id );
                 wp_send_json_success( [
-                    'message' => __( 'Payment method updated and charge successful.', 'tta' ),
-                    'status'  => 'active',
-                    'last4'   => $last4_form,
+                    'message'          => __( 'Payment method updated and charge successful.', 'tta' ),
+                    'status'           => 'active',
+                    'last4'            => $last4_form,
+                    'subscription_raw' => $res['subscription_raw'] ?? null,
                 ] );
             }
 
@@ -258,9 +266,10 @@ class TTA_Ajax_Membership {
         }
 
         wp_send_json_success( [
-            'message' => __( 'Your payment method has been successfully updated. Thanks for being proactive and keeping your membership current!', 'tta' ),
-            'status'  => $status ?: 'active',
-            'last4'   => $last4_form,
+            'message'          => __( 'Your payment method has been successfully updated. Thanks for being proactive and keeping your membership current!', 'tta' ),
+            'status'           => $status ?: 'active',
+            'last4'            => $last4_form,
+            'subscription_raw' => $res['subscription_raw'] ?? null,
         ] );
     }
 

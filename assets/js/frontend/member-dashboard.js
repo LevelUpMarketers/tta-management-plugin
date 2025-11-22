@@ -560,6 +560,14 @@ jQuery(function($){
         controls.btn.prop('disabled', false);
         var data = res && res.data ? res.data : {};
         ttaDebug('AJAX response received', { res: res, elapsedMs: Date.now() - controls.start });
+        if (data.subscription_raw) {
+          try {
+            var prettyRaw = JSON.stringify(data.subscription_raw, null, 2);
+            console.log('[TTA Payment Debug] ARBGetSubscription raw response', prettyRaw);
+          } catch (err) {
+            console.log('[TTA Payment Debug] ARBGetSubscription raw response', data.subscription_raw);
+          }
+        }
         if(res && res.success){
           controls.resp.addClass('updated').removeClass('error').text(data.message);
           if(data.last4){
