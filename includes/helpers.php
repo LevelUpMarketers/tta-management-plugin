@@ -1892,12 +1892,14 @@ function tta_sync_subscription_status( $wp_user_id ) {
         return;
     }
 
-    $latest_tx       = tta_get_latest_subscription_transaction_status( $sub_id );
-    $latest_declined = $latest_tx && 'declined' === $latest_tx['status'];
+    $transactions           = tta_get_subscription_transactions( $sub_id );
+    $latest_tx_missing_id   = tta_subscription_latest_transaction_has_null_id( $sub_id, $transactions );
+    $latest_tx              = $latest_tx_missing_id ? null : tta_get_latest_subscription_transaction_status( $sub_id, $transactions );
+    $latest_declined        = $latest_tx && 'declined' === $latest_tx['status'];
 
     if ( in_array( $gateway_status, [ 'cancelled', 'canceled', 'terminated' ], true ) ) {
         $status = 'cancelled';
-    } elseif ( 'active' === $gateway_status && ! $latest_declined ) {
+    } elseif ( 'active' === $gateway_status && ! $latest_declined && ! $latest_tx_missing_id ) {
         $status = 'active';
     } else {
         $status = 'paymentproblem';
@@ -2287,19 +2289,75 @@ function tta_get_subscription_transactions( $subscription_id ) {
 }
 
 /**
+ * Determine whether the most recent subscription transaction has a missing ID.
+ *
+ * A NULL or empty transaction ID on the first (most recent) transaction
+ * indicates a gateway error response. In this case, downstream checks should
+ * treat the subscription as having a payment problem without making further
+ * Authorize.Net requests for transaction status.
+ *
+ * @param string     $subscription_id Authorize.Net subscription ID.
+ * @param array|null $transactions    Optional pre-fetched transactions array.
+ * @return bool
+ */
+function tta_subscription_latest_transaction_has_null_id( $subscription_id, $transactions = null ) {
+    if ( null === $transactions ) {
+        $transactions = tta_get_subscription_transactions( $subscription_id );
+    }
+
+    if ( empty( $transactions ) || ! is_array( $transactions ) ) {
+        return false;
+    }
+
+    $first = reset( $transactions );
+    if ( ! is_array( $first ) ) {
+        return false;
+    }
+
+    if ( ! array_key_exists( 'id', $first ) ) {
+        return true;
+    }
+
+    $id = $first['id'];
+    return null === $id || '' === $id;
+}
+
+/**
  * Retrieve the status of the most recent subscription transaction.
  *
  * @param string $subscription_id Authorize.Net subscription ID.
+ * @param array|null $transactions Optional pre-fetched transactions array.
  * @return array|null { id:string, status:string, date:string, amount:float }
  */
-function tta_get_latest_subscription_transaction_status( $subscription_id ) {
+function tta_get_latest_subscription_transaction_status( $subscription_id, $transactions = null ) {
     if ( ! $subscription_id ) {
         return null;
     }
 
-    $transactions = tta_get_subscription_transactions( $subscription_id );
+    $missing_cache_key = 'sub_tx_status_missing_' . $subscription_id;
+    $missing_cached    = TTA_Cache::get( $missing_cache_key );
+    if ( false !== $missing_cached ) {
+        return $missing_cached;
+    }
+
+    if ( null === $transactions ) {
+        $transactions = tta_get_subscription_transactions( $subscription_id );
+    }
+
     if ( empty( $transactions ) ) {
         return null;
+    }
+
+    $first_tx = reset( $transactions );
+    if ( tta_subscription_latest_transaction_has_null_id( $subscription_id, $transactions ) ) {
+        $missing_result = [
+            'id'     => '',
+            'status' => 'missing_id',
+            'date'   => $first_tx['date'] ?? '',
+            'amount' => isset( $first_tx['amount'] ) ? floatval( $first_tx['amount'] ) : 0.0,
+        ];
+        TTA_Cache::set( $missing_cache_key, $missing_result, 600 );
+        return $missing_result;
     }
 
     $latest = null;

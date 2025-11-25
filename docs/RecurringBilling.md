@@ -29,6 +29,10 @@ transaction returned by Authorize.Net is also inspected; if its status is
 `declined`, the member is likewise downgraded to `free/paymentproblem` even when
 the subscription itself still shows as active. The dashboard then displays a
 subscription issue notice with full billing and address fields plus a link to purchase a new membership.
+If the newest transaction entry comes back with a `NULL` ID (for example, after a
+gateway "general error"), the plugin skips any further transaction-status calls
+and immediately flags the account as `free/paymentproblem` so the member does not
+retain paid access while the issue is unresolved.
 When new payment information is submitted the plugin attempts to retry the failed charge immediately—on success the stored
 membership level and `subscription_status` return to `active`.
 
