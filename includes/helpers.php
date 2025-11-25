@@ -1892,9 +1892,12 @@ function tta_sync_subscription_status( $wp_user_id ) {
         return;
     }
 
+    $latest_tx       = tta_get_latest_subscription_transaction_status( $sub_id );
+    $latest_declined = $latest_tx && 'declined' === $latest_tx['status'];
+
     if ( in_array( $gateway_status, [ 'cancelled', 'canceled', 'terminated' ], true ) ) {
         $status = 'cancelled';
-    } elseif ( 'active' === $gateway_status ) {
+    } elseif ( 'active' === $gateway_status && ! $latest_declined ) {
         $status = 'active';
     } else {
         $status = 'paymentproblem';
@@ -2281,6 +2284,71 @@ function tta_get_subscription_transactions( $subscription_id ) {
     $txns = $info['transactions'] ?? [];
     TTA_Cache::set( $cache_key, $txns, 600 );
     return $txns;
+}
+
+/**
+ * Retrieve the status of the most recent subscription transaction.
+ *
+ * @param string $subscription_id Authorize.Net subscription ID.
+ * @return array|null { id:string, status:string, date:string, amount:float }
+ */
+function tta_get_latest_subscription_transaction_status( $subscription_id ) {
+    if ( ! $subscription_id ) {
+        return null;
+    }
+
+    $transactions = tta_get_subscription_transactions( $subscription_id );
+    if ( empty( $transactions ) ) {
+        return null;
+    }
+
+    $latest = null;
+    foreach ( $transactions as $tx ) {
+        if ( empty( $tx['id'] ) ) {
+            continue;
+        }
+
+        if ( null === $latest ) {
+            $latest = $tx;
+            continue;
+        }
+
+        $current_time = isset( $tx['date'] ) ? strtotime( $tx['date'] ) : false;
+        $latest_time  = isset( $latest['date'] ) ? strtotime( $latest['date'] ) : false;
+
+        if ( $current_time && ( ! $latest_time || $current_time > $latest_time ) ) {
+            $latest = $tx;
+        }
+    }
+
+    if ( ! $latest ) {
+        return null;
+    }
+
+    $tx_id = $latest['id'];
+    $cache_key = 'sub_tx_status_' . $tx_id;
+    $cached = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    $api     = new TTA_AuthorizeNet_API();
+    $details = $api->get_transaction_status( $tx_id );
+    if ( empty( $details['success'] ) ) {
+        TTA_Cache::set( $cache_key, null, 600 );
+        return null;
+    }
+
+    $status = strtolower( $details['status'] ?? '' );
+    $result = [
+        'id'     => $tx_id,
+        'status' => $status,
+        'date'   => $latest['date'] ?? '',
+        'amount' => isset( $latest['amount'] ) ? floatval( $latest['amount'] ) : 0.0,
+    ];
+
+    TTA_Cache::set( $cache_key, $result, 600 );
+    return $result;
 }
 
 /**

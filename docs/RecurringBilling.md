@@ -24,7 +24,10 @@ Each time a user logs in the plugin checks the status of any stored subscription
 The status is also verified once per day for active sessions and again whenever a
 member views the **Billing & Membership Info** tab. If the gateway reports a
 problem, the member's `membership_level` is temporarily set to `free` and
-`subscription_status` is set to `paymentproblem`. The dashboard then displays a
+`subscription_status` is set to `paymentproblem`. The most recent recurring
+transaction returned by Authorize.Net is also inspected; if its status is
+`declined`, the member is likewise downgraded to `free/paymentproblem` even when
+the subscription itself still shows as active. The dashboard then displays a
 subscription issue notice with full billing and address fields plus a link to purchase a new membership.
 When new payment information is submitted the plugin attempts to retry the failed charge immediately—on success the stored
 membership level and `subscription_status` return to `active`.
