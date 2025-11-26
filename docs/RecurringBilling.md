@@ -32,7 +32,10 @@ subscription issue notice with full billing and address fields plus a link to pu
 If the newest transaction entry comes back with a `NULL` ID (for example, after a
 gateway "general error"), the plugin skips any further transaction-status calls
 and immediately flags the account as `free/paymentproblem` so the member does not
-retain paid access while the issue is unresolved.
+retain paid access while the issue is unresolved. Members in a `paymentproblem`
+state also see a sitewide alert bar prompting them to visit the Billing tab or
+start a new membership; the banner can be dismissed for the current session and
+automatically hides whenever a cart countdown alert needs to be shown.
 When new payment information is submitted the plugin attempts to retry the failed charge immediately—on success the stored
 membership level and `subscription_status` return to `active`.
 
