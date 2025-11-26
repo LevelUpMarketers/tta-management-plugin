@@ -39,6 +39,10 @@ automatically hides whenever a cart countdown alert needs to be shown.
 When new payment information is submitted the plugin attempts to retry the failed charge immediately—on success the stored
 membership level and `subscription_status` return to `active`.
 
+Payment updates now pull the `customerProfileId` and `customerPaymentProfileId` from `ARBGetSubscription` and send the Accept.js
+opaque token to an `updateCustomerPaymentProfile` request. Because subscriptions reference that payment profile, updating it
+refreshes the billing method without sending raw card data to Authorize.Net.
+
 ## Converting Past Transactions
 
 Existing one‑time transactions can be turned into recurring subscriptions

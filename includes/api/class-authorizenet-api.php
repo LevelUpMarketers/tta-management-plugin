@@ -880,12 +880,22 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $this->log_response( 'get_subscription_details', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
-            $sub      = $response->getSubscription();
-            $status   = $sub && method_exists( $sub, 'getStatus' ) ? strtolower( $sub->getStatus() ) : '';
-            $profile  = $sub ? $sub->getProfile() : null;
-            $pay_prof = $profile ? $profile->getPaymentProfile() : null;
-            $profile_id = $profile && method_exists( $profile, 'getCustomerProfileId' ) ? $profile->getCustomerProfileId() : '';
-            $payment_profile_id = $profile && method_exists( $profile, 'getCustomerPaymentProfileId' ) ? $profile->getCustomerPaymentProfileId() : '';
+            $sub        = $response->getSubscription();
+            $status     = $sub && method_exists( $sub, 'getStatus' ) ? strtolower( $sub->getStatus() ) : '';
+            $profile    = $sub ? $sub->getProfile() : null;
+            $pay_prof   = ( $sub && method_exists( $sub, 'getPaymentProfile' ) ) ? $sub->getPaymentProfile() : null;
+            if ( ! $pay_prof && $profile && method_exists( $profile, 'getPaymentProfile' ) ) {
+                $pay_prof = $profile->getPaymentProfile();
+            }
+
+            $profile_id         = $profile && method_exists( $profile, 'getCustomerProfileId' ) ? $profile->getCustomerProfileId() : '';
+            $payment_profile_id = '';
+            if ( $pay_prof && method_exists( $pay_prof, 'getCustomerPaymentProfileId' ) ) {
+                $payment_profile_id = $pay_prof->getCustomerPaymentProfileId();
+            } elseif ( $profile && method_exists( $profile, 'getCustomerPaymentProfileId' ) ) {
+                $payment_profile_id = $profile->getCustomerPaymentProfileId();
+            }
+
             $payment  = $pay_prof ? $pay_prof->getPayment() : null;
             $card     = $payment ? $payment->getCreditCard() : null;
             $masked   = $card ? $card->getCardNumber() : '';
@@ -1010,6 +1020,73 @@ public function charge( $amount, $card_number, $exp_date, $card_code, array $bil
         $response   = $controller->executeWithApiResponse( $this->environment );
         $this->log_response( 'update_subscription_amount', $response );
         $this->log_response( 'update_subscription_payment', $response );
+
+        if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
+            return [ 'success' => true ];
+        }
+
+        return [
+            'success' => false,
+            'error'   => $this->format_error( $response, null, 'API error' ),
+        ];
+    }
+
+    /**
+     * Update a customer payment profile using an Accept.js opaque token.
+     *
+     * @param string $customer_profile_id        Authorize.Net Customer Profile ID.
+     * @param string $customer_payment_profile_id Authorize.Net Customer Payment Profile ID.
+     * @param array  $billing                     Billing details, including opaqueData.
+     * @return array { success:bool, error?:string }
+     */
+    public function update_customer_payment_profile( $customer_profile_id, $customer_payment_profile_id, array $billing ) {
+        if ( empty( $this->login_id ) || empty( $this->transaction_key ) ) {
+            return [ 'success' => false, 'error' => 'Authorize.Net credentials not configured' ];
+        }
+
+        if ( ! $customer_profile_id || ! $customer_payment_profile_id ) {
+            return [ 'success' => false, 'error' => 'Payment profile identifiers missing' ];
+        }
+
+        if ( empty( $billing['opaqueData']['dataDescriptor'] ) || empty( $billing['opaqueData']['dataValue'] ) ) {
+            return [ 'success' => false, 'error' => 'Encryption of your payment information failed' ];
+        }
+
+        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+        $merchantAuthentication->setName( $this->login_id );
+        $merchantAuthentication->setTransactionKey( $this->transaction_key );
+
+        $opaque = new AnetAPI\OpaqueDataType();
+        $opaque->setDataDescriptor( $billing['opaqueData']['dataDescriptor'] );
+        $opaque->setDataValue( $billing['opaqueData']['dataValue'] );
+
+        $payment = new AnetAPI\PaymentType();
+        $payment->setOpaqueData( $opaque );
+
+        $bill = new AnetAPI\CustomerAddressType();
+        $bill->setFirstName( $billing['first_name'] ?? '' );
+        $bill->setLastName( $billing['last_name'] ?? '' );
+        $bill->setAddress( $billing['address'] ?? '' );
+        $bill->setCity( $billing['city'] ?? '' );
+        $bill->setState( $billing['state'] ?? '' );
+        $bill->setZip( $billing['zip'] ?? '' );
+
+        $profile = new AnetAPI\CustomerPaymentProfileExType();
+        $profile->setCustomerPaymentProfileId( $customer_payment_profile_id );
+        $profile->setPayment( $payment );
+        $profile->setBillTo( $bill );
+
+        $request = new AnetAPI\UpdateCustomerPaymentProfileRequest();
+        $request->setMerchantAuthentication( $merchantAuthentication );
+        $request->setCustomerProfileId( $customer_profile_id );
+        $request->setPaymentProfile( $profile );
+
+        $mode = ( $this->environment === \net\authorize\api\constants\ANetEnvironment::SANDBOX ) ? 'testMode' : 'liveMode';
+        $request->setValidationMode( $mode );
+
+        $controller = new AnetController\UpdateCustomerPaymentProfileController( $request );
+        $response   = $controller->executeWithApiResponse( $this->environment );
+        $this->log_response( 'update_customer_payment_profile', $response );
 
         if ( $response && 'Ok' === $response->getMessages()->getResultCode() ) {
             return [ 'success' => true ];

@@ -54,7 +54,14 @@ class TTA_Ajax_Membership_Admin {
         ];
 
         $api = new TTA_AuthorizeNet_API();
-        $res = $api->update_subscription_payment( $member['subscription_id'], '', '', '', $billing );
+        $profile_ids = self::get_payment_profile_ids( $api, $member['subscription_id'] );
+        if ( is_wp_error( $profile_ids ) ) {
+            wp_send_json_error( [ 'message' => $profile_ids->get_error_message() ] );
+        }
+
+        list( $profile_id, $payment_profile_id ) = $profile_ids;
+
+        $res = $api->update_customer_payment_profile( $profile_id, $payment_profile_id, $billing );
         if ( ! $res['success'] ) {
             wp_send_json_error( [ 'message' => $res['error'] ] );
         }
@@ -169,7 +176,14 @@ class TTA_Ajax_Membership_Admin {
             if ( ! $has_token ) {
                 wp_send_json_error( [ 'message' => __( 'Payment details required.', 'tta' ) ] );
             }
-            $res = $api->update_subscription_payment( $sub_id, '', '', '', $billing );
+            $profile_ids = self::get_payment_profile_ids( $api, $sub_id );
+            if ( is_wp_error( $profile_ids ) ) {
+                wp_send_json_error( [ 'message' => $profile_ids->get_error_message() ] );
+            }
+
+            list( $profile_id, $payment_profile_id ) = $profile_ids;
+
+            $res = $api->update_customer_payment_profile( $profile_id, $payment_profile_id, $billing );
             if ( ! $res['success'] ) {
                 wp_send_json_error( [ 'message' => $res['error'] ] );
             }
@@ -292,6 +306,29 @@ class TTA_Ajax_Membership_Admin {
         TTA_Cache::flush();
 
         wp_send_json_success( [ 'message' => __( 'Membership assigned.', 'tta' ) ] );
+    }
+
+    /**
+     * Resolve the customer profile and payment profile IDs for an ARB subscription.
+     *
+     * @param TTA_AuthorizeNet_API $api             API client instance.
+     * @param string               $subscription_id Authorize.Net subscription ID.
+     * @return array|WP_Error { profile_id, payment_profile_id } or WP_Error on failure.
+     */
+    private static function get_payment_profile_ids( TTA_AuthorizeNet_API $api, $subscription_id ) {
+        $details = $api->get_subscription_details( $subscription_id );
+        if ( ! $details['success'] ) {
+            return new WP_Error( 'tta_profile_lookup_failed', $details['error'] ?? __( 'Unable to load subscription details.', 'tta' ) );
+        }
+
+        $profile_id         = $details['profile_id'] ?? '';
+        $payment_profile_id = $details['payment_profile_id'] ?? '';
+
+        if ( ! $profile_id || ! $payment_profile_id ) {
+            return new WP_Error( 'tta_profile_missing', __( 'Unable to locate the payment profile for this subscription.', 'tta' ) );
+        }
+
+        return [ $profile_id, $payment_profile_id ];
     }
 }
 

@@ -160,7 +160,19 @@ class TTA_Ajax_Membership {
         $billing['opaqueData'] = $opaque;
 
         $api  = new TTA_AuthorizeNet_API();
-        $res  = $api->update_subscription_payment( $sub_id, '', '', '', $billing );
+        $details = $api->get_subscription_details( $sub_id );
+        if ( ! $details['success'] ) {
+            wp_send_json_error( [ 'message' => $details['error'] ?? __( 'Unable to load your payment profile.', 'tta' ) ] );
+        }
+
+        $profile_id         = $details['profile_id'] ?? '';
+        $payment_profile_id = $details['payment_profile_id'] ?? '';
+
+        if ( ! $profile_id || ! $payment_profile_id ) {
+            wp_send_json_error( [ 'message' => __( 'Unable to locate your payment profile. Please contact support.', 'tta' ) ] );
+        }
+
+        $res = $api->update_customer_payment_profile( $profile_id, $payment_profile_id, $billing );
         if ( ! $res['success'] ) {
             wp_send_json_error( [ 'message' => $res['error'] ] );
         }
