@@ -196,22 +196,34 @@ class TTA_SMS_Handler {
             $attendees = [];
             foreach ( $ev_items as $it ) {
                 foreach ( (array) ( $it['attendees'] ?? [] ) as $att ) {
-                    $attendees[] = $att;
+                    $attendees[] = [
+                        'first_name' => sanitize_text_field( $att['first_name'] ?? '' ),
+                        'last_name'  => sanitize_text_field( $att['last_name'] ?? '' ),
+                        'email'      => sanitize_email( $att['email'] ?? '' ),
+                        'phone'      => sanitize_text_field( $att['phone'] ?? '' ),
+                        'opt_in_sms' => intval( $att['opt_in_sms'] ?? 0 ),
+                    ];
                 }
             }
 
-            $tokens  = $this->build_tokens( $event, $context, $attendees );
+            $opted_in_attendees = array_values(
+                array_filter(
+                    $attendees,
+                    function ( $attendee ) {
+                        return ! empty( $attendee['opt_in_sms'] );
+                    }
+                )
+            );
+
+            if ( empty( $opted_in_attendees ) ) {
+                continue;
+            }
+
+            $tokens  = $this->build_tokens( $event, $context, $opted_in_attendees );
             $msg_raw = tta_expand_anchor_tokens( $tpl['sms_text'], $tokens );
             $message = tta_strip_bold( strtr( $msg_raw, $tokens ) );
 
-            $numbers = [];
-            $member_phone = $context['member']['phone'] ?? '';
-            if ( $member_phone ) {
-                $numbers[] = $member_phone;
-            }
-            foreach ( $attendees as $a ) {
-                $numbers[] = $a['phone'] ?? '';
-            }
+            $numbers = array_column( $opted_in_attendees, 'phone' );
 
             foreach ( $this->normalize_numbers( $numbers ) as $num ) {
                 $this->send_sms( $num, $message );
@@ -236,13 +248,38 @@ class TTA_SMS_Handler {
         }
 
         $context   = tta_get_user_context_by_id( intval( $transaction['wpuserid'] ) );
-        $attendees = tta_get_transaction_event_attendees( $transaction['transaction_id'], $refund['event_id'] );
+        $attendees = array_map(
+            function ( $attendee ) {
+                return [
+                    'first_name' => sanitize_text_field( $attendee['first_name'] ?? '' ),
+                    'last_name'  => sanitize_text_field( $attendee['last_name'] ?? '' ),
+                    'email'      => sanitize_email( $attendee['email'] ?? '' ),
+                    'phone'      => sanitize_text_field( $attendee['phone'] ?? '' ),
+                    'opt_in_sms' => intval( $attendee['opt_in_sms'] ?? 0 ),
+                    'status'     => sanitize_text_field( $attendee['status'] ?? '' ),
+                ];
+            },
+            tta_get_transaction_event_attendees( $transaction['transaction_id'], $refund['event_id'] )
+        );
 
-        $tokens  = $this->build_tokens( $event, $context, $attendees, $refund );
+        $opted_in_attendees = array_values(
+            array_filter(
+                $attendees,
+                function ( $attendee ) {
+                    return ! empty( $attendee['opt_in_sms'] );
+                }
+            )
+        );
+
+        if ( empty( $opted_in_attendees ) ) {
+            return;
+        }
+
+        $tokens  = $this->build_tokens( $event, $context, $opted_in_attendees, $refund );
         $msg_raw = tta_expand_anchor_tokens( $tpl['sms_text'], $tokens );
         $message = tta_strip_bold( strtr( $msg_raw, $tokens ) );
 
-        $numbers = array_merge( [ $context['member']['phone'] ?? '' ], array_column( $attendees, 'phone' ) );
+        $numbers = array_column( $opted_in_attendees, 'phone' );
         foreach ( $this->normalize_numbers( $numbers ) as $num ) {
             $this->send_sms( $num, $message );
         }
@@ -257,6 +294,10 @@ class TTA_SMS_Handler {
 
         $context = tta_build_waitlist_notification_context( $entry, $event );
         $tokens  = $context['tokens'];
+
+        if ( empty( $context['data']['opt_in_sms'] ) ) {
+            return;
+        }
 
         $msg_raw = tta_expand_anchor_tokens( $tpl['sms_text'], $tokens );
         $message = tta_strip_bold( strtr( $msg_raw, $tokens ) );
