@@ -213,11 +213,15 @@ class TTA_Settings_Admin {
                 'response'  => null,
             ];
             $twilio_test_message = '';
+            $twilio_render_tokens = false;
 
             $sandbox_display_value = defined( 'TTA_TWILIO_SANDBOX_NUMBER' ) && TTA_TWILIO_SANDBOX_NUMBER ? TTA_TWILIO_SANDBOX_NUMBER : $twilio_sandbox_to;
 
             if ( isset( $_POST['tta_send_test_twilio_sms'] ) && check_admin_referer( 'tta_test_twilio_sms_action', 'tta_test_twilio_sms_nonce' ) ) {
                 $twilio_test_message = isset( $_POST['tta_twilio_test_message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['tta_twilio_test_message'] ) ) : '';
+                $twilio_render_tokens = isset( $_POST['tta_twilio_render_tokens'] ) ? (bool) $_POST['tta_twilio_render_tokens'] : $this->contains_template_tokens( $twilio_test_message );
+                $has_template_tokens  = $this->contains_template_tokens( $twilio_test_message );
+                $should_render_tokens = $twilio_render_tokens && $has_template_tokens;
 
                 $display_env           = defined( 'TTA_TWILIO_ENVIRONMENT' ) ? sanitize_key( TTA_TWILIO_ENVIRONMENT ) : $twilio_env;
                 $sandbox_destination   = $sandbox_display_value;
@@ -230,6 +234,7 @@ class TTA_Settings_Admin {
                     'using_service_sid'  => (bool) $messaging_service_sid,
                     'using_from_number'  => (bool) $from_number,
                     'message_length'     => strlen( $twilio_test_message ),
+                    'rendering_tokens'   => $should_render_tokens,
                 ];
 
                 $error_message = '';
@@ -272,10 +277,11 @@ class TTA_Settings_Admin {
                     $twilio_test_debug['variables']['account_sid']     = $this->mask_sensitive_value( $account_sid );
                     $twilio_test_debug['variables']['auth_sid']        = $this->mask_sensitive_value( $auth_sid );
 
-                    $message_args    = [ 'body' => $twilio_test_message ];
+                    $message_body    = $this->maybe_compile_sms_template( $twilio_test_message, $should_render_tokens );
+                    $message_args    = [ 'body' => $message_body ];
                     $payload_display = [
                         'to'   => $sandbox_destination,
-                        'body' => $twilio_test_message,
+                        'body' => $message_body,
                     ];
 
                     if ( $messaging_service_sid ) {
@@ -384,6 +390,9 @@ class TTA_Settings_Admin {
             wp_nonce_field( 'tta_test_twilio_sms_action', 'tta_test_twilio_sms_nonce' );
             echo '<p><label for="tta_twilio_test_message">' . esc_html__( 'Message Content', 'tta' ) . '</label><br />';
             echo '<textarea id="tta_twilio_test_message" name="tta_twilio_test_message" rows="6" cols="60" placeholder="' . esc_attr__( 'Type a message to send to the sandbox number.', 'tta' ) . '">' . esc_textarea( $twilio_test_message ) . '</textarea></p>';
+            $twilio_render_tokens = $twilio_render_tokens || $this->contains_template_tokens( $twilio_test_message );
+            echo '<p><label><input type="checkbox" name="tta_twilio_render_tokens" value="1"' . checked( $twilio_render_tokens, true, false ) . '> ' . esc_html__( 'Render template tokens using sample preview data before sending', 'tta' ) . '</label><br />';
+            echo '<span class="description">' . esc_html__( 'Leave unchecked to send the exact text, or enable to replace tokens like {event_name} with sample values.', 'tta' ) . '</span></p>';
             echo '<p class="description">' . esc_html__( 'Messages from this form will always be delivered to the configured Twilio sandbox number.', 'tta' );
             if ( ! empty( $sandbox_display_value ) ) {
                 echo ' ' . esc_html__( 'Current sandbox recipient:', 'tta' ) . ' <code>' . esc_html( $sandbox_display_value ) . '</code>';
@@ -472,6 +481,106 @@ class TTA_Settings_Admin {
         }
 
         echo '</div>';
+    }
+
+    private function contains_template_tokens( $message ) {
+        return (bool) preg_match( '/\{[a-z0-9_]+\}/i', (string) $message );
+    }
+
+    private function maybe_compile_sms_template( $template, $render_tokens ) {
+        $template = (string) $template;
+
+        if ( ! $render_tokens || '' === trim( $template ) || ! $this->contains_template_tokens( $template ) ) {
+            return $template;
+        }
+
+        if ( ! class_exists( 'TTA_SMS_Handler' ) ) {
+            return $template;
+        }
+
+        $handler = TTA_SMS_Handler::get_instance();
+        if ( ! $handler || ! method_exists( $handler, 'compile_message' ) ) {
+            return $template;
+        }
+
+        $context  = $this->get_sample_sms_context();
+        $compiled = $handler->compile_message( $template, $context['event'], $context['member'], $context['attendees'], $context['refund'] );
+
+        return '' !== $compiled ? $compiled : $template;
+    }
+
+    private function get_sample_sms_context() {
+        $event = tta_get_next_event();
+
+        if ( $event ) {
+            $event['page_url']        = isset( $event['page_url'] ) ? $event['page_url'] : ( ! empty( $event['page_id'] ) ? get_permalink( intval( $event['page_id'] ) ) : home_url( '/events/' ) );
+            $event['date_formatted']  = $event['date_formatted'] ?? ( isset( $event['date'] ) ? tta_format_event_date( $event['date'] ) : '' );
+            $event['time_formatted']  = $event['time_formatted'] ?? ( isset( $event['time'] ) ? tta_format_event_time( $event['time'] ) : '' );
+            $event['base_cost']       = isset( $event['base_cost'] ) ? (float) $event['base_cost'] : ( isset( $event['baseeventcost'] ) ? (float) $event['baseeventcost'] : 0 );
+            $event['member_cost']     = isset( $event['member_cost'] ) ? (float) $event['member_cost'] : ( isset( $event['discountedmembercost'] ) ? (float) $event['discountedmembercost'] : 0 );
+            $event['premium_cost']    = isset( $event['premium_cost'] ) ? (float) $event['premium_cost'] : ( isset( $event['premiummembercost'] ) ? (float) $event['premiummembercost'] : 0 );
+            $event['host_notes']      = isset( $event['host_notes'] ) ? $event['host_notes'] : '';
+        } else {
+            $event = [
+                'id'           => 0,
+                'name'         => __( 'Sample Event', 'tta' ),
+                'date'         => gmdate( 'Y-m-d', strtotime( '+7 days' ) ),
+                'time'         => '18:00:00',
+                'address'      => __( '123 Example St, Richmond, VA', 'tta' ),
+                'page_id'      => 0,
+                'page_url'     => home_url( '/events/' ),
+                'type'         => __( 'Social', 'tta' ),
+                'venue_name'   => __( 'Sample Venue', 'tta' ),
+                'venue_url'    => home_url( '/venues/sample' ),
+                'base_cost'    => 25.00,
+                'member_cost'  => 15.00,
+                'premium_cost' => 10.00,
+                'host_notes'   => '',
+            ];
+            $event['date_formatted'] = tta_format_event_date( $event['date'] );
+            $event['time_formatted'] = tta_format_event_time( $event['time'] );
+        }
+
+        $sample_member = tta_get_sample_member();
+        $primary_phone = sanitize_text_field( $sample_member['phone'] ?? '555-0100' );
+        $primary_email = sanitize_email( $sample_member['email'] ?? 'member@example.com' );
+        $primary_first = sanitize_text_field( $sample_member['first_name'] ?? __( 'Sample', 'tta' ) );
+        $primary_last  = sanitize_text_field( $sample_member['last_name'] ?? __( 'Member', 'tta' ) );
+
+        $attendees = [
+            [
+                'first_name' => $primary_first,
+                'last_name'  => $primary_last,
+                'email'      => $primary_email,
+                'phone'      => $primary_phone,
+            ],
+            [
+                'first_name' => __( 'Guest', 'tta' ),
+                'last_name'  => __( 'Two', 'tta' ),
+                'email'      => 'guest@example.com',
+                'phone'      => '555-0102',
+            ],
+        ];
+
+        $member = [
+            'first_name'        => $primary_first,
+            'last_name'         => $primary_last,
+            'user_email'        => $primary_email,
+            'member'            => [
+                'phone'       => $primary_phone,
+                'member_type' => sanitize_text_field( $sample_member['member_type'] ?? 'member' ),
+            ],
+            'membership_level'  => sanitize_text_field( $sample_member['membership_level'] ?? 'free' ),
+            'subscription_id'   => 'SUB12345',
+            'subscription_status' => 'active',
+        ];
+
+        return [
+            'event'     => $event,
+            'member'    => $member,
+            'attendees' => $attendees,
+            'refund'    => [],
+        ];
     }
 
     private function mask_sensitive_value( $value ) {
