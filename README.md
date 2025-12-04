@@ -8,7 +8,7 @@ Most development work happens inside the plugin located at:
 
 `app/public/wp-content/plugins/tta-management-plugin`
 
-Current plugin version: **1.0.7**
+Current plugin version: **1.0.8**
 
 - Unless a task explicitly states otherwise, assume questions and changes refer to this plugin.
 - The plugin must remain self-contained so it can be copied to another WordPress installation and function on its own.
