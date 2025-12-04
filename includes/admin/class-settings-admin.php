@@ -575,11 +575,29 @@ class TTA_Settings_Admin {
             'subscription_status' => 'active',
         ];
 
+        $refund_attendee = [
+            'first_name' => $primary_first,
+            'last_name'  => $primary_last,
+            'email'      => $primary_email,
+            'phone'      => $primary_phone,
+        ];
+
+        $refund = [
+            'event_id'    => intval( $event['id'] ?? 0 ),
+            'ticket_id'   => 0,
+            'ticket_name' => __( 'Sample Ticket', 'tta' ),
+            'attendee'    => $refund_attendee,
+            'amount'      => 20.00,
+            'first_name'  => $refund_attendee['first_name'],
+            'last_name'   => $refund_attendee['last_name'],
+            'email'       => $refund_attendee['email'],
+        ];
+
         return [
             'event'     => $event,
             'member'    => $member,
             'attendees' => $attendees,
-            'refund'    => [],
+            'refund'    => $refund,
         ];
     }
 
