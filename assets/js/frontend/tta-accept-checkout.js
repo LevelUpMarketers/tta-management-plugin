@@ -32,32 +32,10 @@
   $(function(){
     var cfg = window.TTA_ACCEPT || {};
     var state = window.tta_checkout || {};
-    var debugEnabled = !!state.debug || !!cfg.debug;
-    var debugPrefix = '[TTA checkout]';
-    function debugLog(){
-      if(!debugEnabled || typeof console === 'undefined'){ return; }
-      var fn = console.log || console.info;
-      if(!fn){ return; }
-      var args = Array.prototype.slice.call(arguments);
-      args.unshift(debugPrefix);
-      fn.apply(console, args);
-    }
-    function debugWarn(){
-      if(!debugEnabled || typeof console === 'undefined'){ return; }
-      var fn = console.warn || console.log;
-      if(!fn){ return; }
-      var args = Array.prototype.slice.call(arguments);
-      args.unshift(debugPrefix);
-      fn.apply(console, args);
-    }
-    function debugError(){
-      if(!debugEnabled || typeof console === 'undefined'){ return; }
-      var fn = console.error || console.log;
-      if(!fn){ return; }
-      var args = Array.prototype.slice.call(arguments);
-      args.unshift(debugPrefix);
-      fn.apply(console, args);
-    }
+    var debugEnabled = false;
+    var debugLog = function(){};
+    var debugWarn = function(){};
+    var debugError = function(){};
 
     var $form = $('form').has('button[name="tta_do_checkout"]');
     if(!$form.length) return;

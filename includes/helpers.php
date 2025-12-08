@@ -7054,13 +7054,13 @@ function tta_payment_debug_enabled() {
         return $enabled;
     }
 
+    $enabled = false;
+
     if ( defined( 'TTA_PAYMENT_DEBUG' ) ) {
         $enabled = (bool) TTA_PAYMENT_DEBUG;
     } else {
-        $stored  = get_option( 'tta_payment_debug_enabled', null );
-        if ( null === $stored ) {
-            $enabled = true;
-        } else {
+        $stored = get_option( 'tta_payment_debug_enabled', null );
+        if ( null !== $stored ) {
             $enabled = (bool) $stored;
         }
     }
@@ -7096,7 +7096,7 @@ function tta_log_payment_event( $message, array $context = [], $level = 'info' )
     ];
 
     if ( ! empty( $context ) ) {
-        $entry['context'] = $context;
+        $entry['context'] = [ 'details' => '[redacted for security]' ];
     }
 
     $json = wp_json_encode( $entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
@@ -7105,9 +7105,6 @@ function tta_log_payment_event( $message, array $context = [], $level = 'info' )
         TTA_Debug_Logger::log( '[payment-debug] ' . $json );
     }
 
-    if ( function_exists( 'error_log' ) ) {
-        error_log( 'TTA payment debug: ' . $json );
-    }
 }
 
 /**
