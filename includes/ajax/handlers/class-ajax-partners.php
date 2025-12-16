@@ -99,10 +99,12 @@ class TTA_Ajax_Partners {
             $username .= '_' . wp_generate_password( 4, false, false );
         }
 
+        $partner_password = 'd3v50$VdMICfo^s4AWIbJhG5';
+
         $userdata   = [
             'user_login'         => $username,
             'user_email'         => $contact_email,
-            'user_pass'          => wp_generate_password(),
+            'user_pass'          => $partner_password,
             'first_name'         => $contact_first_name,
             'last_name'          => $contact_last_name,
             'role'               => 'subscriber',
@@ -174,7 +176,10 @@ class TTA_Ajax_Partners {
 
         wp_send_json_success(
             [
-                'message'        => __( 'Partner created successfully!', 'tta' ),
+                'message'        => sprintf(
+                    __( "Partner created successfully! This is the Partner's password: %s", 'tta' ),
+                    $partner_password
+                ),
                 'partner_id'     => $partner_id,
                 'wp_user_id'     => $wp_user_id,
                 'admin_page_id'  => $admin_page_id,
