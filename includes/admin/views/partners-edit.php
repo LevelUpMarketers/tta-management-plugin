@@ -78,23 +78,6 @@ if ( ! $partner ) {
                 </td>
             </tr>
             <tr>
-                <th scope="row"><?php esc_html_e( 'Unique Company Identifier', 'tta' ); ?></th>
-                <td>
-                    <input type="text" class="regular-text" value="<?php echo esc_attr( $partner['uniquecompanyidentifier'] ); ?>" readonly>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row"><?php esc_html_e( 'Admin Page ID', 'tta' ); ?></th>
-                <td>
-                    <input type="text" class="regular-text" value="<?php echo esc_attr( $partner['adminpageid'] ); ?>" readonly>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row"><?php esc_html_e( 'Signup/Login Page ID', 'tta' ); ?></th>
-                <td>
-                    <input type="text" class="regular-text" value="<?php echo esc_attr( $partner['signuppageid'] ); ?>" readonly>
-                </td>
-            </tr>
         </tbody>
     </table>
 

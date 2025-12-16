@@ -170,13 +170,11 @@ jQuery(function($){
     }
 
     var $row      = $(this);
-    var $arrow    = $row.find('.tta-toggle-arrow');
     var partnerId = $row.data('partner-id');
     var colspan   = $row.find('td').length;
     var $existing = $row.next('.tta-inline-row');
 
     if ( $existing.length ) {
-      $arrow.removeClass('open');
       $existing.find('.tta-inline-container').fadeOut(200, function(){
         $existing.remove();
       });
@@ -185,13 +183,10 @@ jQuery(function($){
 
     $('.tta-inline-row').each(function(){
       var $otherRow = $(this).prev('tr');
-      $otherRow.find('.tta-toggle-arrow').removeClass('open');
       $(this).find('.tta-inline-container').fadeOut(200, function(){
         $(this).closest('.tta-inline-row').remove();
       });
     });
-
-    $arrow.addClass('open');
 
     $.post(TTA_Ajax.ajax_url, {
       action: 'tta_get_partner_form',
