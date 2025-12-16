@@ -291,6 +291,27 @@ class TTA_DB_Setup {
         ) $charset_collate";
 
         // ─────────────────────────────────────────────────────────────────
+        // Partners table
+        // ─────────────────────────────────────────────────────────────────
+        $sql_statements[] = "
+        CREATE TABLE {$prefix}partners (
+            id                        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            company_name              VARCHAR(255) NOT NULL,
+            contact_first_name        VARCHAR(100) NOT NULL DEFAULT '',
+            contact_last_name         VARCHAR(100) NOT NULL DEFAULT '',
+            contact_phone             VARCHAR(50)  NOT NULL DEFAULT '',
+            contact_email             VARCHAR(191) NOT NULL DEFAULT '',
+            licenses                  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+            uniquecompanyidentifier   VARCHAR(191) NOT NULL,
+            adminpageid               BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            signuppageid              BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            created_at                DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at                DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY uniquecompanyidentifier (uniquecompanyidentifier)
+        ) $charset_collate";
+
+        // ─────────────────────────────────────────────────────────────────
         // Cart items table
         // ─────────────────────────────────────────────────────────────────
         $sql_statements[] = "

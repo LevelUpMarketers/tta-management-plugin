@@ -8,6 +8,10 @@ The plugin automatically runs `dbDelta()` when its database version changes. Any
 
 WordPress's `dbDelta()` does not reliably manage `FOREIGN KEY` constraints. The plugin no longer defines them in table schemas to avoid upgrade errors. Relationships are maintained in application logic instead.
 
+## Partner management table
+
+The plugin provisions a `tta_partners` table to store partner company details. Each row includes the company name, contact information, license count (up to 9,999), a generated `uniquecompanyidentifier`, and the WordPress page IDs for the partner admin and signup pages.
+
 ## Import WordPress users into `tta_members` & assign hosts & volunteers
 
 Use the following SQL to copy existing WordPress users into the `tta_members`
