@@ -124,6 +124,44 @@ jQuery(function($){
   }
 
   //
+  // Create New Partner
+  //
+  var $partnerForm = $('#tta-partner-form');
+  if ( $partnerForm.length ) {
+    $partnerForm.on('submit', function(e){
+      e.preventDefault();
+
+      var $spinner = $partnerForm.find('.tta-admin-progress-spinner-svg');
+      var $resp    = $partnerForm.find('.tta-admin-progress-response-p');
+
+      $spinner.css({ opacity: 1, display: 'inline-block' });
+      $resp.text('');
+
+      var $btn  = $partnerForm.find('.submit .button-primary').prop('disabled', true);
+      var data = $partnerForm.serialize()
+               + '&action=tta_save_partner'
+               + '&tta_partner_save_nonce=' + TTA_Ajax.save_partner_nonce;
+
+      $.post(TTA_Ajax.ajax_url, data, function(res){
+        setTimeout(function(){
+          $spinner.fadeOut(200);
+
+          var cls = res.success ? 'updated' : 'error';
+          var msg = (res.data && res.data.message) ? res.data.message : 'Unknown error';
+          $resp.removeClass('updated error').addClass(cls).html(msg);
+          $btn.prop('disabled', false);
+        }, 5000);
+      }, 'json').fail(function(){
+        setTimeout(function(){
+          $spinner.fadeOut(200);
+          $resp.removeClass('updated').addClass('error').text('Request failed.');
+          $btn.prop('disabled', false);
+        }, 5000);
+      });
+    });
+  }
+
+  //
   // Inline Edit: fetch & inject an edit form when clicking a row (Events)
   //
   $(document).on('click', '.widefat tbody tr[data-event-id]', function(e){

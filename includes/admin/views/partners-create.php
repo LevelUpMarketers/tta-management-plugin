@@ -4,7 +4,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <div id="tta-partners-create">
-    <p><?php esc_html_e( 'Add a new Trying to Adult partner by providing company and contact details. Saving will be implemented in a future update.', 'tta' ); ?></p>
     <form id="tta-partner-form" method="post">
         <?php wp_nonce_field( 'tta_partner_save_action', 'tta_partner_save_nonce' ); ?>
 
@@ -16,7 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </th>
                     <td>
                         <input type="text" name="company_name" id="company_name" class="regular-text" required>
-                        <p class="description"><?php esc_html_e( 'Full legal or brand name of the partner company.', 'tta' ); ?></p>
                     </td>
                 </tr>
 
@@ -62,14 +60,23 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </th>
                     <td>
                         <input type="number" name="licenses" id="licenses" class="small-text" min="0" max="9999" step="1">
-                        <p class="description"><?php esc_html_e( 'Number of licenses purchased by the partner (0–9,999).', 'tta' ); ?></p>
                     </td>
                 </tr>
             </tbody>
         </table>
 
         <p class="submit">
-            <button type="submit" class="button button-primary" disabled><?php esc_html_e( 'Save Partner (coming soon)', 'tta' ); ?></button>
+            <button type="submit" class="button button-primary"><?php esc_html_e( 'Save Partner', 'tta' ); ?></button>
+            <div class="tta-admin-progress-spinner-div">
+                <img
+                    class="tta-admin-progress-spinner-svg"
+                    src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>"
+                    alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>"
+                />
+            </div>
+            <div class="tta-admin-progress-response-div">
+                <p class="tta-admin-progress-response-p"></p>
+            </div>
         </p>
     </form>
 </div>
