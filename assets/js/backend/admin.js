@@ -162,6 +162,99 @@ jQuery(function($){
   }
 
   //
+  // Inline Edit for "Manage Partners" rows
+  //
+  $(document).on('click', '#tta-partners-manage .widefat tbody tr[data-partner-id]', function(e){
+    if ( $(e.target).is('a, button, input, textarea, select') ) {
+      return;
+    }
+
+    var $row      = $(this);
+    var $arrow    = $row.find('.tta-toggle-arrow');
+    var partnerId = $row.data('partner-id');
+    var colspan   = $row.find('td').length;
+    var $existing = $row.next('.tta-inline-row');
+
+    if ( $existing.length ) {
+      $arrow.removeClass('open');
+      $existing.find('.tta-inline-container').fadeOut(200, function(){
+        $existing.remove();
+      });
+      return;
+    }
+
+    $('.tta-inline-row').each(function(){
+      var $otherRow = $(this).prev('tr');
+      $otherRow.find('.tta-toggle-arrow').removeClass('open');
+      $(this).find('.tta-inline-container').fadeOut(200, function(){
+        $(this).closest('.tta-inline-row').remove();
+      });
+    });
+
+    $arrow.addClass('open');
+
+    $.post(TTA_Ajax.ajax_url, {
+      action: 'tta_get_partner_form',
+      partner_id: partnerId,
+      get_partner_nonce: TTA_Ajax.get_partner_nonce
+    }, function(res){
+      if ( ! res.success ) {
+        return;
+      }
+
+      var html = res.data.html;
+      var $newRow = $(
+        '<tr class="tta-inline-row">' +
+          '<td colspan="' + colspan + '">' +
+            '<div class="tta-inline-container" style="display:none;"></div>' +
+          '</td>' +
+        '</tr>'
+      );
+
+      $row.after($newRow);
+
+      var $container = $newRow.find('.tta-inline-container');
+      $container.html(html).fadeIn(200, function(){
+        var offset = $newRow.offset().top;
+        $('html, body').animate({ scrollTop: offset - 120 }, 300);
+      });
+    }, 'json');
+  });
+
+  // Submit Partner Edit form
+  $(document).on('submit', '#tta-partner-edit-form', function(e){
+    e.preventDefault();
+
+    var $form    = $(this);
+    var $spinner = $form.find('.tta-admin-progress-spinner-svg');
+    var $resp    = $form.find('.tta-admin-progress-response-p');
+    var $btn     = $form.find('.submit .button-primary').prop('disabled', true);
+
+    $spinner.css({ opacity: 1, display: 'inline-block' });
+    $resp.text('');
+
+    var data = $form.serialize()
+             + '&action=tta_update_partner'
+             + '&tta_partner_update_nonce=' + TTA_Ajax.update_partner_nonce;
+
+    $.post(TTA_Ajax.ajax_url, data, function(res){
+      setTimeout(function(){
+        $spinner.fadeOut(200);
+        var cls = res.success ? 'updated' : 'error';
+        var msg = (res.data && res.data.message) ? res.data.message : 'Unknown error';
+        $resp.removeClass('updated error').addClass(cls).html(msg);
+        $btn.prop('disabled', false);
+      }, 5000);
+    }, 'json').fail(function(){
+      setTimeout(function(){
+        $spinner.fadeOut(200);
+        $resp.removeClass('updated').addClass('error').text('Request failed.');
+        $btn.prop('disabled', false);
+      }, 5000);
+    });
+  });
+
+  //
   // Inline Edit: fetch & inject an edit form when clicking a row (Events)
   //
   $(document).on('click', '.widefat tbody tr[data-event-id]', function(e){

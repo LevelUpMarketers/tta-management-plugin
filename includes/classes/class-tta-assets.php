@@ -115,6 +115,8 @@ class TTA_Assets {
                     'save_event_nonce'    => wp_create_nonce( 'tta_event_save_action' ),
                     'save_member_nonce'   => wp_create_nonce( 'tta_member_save_action' ),
                     'save_partner_nonce'  => wp_create_nonce( 'tta_partner_save_action' ),
+                    'get_partner_nonce'   => wp_create_nonce( 'tta_partner_manage_action' ),
+                    'update_partner_nonce'=> wp_create_nonce( 'tta_partner_manage_action' ),
                     'get_member_nonce'    => wp_create_nonce( 'tta_member_update_action' ),
                     'update_member_nonce' => wp_create_nonce( 'tta_member_update_action' ),
                     'get_ticket_nonce'    => wp_create_nonce( 'tta_ticket_get_action' ),
