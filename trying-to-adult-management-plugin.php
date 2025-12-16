@@ -256,6 +256,7 @@ require_once TTA_PLUGIN_DIR . 'includes/sms/class-sms-handler.php';
 require_once TTA_PLUGIN_DIR . 'includes/sms/class-sms-reminders.php';
 require_once TTA_PLUGIN_DIR . 'includes/waitlist/class-waitlist.php';
 require_once TTA_PLUGIN_DIR . 'includes/ajax/class-ajax-handler.php';
+require_once TTA_PLUGIN_DIR . 'includes/admin/class-partners-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-members-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-events-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-venues-admin.php';
@@ -307,6 +308,7 @@ class TTA_Plugin {
 
         // Admin pages
         if ( is_admin() ) {
+            TTA_Partners_Admin::get_instance();
             TTA_Members_Admin::get_instance();
             TTA_Events_Admin::get_instance();
             TTA_Tickets_Admin::get_instance();
