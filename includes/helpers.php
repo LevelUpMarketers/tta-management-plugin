@@ -1892,9 +1892,14 @@ function tta_sync_subscription_status( $wp_user_id ) {
         return;
     }
 
+    $transactions           = tta_get_subscription_transactions( $sub_id );
+    $latest_tx_missing_id   = tta_subscription_latest_transaction_has_null_id( $sub_id, $transactions );
+    $latest_tx              = $latest_tx_missing_id ? null : tta_get_latest_subscription_transaction_status( $sub_id, $transactions );
+    $latest_declined        = $latest_tx && 'declined' === $latest_tx['status'];
+
     if ( in_array( $gateway_status, [ 'cancelled', 'canceled', 'terminated' ], true ) ) {
         $status = 'cancelled';
-    } elseif ( 'active' === $gateway_status ) {
+    } elseif ( 'active' === $gateway_status && ! $latest_declined && ! $latest_tx_missing_id ) {
         $status = 'active';
     } else {
         $status = 'paymentproblem';
@@ -2281,6 +2286,127 @@ function tta_get_subscription_transactions( $subscription_id ) {
     $txns = $info['transactions'] ?? [];
     TTA_Cache::set( $cache_key, $txns, 600 );
     return $txns;
+}
+
+/**
+ * Determine whether the most recent subscription transaction has a missing ID.
+ *
+ * A NULL or empty transaction ID on the first (most recent) transaction
+ * indicates a gateway error response. In this case, downstream checks should
+ * treat the subscription as having a payment problem without making further
+ * Authorize.Net requests for transaction status.
+ *
+ * @param string     $subscription_id Authorize.Net subscription ID.
+ * @param array|null $transactions    Optional pre-fetched transactions array.
+ * @return bool
+ */
+function tta_subscription_latest_transaction_has_null_id( $subscription_id, $transactions = null ) {
+    if ( null === $transactions ) {
+        $transactions = tta_get_subscription_transactions( $subscription_id );
+    }
+
+    if ( empty( $transactions ) || ! is_array( $transactions ) ) {
+        return false;
+    }
+
+    $first = reset( $transactions );
+    if ( ! is_array( $first ) ) {
+        return false;
+    }
+
+    if ( ! array_key_exists( 'id', $first ) ) {
+        return true;
+    }
+
+    $id = $first['id'];
+    return null === $id || '' === $id;
+}
+
+/**
+ * Retrieve the status of the most recent subscription transaction.
+ *
+ * @param string $subscription_id Authorize.Net subscription ID.
+ * @param array|null $transactions Optional pre-fetched transactions array.
+ * @return array|null { id:string, status:string, date:string, amount:float }
+ */
+function tta_get_latest_subscription_transaction_status( $subscription_id, $transactions = null ) {
+    if ( ! $subscription_id ) {
+        return null;
+    }
+
+    $missing_cache_key = 'sub_tx_status_missing_' . $subscription_id;
+    $missing_cached    = TTA_Cache::get( $missing_cache_key );
+    if ( false !== $missing_cached ) {
+        return $missing_cached;
+    }
+
+    if ( null === $transactions ) {
+        $transactions = tta_get_subscription_transactions( $subscription_id );
+    }
+
+    if ( empty( $transactions ) ) {
+        return null;
+    }
+
+    $first_tx = reset( $transactions );
+    if ( tta_subscription_latest_transaction_has_null_id( $subscription_id, $transactions ) ) {
+        $missing_result = [
+            'id'     => '',
+            'status' => 'missing_id',
+            'date'   => $first_tx['date'] ?? '',
+            'amount' => isset( $first_tx['amount'] ) ? floatval( $first_tx['amount'] ) : 0.0,
+        ];
+        TTA_Cache::set( $missing_cache_key, $missing_result, 600 );
+        return $missing_result;
+    }
+
+    $latest = null;
+    foreach ( $transactions as $tx ) {
+        if ( empty( $tx['id'] ) ) {
+            continue;
+        }
+
+        if ( null === $latest ) {
+            $latest = $tx;
+            continue;
+        }
+
+        $current_time = isset( $tx['date'] ) ? strtotime( $tx['date'] ) : false;
+        $latest_time  = isset( $latest['date'] ) ? strtotime( $latest['date'] ) : false;
+
+        if ( $current_time && ( ! $latest_time || $current_time > $latest_time ) ) {
+            $latest = $tx;
+        }
+    }
+
+    if ( ! $latest ) {
+        return null;
+    }
+
+    $tx_id = $latest['id'];
+    $cache_key = 'sub_tx_status_' . $tx_id;
+    $cached = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    $api     = new TTA_AuthorizeNet_API();
+    $details = $api->get_transaction_status( $tx_id );
+    if ( empty( $details['success'] ) ) {
+        TTA_Cache::set( $cache_key, null, 600 );
+        return null;
+    }
+
+    $status = strtolower( $details['status'] ?? '' );
+    $result = [
+        'id'     => $tx_id,
+        'status' => $status,
+        'date'   => $latest['date'] ?? '',
+        'amount' => isset( $latest['amount'] ) ? floatval( $latest['amount'] ) : 0.0,
+    ];
+
+    TTA_Cache::set( $cache_key, $result, 600 );
+    return $result;
 }
 
 /**
@@ -6928,13 +7054,13 @@ function tta_payment_debug_enabled() {
         return $enabled;
     }
 
+    $enabled = false;
+
     if ( defined( 'TTA_PAYMENT_DEBUG' ) ) {
         $enabled = (bool) TTA_PAYMENT_DEBUG;
     } else {
-        $stored  = get_option( 'tta_payment_debug_enabled', null );
-        if ( null === $stored ) {
-            $enabled = true;
-        } else {
+        $stored = get_option( 'tta_payment_debug_enabled', null );
+        if ( null !== $stored ) {
             $enabled = (bool) $stored;
         }
     }
@@ -6970,7 +7096,7 @@ function tta_log_payment_event( $message, array $context = [], $level = 'info' )
     ];
 
     if ( ! empty( $context ) ) {
-        $entry['context'] = $context;
+        $entry['context'] = [ 'details' => '[redacted for security]' ];
     }
 
     $json = wp_json_encode( $entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
@@ -6979,9 +7105,6 @@ function tta_log_payment_event( $message, array $context = [], $level = 'info' )
         TTA_Debug_Logger::log( '[payment-debug] ' . $json );
     }
 
-    if ( function_exists( 'error_log' ) ) {
-        error_log( 'TTA payment debug: ' . $json );
-    }
 }
 
 /**

@@ -180,6 +180,18 @@ class TTA_Email_Handler {
         }
 
         $att_ref = $refund['attendee'] ?? [];
+
+        if ( empty( $att_ref ) && ! empty( $attendees ) ) {
+            $att_ref = $attendees[0];
+        }
+
+        if ( empty( $refund['ticket_name'] ) && ! empty( $refund['ticket_id'] ) && function_exists( 'tta_get_ticket_basic_info' ) ) {
+            $ticket_info = tta_get_ticket_basic_info( intval( $refund['ticket_id'] ) );
+            if ( $ticket_info ) {
+                $refund['ticket_name'] = $ticket_info['ticket_name'];
+            }
+        }
+
         $tokens['{refund_first_name}'] = sanitize_text_field( $refund['first_name'] ?? $att_ref['first_name'] ?? '' );
         $tokens['{refund_last_name}']  = sanitize_text_field( $refund['last_name'] ?? $att_ref['last_name'] ?? '' );
         $tokens['{refund_email}']      = sanitize_email( $refund['email'] ?? $att_ref['email'] ?? '' );
