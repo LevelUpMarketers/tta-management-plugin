@@ -137,6 +137,7 @@ class TTA_Ajax_Partners {
             $wpdb->delete( $partners_table, [ 'id' => $partner_id ], [ '%d' ] );
             wp_send_json_error( [ 'message' => 'Failed to create admin page: ' . $admin_page_id->get_error_message() ] );
         }
+        update_post_meta( $admin_page_id, '_wp_page_template', 'partner-admin-page-template.php' );
 
         $login_page_id = wp_insert_post(
             [
@@ -279,6 +280,14 @@ class TTA_Ajax_Partners {
 
         if ( false === $updated ) {
             wp_send_json_error( [ 'message' => __( 'Failed to update partner.', 'tta' ) ] );
+        }
+
+        if ( ! empty( $partner['adminpageid'] ) ) {
+            $admin_page_id     = intval( $partner['adminpageid'] );
+            $current_template  = get_post_meta( $admin_page_id, '_wp_page_template', true );
+            if ( 'partner-admin-page-template.php' !== $current_template ) {
+                update_post_meta( $admin_page_id, '_wp_page_template', 'partner-admin-page-template.php' );
+            }
         }
 
         if ( $existing_user ) {
