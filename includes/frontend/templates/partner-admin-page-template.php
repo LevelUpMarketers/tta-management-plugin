@@ -95,12 +95,15 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
               $license_config = [
                   'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
                   'nonce'       => wp_create_nonce( 'tta_partner_upload_action' ),
+                  'fetchNonce'  => wp_create_nonce( 'tta_partner_fetch_action' ),
                   'pageId'      => $page_id,
                   'noFile'      => __( 'Please select a CSV file to upload.', 'tta' ),
                   'emptyFile'   => __( 'The selected file appears to be empty.', 'tta' ),
                   'badHeaders'  => __( 'Missing required headers: First Name, Last Name, Email.', 'tta' ),
                   'success'     => __( 'Upload complete.', 'tta' ),
                   'error'       => __( 'Upload failed.', 'tta' ),
+                  'noResults'   => __( 'No partner members found.', 'tta' ),
+                  'paginationLabel' => __( 'Page %1$d of %2$d', 'tta' ),
               ];
               ?>
               <script>
@@ -171,6 +174,22 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                       <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
                       <p id="tta-license-upload-response" class="tta-admin-progress-response-p" role="status" aria-live="polite"></p>
                     </div>
+
+                    <div class="tta-license-search">
+                      <h3><?php esc_html_e( 'Search Existing Partner Members', 'tta' ); ?></h3>
+                      <div class="tta-license-search-fields">
+                        <input type="text" id="tta-search-first" placeholder="<?php esc_attr_e( 'First Name', 'tta' ); ?>" />
+                        <input type="text" id="tta-search-last" placeholder="<?php esc_attr_e( 'Last Name', 'tta' ); ?>" />
+                        <input type="text" id="tta-search-email" placeholder="<?php esc_attr_e( 'Email', 'tta' ); ?>" />
+                        <button type="button" class="tta-button" id="tta-license-search-btn"><?php esc_html_e( 'Search', 'tta' ); ?></button>
+                      </div>
+                    </div>
+
+                    <div id="tta-license-results">
+                      <p class="tta-license-empty"><?php esc_html_e( 'No partner members found yet.', 'tta' ); ?></p>
+                    </div>
+
+                    <div class="tta-license-pagination" aria-live="polite"></div>
                   </div>
                 </div>
               </div>
@@ -198,6 +217,13 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var $btn = $('#tta-license-upload-btn');
     var $resp = $('#tta-license-upload-response');
     var $spinner = $('.tta-license-upload .tta-admin-progress-spinner-svg');
+    var $results = $('#tta-license-results');
+    var $pagination = $('.tta-license-pagination');
+    var $searchBtn = $('#tta-license-search-btn');
+    var $searchFirst = $('#tta-search-first');
+    var $searchLast = $('#tta-search-last');
+    var $searchEmail = $('#tta-search-email');
+    var perPage = 20;
 
     $spinner.hide();
 
@@ -242,6 +268,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         $spinner.hide();
         if (res && res.success) {
           showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Upload complete.'));
+          fetchMembers(1);
         } else {
           var msg = res && res.data && res.data.message ? res.data.message : (uploadCfg.error || 'Upload failed.');
           showError(msg);
@@ -252,6 +279,94 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         showError(uploadCfg.error || 'Upload failed.');
       });
     });
+
+    function renderMembers(members){
+      if (!members || !members.length){
+        $results.html('<p class="tta-license-empty">' + (uploadCfg.noResults || 'No partner members found.') + '</p>');
+        return;
+      }
+      var html = '<div class="tta-license-accordion">';
+      members.forEach(function(m){
+        var name = ((m.first_name || '') + ' ' + (m.last_name || '')).trim();
+        html += '<div class="tta-license-item">';
+        html += '<button type="button" class="tta-license-toggle" aria-expanded="false">' +
+                '<span class="tta-license-name">' + name + '</span>' +
+                '<span class="tta-license-email">' + (m.email || '') + '</span>' +
+                '</button>';
+        html += '<div class="tta-license-panel" hidden>';
+        html += '<p><strong><?php echo esc_js( __( 'First Name', 'tta' ) ); ?>:</strong> ' + (m.first_name || '') + '</p>';
+        html += '<p><strong><?php echo esc_js( __( 'Last Name', 'tta' ) ); ?>:</strong> ' + (m.last_name || '') + '</p>';
+        html += '<p><strong><?php echo esc_js( __( 'Email', 'tta' ) ); ?>:</strong> ' + (m.email || '') + '</p>';
+        if (m.joined_at){
+          html += '<p><strong><?php echo esc_js( __( 'Joined', 'tta' ) ); ?>:</strong> ' + m.joined_at + '</p>';
+        }
+        html += '</div></div>';
+      });
+      html += '</div>';
+      $results.html(html);
+    }
+
+    function renderPagination(page, pages){
+      if (!pages || pages <= 1){
+        $pagination.empty();
+        return;
+      }
+      var label = (uploadCfg.paginationLabel || 'Page %1$d of %2$d').replace('%1$d', page).replace('%2$d', pages);
+      var html = '<div class="tta-license-pager"><span>' + label + '</span>';
+      if (page > 1){
+        html += '<button type="button" class="tta-button tta-license-page" data-page="' + (page-1) + '">&laquo; <?php echo esc_js( __( 'Prev', 'tta' ) ); ?></button>';
+      }
+      if (page < pages){
+        html += '<button type="button" class="tta-button tta-license-page" data-page="' + (page+1) + '"><?php echo esc_js( __( 'Next', 'tta' ) ); ?> &raquo;</button>';
+      }
+      html += '</div>';
+      $pagination.html(html);
+    }
+
+    function fetchMembers(page){
+      page = page || 1;
+      $pagination.empty();
+      $results.html('<p class="tta-license-empty"><?php echo esc_js( __( 'Loading…', 'tta' ) ); ?></p>');
+      $.post(uploadCfg.ajaxUrl, {
+        action: 'tta_fetch_partner_members',
+        nonce: uploadCfg.fetchNonce,
+        page_id: uploadCfg.pageId,
+        page: page,
+        per_page: perPage,
+        first_name: $searchFirst.val(),
+        last_name: $searchLast.val(),
+        email: $searchEmail.val()
+      }, null, 'json').done(function(res){
+        if (res && res.success){
+          renderMembers(res.data.members || []);
+          renderPagination(res.data.page, res.data.pages);
+        } else {
+          var msg = res && res.data && res.data.message ? res.data.message : (uploadCfg.error || 'Request failed.');
+          $results.html('<p class="tta-license-empty error">' + msg + '</p>');
+        }
+      }).fail(function(){
+        $results.html('<p class="tta-license-empty error">' + (uploadCfg.error || 'Request failed.') + '</p>');
+      });
+    }
+
+    $results.on('click', '.tta-license-toggle', function(){
+      var $btn = $(this);
+      var $panel = $btn.next('.tta-license-panel');
+      var expanded = $btn.attr('aria-expanded') === 'true';
+      $btn.attr('aria-expanded', !expanded);
+      $panel.attr('hidden', expanded);
+    });
+
+    $pagination.on('click', '.tta-license-page', function(){
+      var page = parseInt($(this).data('page'), 10) || 1;
+      fetchMembers(page);
+    });
+
+    $searchBtn.on('click', function(){
+      fetchMembers(1);
+    });
+
+    fetchMembers(1);
   });
 })(jQuery);
 </script>

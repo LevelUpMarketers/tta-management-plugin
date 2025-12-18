@@ -9,6 +9,7 @@ class TTA_Ajax_Partners {
         add_action( 'wp_ajax_tta_get_partner_form', [ __CLASS__, 'get_partner_form' ] );
         add_action( 'wp_ajax_tta_update_partner', [ __CLASS__, 'update_partner' ] );
         add_action( 'wp_ajax_tta_upload_partner_licenses', [ __CLASS__, 'upload_partner_licenses' ] );
+        add_action( 'wp_ajax_tta_fetch_partner_members', [ __CLASS__, 'fetch_partner_members' ] );
     }
 
     public static function save_partner() {
@@ -530,6 +531,97 @@ class TTA_Ajax_Partners {
                 ),
                 'added'    => $inserted,
                 'skipped'  => $skipped,
+            ]
+        );
+    }
+
+    /**
+     * Fetch paginated members for a partner with optional search.
+     */
+    public static function fetch_partner_members() {
+        check_ajax_referer( 'tta_partner_fetch_action', 'nonce' );
+
+        if ( ! is_user_logged_in() ) {
+            wp_send_json_error( [ 'message' => __( 'You must be logged in.', 'tta' ) ] );
+        }
+
+        $page_id = isset( $_POST['page_id'] ) ? intval( $_POST['page_id'] ) : 0;
+        if ( ! $page_id ) {
+            wp_send_json_error( [ 'message' => __( 'Missing partner page.', 'tta' ) ] );
+        }
+
+        global $wpdb;
+        $partners_table = $wpdb->prefix . 'tta_partners';
+        $members_table  = $wpdb->prefix . 'tta_members';
+
+        $partner = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$partners_table} WHERE adminpageid = %d LIMIT 1",
+                $page_id
+            ),
+            ARRAY_A
+        );
+
+        if ( ! $partner ) {
+            wp_send_json_error( [ 'message' => __( 'Partner not found for this page.', 'tta' ) ] );
+        }
+
+        $current_user_id = get_current_user_id();
+        $can_manage      = current_user_can( 'manage_options' );
+        $is_partner_user = intval( $partner['wpuserid'] ) === $current_user_id;
+
+        if ( ! $can_manage && ! $is_partner_user ) {
+            wp_send_json_error( [ 'message' => __( 'You do not have permission to view these members.', 'tta' ) ] );
+        }
+
+        $per_page = isset( $_POST['per_page'] ) ? max( 1, min( 100, intval( $_POST['per_page'] ) ) ) : 20;
+        $page     = isset( $_POST['page'] ) ? max( 1, intval( $_POST['page'] ) ) : 1;
+        $offset   = ( $page - 1 ) * $per_page;
+
+        $first_name = tta_sanitize_text_field( wp_unslash( $_POST['first_name'] ?? '' ) );
+        $last_name  = tta_sanitize_text_field( wp_unslash( $_POST['last_name'] ?? '' ) );
+        $email      = tta_sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+
+        $wheres = [ 'partner = %s' ];
+        $params = [ $partner['uniquecompanyidentifier'] ];
+
+        if ( $first_name ) {
+            $wheres[] = 'first_name LIKE %s';
+            $params[] = '%' . $wpdb->esc_like( $first_name ) . '%';
+        }
+        if ( $last_name ) {
+            $wheres[] = 'last_name LIKE %s';
+            $params[] = '%' . $wpdb->esc_like( $last_name ) . '%';
+        }
+        if ( $email ) {
+            $wheres[] = 'email LIKE %s';
+            $params[] = '%' . $wpdb->esc_like( $email ) . '%';
+        }
+
+        $where_sql = implode( ' AND ', $wheres );
+
+        $total = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$members_table} WHERE {$where_sql}",
+                $params
+            )
+        );
+
+        $members = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT id, first_name, last_name, email, joined_at FROM {$members_table} WHERE {$where_sql} ORDER BY id DESC LIMIT %d OFFSET %d",
+                array_merge( $params, [ $per_page, $offset ] )
+            ),
+            ARRAY_A
+        );
+
+        wp_send_json_success(
+            [
+                'members'   => $members,
+                'total'     => intval( $total ),
+                'page'      => $page,
+                'per_page'  => $per_page,
+                'pages'     => $per_page ? ceil( $total / $per_page ) : 0,
             ]
         );
     }
