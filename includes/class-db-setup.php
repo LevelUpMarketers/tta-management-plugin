@@ -305,10 +305,12 @@ class TTA_DB_Setup {
             uniquecompanyidentifier   VARCHAR(191) NOT NULL,
             adminpageid               BIGINT UNSIGNED NOT NULL DEFAULT 0,
             signuppageid              BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            wpuserid                  BIGINT UNSIGNED NOT NULL DEFAULT 0,
             created_at                DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at                DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
-            UNIQUE KEY uniquecompanyidentifier (uniquecompanyidentifier)
+            UNIQUE KEY uniquecompanyidentifier (uniquecompanyidentifier),
+            KEY wpuserid (wpuserid)
         ) $charset_collate";
 
         // ─────────────────────────────────────────────────────────────────

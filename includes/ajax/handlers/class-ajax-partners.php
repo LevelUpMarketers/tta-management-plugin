@@ -66,6 +66,7 @@ class TTA_Ajax_Partners {
                 'uniquecompanyidentifier' => $unique_identifier,
                 'adminpageid'             => 0,
                 'signuppageid'            => 0,
+                'wpuserid'                => 0,
                 'created_at'              => current_time( 'mysql' ),
                 'updated_at'              => current_time( 'mysql' ),
             ],
@@ -77,6 +78,7 @@ class TTA_Ajax_Partners {
                 '%s',
                 '%d',
                 '%s',
+                '%d',
                 '%d',
                 '%d',
                 '%s',
@@ -161,9 +163,10 @@ class TTA_Ajax_Partners {
             [
                 'adminpageid'  => intval( $admin_page_id ),
                 'signuppageid' => intval( $login_page_id ),
+                'wpuserid'     => intval( $wp_user_id ),
             ],
             [ 'id' => $partner_id ],
-            [ '%d', '%d' ],
+            [ '%d', '%d', '%d' ],
             [ '%d' ]
         );
 
@@ -254,33 +257,7 @@ class TTA_Ajax_Partners {
             wp_send_json_error( [ 'message' => __( 'A WordPress user with this contact email already exists.', 'tta' ) ] );
         }
 
-        $updated = $wpdb->update(
-            $partners_table,
-            [
-                'company_name'       => $company_name,
-                'contact_first_name' => $contact_first_name,
-                'contact_last_name'  => $contact_last_name,
-                'contact_phone'      => $contact_phone,
-                'contact_email'      => $contact_email,
-                'licenses'           => $licenses,
-                'updated_at'         => current_time( 'mysql' ),
-            ],
-            [ 'id' => $partner_id ],
-            [
-                '%s',
-                '%s',
-                '%s',
-                '%s',
-                '%s',
-                '%d',
-                '%s',
-            ],
-            [ '%d' ]
-        );
-
-        if ( false === $updated ) {
-            wp_send_json_error( [ 'message' => __( 'Failed to update partner.', 'tta' ) ] );
-        }
+        $wp_user_id = $existing_user ? intval( $existing_user->ID ) : 0;
 
         if ( ! empty( $partner['adminpageid'] ) ) {
             $admin_page_id     = intval( $partner['adminpageid'] );
@@ -304,6 +281,8 @@ class TTA_Ajax_Partners {
             if ( is_wp_error( $user_update ) ) {
                 wp_send_json_error( [ 'message' => 'WP user update failed: ' . $user_update->get_error_message() ] );
             }
+
+            $wp_user_id = intval( $existing_user->ID );
         } else {
             $username = sanitize_user( $contact_email, true );
             if ( username_exists( $username ) ) {
@@ -329,6 +308,36 @@ class TTA_Ajax_Partners {
             }
 
             update_user_meta( $wp_user_id, 'show_admin_bar_front', 'false' );
+        }
+
+        $partner_updated = $wpdb->update(
+            $partners_table,
+            [
+                'company_name'       => $company_name,
+                'contact_first_name' => $contact_first_name,
+                'contact_last_name'  => $contact_last_name,
+                'contact_phone'      => $contact_phone,
+                'contact_email'      => $contact_email,
+                'licenses'           => $licenses,
+                'wpuserid'           => $wp_user_id,
+                'updated_at'         => current_time( 'mysql' ),
+            ],
+            [ 'id' => $partner_id ],
+            [
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%d',
+                '%d',
+                '%s',
+            ],
+            [ '%d' ]
+        );
+
+        if ( false === $partner_updated ) {
+            wp_send_json_error( [ 'message' => __( 'Failed to update partner.', 'tta' ) ] );
         }
 
         TTA_Cache::flush();

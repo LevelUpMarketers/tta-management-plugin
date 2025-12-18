@@ -10,7 +10,7 @@ WordPress's `dbDelta()` does not reliably manage `FOREIGN KEY` constraints. The 
 
 ## Partner management table
 
-The plugin provisions a `tta_partners` table to store partner company details. Each row includes the company name, contact information, license count (up to 9,999), a generated `uniquecompanyidentifier`, and the WordPress page IDs for the partner admin and signup pages.
+The plugin provisions a `tta_partners` table to store partner company details. Each row includes the company name, contact information, license count (up to 9,999), a generated `uniquecompanyidentifier`, the WordPress user ID for the partner contact, and the WordPress page IDs for the partner admin and signup pages.
 
 ## Import WordPress users into `tta_members` & assign hosts & volunteers
 
