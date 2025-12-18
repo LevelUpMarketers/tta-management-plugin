@@ -67,7 +67,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
 
                 return $wpdb->get_row(
                     $wpdb->prepare(
-                        "SELECT id, wpuserid FROM {$table} WHERE adminpageid = %d LIMIT 1",
+                        "SELECT id, company_name, contact_first_name, contact_last_name, contact_phone, contact_email, licenses, wpuserid FROM {$table} WHERE adminpageid = %d LIMIT 1",
                         $page_id
                     ),
                     ARRAY_A
@@ -88,8 +88,56 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
           </section>
         <?php else : ?>
           <section class="tta-partner-admin-placeholder">
-            <h1 class="tta-section-title"><?php esc_html_e( 'Partner Admin', 'tta' ); ?></h1>
-            <p class="tta-section-intro"><?php esc_html_e( 'You are logged in. Partner admin tools will appear here soon.', 'tta' ); ?></p>
+            <div class="tta-member-dashboard-wrap notranslate" data-nosnippet>
+              <h2><?php echo esc_html( $partner['company_name'] ); ?></h2>
+              <p><?php echo esc_html( sprintf( /* translators: %s: partner contact first name */ __( 'Welcome, %s!', 'tta' ), $partner['contact_first_name'] ) ); ?></p>
+
+              <div class="tta-member-dashboard notranslate" data-nosnippet>
+                <div class="tta-dashboard-sidebar">
+                  <ul class="tta-dashboard-tabs">
+                    <li data-tab="profile" class="active"><?php esc_html_e( 'Profile Info', 'tta' ); ?></li>
+                    <li data-tab="licenses"><?php esc_html_e( 'Your Licenses', 'tta' ); ?></li>
+                  </ul>
+                </div>
+
+                <div class="tta-dashboard-content">
+                  <div id="tab-profile" class="tta-dashboard-section notranslate" data-nosnippet style="display:block;">
+                    <table class="form-table tta-partner-profile-table">
+                      <tbody>
+                        <tr>
+                          <th><?php esc_html_e( 'Company Name', 'tta' ); ?></th>
+                          <td><?php echo esc_html( $partner['company_name'] ); ?></td>
+                        </tr>
+                        <tr>
+                          <th><?php esc_html_e( 'Contact First Name', 'tta' ); ?></th>
+                          <td><?php echo esc_html( $partner['contact_first_name'] ); ?></td>
+                        </tr>
+                        <tr>
+                          <th><?php esc_html_e( 'Contact Last Name', 'tta' ); ?></th>
+                          <td><?php echo esc_html( $partner['contact_last_name'] ); ?></td>
+                        </tr>
+                        <tr>
+                          <th><?php esc_html_e( 'Contact Phone', 'tta' ); ?></th>
+                          <td><?php echo esc_html( $partner['contact_phone'] ); ?></td>
+                        </tr>
+                        <tr>
+                          <th><?php esc_html_e( 'Contact Email', 'tta' ); ?></th>
+                          <td><?php echo esc_html( $partner['contact_email'] ); ?></td>
+                        </tr>
+                        <tr>
+                          <th><?php esc_html_e( 'Licenses', 'tta' ); ?></th>
+                          <td><?php echo esc_html( number_format_i18n( intval( $partner['licenses'] ) ) ); ?></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div id="tab-licenses" class="tta-dashboard-section notranslate" data-nosnippet style="display:none;">
+                    <p class="tta-section-intro"><?php esc_html_e( 'License management tools will appear here soon.', 'tta' ); ?></p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
         <?php
         endif;
@@ -97,5 +145,18 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     ?>
   </div>
 </div>
+<script>
+(function($){
+  $(function(){
+    $('.tta-dashboard-tabs li').on('click', function(){
+      var tab = $(this).data('tab');
+      $('.tta-dashboard-tabs li').removeClass('active');
+      $(this).addClass('active');
+      $('.tta-dashboard-section').hide();
+      $('#tab-' + tab).show();
+    });
+  });
+})(jQuery);
+</script>
 <?php
 get_footer();

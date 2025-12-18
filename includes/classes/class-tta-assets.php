@@ -649,6 +649,15 @@ class TTA_Assets {
                     'hidePassword'         => __( 'Hide password', 'tta' ),
                 ]
             );
+
+            if ( is_page_template( 'partner-admin-page-template.php' ) ) {
+                wp_enqueue_style(
+                    'tta-partner-dashboard-css',
+                    TTA_PLUGIN_URL . 'assets/css/frontend/member-dashboard.css',
+                    [ 'tta-login-register-css' ],
+                    TTA_PLUGIN_VERSION
+                );
+            }
         }
 
         // 5) Host Check-In template assets

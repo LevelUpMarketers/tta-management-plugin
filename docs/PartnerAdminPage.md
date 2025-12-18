@@ -16,8 +16,10 @@ shows up in the WordPress editor's **Page Attributes → Template** dropdown.
   saved on the related `tta_partners` row (`wpuserid`) or a WordPress admin
   (`manage_options`) to view partner admin content. Everyone else sees an
   access restricted notice.
-- **Logged-in placeholder:** Authorized users see a simple placeholder
-  message for now; partner-facing tools will be added in this area.
+- **Logged-in dashboard:** Authorized users see a dashboard styled like the
+  Member Dashboard with sidebar tabs. The **Profile Info** tab surfaces the
+  partner’s saved company and contact details from `tta_partners`, and **Your
+  Licenses** is reserved for upcoming license management tools.
 - **Auto-assignment:** When a partner is created via the admin UI, the
   `"{company} (admin)"` page is automatically set to use this template so the
   partner contact always lands on the login experience.
