@@ -91,6 +91,21 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
             <div class="tta-member-dashboard-wrap notranslate" data-nosnippet>
               <h2><?php echo esc_html( $partner['company_name'] ); ?></h2>
               <p><?php echo esc_html( sprintf( /* translators: %s: partner contact first name */ __( 'Welcome, %s!', 'tta' ), $partner['contact_first_name'] ) ); ?></p>
+              <?php
+              $license_config = [
+                  'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+                  'nonce'       => wp_create_nonce( 'tta_partner_upload_action' ),
+                  'pageId'      => $page_id,
+                  'noFile'      => __( 'Please select a CSV file to upload.', 'tta' ),
+                  'emptyFile'   => __( 'The selected file appears to be empty.', 'tta' ),
+                  'badHeaders'  => __( 'Missing required headers: First Name, Last Name, Email.', 'tta' ),
+                  'success'     => __( 'Upload complete.', 'tta' ),
+                  'error'       => __( 'Upload failed.', 'tta' ),
+              ];
+              ?>
+              <script>
+                window.TTA_Partner_Licenses = <?php echo wp_json_encode( $license_config ); ?>;
+              </script>
 
               <div class="tta-member-dashboard notranslate" data-nosnippet>
                 <div class="tta-dashboard-sidebar">
@@ -133,7 +148,13 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                   </div>
 
                   <div id="tab-licenses" class="tta-dashboard-section notranslate" data-nosnippet style="display:none;">
-                    <p class="tta-section-intro"><?php esc_html_e( 'License management tools will appear here soon.', 'tta' ); ?></p>
+                    <p class="tta-section-intro"><?php esc_html_e( 'Upload a CSV with First Name, Last Name, and Email to add partner licenses.', 'tta' ); ?></p>
+                    <div class="tta-license-upload">
+                      <input type="file" id="tta-license-file" accept=".csv,text/csv" />
+                      <button type="button" class="tta-button tta-button-primary" id="tta-license-upload-btn"><?php esc_html_e( 'Upload Licenses', 'tta' ); ?></button>
+                      <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+                      <p id="tta-license-upload-response" class="tta-admin-progress-response-p" role="status" aria-live="polite"></p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -154,6 +175,93 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
       $(this).addClass('active');
       $('.tta-dashboard-section').hide();
       $('#tab-' + tab).show();
+    });
+
+    var uploadCfg = window.TTA_Partner_Licenses || {};
+    var $file = $('#tta-license-file');
+    var $btn = $('#tta-license-upload-btn');
+    var $resp = $('#tta-license-upload-response');
+    var $spinner = $('.tta-license-upload .tta-admin-progress-spinner-svg');
+
+    $spinner.hide();
+
+    function resetState() {
+      $resp.removeClass('error updated').text('');
+    }
+
+    function showError(msg) {
+      $resp.removeClass('updated').addClass('error').text(msg);
+    }
+
+    function showSuccess(msg) {
+      $resp.removeClass('error').addClass('updated').text(msg);
+    }
+
+    $btn.on('click', function(){
+      resetState();
+      var file = $file[0].files[0];
+      if (!file) {
+        showError(uploadCfg.noFile || 'Please select a CSV file to upload.');
+        return;
+      }
+
+      $btn.prop('disabled', true);
+      $spinner.show();
+
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var text = e.target.result || '';
+        var lines = text.split(/\r?\n/).filter(function(line){ return line.trim().length; });
+        if (!lines.length) {
+          $btn.prop('disabled', false);
+          $spinner.hide();
+          showError(uploadCfg.emptyFile || 'The selected file appears to be empty.');
+          return;
+        }
+
+        var headers = lines[0].split(',').map(function(h){ return h.trim().toLowerCase(); });
+        var fnIdx = headers.indexOf('first name');
+        var lnIdx = headers.indexOf('last name');
+        var emailIdx = headers.indexOf('email');
+        if (fnIdx === -1 || lnIdx === -1 || emailIdx === -1) {
+          $btn.prop('disabled', false);
+          $spinner.hide();
+          showError(uploadCfg.badHeaders || 'Missing required headers: First Name, Last Name, Email.');
+          return;
+        }
+
+        var rows = [];
+        for (var i = 1; i < lines.length; i++) {
+          var cols = lines[i].split(',');
+          if (!cols.length) continue;
+          rows.push({
+            first_name: (cols[fnIdx] || '').trim(),
+            last_name: (cols[lnIdx] || '').trim(),
+            email: (cols[emailIdx] || '').trim()
+          });
+        }
+
+        $.post(uploadCfg.ajaxUrl, {
+          action: 'tta_upload_partner_licenses',
+          nonce: uploadCfg.nonce,
+          page_id: uploadCfg.pageId,
+          rows: JSON.stringify(rows)
+        }, null, 'json').done(function(res){
+          $btn.prop('disabled', false);
+          $spinner.hide();
+          if (res && res.success) {
+            showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Upload complete.'));
+          } else {
+            var msg = res && res.data && res.data.message ? res.data.message : (uploadCfg.error || 'Upload failed.');
+            showError(msg);
+          }
+        }).fail(function(){
+          $btn.prop('disabled', false);
+          $spinner.hide();
+          showError(uploadCfg.error || 'Upload failed.');
+        });
+      };
+      reader.readAsText(file);
     });
   });
 })(jQuery);

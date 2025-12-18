@@ -19,7 +19,10 @@ shows up in the WordPress editor's **Page Attributes → Template** dropdown.
 - **Logged-in dashboard:** Authorized users see a dashboard styled like the
   Member Dashboard with sidebar tabs. The **Profile Info** tab surfaces the
   partner’s saved company and contact details from `tta_partners`, and **Your
-  Licenses** is reserved for upcoming license management tools.
+  Licenses** now includes a CSV upload form that bulk-creates members for the
+  partner. Uploaded rows populate first name, last name, email, and the
+  partner’s `uniquecompanyidentifier` in the new `partner` column on
+  `tta_members`.
 - **Auto-assignment:** When a partner is created via the admin UI, the
   `"{company} (admin)"` page is automatically set to use this template so the
   partner contact always lands on the login experience.
