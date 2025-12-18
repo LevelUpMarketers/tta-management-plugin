@@ -92,6 +92,37 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
               <h2><?php echo esc_html( $partner['company_name'] ); ?></h2>
               <p><?php echo esc_html( sprintf( /* translators: %s: partner contact first name */ __( 'Welcome, %s!', 'tta' ), $partner['contact_first_name'] ) ); ?></p>
               <?php
+              $members_table = $wpdb->prefix . 'tta_members';
+              $counts        = TTA_Cache::remember(
+                  'partner_license_counts_' . $partner['id'],
+                  static function () use ( $wpdb, $members_table, $partner ) {
+                      $identifier = $partner['uniquecompanyidentifier'];
+                      $total      = (int) $wpdb->get_var(
+                          $wpdb->prepare(
+                              "SELECT COUNT(*) FROM {$members_table} WHERE partner = %s",
+                              $identifier
+                          )
+                      );
+                      $active     = (int) $wpdb->get_var(
+                          $wpdb->prepare(
+                              "SELECT COUNT(*) FROM {$members_table} WHERE partner = %s AND wpuserid != 0",
+                              $identifier
+                          )
+                      );
+                      $inactive = max( 0, $total - $active );
+                      return [
+                          'total'    => $total,
+                          'active'   => $active,
+                          'inactive' => $inactive,
+                      ];
+                  },
+                  MINUTE_IN_SECONDS * 5
+              );
+
+              $license_limit = intval( $partner['licenses'] );
+              $remaining     = $license_limit > 0 ? max( 0, $license_limit - $counts['total'] ) : null;
+              ?>
+              <?php
               $license_config = [
                   'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
                   'nonce'       => wp_create_nonce( 'tta_partner_upload_action' ),
@@ -151,6 +182,17 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                   </div>
 
                   <div id="tab-licenses" class="tta-dashboard-section notranslate" data-nosnippet style="display:none;">
+                    <div class="tta-license-section tta-license-summary">
+                      <h3><?php esc_html_e( 'License Info', 'tta' ); ?></h3>
+                      <ul>
+                        <li><strong><?php esc_html_e( 'License Limit:', 'tta' ); ?></strong> <?php echo $license_limit > 0 ? esc_html( number_format_i18n( $license_limit ) ) : esc_html__( 'Unlimited', 'tta' ); ?></li>
+                        <li><strong><?php esc_html_e( 'Used Licenses:', 'tta' ); ?></strong> <?php echo esc_html( number_format_i18n( $counts['total'] ) ); ?></li>
+                        <li><strong><?php esc_html_e( 'Active Licenses:', 'tta' ); ?></strong> <?php echo esc_html( number_format_i18n( $counts['active'] ) ); ?></li>
+                        <li><strong><?php esc_html_e( 'Inactive Licenses:', 'tta' ); ?></strong> <?php echo esc_html( number_format_i18n( $counts['inactive'] ) ); ?></li>
+                        <li><strong><?php esc_html_e( 'Remaining Licenses:', 'tta' ); ?></strong> <?php echo ( $license_limit > 0 ) ? esc_html( number_format_i18n( $remaining ) ) : esc_html__( 'Unlimited', 'tta' ); ?></li>
+                      </ul>
+                    </div>
+
                     <p class="tta-section-intro">
                       <?php
                       printf(
