@@ -150,6 +150,7 @@ class TTA_DB_Setup {
             first_name                      VARCHAR(100) NOT NULL,
             last_name                       VARCHAR(100) NOT NULL,
             email                           VARCHAR(191) NOT NULL,
+            partner                         VARCHAR(191) DEFAULT NULL,
             profileimgid                    BIGINT UNSIGNED DEFAULT 0,
             joined_at                       DATETIME NOT NULL,
             address                         VARCHAR(255) NOT NULL DEFAULT '',
@@ -176,6 +177,7 @@ class TTA_DB_Setup {
             PRIMARY KEY  (id),
             KEY wpuserid_idx (wpuserid),
             KEY name_idx (last_name, first_name),
+            KEY partner_idx (partner),
             UNIQUE KEY email (email)
         ) $charset_collate";
 
@@ -412,6 +414,9 @@ class TTA_DB_Setup {
     public static function maybe_upgrade() {
         $current = get_option( 'tta_db_version' );
         if ( $current !== TTA_DB_VERSION ) {
+            if ( version_compare( (string) $current, '1.16.0', '<' ) ) {
+                self::add_partner_column();
+            }
             self::install();
             update_option( 'tta_db_version', TTA_DB_VERSION, false );
         }
@@ -422,6 +427,24 @@ class TTA_DB_Setup {
      */
     public static function uninstall() {
         // You can drop tables here if desired.
+    }
+
+    /**
+     * Add the partner column to members if missing.
+     */
+    protected static function add_partner_column() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'tta_members';
+
+        $has_column = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$table} LIKE %s", 'partner' ) );
+        if ( ! $has_column ) {
+            $wpdb->query( "ALTER TABLE {$table} ADD COLUMN partner VARCHAR(191) DEFAULT NULL AFTER email" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        }
+
+        $has_index = $wpdb->get_var( $wpdb->prepare( "SHOW INDEX FROM {$table} WHERE Key_name = %s", 'partner_idx' ) );
+        if ( ! $has_index ) {
+            $wpdb->query( "ALTER TABLE {$table} ADD KEY partner_idx (partner)" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        }
     }
 }
 
