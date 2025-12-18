@@ -10,6 +10,7 @@ class TTA_Ajax_Partners {
         add_action( 'wp_ajax_tta_update_partner', [ __CLASS__, 'update_partner' ] );
         add_action( 'wp_ajax_tta_upload_partner_licenses', [ __CLASS__, 'upload_partner_licenses' ] );
         add_action( 'wp_ajax_tta_fetch_partner_members', [ __CLASS__, 'fetch_partner_members' ] );
+        add_action( 'wp_ajax_tta_add_partner_member', [ __CLASS__, 'add_partner_member' ] );
     }
 
     public static function save_partner() {
@@ -551,6 +552,153 @@ class TTA_Ajax_Partners {
                 'skipped'  => $skipped,
                 'limit'    => $license_limit,
                 'remaining'=> max( 0, $license_limit - $current_count - $inserted ),
+            ]
+        );
+    }
+
+    /**
+     * Add a single partner member via form.
+     */
+    public static function add_partner_member() {
+        check_ajax_referer( 'tta_partner_upload_action', 'nonce' );
+
+        if ( ! is_user_logged_in() ) {
+            wp_send_json_error( [ 'message' => __( 'You must be logged in to add a member.', 'tta' ) ] );
+        }
+
+        $page_id = isset( $_POST['page_id'] ) ? intval( $_POST['page_id'] ) : 0;
+        if ( ! $page_id ) {
+            wp_send_json_error( [ 'message' => __( 'Missing partner page.', 'tta' ) ] );
+        }
+
+        global $wpdb;
+        $partners_table = $wpdb->prefix . 'tta_partners';
+        $members_table  = $wpdb->prefix . 'tta_members';
+
+        $partner = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$partners_table} WHERE adminpageid = %d LIMIT 1",
+                $page_id
+            ),
+            ARRAY_A
+        );
+
+        if ( ! $partner ) {
+            wp_send_json_error( [ 'message' => __( 'Partner not found for this page.', 'tta' ) ] );
+        }
+
+        $current_user_id = get_current_user_id();
+        $can_manage      = current_user_can( 'manage_options' );
+        $is_partner_user = intval( $partner['wpuserid'] ) === $current_user_id;
+
+        if ( ! $can_manage && ! $is_partner_user ) {
+            wp_send_json_error( [ 'message' => __( 'You do not have permission to add members for this partner.', 'tta' ) ] );
+        }
+
+        $first_name = tta_sanitize_text_field( wp_unslash( $_POST['first_name'] ?? '' ) );
+        $last_name  = tta_sanitize_text_field( wp_unslash( $_POST['last_name'] ?? '' ) );
+        $email      = tta_sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+
+        if ( empty( $first_name ) || empty( $last_name ) || empty( $email ) || ! is_email( $email ) ) {
+            wp_send_json_error( [ 'message' => __( 'Please provide a valid first name, last name, and email.', 'tta' ) ] );
+        }
+
+        $license_limit = max( 0, intval( $partner['licenses'] ) );
+        if ( $license_limit > 0 ) {
+            $current_count = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(*) FROM {$members_table} WHERE partner = %s",
+                    $partner['uniquecompanyidentifier']
+                )
+            );
+            if ( $current_count >= $license_limit ) {
+                wp_send_json_error( [ 'message' => __( 'License limit reached for this partner.', 'tta' ) ] );
+            }
+        }
+
+        $existing = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT id FROM {$members_table} WHERE email = %s LIMIT 1",
+                $email
+            )
+        );
+        if ( $existing ) {
+            wp_send_json_error( [ 'message' => __( 'A member with this email already exists.', 'tta' ) ] );
+        }
+
+        $inserted = $wpdb->insert(
+            $members_table,
+            [
+                'wpuserid'          => 0,
+                'first_name'        => $first_name,
+                'last_name'         => $last_name,
+                'email'             => $email,
+                'partner'           => $partner['uniquecompanyidentifier'],
+                'profileimgid'      => 0,
+                'joined_at'         => current_time( 'mysql' ),
+                'address'           => '',
+                'phone'             => null,
+                'dob'               => null,
+                'member_type'       => 'member',
+                'membership_level'  => 'free',
+                'subscription_id'   => null,
+                'subscription_status' => null,
+                'facebook'          => null,
+                'linkedin'          => null,
+                'instagram'         => null,
+                'twitter'           => null,
+                'biography'         => null,
+                'notes'             => null,
+                'interests'         => null,
+                'opt_in_marketing_email'    => 0,
+                'opt_in_marketing_sms'      => 0,
+                'opt_in_event_update_email' => 0,
+                'opt_in_event_update_sms'   => 0,
+                'hide_event_attendance'     => 0,
+                'no_show_offset'            => 0,
+                'banned_until'              => null,
+            ],
+            [
+                '%d',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%d',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%s',
+                '%d',
+                '%d',
+                '%d',
+                '%d',
+                '%d',
+                '%d',
+                '%d',
+                '%s',
+            ]
+        );
+
+        if ( ! $inserted ) {
+            wp_send_json_error( [ 'message' => __( 'Failed to add member.', 'tta' ) ] );
+        }
+
+        TTA_Cache::flush();
+
+        wp_send_json_success(
+            [
+                'message'   => __( 'Member added successfully.', 'tta' ),
+                'remaining' => $license_limit > 0 ? max( 0, $license_limit - $current_count - 1 ) : null,
             ]
         );
     }

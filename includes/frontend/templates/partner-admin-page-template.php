@@ -175,6 +175,18 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                       <p id="tta-license-upload-response" class="tta-admin-progress-response-p" role="status" aria-live="polite"></p>
                     </div>
 
+                    <div class="tta-license-single-add">
+                      <h3><?php esc_html_e( 'Add an Individual', 'tta' ); ?></h3>
+                      <div class="tta-license-single-fields">
+                        <input type="text" id="tta-single-first" placeholder="<?php esc_attr_e( 'First Name', 'tta' ); ?>" />
+                        <input type="text" id="tta-single-last" placeholder="<?php esc_attr_e( 'Last Name', 'tta' ); ?>" />
+                        <input type="text" id="tta-single-email" placeholder="<?php esc_attr_e( 'Email', 'tta' ); ?>" />
+                        <button type="button" class="tta-button tta-button-primary" id="tta-single-add-btn"><?php esc_html_e( 'Add Member', 'tta' ); ?></button>
+                        <img class="tta-admin-progress-spinner-svg" id="tta-single-spinner" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+                      </div>
+                      <p id="tta-single-response" class="tta-admin-progress-response-p" role="status" aria-live="polite"></p>
+                    </div>
+
                     <div class="tta-license-search">
                       <h3><?php esc_html_e( 'Search Existing Partner Members', 'tta' ); ?></h3>
                       <div class="tta-license-search-fields">
@@ -218,6 +230,12 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var $btn = $('#tta-license-upload-btn');
     var $resp = $('#tta-license-upload-response');
     var $spinner = $('.tta-license-upload .tta-admin-progress-spinner-svg');
+    var $singleBtn = $('#tta-single-add-btn');
+    var $singleSpinner = $('#tta-single-spinner');
+    var $singleResp = $('#tta-single-response');
+    var $singleFirst = $('#tta-single-first');
+    var $singleLast = $('#tta-single-last');
+    var $singleEmail = $('#tta-single-email');
     var $results = $('#tta-license-results');
     var $pagination = $('.tta-license-pagination');
     var $searchBtn = $('#tta-license-search-btn');
@@ -228,6 +246,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var perPage = 20;
 
     $spinner.hide();
+    $singleSpinner.hide();
 
     function resetState() {
       $resp.removeClass('error updated').text('');
@@ -279,6 +298,56 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         $btn.prop('disabled', false);
         $spinner.hide();
         showError(uploadCfg.error || 'Upload failed.');
+      });
+    });
+
+    function resetSingle() {
+      $singleResp.removeClass('error updated').text('');
+    }
+
+    function singleError(msg) {
+      $singleResp.removeClass('updated').addClass('error').text(msg);
+    }
+
+    function singleSuccess(msg) {
+      $singleResp.removeClass('error').addClass('updated').text(msg);
+    }
+
+    $singleBtn.on('click', function(){
+      resetSingle();
+      var first = $singleFirst.val();
+      var last = $singleLast.val();
+      var email = $singleEmail.val();
+      if (!first || !last || !email) {
+        singleError(uploadCfg.emptyFile || 'Please provide first name, last name, and email.');
+        return;
+      }
+      $singleBtn.prop('disabled', true);
+      $singleSpinner.show();
+      $.post(uploadCfg.ajaxUrl, {
+        action: 'tta_add_partner_member',
+        nonce: uploadCfg.nonce,
+        page_id: uploadCfg.pageId,
+        first_name: first,
+        last_name: last,
+        email: email
+      }, null, 'json').done(function(res){
+        $singleBtn.prop('disabled', false);
+        $singleSpinner.hide();
+        if (res && res.success) {
+          singleSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Member added successfully.'));
+          $singleFirst.val('');
+          $singleLast.val('');
+          $singleEmail.val('');
+          fetchMembers(1);
+        } else {
+          var msg = res && res.data && res.data.message ? res.data.message : (uploadCfg.error || 'Request failed.');
+          singleError(msg);
+        }
+      }).fail(function(){
+        $singleBtn.prop('disabled', false);
+        $singleSpinner.hide();
+        singleError(uploadCfg.error || 'Request failed.');
       });
     });
 
