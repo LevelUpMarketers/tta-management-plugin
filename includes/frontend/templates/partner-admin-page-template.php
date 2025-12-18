@@ -306,8 +306,13 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         html += '<p><strong><?php echo esc_js( __( 'Last Name', 'tta' ) ); ?>:</strong> ' + (m.last_name || '') + '</p>';
         html += '<p><strong><?php echo esc_js( __( 'Email', 'tta' ) ); ?>:</strong> ' + (m.email || '') + '</p>';
         if (m.joined_at){
-          html += '<p><strong><?php echo esc_js( __( 'Joined', 'tta' ) ); ?>:</strong> ' + m.joined_at + '</p>';
+          var joined = new Date(m.joined_at.replace(' ', 'T'));
+          var options = { month:'2-digit', day:'2-digit', year:'numeric', hour:'numeric', minute:'2-digit', hour12:true };
+          var formatted = isNaN(joined.getTime()) ? m.joined_at : joined.toLocaleString([], options).replace(',', ' at');
+          html += '<p><strong><?php echo esc_js( __( 'Added On', 'tta' ) ); ?>:</strong> ' + formatted + '</p>';
         }
+        var status = (m.wpuserid && parseInt(m.wpuserid,10) !== 0) ? '<?php echo esc_js( __( 'Active', 'tta' ) ); ?>' : '<?php echo esc_js( __( 'Inactive', 'tta' ) ); ?>';
+        html += '<p><strong><?php echo esc_js( __( 'Status', 'tta' ) ); ?>:</strong> ' + status + '</p>';
         html += '</div></div>';
       });
       html += '</div>';

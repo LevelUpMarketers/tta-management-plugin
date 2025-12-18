@@ -609,7 +609,7 @@ class TTA_Ajax_Partners {
 
         $members = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT id, first_name, last_name, email, joined_at FROM {$members_table} WHERE {$where_sql} ORDER BY id DESC LIMIT %d OFFSET %d",
+                "SELECT id, first_name, last_name, email, joined_at, wpuserid FROM {$members_table} WHERE {$where_sql} ORDER BY id DESC LIMIT %d OFFSET %d",
                 array_merge( $params, [ $per_page, $offset ] )
             ),
             ARRAY_A
