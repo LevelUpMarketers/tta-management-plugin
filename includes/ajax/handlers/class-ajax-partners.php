@@ -551,7 +551,13 @@ class TTA_Ajax_Partners {
         if ( ( $handle = fopen( $path, 'r' ) ) !== false ) {
             while ( ( $data = fgetcsv( $handle ) ) !== false ) {
                 if ( empty( $headers ) ) {
-                    $headers = array_map( 'strtolower', array_map( 'trim', $data ) );
+                    $headers = self::normalize_headers( $data );
+                    if ( empty( $headers ) ) {
+                        break;
+                    }
+                    continue;
+                }
+                if ( empty( array_filter( $data, 'strlen' ) ) ) {
                     continue;
                 }
                 $row = self::map_row_by_headers( $headers, $data );
@@ -619,9 +625,17 @@ class TTA_Ajax_Partners {
                 $columns[ $col ] = $value;
             }
 
+            ksort( $columns );
             $row_values = array_values( $columns );
             if ( empty( $headers ) ) {
-                $headers = array_map( 'strtolower', array_map( 'trim', $row_values ) );
+                $headers = self::normalize_headers( $row_values );
+                if ( empty( $headers ) ) {
+                    break;
+                }
+                continue;
+            }
+
+            if ( empty( array_filter( $row_values, 'strlen' ) ) ) {
                 continue;
             }
 
@@ -655,6 +669,21 @@ class TTA_Ajax_Partners {
             'last_name'  => $values[ $last_idx ] ?? '',
             'email'      => $values[ $email_idx ] ?? '',
         ];
+    }
+
+    /**
+     * Normalize headers (strip BOM, trim, lowercase).
+     *
+     * @param array $raw_headers
+     * @return array
+     */
+    protected static function normalize_headers( $raw_headers ) {
+        $normalized = [];
+        foreach ( $raw_headers as $header ) {
+            $header        = preg_replace( '/^\xEF\xBB\xBF/', '', (string) $header );
+            $normalized[] = strtolower( trim( $header ) );
+        }
+        return $normalized;
     }
 
     /**
