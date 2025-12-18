@@ -427,7 +427,25 @@ class TTA_Ajax_Partners {
         $skipped  = 0;
         $now      = current_time( 'mysql' );
 
-        foreach ( $rows as $row ) {
+        $current_count = (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$members_table} WHERE partner = %s",
+                $partner['uniquecompanyidentifier']
+            )
+        );
+        $license_limit = max( 0, intval( $partner['licenses'] ) );
+        $remaining     = max( 0, $license_limit - $current_count );
+        $rows_to_process = $rows;
+        if ( $license_limit > 0 && $remaining < count( $rows_to_process ) ) {
+            $rows_to_process = array_slice( $rows, 0, $remaining );
+            $skipped         = count( $rows ) - $remaining;
+        }
+        if ( $license_limit > 0 && $remaining <= 0 ) {
+            self::cleanup_upload( $uploaded_path );
+            wp_send_json_error( [ 'message' => __( 'License limit reached for this partner.', 'tta' ) ] );
+        }
+
+        foreach ( $rows_to_process as $row ) {
             $first_name = tta_sanitize_text_field( $row['first_name'] ?? '' );
             $last_name  = tta_sanitize_text_field( $row['last_name'] ?? '' );
             $email      = tta_sanitize_email( $row['email'] ?? '' );
@@ -531,6 +549,8 @@ class TTA_Ajax_Partners {
                 ),
                 'added'    => $inserted,
                 'skipped'  => $skipped,
+                'limit'    => $license_limit,
+                'remaining'=> max( 0, $license_limit - $current_count - $inserted ),
             ]
         );
     }
