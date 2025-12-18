@@ -182,6 +182,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                         <input type="text" id="tta-search-last" placeholder="<?php esc_attr_e( 'Last Name', 'tta' ); ?>" />
                         <input type="text" id="tta-search-email" placeholder="<?php esc_attr_e( 'Email', 'tta' ); ?>" />
                         <button type="button" class="tta-button" id="tta-license-search-btn"><?php esc_html_e( 'Search', 'tta' ); ?></button>
+                        <button type="button" class="tta-button tta-button-secondary" id="tta-license-reset-btn"><?php esc_html_e( 'Reset Search', 'tta' ); ?></button>
                       </div>
                     </div>
 
@@ -220,6 +221,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var $results = $('#tta-license-results');
     var $pagination = $('.tta-license-pagination');
     var $searchBtn = $('#tta-license-search-btn');
+    var $resetBtn = $('#tta-license-reset-btn');
     var $searchFirst = $('#tta-search-first');
     var $searchLast = $('#tta-search-last');
     var $searchEmail = $('#tta-search-email');
@@ -286,12 +288,18 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         return;
       }
       var html = '<div class="tta-license-accordion">';
+      html += '<div class="tta-license-header-row">';
+      html += '<span class="tta-license-col tta-license-col-name"><?php echo esc_js( __( 'First Name', 'tta' ) ); ?></span>';
+      html += '<span class="tta-license-col tta-license-col-name"><?php echo esc_js( __( 'Last Name', 'tta' ) ); ?></span>';
+      html += '<span class="tta-license-col tta-license-col-email"><?php echo esc_js( __( 'Email', 'tta' ) ); ?></span>';
+      html += '</div>';
       members.forEach(function(m){
         var name = ((m.first_name || '') + ' ' + (m.last_name || '')).trim();
         html += '<div class="tta-license-item">';
         html += '<button type="button" class="tta-license-toggle" aria-expanded="false">' +
-                '<span class="tta-license-name">' + name + '</span>' +
-                '<span class="tta-license-email">' + (m.email || '') + '</span>' +
+                '<span class="tta-license-col tta-license-col-name">' + (m.first_name || '') + '</span>' +
+                '<span class="tta-license-col tta-license-col-name">' + (m.last_name || '') + '</span>' +
+                '<span class="tta-license-col tta-license-col-email">' + (m.email || '') + '</span>' +
                 '</button>';
         html += '<div class="tta-license-panel" hidden>';
         html += '<p><strong><?php echo esc_js( __( 'First Name', 'tta' ) ); ?>:</strong> ' + (m.first_name || '') + '</p>';
@@ -363,6 +371,13 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     });
 
     $searchBtn.on('click', function(){
+      fetchMembers(1);
+    });
+
+    $resetBtn.on('click', function(){
+      $searchFirst.val('');
+      $searchLast.val('');
+      $searchEmail.val('');
       fetchMembers(1);
     });
 
