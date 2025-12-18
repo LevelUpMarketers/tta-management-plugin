@@ -384,10 +384,46 @@ class TTA_Ajax_Partners {
             wp_send_json_error( [ 'message' => __( 'You do not have permission to upload licenses for this partner.', 'tta' ) ] );
         }
 
-        $rows_raw = isset( $_POST['rows'] ) ? wp_unslash( $_POST['rows'] ) : '[]';
-        $rows     = json_decode( $rows_raw, true );
-        if ( ! is_array( $rows ) ) {
-            wp_send_json_error( [ 'message' => __( 'Invalid data submitted.', 'tta' ) ] );
+        if ( empty( $_FILES['license_file'] ) || ! is_array( $_FILES['license_file'] ) ) {
+            wp_send_json_error( [ 'message' => __( 'No file uploaded.', 'tta' ) ] );
+        }
+
+        $file      = $_FILES['license_file'];
+        $allowed_mimes = [
+            'csv'  => 'text/csv',
+            'txt'  => 'text/plain',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xls'  => 'application/vnd.ms-excel',
+        ];
+
+        $upload = wp_handle_upload(
+            $file,
+            [
+                'test_form' => false,
+                'mimes'     => $allowed_mimes,
+            ]
+        );
+
+        if ( isset( $upload['error'] ) ) {
+            wp_send_json_error( [ 'message' => $upload['error'] ] );
+        }
+
+        $uploaded_path = $upload['file'];
+        $extension     = strtolower( pathinfo( $uploaded_path, PATHINFO_EXTENSION ) );
+
+        $rows = [];
+        if ( 'csv' === $extension || 'txt' === $extension ) {
+            $rows = self::parse_csv_rows( $uploaded_path );
+        } elseif ( 'xlsx' === $extension ) {
+            $rows = self::parse_xlsx_rows( $uploaded_path );
+        } else {
+            self::cleanup_upload( $uploaded_path );
+            wp_send_json_error( [ 'message' => __( 'Unsupported file type. Please upload CSV or Excel (.xlsx) files.', 'tta' ) ] );
+        }
+
+        if ( empty( $rows ) ) {
+            self::cleanup_upload( $uploaded_path );
+            wp_send_json_error( [ 'message' => __( 'The uploaded file did not contain any rows.', 'tta' ) ] );
         }
 
         $inserted = 0;
@@ -486,6 +522,7 @@ class TTA_Ajax_Partners {
         }
 
         TTA_Cache::flush();
+        self::cleanup_upload( $uploaded_path );
 
         wp_send_json_success(
             [
@@ -499,5 +536,136 @@ class TTA_Ajax_Partners {
                 'skipped'  => $skipped,
             ]
         );
+    }
+
+    /**
+     * Parse CSV rows into an array.
+     *
+     * @param string $path
+     * @return array
+     */
+    protected static function parse_csv_rows( $path ) {
+        $rows    = [];
+        $headers = [];
+
+        if ( ( $handle = fopen( $path, 'r' ) ) !== false ) {
+            while ( ( $data = fgetcsv( $handle ) ) !== false ) {
+                if ( empty( $headers ) ) {
+                    $headers = array_map( 'strtolower', array_map( 'trim', $data ) );
+                    continue;
+                }
+                $row = self::map_row_by_headers( $headers, $data );
+                if ( $row ) {
+                    $rows[] = $row;
+                }
+            }
+            fclose( $handle );
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Parse XLSX rows (first worksheet) into an array.
+     *
+     * @param string $path
+     * @return array
+     */
+    protected static function parse_xlsx_rows( $path ) {
+        $rows = [];
+        if ( ! class_exists( 'ZipArchive' ) ) {
+            return $rows;
+        }
+
+        $zip = new ZipArchive();
+        if ( true !== $zip->open( $path ) ) {
+            return $rows;
+        }
+
+        $sheet_xml = $zip->getFromName( 'xl/worksheets/sheet1.xml' );
+        if ( ! $sheet_xml ) {
+            $zip->close();
+            return $rows;
+        }
+
+        $shared_strings = [];
+        $shared_xml     = $zip->getFromName( 'xl/sharedStrings.xml' );
+        if ( $shared_xml ) {
+            $shared = simplexml_load_string( $shared_xml );
+            if ( $shared && isset( $shared->si ) ) {
+                foreach ( $shared->si as $index => $si ) {
+                    $shared_strings[ intval( $index ) ] = (string) $si->t;
+                }
+            }
+        }
+
+        $sheet = simplexml_load_string( $sheet_xml );
+        $zip->close();
+        if ( ! $sheet || ! isset( $sheet->sheetData->row ) ) {
+            return $rows;
+        }
+
+        $headers = [];
+        foreach ( $sheet->sheetData->row as $row ) {
+            $columns = [];
+            foreach ( $row->c as $c ) {
+                $ref   = (string) $c['r']; // e.g. A1
+                $col   = preg_replace( '/\\d+/', '', $ref );
+                $value = (string) $c->v;
+                $type  = (string) $c['t'];
+                if ( 's' === $type ) {
+                    $value = $shared_strings[ intval( $value ) ] ?? '';
+                }
+                $columns[ $col ] = $value;
+            }
+
+            $row_values = array_values( $columns );
+            if ( empty( $headers ) ) {
+                $headers = array_map( 'strtolower', array_map( 'trim', $row_values ) );
+                continue;
+            }
+
+            $mapped = self::map_row_by_headers( $headers, $row_values );
+            if ( $mapped ) {
+                $rows[] = $mapped;
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Map a row array to first/last/email by header names.
+     *
+     * @param array $headers
+     * @param array $values
+     * @return array|null
+     */
+    protected static function map_row_by_headers( $headers, $values ) {
+        $first_idx = array_search( 'first name', $headers, true );
+        $last_idx  = array_search( 'last name', $headers, true );
+        $email_idx = array_search( 'email', $headers, true );
+
+        if ( false === $first_idx || false === $last_idx || false === $email_idx ) {
+            return null;
+        }
+
+        return [
+            'first_name' => $values[ $first_idx ] ?? '',
+            'last_name'  => $values[ $last_idx ] ?? '',
+            'email'      => $values[ $email_idx ] ?? '',
+        ];
+    }
+
+    /**
+     * Remove uploaded temp files.
+     *
+     * @param string $path
+     * @return void
+     */
+    protected static function cleanup_upload( $path ) {
+        if ( $path && file_exists( $path ) ) {
+            unlink( $path );
+        }
     }
 }

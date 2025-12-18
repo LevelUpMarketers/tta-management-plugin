@@ -148,9 +148,9 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                   </div>
 
                   <div id="tab-licenses" class="tta-dashboard-section notranslate" data-nosnippet style="display:none;">
-                    <p class="tta-section-intro"><?php esc_html_e( 'Upload a CSV with First Name, Last Name, and Email to add partner licenses.', 'tta' ); ?></p>
+                    <p class="tta-section-intro"><?php esc_html_e( 'Upload a CSV or Excel file (xlsx) with First Name, Last Name, and Email to add partner licenses.', 'tta' ); ?></p>
                     <div class="tta-license-upload">
-                      <input type="file" id="tta-license-file" accept=".csv,text/csv" />
+                      <input type="file" id="tta-license-file" accept=".csv,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xls,.xlsx" />
                       <button type="button" class="tta-button tta-button-primary" id="tta-license-upload-btn"><?php esc_html_e( 'Upload Licenses', 'tta' ); ?></button>
                       <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
                       <p id="tta-license-upload-response" class="tta-admin-progress-response-p" role="status" aria-live="polite"></p>
@@ -201,67 +201,40 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
       resetState();
       var file = $file[0].files[0];
       if (!file) {
-        showError(uploadCfg.noFile || 'Please select a CSV file to upload.');
+        showError(uploadCfg.noFile || 'Please select a file to upload.');
         return;
       }
+
+      var formData = new FormData();
+      formData.append('action', 'tta_upload_partner_licenses');
+      formData.append('nonce', uploadCfg.nonce);
+      formData.append('page_id', uploadCfg.pageId);
+      formData.append('license_file', file);
 
       $btn.prop('disabled', true);
       $spinner.show();
 
-      var reader = new FileReader();
-      reader.onload = function(e){
-        var text = e.target.result || '';
-        var lines = text.split(/\r?\n/).filter(function(line){ return line.trim().length; });
-        if (!lines.length) {
-          $btn.prop('disabled', false);
-          $spinner.hide();
-          showError(uploadCfg.emptyFile || 'The selected file appears to be empty.');
-          return;
+      $.ajax({
+        url: uploadCfg.ajaxUrl,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json'
+      }).done(function(res){
+        $btn.prop('disabled', false);
+        $spinner.hide();
+        if (res && res.success) {
+          showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Upload complete.'));
+        } else {
+          var msg = res && res.data && res.data.message ? res.data.message : (uploadCfg.error || 'Upload failed.');
+          showError(msg);
         }
-
-        var headers = lines[0].split(',').map(function(h){ return h.trim().toLowerCase(); });
-        var fnIdx = headers.indexOf('first name');
-        var lnIdx = headers.indexOf('last name');
-        var emailIdx = headers.indexOf('email');
-        if (fnIdx === -1 || lnIdx === -1 || emailIdx === -1) {
-          $btn.prop('disabled', false);
-          $spinner.hide();
-          showError(uploadCfg.badHeaders || 'Missing required headers: First Name, Last Name, Email.');
-          return;
-        }
-
-        var rows = [];
-        for (var i = 1; i < lines.length; i++) {
-          var cols = lines[i].split(',');
-          if (!cols.length) continue;
-          rows.push({
-            first_name: (cols[fnIdx] || '').trim(),
-            last_name: (cols[lnIdx] || '').trim(),
-            email: (cols[emailIdx] || '').trim()
-          });
-        }
-
-        $.post(uploadCfg.ajaxUrl, {
-          action: 'tta_upload_partner_licenses',
-          nonce: uploadCfg.nonce,
-          page_id: uploadCfg.pageId,
-          rows: JSON.stringify(rows)
-        }, null, 'json').done(function(res){
-          $btn.prop('disabled', false);
-          $spinner.hide();
-          if (res && res.success) {
-            showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Upload complete.'));
-          } else {
-            var msg = res && res.data && res.data.message ? res.data.message : (uploadCfg.error || 'Upload failed.');
-            showError(msg);
-          }
-        }).fail(function(){
-          $btn.prop('disabled', false);
-          $spinner.hide();
-          showError(uploadCfg.error || 'Upload failed.');
-        });
-      };
-      reader.readAsText(file);
+      }).fail(function(){
+        $btn.prop('disabled', false);
+        $spinner.hide();
+        showError(uploadCfg.error || 'Upload failed.');
+      });
     });
   });
 })(jQuery);
