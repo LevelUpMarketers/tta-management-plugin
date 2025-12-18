@@ -150,7 +150,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                   <div id="tab-licenses" class="tta-dashboard-section notranslate" data-nosnippet style="display:none;">
                     <p class="tta-section-intro"><?php esc_html_e( 'Upload a CSV or Excel file (xlsx) with First Name, Last Name, and Email to add partner licenses.', 'tta' ); ?></p>
                     <div class="tta-license-upload">
-                      <input type="file" id="tta-license-file" accept=".csv,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xls,.xlsx" />
+                      <input type="file" id="tta-license-file" accept=".csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xlsx,text/plain" />
                       <button type="button" class="tta-button tta-button-primary" id="tta-license-upload-btn"><?php esc_html_e( 'Upload Licenses', 'tta' ); ?></button>
                       <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
                       <p id="tta-license-upload-response" class="tta-admin-progress-response-p" role="status" aria-live="polite"></p>
