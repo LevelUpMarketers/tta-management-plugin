@@ -67,7 +67,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
 
                 return $wpdb->get_row(
                     $wpdb->prepare(
-                        "SELECT id, company_name, contact_first_name, contact_last_name, contact_phone, contact_email, licenses, wpuserid FROM {$table} WHERE adminpageid = %d LIMIT 1",
+                        "SELECT id, company_name, contact_first_name, contact_last_name, contact_phone, contact_email, licenses, wpuserid, uniquecompanyidentifier FROM {$table} WHERE adminpageid = %d LIMIT 1",
                         $page_id
                     ),
                     ARRAY_A
@@ -93,10 +93,17 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
               <p><?php echo esc_html( sprintf( /* translators: %s: partner contact first name */ __( 'Welcome, %s!', 'tta' ), $partner['contact_first_name'] ) ); ?></p>
               <?php
               $members_table = $wpdb->prefix . 'tta_members';
+              $identifier    = $partner['uniquecompanyidentifier'] ?? '';
               $counts        = TTA_Cache::remember(
                   'partner_license_counts_' . $partner['id'],
-                  static function () use ( $wpdb, $members_table, $partner ) {
-                      $identifier = $partner['uniquecompanyidentifier'];
+                  static function () use ( $wpdb, $members_table, $identifier ) {
+                      if ( empty( $identifier ) ) {
+                          return [
+                              'total'    => 0,
+                              'active'   => 0,
+                              'inactive' => 0,
+                          ];
+                      }
                       $total      = (int) $wpdb->get_var(
                           $wpdb->prepare(
                               "SELECT COUNT(*) FROM {$members_table} WHERE partner = %s",
@@ -120,7 +127,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
               );
 
               $license_limit = intval( $partner['licenses'] );
-              $remaining     = $license_limit > 0 ? max( 0, $license_limit - $counts['total'] ) : null;
+              $remaining     = ( $license_limit > 0 && $identifier ) ? max( 0, $license_limit - $counts['total'] ) : ( $license_limit > 0 ? $license_limit : null );
               ?>
               <?php
               $license_config = [
