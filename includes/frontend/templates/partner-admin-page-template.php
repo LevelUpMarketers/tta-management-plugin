@@ -51,12 +51,50 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
           <p class="tta-login-help"><a href="<?php echo esc_url( $lost_pw_url ); ?>"><?php esc_html_e( 'Forgot your password?', 'tta' ); ?></a></p>
         </div>
       </section>
-    <?php else : ?>
-      <section class="tta-partner-admin-placeholder">
-        <h1 class="tta-section-title"><?php esc_html_e( 'Partner Admin', 'tta' ); ?></h1>
-        <p class="tta-section-intro"><?php esc_html_e( 'You are logged in. Partner admin tools will appear here soon.', 'tta' ); ?></p>
-      </section>
-    <?php endif; ?>
+    <?php
+    else :
+        global $post, $wpdb;
+
+        $page_id = isset( $post->ID ) ? intval( $post->ID ) : 0;
+        $partner = TTA_Cache::remember(
+            'partner_admin_page_' . $page_id,
+            static function () use ( $wpdb, $page_id ) {
+                if ( ! $page_id ) {
+                    return null;
+                }
+
+                $table = $wpdb->prefix . 'tta_partners';
+
+                return $wpdb->get_row(
+                    $wpdb->prepare(
+                        "SELECT id, wpuserid FROM {$table} WHERE adminpageid = %d LIMIT 1",
+                        $page_id
+                    ),
+                    ARRAY_A
+                );
+            },
+            MINUTE_IN_SECONDS * 5
+        );
+
+        $current_user_id = get_current_user_id();
+        $is_admin        = current_user_can( 'manage_options' );
+        $is_partner      = $partner && intval( $partner['wpuserid'] ) === $current_user_id;
+
+        if ( ! $partner || ( ! $is_admin && ! $is_partner ) ) :
+            ?>
+          <section class="tta-partner-admin-placeholder">
+            <h1 class="tta-section-title"><?php esc_html_e( 'Access Restricted', 'tta' ); ?></h1>
+            <p class="tta-section-intro"><?php esc_html_e( 'You do not have access to this partner admin page.', 'tta' ); ?></p>
+          </section>
+        <?php else : ?>
+          <section class="tta-partner-admin-placeholder">
+            <h1 class="tta-section-title"><?php esc_html_e( 'Partner Admin', 'tta' ); ?></h1>
+            <p class="tta-section-intro"><?php esc_html_e( 'You are logged in. Partner admin tools will appear here soon.', 'tta' ); ?></p>
+          </section>
+        <?php
+        endif;
+    endif;
+    ?>
   </div>
 </div>
 <?php

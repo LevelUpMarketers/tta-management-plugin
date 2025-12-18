@@ -12,7 +12,11 @@ shows up in the WordPress editor's **Page Attributes → Template** dropdown.
   WordPress login form with the Trying To Adult styling and a link to reset
   their password. Successful logins redirect back to the same partner admin
   page so the visitor can continue immediately.
-- **Logged-in placeholder:** Authenticated users see a simple placeholder
+- **Access control:** Logged-in users must either be the partner contact
+  saved on the related `tta_partners` row (`wpuserid`) or a WordPress admin
+  (`manage_options`) to view partner admin content. Everyone else sees an
+  access restricted notice.
+- **Logged-in placeholder:** Authorized users see a simple placeholder
   message for now; partner-facing tools will be added in this area.
 - **Auto-assignment:** When a partner is created via the admin UI, the
   `"{company} (admin)"` page is automatically set to use this template so the
