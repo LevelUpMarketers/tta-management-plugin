@@ -392,7 +392,6 @@ class TTA_Ajax_Partners {
         $allowed_mimes = [
             'csv'  => 'text/csv',
             'txt'  => 'text/plain',
-            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ];
 
         $upload = wp_handle_upload(
@@ -413,11 +412,9 @@ class TTA_Ajax_Partners {
         $rows = [];
         if ( 'csv' === $extension || 'txt' === $extension ) {
             $rows = self::parse_csv_rows( $uploaded_path );
-        } elseif ( 'xlsx' === $extension ) {
-            $rows = self::parse_xlsx_rows( $uploaded_path );
         } else {
             self::cleanup_upload( $uploaded_path );
-            wp_send_json_error( [ 'message' => __( 'Unsupported file type. Please upload CSV or Excel (.xlsx) files.', 'tta' ) ] );
+            wp_send_json_error( [ 'message' => __( 'Unsupported file type. Please upload a CSV file.', 'tta' ) ] );
         }
 
         if ( empty( $rows ) ) {
@@ -578,156 +575,7 @@ class TTA_Ajax_Partners {
      */
     protected static function parse_xlsx_rows( $path ) {
         $rows = [];
-        if ( ! class_exists( 'ZipArchive' ) ) {
-            return $rows;
-        }
-
-        $zip = new ZipArchive();
-        if ( true !== $zip->open( $path ) ) {
-            return $rows;
-        }
-
-        $sheet_path = self::get_first_sheet_path( $zip );
-        if ( ! $sheet_path ) {
-            $zip->close();
-            return $rows;
-        }
-
-        $sheet_xml = $zip->getFromName( $sheet_path );
-        if ( ! $sheet_xml ) {
-            $zip->close();
-            return $rows;
-        }
-
-        $shared_strings = [];
-        $shared_xml     = $zip->getFromName( 'xl/sharedStrings.xml' );
-        if ( $shared_xml ) {
-            $shared = simplexml_load_string( $shared_xml );
-            if ( $shared && isset( $shared->si ) ) {
-                foreach ( $shared->si as $index => $si ) {
-                    $shared_strings[ intval( $index ) ] = (string) $si->t;
-                }
-            }
-        }
-
-        $sheet = simplexml_load_string( $sheet_xml );
-        $zip->close();
-        if ( ! $sheet || ! isset( $sheet->sheetData->row ) ) {
-            return $rows;
-        }
-
-        $headers = [];
-        foreach ( $sheet->sheetData->row as $row ) {
-            $columns = [];
-            foreach ( $row->c as $c ) {
-                $ref = (string) $c['r']; // e.g. A1
-                $col = preg_replace( '/\\d+/', '', $ref );
-                $idx = self::column_index( $col );
-
-                $value = '';
-                $type  = (string) $c['t'];
-                if ( 's' === $type ) {
-                    $value = $shared_strings[ intval( $c->v ) ] ?? '';
-                } elseif ( 'inlineStr' === $type && isset( $c->is ) ) {
-                    $value = (string) $c->is->t;
-                } else {
-                    $value = isset( $c->v ) ? (string) $c->v : '';
-                }
-
-                $columns[ $idx ] = $value;
-            }
-
-            if ( empty( $columns ) ) {
-                continue;
-            }
-
-            $max_index = max( array_keys( $columns ) );
-            $row_values = array_fill( 0, $max_index + 1, '' );
-            foreach ( $columns as $idx => $val ) {
-                $row_values[ $idx ] = $val;
-            }
-
-            if ( empty( $headers ) ) {
-                $headers = self::normalize_headers( $row_values );
-                if ( empty( $headers ) ) {
-                    break;
-                }
-                continue;
-            }
-
-            if ( empty( array_filter( $row_values, 'strlen' ) ) ) {
-                continue;
-            }
-
-            $mapped = self::map_row_by_headers( $headers, $row_values );
-            if ( $mapped ) {
-                $rows[] = $mapped;
-            }
-        }
-
         return $rows;
-    }
-
-    /**
-     * Resolve the first worksheet path in an XLSX file.
-     *
-     * @param ZipArchive $zip
-     * @return string|null
-     */
-    protected static function get_first_sheet_path( ZipArchive $zip ) {
-        $workbook_xml = $zip->getFromName( 'xl/workbook.xml' );
-        if ( ! $workbook_xml ) {
-            return null;
-        }
-
-        $workbook = simplexml_load_string( $workbook_xml );
-        if ( ! $workbook || ! isset( $workbook->sheets->sheet[0] ) ) {
-            return null;
-        }
-
-        $first_sheet = $workbook->sheets->sheet[0];
-        $r_id        = (string) $first_sheet->attributes( 'r', true )->id;
-        if ( ! $r_id ) {
-            return 'xl/worksheets/sheet1.xml';
-        }
-
-        $rels_xml = $zip->getFromName( 'xl/_rels/workbook.xml.rels' );
-        if ( ! $rels_xml ) {
-            return 'xl/worksheets/sheet1.xml';
-        }
-
-        $rels = simplexml_load_string( $rels_xml );
-        if ( ! $rels || ! isset( $rels->Relationship ) ) {
-            return 'xl/worksheets/sheet1.xml';
-        }
-
-        foreach ( $rels->Relationship as $rel ) {
-            if ( (string) $rel['Id'] === $r_id ) {
-                $target = (string) $rel['Target'];
-                if ( $target && false === strpos( $target, 'xl/' ) ) {
-                    $target = 'xl/' . ltrim( $target, '/' );
-                }
-                return $target;
-            }
-        }
-
-        return 'xl/worksheets/sheet1.xml';
-    }
-
-    /**
-     * Convert column letters to a zero-based index.
-     *
-     * @param string $col
-     * @return int
-     */
-    protected static function column_index( $col ) {
-        $col = strtoupper( $col );
-        $len = strlen( $col );
-        $idx = 0;
-        for ( $i = 0; $i < $len; $i++ ) {
-            $idx = $idx * 26 + ( ord( $col[ $i ] ) - ord( 'A' ) + 1 );
-        }
-        return $idx - 1;
     }
 
     /**

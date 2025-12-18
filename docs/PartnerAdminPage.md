@@ -1,33 +1,25 @@
 # Partner Admin Page Template
 
 ## Overview
-The **Partner Admin Page** template provides the default layout for partner
-admin pages generated when a new partner is created. It is located at
-`includes/frontend/templates/partner-admin-page-template.php` and is
-registered through `includes/frontend/class-partner-admin-page.php`, so it
-shows up in the WordPress editor's **Page Attributes → Template** dropdown.
+The **Partner Admin Page** template powers the pages automatically created for
+each partner (`"{company} (admin)"`). It is registered via
+`includes/frontend/class-partner-admin-page.php` and can be selected in the
+Page Attributes dropdown.
 
 ## Behavior
 - **Login-first experience:** Visitors who are not logged in see the standard
-  WordPress login form with the Trying To Adult styling and a link to reset
-  their password. Successful logins redirect back to the same partner admin
-  page so the visitor can continue immediately.
-- **Access control:** Logged-in users must either be the partner contact
-  saved on the related `tta_partners` row (`wpuserid`) or a WordPress admin
-  (`manage_options`) to view partner admin content. Everyone else sees an
-  access restricted notice.
+  WordPress login form. Successful logins return to the same page.
+- **Access control:** Only the partner contact stored on the related
+  `tta_partners.wpuserid` row or site administrators (`manage_options`) can
+  view partner content; others see an access-restricted notice.
 - **Logged-in dashboard:** Authorized users see a dashboard styled like the
-  Member Dashboard with sidebar tabs. The **Profile Info** tab surfaces the
-  partner’s saved company and contact details from `tta_partners`, and **Your
-  Licenses** now includes a CSV/Excel (xlsx) upload form that bulk-creates
-  members for the partner. Uploaded rows populate first name, last name,
-  email, and the partner’s `uniquecompanyidentifier` in the new `partner`
-  column on `tta_members`.
-- **Auto-assignment:** When a partner is created via the admin UI, the
-  `"{company} (admin)"` page is automatically set to use this template so the
-  partner contact always lands on the login experience.
+  Member Dashboard with **Profile Info** (company/contact details) and **Your
+  Licenses**, which offers a CSV upload (plus downloadable sample) to bulk
+  create partner-linked members. Uploaded rows populate first name, last name,
+  email, and the partner’s `uniquecompanyidentifier` into `tta_members.partner`.
+- **Auto-assignment:** Partner admin pages created via the admin UI are
+  automatically set to this template.
 
 ## Assets
-The template reuses the login/register stylesheet to mirror existing
-account-access styling. Assets are enqueued through `class-tta-assets.php`
-whenever the template is active.
+The template reuses member-dashboard styling and runs lightweight JavaScript
+to manage tab switching and license uploads.
