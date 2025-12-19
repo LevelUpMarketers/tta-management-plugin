@@ -190,7 +190,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
 
                   <div id="tab-licenses" class="tta-dashboard-section notranslate" data-nosnippet style="display:none;">
                     <div class="tta-license-section tta-license-summary">
-                      <h3><?php esc_html_e( 'License Info', 'tta' ); ?></h3>
+                      <h3><?php esc_html_e( 'Member License Info', 'tta' ); ?></h3>
                       <ul>
                         <li><strong><?php esc_html_e( 'License Limit:', 'tta' ); ?></strong> <?php echo $license_limit > 0 ? esc_html( number_format_i18n( $license_limit ) ) : esc_html__( 'Unlimited', 'tta' ); ?></li>
                         <li><strong><?php esc_html_e( 'Used Licenses:', 'tta' ); ?></strong> <?php echo esc_html( number_format_i18n( $counts['total'] ) ); ?></li>
@@ -200,36 +200,48 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                       </ul>
                     </div>
 
-                    <p class="tta-section-intro">
-                      <?php
-                      printf(
-                          wp_kses(
-                              /* translators: %s: sample CSV URL */
-                              __( 'Upload a CSV file with First Name, Last Name, and Email to add individuals. <a href="%s" download>Click here for a sample CSV file.</a>', 'tta' ),
-                              [
-                                  'a' => [
-                                      'href'    => [],
-                                      'download'=> [],
-                                  ],
-                              ]
-                          ),
-                          esc_url( TTA_PLUGIN_URL . 'assets/samples/partner-licenses-sample.csv' )
-                      );
-                      ?>
-                    </p>
-                    <div class="tta-license-upload">
-                      <input type="file" id="tta-license-file" accept=".csv,text/csv,text/plain" />
-                      <button type="button" class="tta-button tta-button-primary" id="tta-license-upload-btn"><?php esc_html_e( 'Upload Licenses', 'tta' ); ?></button>
-                      <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
-                      <p id="tta-license-upload-response" class="tta-admin-progress-response-p" role="status" aria-live="polite"></p>
-                      <div class="tta-progress-wrap" aria-live="polite">
-                        <div class="tta-progress-bar" id="tta-upload-progress" style="width:0%" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
-                        <img class="tta-admin-progress-spinner-svg tta-inline-spinner" id="tta-upload-progress-spinner" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+                    <div class="tta-bulk-upload-license-section">
+                      <h3><?php esc_html_e( 'Bulk Member License Upload', 'tta' ); ?></h3>
+                      <p class="tta-section-intro">
+                        <?php
+                        printf(
+                            wp_kses(
+                                /* translators: %s: sample CSV URL */
+                                __( 'Upload a CSV file with First Name, Last Name, and Email to add individuals. <a href="%s" download>Click here for a sample CSV file.</a>', 'tta' ),
+                                [
+                                    'a' => [
+                                        'href'    => [],
+                                        'download'=> [],
+                                    ],
+                                ]
+                            ),
+                            esc_url( TTA_PLUGIN_URL . 'assets/samples/partner-licenses-sample.csv' )
+                        );
+                        ?>
+                      </p>
+                      <div class="tta-license-upload">
+                        <input type="file" id="tta-license-file" accept=".csv,text/csv,text/plain" />
+                        <button type="button" class="tta-button tta-button-primary" id="tta-license-upload-btn"><?php esc_html_e( 'Upload Licenses', 'tta' ); ?></button>
+                        <div class="tta-license-upload-progress-holder">
+                          <div class="tta-license-upload-spinner-div">
+                            <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+                          </div>
+                          <div class="tta-admin-progress-response-p-message-holder">
+                            <p id="tta-license-upload-response-message" class="tta-admin-progress-response-p-message" role="status" aria-live="polite"></p>
+                          </div>
+                          <div class="tta-license-upload-progress-bar-div">
+                            <p id="tta-license-upload-response" class="tta-admin-progress-response-p" role="status" aria-live="polite"></p>
+                          </div>
+                        </div>
+                        <div class="tta-progress-wrap" aria-live="polite">
+                          <div class="tta-progress-bar" id="tta-upload-progress" style="width:0%" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+                          <img class="tta-admin-progress-spinner-svg tta-inline-spinner" id="tta-upload-progress-spinner" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+                        </div>
                       </div>
                     </div>
 
                     <div class="tta-license-single-add">
-                      <h3><?php esc_html_e( 'Add an Individual', 'tta' ); ?></h3>
+                      <h3><?php esc_html_e( 'Add an Individual Member', 'tta' ); ?></h3>
                       <div class="tta-license-single-fields">
                         <input type="text" id="tta-single-first" placeholder="<?php esc_attr_e( 'First Name', 'tta' ); ?>" />
                         <input type="text" id="tta-single-last" placeholder="<?php esc_attr_e( 'Last Name', 'tta' ); ?>" />
@@ -241,7 +253,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                     </div>
 
                     <div class="tta-license-search">
-                      <h3><?php esc_html_e( 'Search Existing Partner Members', 'tta' ); ?></h3>
+                      <h3><?php esc_html_e( 'All Members', 'tta' ); ?></h3>
                       <div class="tta-license-search-fields">
                         <input type="text" id="tta-search-first" placeholder="<?php esc_attr_e( 'First Name', 'tta' ); ?>" />
                         <input type="text" id="tta-search-last" placeholder="<?php esc_attr_e( 'Last Name', 'tta' ); ?>" />
@@ -249,10 +261,9 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                         <button type="button" class="tta-button" id="tta-license-search-btn"><?php esc_html_e( 'Search', 'tta' ); ?></button>
                         <button type="button" class="tta-button tta-button-secondary" id="tta-license-reset-btn"><?php esc_html_e( 'Reset Search', 'tta' ); ?></button>
                       </div>
-                    </div>
-
-                    <div id="tta-license-results">
-                      <p class="tta-license-empty"><?php esc_html_e( 'No partner members found yet.', 'tta' ); ?></p>
+                      <div id="tta-license-results">
+                        <p class="tta-license-empty"><?php esc_html_e( 'No partner members found yet.', 'tta' ); ?></p>
+                      </div>
                     </div>
 
                     <div class="tta-license-pagination" aria-live="polite"></div>
@@ -427,17 +438,13 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         return;
       }
       var html = '<div class="tta-license-accordion">';
-      html += '<div class="tta-license-header-row">';
-      html += '<span class="tta-license-col tta-license-col-name"><?php echo esc_js( __( 'First Name', 'tta' ) ); ?></span>';
-      html += '<span class="tta-license-col tta-license-col-name"><?php echo esc_js( __( 'Last Name', 'tta' ) ); ?></span>';
-      html += '<span class="tta-license-col tta-license-col-email"><?php echo esc_js( __( 'Email', 'tta' ) ); ?></span>';
-      html += '</div>';
+      
       members.forEach(function(m){
         var name = ((m.first_name || '') + ' ' + (m.last_name || '')).trim();
         html += '<div class="tta-license-item">';
         html += '<button type="button" class="tta-license-toggle" aria-expanded="false">' +
-                '<span class="tta-license-col tta-license-col-name">' + (m.first_name || '') + '</span>' +
-                '<span class="tta-license-col tta-license-col-name">' + (m.last_name || '') + '</span>' +
+                '<span class="tta-license-col tta-license-col-name tta-license-col-firstname">' + (m.first_name || '') + '</span>' +
+                '<span class="tta-license-col tta-license-col-name tta-license-col-lastname">' + (m.last_name || '') + ' - </span>' +
                 '<span class="tta-license-col tta-license-col-email">' + (m.email || '') + '</span>' +
                 '</button>';
         html += '<div class="tta-license-panel" hidden>';
@@ -464,14 +471,14 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         return;
       }
       var label = (uploadCfg.paginationLabel || 'Page %1$d of %2$d').replace('%1$d', page).replace('%2$d', pages);
-      var html = '<div class="tta-license-pager"><span>' + label + '</span>';
+      var html = '<div class="tta-license-pager">';
       if (page > 1){
-        html += '<button type="button" class="tta-button tta-license-page" data-page="' + (page-1) + '">&laquo; <?php echo esc_js( __( 'Prev', 'tta' ) ); ?></button>';
+        html += '<button type="button" class="tta-button tta-license-page tta-license-page-prev-button" data-page="' + (page-1) + '">&laquo; <?php echo esc_js( __( 'Prev', 'tta' ) ); ?></button>';
       }
       if (page < pages){
         html += '<button type="button" class="tta-button tta-license-page" data-page="' + (page+1) + '"><?php echo esc_js( __( 'Next', 'tta' ) ); ?> &raquo;</button>';
       }
-      html += '</div>';
+      html += '<span class="tta-pages-span">' + label + '</span></div>';
       $pagination.html(html);
     }
 
