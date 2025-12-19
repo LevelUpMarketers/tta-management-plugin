@@ -279,6 +279,8 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var $btn = $('#tta-license-upload-btn');
     var $resp = $('#tta-license-upload-response');
     var $spinner = $('.tta-license-upload .tta-admin-progress-spinner-svg');
+    var currentJob = null;
+    var pollTimer = null;
     var $singleBtn = $('#tta-single-add-btn');
     var $singleSpinner = $('#tta-single-spinner');
     var $singleResp = $('#tta-single-response');
@@ -337,7 +339,11 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         $btn.prop('disabled', false);
         $spinner.hide();
         if (res && res.success) {
-          showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Upload complete.'));
+          showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Upload started.'));
+          currentJob = res.data && res.data.job_id ? res.data.job_id : null;
+          if (currentJob) {
+            startPolling();
+          }
           fetchMembers(1);
         } else {
           var msg = res && res.data && res.data.message ? res.data.message : (uploadCfg.error || 'Upload failed.');
@@ -505,6 +511,28 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     });
 
     fetchMembers(1);
+
+    function startPolling(){
+      if (!currentJob) return;
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(function(){
+        $.post(uploadCfg.ajaxUrl, {
+          action: 'tta_partner_import_status',
+          nonce: uploadCfg.fetchNonce,
+          job_id: currentJob
+        }, null, 'json').done(function(res){
+          if (!res || !res.success) return;
+          if (res.data && res.data.message){
+            showSuccess(res.data.message);
+          }
+          if (res.data && res.data.status && (res.data.status === 'completed' || res.data.status === 'failed')) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+            fetchMembers(1);
+          }
+        });
+      }, 5000);
+    }
   });
 })(jQuery);
 </script>

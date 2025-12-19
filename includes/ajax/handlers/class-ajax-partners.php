@@ -11,6 +11,7 @@ class TTA_Ajax_Partners {
         add_action( 'wp_ajax_tta_upload_partner_licenses', [ __CLASS__, 'upload_partner_licenses' ] );
         add_action( 'wp_ajax_tta_fetch_partner_members', [ __CLASS__, 'fetch_partner_members' ] );
         add_action( 'wp_ajax_tta_add_partner_member', [ __CLASS__, 'add_partner_member' ] );
+        add_action( 'wp_ajax_tta_partner_import_status', [ __CLASS__, 'partner_import_status' ] );
     }
 
     public static function save_partner() {
@@ -424,10 +425,6 @@ class TTA_Ajax_Partners {
             wp_send_json_error( [ 'message' => __( 'The uploaded file did not contain any rows.', 'tta' ) ] );
         }
 
-        $inserted = 0;
-        $skipped  = 0;
-        $now      = current_time( 'mysql' );
-
         $current_count = (int) $wpdb->get_var(
             $wpdb->prepare(
                 "SELECT COUNT(*) FROM {$members_table} WHERE partner = %s",
@@ -435,123 +432,33 @@ class TTA_Ajax_Partners {
             )
         );
         $license_limit = max( 0, intval( $partner['licenses'] ) );
-        $remaining     = max( 0, $license_limit - $current_count );
-        $rows_to_process = $rows;
-        if ( $license_limit > 0 && $remaining < count( $rows_to_process ) ) {
-            $rows_to_process = array_slice( $rows, 0, $remaining );
-            $skipped         = count( $rows ) - $remaining;
-        }
-        if ( $license_limit > 0 && $remaining <= 0 ) {
+        if ( $license_limit > 0 && $current_count >= $license_limit ) {
             self::cleanup_upload( $uploaded_path );
             wp_send_json_error( [ 'message' => __( 'License limit reached for this partner.', 'tta' ) ] );
         }
 
-        foreach ( $rows_to_process as $row ) {
-            $first_name = tta_sanitize_text_field( $row['first_name'] ?? '' );
-            $last_name  = tta_sanitize_text_field( $row['last_name'] ?? '' );
-            $email      = tta_sanitize_email( $row['email'] ?? '' );
-
-            if ( empty( $first_name ) || empty( $last_name ) || empty( $email ) || ! is_email( $email ) ) {
-                $skipped++;
-                continue;
-            }
-
-            $existing = $wpdb->get_var(
-                $wpdb->prepare(
-                    "SELECT id FROM {$members_table} WHERE email = %s LIMIT 1",
-                    $email
-                )
-            );
-            if ( $existing ) {
-                $skipped++;
-                continue;
-            }
-
-            $inserted_row = $wpdb->insert(
-                $members_table,
-                [
-                    'wpuserid'          => 0,
-                    'first_name'        => $first_name,
-                    'last_name'         => $last_name,
-                    'email'             => $email,
-                    'partner'           => $partner['uniquecompanyidentifier'],
-                    'profileimgid'      => 0,
-                    'joined_at'         => $now,
-                    'address'           => '',
-                    'phone'             => null,
-                    'dob'               => null,
-                    'member_type'       => 'member',
-                    'membership_level'  => 'free',
-                    'subscription_id'   => null,
-                    'subscription_status' => null,
-                    'facebook'          => null,
-                    'linkedin'          => null,
-                    'instagram'         => null,
-                    'twitter'           => null,
-                    'biography'         => null,
-                    'notes'             => null,
-                    'interests'         => null,
-                    'opt_in_marketing_email'    => 0,
-                    'opt_in_marketing_sms'      => 0,
-                    'opt_in_event_update_email' => 0,
-                    'opt_in_event_update_sms'   => 0,
-                    'hide_event_attendance'     => 0,
-                    'no_show_offset'            => 0,
-                    'banned_until'              => null,
-                ],
-                [
-                    '%d',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%d',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%d',
-                    '%d',
-                    '%d',
-                    '%d',
-                    '%d',
-                    '%d',
-                    '%d',
-                    '%s',
-                ]
-            );
-
-            if ( $inserted_row ) {
-                $inserted++;
-            } else {
-                $skipped++;
-            }
+        $total_rows = count( $rows );
+        if ( $license_limit > 0 ) {
+            $total_rows = min( $total_rows, max( 0, $license_limit - $current_count ) );
         }
 
-        TTA_Cache::flush();
-        self::cleanup_upload( $uploaded_path );
+        $job_id = TTA_Partner_Import_Job::create_job(
+            [
+                'partner_id'    => intval( $partner['id'] ),
+                'page_id'       => $page_id,
+                'partner_uid'   => $partner['uniquecompanyidentifier'],
+                'license_limit' => $license_limit,
+                'file'          => $uploaded_path,
+                'total_rows'    => $total_rows,
+                'offset'        => 0,
+            ]
+        );
 
         wp_send_json_success(
             [
-                'message'  => sprintf(
-                    /* translators: 1: inserted count, 2: skipped count */
-                    __( 'Licenses processed. Added: %1$d, Skipped: %2$d', 'tta' ),
-                    $inserted,
-                    $skipped
-                ),
-                'added'    => $inserted,
-                'skipped'  => $skipped,
-                'limit'    => $license_limit,
-                'remaining'=> max( 0, $license_limit - $current_count - $inserted ),
+                'message'  => __( 'Import started. You can continue browsing while we process the file.', 'tta' ),
+                'job_id'   => $job_id,
+                'total'    => $total_rows,
             ]
         );
     }
@@ -886,5 +793,33 @@ class TTA_Ajax_Partners {
         if ( $path && file_exists( $path ) ) {
             unlink( $path );
         }
+    }
+
+    /**
+     * Get import job status.
+     */
+    public static function partner_import_status() {
+        check_ajax_referer( 'tta_partner_fetch_action', 'nonce' );
+
+        $job_id = isset( $_POST['job_id'] ) ? sanitize_text_field( wp_unslash( $_POST['job_id'] ) ) : '';
+        if ( ! $job_id ) {
+            wp_send_json_error( [ 'message' => __( 'Missing job ID.', 'tta' ) ] );
+        }
+
+        $job = TTA_Partner_Import_Job::status( $job_id );
+        if ( ! $job ) {
+            wp_send_json_error( [ 'message' => __( 'Job not found.', 'tta' ) ] );
+        }
+
+        wp_send_json_success(
+            [
+                'status'    => $job['status'],
+                'added'     => $job['added'],
+                'skipped'   => $job['skipped'],
+                'total'     => $job['total_rows'],
+                'message'   => $job['message'],
+                'error'     => $job['error'],
+            ]
+        );
     }
 }

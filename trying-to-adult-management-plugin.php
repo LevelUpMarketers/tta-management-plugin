@@ -257,6 +257,7 @@ require_once TTA_PLUGIN_DIR . 'includes/sms/class-sms-handler.php';
 require_once TTA_PLUGIN_DIR . 'includes/sms/class-sms-reminders.php';
 require_once TTA_PLUGIN_DIR . 'includes/waitlist/class-waitlist.php';
 require_once TTA_PLUGIN_DIR . 'includes/ajax/class-ajax-handler.php';
+require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-partner-import-job.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-partners-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-members-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-events-admin.php';
