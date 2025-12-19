@@ -222,6 +222,10 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                       <button type="button" class="tta-button tta-button-primary" id="tta-license-upload-btn"><?php esc_html_e( 'Upload Licenses', 'tta' ); ?></button>
                       <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
                       <p id="tta-license-upload-response" class="tta-admin-progress-response-p" role="status" aria-live="polite"></p>
+                      <div class="tta-progress-wrap" aria-live="polite">
+                        <div class="tta-progress-bar" id="tta-upload-progress" style="width:0%" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+                        <img class="tta-admin-progress-spinner-svg tta-inline-spinner" id="tta-upload-progress-spinner" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
+                      </div>
                     </div>
 
                     <div class="tta-license-single-add">
@@ -279,6 +283,10 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var $btn = $('#tta-license-upload-btn');
     var $resp = $('#tta-license-upload-response');
     var $spinner = $('.tta-license-upload .tta-admin-progress-spinner-svg');
+    var $progress = $('#tta-upload-progress');
+    var $progressSpinner = $('#tta-upload-progress-spinner');
+    var $progress = $('#tta-upload-progress');
+    var $progressSpinner = $('#tta-upload-progress-spinner');
     var currentJob = null;
     var pollTimer = null;
     var $singleBtn = $('#tta-single-add-btn');
@@ -297,6 +305,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var perPage = 20;
 
     $spinner.hide();
+    $progressSpinner.hide();
     $singleSpinner.hide();
 
     function resetState() {
@@ -327,6 +336,8 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
 
       $btn.prop('disabled', true);
       $spinner.show();
+      $progressSpinner.show();
+      updateProgress(0);
 
       $.ajax({
         url: uploadCfg.ajaxUrl,
@@ -338,8 +349,9 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
       }).done(function(res){
         $btn.prop('disabled', false);
         $spinner.hide();
+        $progressSpinner.hide();
         if (res && res.success) {
-          showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Upload started.'));
+          showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Upload started! Please remain on this page until the entire upload is complete.'));
           currentJob = res.data && res.data.job_id ? res.data.job_id : null;
           if (currentJob) {
             startPolling();
@@ -348,10 +360,13 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         } else {
           var msg = res && res.data && res.data.message ? res.data.message : (uploadCfg.error || 'Upload failed.');
           showError(msg);
+          updateProgress(0);
+          $progressSpinner.hide();
         }
       }).fail(function(){
         $btn.prop('disabled', false);
         $spinner.hide();
+        $progressSpinner.hide();
         showError(uploadCfg.error || 'Upload failed.');
       });
     });
@@ -522,16 +537,27 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
           job_id: currentJob
         }, null, 'json').done(function(res){
           if (!res || !res.success) return;
+          var added = res.data && res.data.added ? parseInt(res.data.added,10) : 0;
+          var total = res.data && res.data.total ? parseInt(res.data.total,10) : 0;
+          var percent = total ? Math.min(100, Math.round((added/total)*100)) : 0;
+          updateProgress(percent);
           if (res.data && res.data.message){
             showSuccess(res.data.message);
           }
           if (res.data && res.data.status && (res.data.status === 'completed' || res.data.status === 'failed')) {
             clearInterval(pollTimer);
             pollTimer = null;
+            $progressSpinner.hide();
             fetchMembers(1);
           }
         });
       }, 5000);
+    }
+
+    function updateProgress(percent){
+      if (!$progress.length) return;
+      percent = Math.max(0, Math.min(100, percent || 0));
+      $progress.css('width', percent + '%').attr('aria-valuenow', percent);
     }
   });
 })(jQuery);
