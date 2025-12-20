@@ -230,7 +230,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                             <p id="tta-license-upload-response-message" class="tta-admin-progress-response-p-message" role="status" aria-live="polite"></p>
                           </div>
                           <div class="tta-license-upload-progress-bar-div">
-                            <p id="tta-license-upload-response" class="tta-admin-progress-response-p" role="status" aria-live="polite"></p>
+                            <p id="tta-license-upload-response" class="tta-admin-progress-response-p" role="status" aria-live="polite" style="width:0%;"></p>
                           </div>
                         </div>
                         <div class="tta-progress-wrap" aria-live="polite">
@@ -294,9 +294,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var $btn = $('#tta-license-upload-btn');
     var $resp = $('#tta-license-upload-response');
     var $spinner = $('.tta-license-upload .tta-admin-progress-spinner-svg');
-    var $progress = $('#tta-upload-progress');
-    var $progressSpinner = $('#tta-upload-progress-spinner');
-    var $progress = $('#tta-upload-progress');
+    var $progressBar = $('#tta-license-upload-response');
     var $progressSpinner = $('#tta-upload-progress-spinner');
     var currentJob = null;
     var pollTimer = null;
@@ -562,9 +560,9 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     }
 
     function updateProgress(percent){
-      if (!$progress.length) return;
+      if (!$progressBar.length) return;
       percent = Math.max(0, Math.min(100, percent || 0));
-      $progress.css('width', percent + '%').attr('aria-valuenow', percent);
+      $progressBar.css('width', percent + '%').attr('aria-valuenow', percent).text(percent + '%');
     }
   });
 })(jQuery);
