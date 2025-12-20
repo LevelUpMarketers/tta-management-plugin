@@ -297,6 +297,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var $spinner = $('.tta-license-upload .tta-admin-progress-spinner-svg');
     var $progressBar = $('#tta-license-upload-response');
     var $progressSpinner = $('#tta-upload-progress-spinner');
+    var $progressHolderSpinner = $('.tta-license-upload-progress-holder .tta-admin-progress-spinner-svg');
     var currentJob = null;
     var pollTimer = null;
     var $singleBtn = $('#tta-single-add-btn');
@@ -316,6 +317,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
 
     $spinner.hide();
     $progressSpinner.hide();
+    $progressHolderSpinner.css({ display: 'none', opacity: 0 });
     $singleSpinner.hide();
 
     function resetState() {
@@ -349,6 +351,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
       $btn.prop('disabled', true);
       $spinner.show();
       $progressSpinner.show();
+      $progressHolderSpinner.stop(true, true).css({ display: 'inline-block' }).fadeTo(200, 1);
       updateProgress(0);
       $resp.css('opacity', 1);
 
@@ -363,6 +366,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         $btn.prop('disabled', false);
         $spinner.hide();
         $progressSpinner.hide();
+        $progressHolderSpinner.fadeOut(200);
         if (res && res.success) {
           showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Import started. Please remain on this page while we process the file.'));
           currentJob = res.data && res.data.job_id ? res.data.job_id : null;
@@ -380,6 +384,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         $btn.prop('disabled', false);
         $spinner.hide();
         $progressSpinner.hide();
+        $progressHolderSpinner.fadeOut(200);
         showError(uploadCfg.error || 'Upload failed.');
       });
     });
