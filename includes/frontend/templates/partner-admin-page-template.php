@@ -293,6 +293,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var $file = $('#tta-license-file');
     var $btn = $('#tta-license-upload-btn');
     var $resp = $('#tta-license-upload-response');
+    var $respMsg = $('#tta-license-upload-response-message');
     var $spinner = $('.tta-license-upload .tta-admin-progress-spinner-svg');
     var $progressBar = $('#tta-license-upload-response');
     var $progressSpinner = $('#tta-upload-progress-spinner');
@@ -319,14 +320,15 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
 
     function resetState() {
       $resp.removeClass('error updated').text('');
+      $respMsg.removeClass('error updated').text('');
     }
 
     function showError(msg) {
-      $resp.removeClass('updated').addClass('error').text(msg);
+      $respMsg.removeClass('updated').addClass('error').text(msg);
     }
 
     function showSuccess(msg) {
-      $resp.removeClass('error').addClass('updated').text(msg);
+      $respMsg.removeClass('error').addClass('updated').text(msg);
     }
 
     $btn.on('click', function(){
@@ -562,7 +564,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     function updateProgress(percent){
       if (!$progressBar.length) return;
       percent = Math.max(0, Math.min(100, percent || 0));
-      $progressBar.css('width', percent + '%').attr('aria-valuenow', percent).text(percent + '%');
+      $progressBar.css('width', percent + '%').attr('aria-valuenow', percent);
     }
   });
 })(jQuery);
