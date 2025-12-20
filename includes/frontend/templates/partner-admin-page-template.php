@@ -321,6 +321,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     function resetState() {
       $resp.removeClass('error updated').text('');
       $respMsg.removeClass('error updated').text('');
+      $resp.css('opacity', 0);
     }
 
     function showError(msg) {
@@ -349,6 +350,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
       $spinner.show();
       $progressSpinner.show();
       updateProgress(0);
+      $resp.css('opacity', 1);
 
       $.ajax({
         url: uploadCfg.ajaxUrl,
@@ -362,7 +364,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         $spinner.hide();
         $progressSpinner.hide();
         if (res && res.success) {
-          showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Upload started! Please remain on this page until the entire upload is complete.'));
+          showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Import started. Please remain on this page while we process the file.'));
           currentJob = res.data && res.data.job_id ? res.data.job_id : null;
           if (currentJob) {
             startPolling();
@@ -548,6 +550,9 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
           var total = res.data && res.data.total ? parseInt(res.data.total,10) : 0;
           var percent = total ? Math.min(100, Math.round((added/total)*100)) : 0;
           updateProgress(percent);
+          if (percent > 0) {
+            showSuccess((percent + '% ' + (uploadCfg.processing || 'processed')).trim());
+          }
           if (res.data && res.data.message){
             showSuccess(res.data.message);
           }
