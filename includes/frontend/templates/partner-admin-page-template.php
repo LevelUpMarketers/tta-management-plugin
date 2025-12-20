@@ -365,8 +365,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
       }).done(function(res){
         $btn.prop('disabled', false);
         $spinner.hide();
-        $progressSpinner.hide();
-        $progressHolderSpinner.fadeOut(200);
+        // Keep progress spinners visible until job completes; hide only on fail or completion.
         if (res && res.success) {
           showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Import started. Please remain on this page while we process the file.'));
           currentJob = res.data && res.data.job_id ? res.data.job_id : null;
@@ -565,6 +564,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
             clearInterval(pollTimer);
             pollTimer = null;
             $progressSpinner.hide();
+            $progressHolderSpinner.fadeOut(200);
             fetchMembers(1);
           }
         });
