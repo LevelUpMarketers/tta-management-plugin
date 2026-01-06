@@ -655,6 +655,18 @@ class TTA_Ajax_Partners {
             wp_send_json_error( [ 'message' => __( 'Password must be at least 8 characters and include upper and lower case letters and a number.', 'tta' ) ] );
         }
 
+        $format_name = static function ( $value ) {
+            $value = trim( $value );
+            if ( function_exists( 'mb_convert_case' ) ) {
+                return mb_convert_case( $value, MB_CASE_TITLE, 'UTF-8' );
+            }
+
+            return ucwords( strtolower( $value ) );
+        };
+
+        $first = $format_name( $first );
+        $last  = $format_name( $last );
+
         global $wpdb;
         $partners_table = $wpdb->prefix . 'tta_partners';
         $members_table  = $wpdb->prefix . 'tta_members';
