@@ -697,8 +697,9 @@ class TTA_Ajax_Partners {
             wp_send_json_error(
                 [
                     'message' => sprintf(
-                        /* translators: %s: contact link */
-                        __( 'We could not find this email in the partner list. Please reach out using the form %s.', 'tta' ),
+                        /* translators: 1: partner name, 2: contact link */
+                        __( "Whoops - it doesn't look like %1$s gave us that email address! Is there another email address associated with you that %1$s would have given us? Please try another email address, and if you're still having trouble, reach out using the form %2$s.", 'tta' ),
+                        esc_html( $partner['company_name'] ),
                         wp_kses( $contact_link, [ 'a' => [ 'href' => [] ] ] )
                     ),
                 ]
