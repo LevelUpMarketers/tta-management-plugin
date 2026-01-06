@@ -7,4 +7,6 @@ The **TTA Partners** dashboard entry lives at `/wp-admin/admin.php?page=tta-part
 
 Admin pages created for partners automatically use the **Partner Admin Page** template (`includes/frontend/templates/partner-admin-page-template.php`) so they present the partner-specific login experience by default.
 
+Login pages created for partners automatically use the **Partner Login Page** template (`includes/frontend/templates/partner-login-page-template.php`), which renders the registration form partners use to create their accounts.
+
 Use the page title action or the **Add New Partner** tab to begin entering partner details.

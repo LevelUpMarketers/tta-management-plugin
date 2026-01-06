@@ -615,7 +615,14 @@ class TTA_Assets {
         }
 
         // Login/Register and Partner Admin page template assets
-        if ( function_exists( 'is_page_template' ) && ( is_page_template( 'login-register-page-template.php' ) || is_page_template( 'partner-admin-page-template.php' ) ) ) {
+        if (
+            function_exists( 'is_page_template' )
+            && (
+                is_page_template( 'login-register-page-template.php' )
+                || is_page_template( 'partner-admin-page-template.php' )
+                || is_page_template( 'partner-login-page-template.php' )
+            )
+        ) {
             wp_enqueue_style(
                 'tta-login-register-css',
                 TTA_PLUGIN_URL . 'assets/css/frontend/login-register.css',

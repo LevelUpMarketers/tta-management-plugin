@@ -161,6 +161,7 @@ class TTA_Ajax_Partners {
             $wpdb->delete( $partners_table, [ 'id' => $partner_id ], [ '%d' ] );
             wp_send_json_error( [ 'message' => 'Failed to create login page: ' . $login_page_id->get_error_message() ] );
         }
+        update_post_meta( $login_page_id, '_wp_page_template', 'partner-login-page-template.php' );
 
         $updated = $wpdb->update(
             $partners_table,
@@ -268,6 +269,14 @@ class TTA_Ajax_Partners {
             $current_template  = get_post_meta( $admin_page_id, '_wp_page_template', true );
             if ( 'partner-admin-page-template.php' !== $current_template ) {
                 update_post_meta( $admin_page_id, '_wp_page_template', 'partner-admin-page-template.php' );
+            }
+        }
+
+        if ( ! empty( $partner['signuppageid'] ) ) {
+            $login_page_id    = intval( $partner['signuppageid'] );
+            $current_template = get_post_meta( $login_page_id, '_wp_page_template', true );
+            if ( 'partner-login-page-template.php' !== $current_template ) {
+                update_post_meta( $login_page_id, '_wp_page_template', 'partner-login-page-template.php' );
             }
         }
 
