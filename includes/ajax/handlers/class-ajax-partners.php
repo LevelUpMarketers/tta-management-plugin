@@ -734,8 +734,9 @@ class TTA_Ajax_Partners {
             wp_send_json_error(
                 [
                     'message' => sprintf(
-                        /* translators: %s: contact link */
-                        __( 'A WordPress account with this email already exists. Please reach out using the form %s.', 'tta' ),
+                        /* translators: 1: partner name, 2: contact link */
+                        __( 'Whoops - looks like an account with this email address already exists! Would %1$s have given us a different email address for you? Please try a different email address, and if you\'re still having trouble, reach out using the form %2$s.', 'tta' ),
+                        esc_html( $partner['company_name'] ),
                         wp_kses( $contact_link, [ 'a' => [ 'href' => [] ] ] )
                     ),
                 ]
