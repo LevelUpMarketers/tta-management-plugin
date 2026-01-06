@@ -684,7 +684,7 @@ class TTA_Assets {
                 $login_register_localize['partnerName']    = $partner_name;
                 $login_register_localize['requestFailed']  = sprintf(
                     /* translators: 1: partner name, 2: contact link */
-                    __( "We don't seem to have this email address associated with %1$s! Are you sure you're using the email address that %1$s would have provided to us? If you're still having trouble, contact us %2$s.", 'tta' ),
+                    __( 'We don\'t seem to have this email address associated with %1$s! Are you sure you\'re using the email address that %1$s would have provided to us? If you\'re still having trouble, contact us %2$s.', 'tta' ),
                     esc_html( $partner_name ),
                     wp_kses( $contact_link, [ 'a' => [ 'href' => [] ] ] )
                 );
