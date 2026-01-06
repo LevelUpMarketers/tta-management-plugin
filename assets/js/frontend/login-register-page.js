@@ -53,6 +53,26 @@
       $response.removeClass('error').addClass('updated').html(message);
     }
 
+    function extractErrorMessage(response, fallback) {
+      if (!response) {
+        return fallback;
+      }
+
+      if (response.data && response.data.message) {
+        return response.data.message;
+      }
+
+      if (response.responseJSON && response.responseJSON.data && response.responseJSON.data.message) {
+        return response.responseJSON.data.message;
+      }
+
+      if (typeof response.responseText === 'string' && response.responseText.length) {
+        return response.responseText;
+      }
+
+      return fallback;
+    }
+
     $form.on('submit', function (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -109,13 +129,14 @@
           }, 600);
         } else {
           $button.prop('disabled', false);
-          var msg = response && response.data && response.data.message ? response.data.message : (settings.requestFailed || 'Request failed.');
+          var msg = extractErrorMessage(response, settings.requestFailed || 'Request failed.');
           showError(msg);
         }
-      }).fail(function () {
+      }).fail(function (jqXHR) {
         $spinner.fadeOut(200);
         $button.prop('disabled', false);
-        showError(settings.requestFailed || 'Request failed.');
+        var msg = extractErrorMessage(jqXHR, settings.requestFailed || 'Request failed.');
+        showError(msg);
       });
     });
   });
