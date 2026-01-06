@@ -710,7 +710,7 @@ class TTA_Ajax_Partners {
                 [
                     'message' => sprintf(
                         /* translators: 1: partner name, 2: contact link */
-                        __( "This email isn't found! Are you sure this is the email address that %1$s would have provided to us? Please try a different email address. If you're still having trouble, contact us using the contact form %2$s", 'tta' ),
+                        __( "We don't seem to have this email address associated with %1$s! Are you sure you're using the email address that %1$s would have provided to us? If you're still having trouble, contact us %2$s.", 'tta' ),
                         esc_html( $partner['company_name'] ),
                         wp_kses( $contact_link, [ 'a' => [ 'href' => [] ] ] )
                     ),

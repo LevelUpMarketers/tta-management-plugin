@@ -654,8 +654,40 @@ class TTA_Assets {
             ];
 
             if ( function_exists( 'is_page_template' ) && is_page_template( 'partner-login-page-template.php' ) ) {
+                global $wpdb;
+
+                $page_id      = get_queried_object_id();
+                $partner_name = TTA_Cache::remember(
+                    'partner_login_assets_' . $page_id,
+                    static function () use ( $wpdb, $page_id ) {
+                        if ( ! $page_id ) {
+                            return '';
+                        }
+
+                        $table = $wpdb->prefix . 'tta_partners';
+
+                        return (string) $wpdb->get_var(
+                            $wpdb->prepare(
+                                "SELECT company_name FROM {$table} WHERE signuppageid = %d LIMIT 1",
+                                $page_id
+                            )
+                        );
+                    },
+                    MINUTE_IN_SECONDS * 5
+                );
+
+                $partner_name = $partner_name ?: __( 'our partner', 'tta' );
+                $contact_link = '<a href="/contact">' . esc_html__( 'on our Contact page', 'tta' ) . '</a>';
+
                 $login_register_localize['isPartnerLogin'] = true;
-                $login_register_localize['partnerPageId']  = get_queried_object_id();
+                $login_register_localize['partnerPageId']  = $page_id;
+                $login_register_localize['partnerName']    = $partner_name;
+                $login_register_localize['requestFailed']  = sprintf(
+                    /* translators: 1: partner name, 2: contact link */
+                    __( "We don't seem to have this email address associated with %1$s! Are you sure you're using the email address that %1$s would have provided to us? If you're still having trouble, contact us %2$s.", 'tta' ),
+                    esc_html( $partner_name ),
+                    wp_kses( $contact_link, [ 'a' => [ 'href' => [] ] ] )
+                );
             }
 
             wp_localize_script( 'tta-login-register-js', 'ttaLoginRegister', $login_register_localize );
