@@ -8,7 +8,9 @@ selected manually from the Page Attributes dropdown if needed.
 
 ## Behavior
 - **Registration-only experience:** Displays the standard TTA registration form
-  so invited partner users can create their WordPress accounts.
+  so invited partner users can create their WordPress accounts. The intro
+  messaging references the specific partner name attached to the login page
+  (from the partner row whose `signuppageid` matches the page).
 - **Styling and scripts:** Reuses the login/register page assets for consistent
   layout, password toggles, and spinner/response messaging.
 - **Auto-assignment:** The partner login page created during partner onboarding

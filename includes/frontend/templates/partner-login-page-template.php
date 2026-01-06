@@ -11,30 +11,43 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-global $post;
+global $post, $wpdb;
 
 get_header();
 
+$page_id = isset( $post->ID ) ? intval( $post->ID ) : 0;
+$partner = TTA_Cache::remember(
+    'partner_login_page_' . $page_id,
+    static function () use ( $wpdb, $page_id ) {
+        if ( ! $page_id ) {
+            return null;
+        }
+
+        $table = $wpdb->prefix . 'tta_partners';
+
+        return $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT company_name FROM {$table} WHERE signuppageid = %d LIMIT 1",
+                $page_id
+            ),
+            ARRAY_A
+        );
+    },
+    MINUTE_IN_SECONDS * 5
+);
+
+$partner_name = $partner['company_name'] ?? __( 'our partner', 'tta' );
 $redirect_url = home_url( '/events' );
 ?>
 <div class="tta-account-access tta-partner-login-page">
   <div class="tta-account-access-inner">
     <section class="tta-register-column">
-      <h1 class="tta-section-title"><?php esc_html_e( 'Don’t Have an Account? Create One Below!', 'tta' ); ?></h1>
+      <h1 class="tta-section-title"><?php esc_html_e( 'Don’t Have an Account yet? Create One Below!', 'tta' ); ?></h1>
       <p class="tta-section-intro">
         <?php
         printf(
-            wp_kses(
-                /* translators: %s: Become a Member page URL. */
-                __( 'Create a FREE account below.  Sign up for <a class="tta-join-link" href="%s">one of our Memberships</a> to gain access to special perks & discounts.', 'tta' ),
-                [
-                    'a' => [
-                        'href'  => [],
-                        'class' => [],
-                    ],
-                ]
-            ),
-            esc_url( home_url( '/become-a-member/' ) )
+            esc_html__( "As part of our partnership with %s, you're eligible for a FREE account! This grants you exclusive discount on events and additional membership perks. Create your account below!", 'tta' ),
+            esc_html( $partner_name )
         );
         ?>
       </p>
