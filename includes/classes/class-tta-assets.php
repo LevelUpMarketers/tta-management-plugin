@@ -640,22 +640,25 @@ class TTA_Assets {
 
             $redirect_url = apply_filters( 'tta_login_register_redirect_url', home_url( '/events' ) );
 
-            wp_localize_script(
-                'tta-login-register-js',
-                'ttaLoginRegister',
-                [
-                    'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
-                    'nonce'                => wp_create_nonce( 'tta_frontend_nonce' ),
-                    'redirectUrl'          => esc_url_raw( $redirect_url ),
-                    'emailMismatch'        => __( 'Email addresses do not match.', 'tta' ),
-                    'passwordMismatch'     => __( 'Passwords do not match.', 'tta' ),
-                    'passwordRequirements' => __( 'Password must be at least 8 characters and include upper and lower case letters and a number.', 'tta' ),
-                    'requestFailed'        => __( 'Request failed.', 'tta' ),
-                    'successMessage'       => __( 'Account created! Redirecting…', 'tta' ),
-                    'showPassword'         => __( 'Show password', 'tta' ),
-                    'hidePassword'         => __( 'Hide password', 'tta' ),
-                ]
-            );
+            $login_register_localize = [
+                'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
+                'nonce'                => wp_create_nonce( 'tta_frontend_nonce' ),
+                'redirectUrl'          => esc_url_raw( $redirect_url ),
+                'emailMismatch'        => __( 'Email addresses do not match.', 'tta' ),
+                'passwordMismatch'     => __( 'Passwords do not match.', 'tta' ),
+                'passwordRequirements' => __( 'Password must be at least 8 characters and include upper and lower case letters and a number.', 'tta' ),
+                'requestFailed'        => __( 'Request failed.', 'tta' ),
+                'successMessage'       => __( 'Account created! Redirecting…', 'tta' ),
+                'showPassword'         => __( 'Show password', 'tta' ),
+                'hidePassword'         => __( 'Hide password', 'tta' ),
+            ];
+
+            if ( function_exists( 'is_page_template' ) && is_page_template( 'partner-login-page-template.php' ) ) {
+                $login_register_localize['isPartnerLogin'] = true;
+                $login_register_localize['partnerPageId']  = get_queried_object_id();
+            }
+
+            wp_localize_script( 'tta-login-register-js', 'ttaLoginRegister', $login_register_localize );
 
             if ( is_page_template( 'partner-admin-page-template.php' ) ) {
                 wp_enqueue_style(

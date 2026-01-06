@@ -82,8 +82,9 @@
       $button.prop('disabled', true);
       $spinner.show().css({ opacity: 0 }).fadeTo(200, 1);
 
-      $.post(settings.ajaxUrl, {
-        action: 'tta_register',
+      var action = settings.isPartnerLogin ? 'tta_partner_register' : 'tta_register';
+      var payload = {
+        action: action,
         nonce: settings.nonce,
         first_name: $form.find('[name="first_name"]').val(),
         last_name: $form.find('[name="last_name"]').val(),
@@ -91,10 +92,17 @@
         email_verify: emailVerify,
         password: password,
         password_verify: passwordVerify
-      }, null, 'json').done(function (response) {
+      };
+
+      if (settings.isPartnerLogin && settings.partnerPageId) {
+        payload.page_id = settings.partnerPageId;
+      }
+
+      $.post(settings.ajaxUrl, payload, null, 'json').done(function (response) {
         $spinner.fadeOut(200);
         if (response && response.success) {
-          showSuccess(settings.successMessage || 'Account created! Redirecting…');
+          var successMsg = (response.data && response.data.message) ? response.data.message : (settings.successMessage || 'Account created! Redirecting…');
+          showSuccess(successMsg);
           var redirectUrl = settings.redirectUrl || window.location.href;
           setTimeout(function () {
             window.location.href = redirectUrl;

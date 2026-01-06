@@ -15,6 +15,16 @@ selected manually from the Page Attributes dropdown if needed.
   layout, password toggles, and spinner/response messaging.
 - **Auto-assignment:** The partner login page created during partner onboarding
   is automatically set to this template.
-
-No additional access checks run here yet; future logic will validate partner
-eligibility during submission.
+- **Partner-only signup flow:**
+  - Uses `tta_partner_register` AJAX to enforce the same email/password checks
+    as the general registration form.
+  - Looks up the partner by the signup page ID and verifies the submitted email
+    already exists in `tta_members.partner` for that partner’s unique
+    identifier. If the email is missing, unlinked, or linked to another
+    partner, the request is rejected with guidance to contact support.
+  - Prevents creation when a WordPress account already exists for the email and
+    returns a contact message with a `/contact` link.
+  - On success, creates a subscriber WordPress user, logs them in, and updates
+    the existing member row to set `wpuserid`, `membership_level = premium`,
+    `subscription_status = active`, and refreshes `joined_at` before redirecting
+    to `/events`.

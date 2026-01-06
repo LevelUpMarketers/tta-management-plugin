@@ -12,6 +12,8 @@ class TTA_Ajax_Partners {
         add_action( 'wp_ajax_tta_fetch_partner_members', [ __CLASS__, 'fetch_partner_members' ] );
         add_action( 'wp_ajax_tta_add_partner_member', [ __CLASS__, 'add_partner_member' ] );
         add_action( 'wp_ajax_tta_partner_import_status', [ __CLASS__, 'partner_import_status' ] );
+        add_action( 'wp_ajax_tta_partner_register', [ __CLASS__, 'partner_register' ] );
+        add_action( 'wp_ajax_nopriv_tta_partner_register', [ __CLASS__, 'partner_register' ] );
     }
 
     public static function save_partner() {
@@ -617,6 +619,143 @@ class TTA_Ajax_Partners {
                 'remaining' => $license_limit > 0 ? max( 0, $license_limit - $current_count - 1 ) : null,
             ]
         );
+    }
+
+    /**
+     * Register a partner-linked member into WordPress from the partner login page.
+     */
+    public static function partner_register() {
+        check_ajax_referer( 'tta_frontend_nonce', 'nonce' );
+
+        $first        = tta_sanitize_text_field( wp_unslash( $_POST['first_name'] ?? '' ) );
+        $last         = tta_sanitize_text_field( wp_unslash( $_POST['last_name'] ?? '' ) );
+        $email        = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+        $email_verify = sanitize_email( wp_unslash( $_POST['email_verify'] ?? '' ) );
+        $pass         = $_POST['password'] ?? '';
+        $pass_verify  = $_POST['password_verify'] ?? '';
+        $page_id      = isset( $_POST['page_id'] ) ? intval( $_POST['page_id'] ) : 0;
+
+        if ( ! $first || ! $last || ! $email || ! $email_verify || ! $pass || ! $pass_verify ) {
+            wp_send_json_error( [ 'message' => __( 'All fields are required.', 'tta' ) ] );
+        }
+
+        if ( ! $page_id ) {
+            wp_send_json_error( [ 'message' => __( 'Signup page is missing partner context.', 'tta' ) ] );
+        }
+
+        if ( $email !== $email_verify ) {
+            wp_send_json_error( [ 'message' => __( 'Emails do not match.', 'tta' ) ] );
+        }
+
+        if ( $pass !== $pass_verify ) {
+            wp_send_json_error( [ 'message' => __( 'Passwords do not match.', 'tta' ) ] );
+        }
+
+        if ( ! preg_match( '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/', $pass ) ) {
+            wp_send_json_error( [ 'message' => __( 'Password must be at least 8 characters and include upper and lower case letters and a number.', 'tta' ) ] );
+        }
+
+        global $wpdb;
+        $partners_table = $wpdb->prefix . 'tta_partners';
+        $members_table  = $wpdb->prefix . 'tta_members';
+
+        $partner = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT id, company_name, uniquecompanyidentifier FROM {$partners_table} WHERE signuppageid = %d LIMIT 1",
+                $page_id
+            ),
+            ARRAY_A
+        );
+
+        if ( ! $partner ) {
+            wp_send_json_error( [ 'message' => __( 'Partner information could not be found for this page.', 'tta' ) ] );
+        }
+
+        $member = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT id, partner, wpuserid FROM {$members_table} WHERE email = %s LIMIT 1",
+                $email
+            ),
+            ARRAY_A
+        );
+
+        if ( ! $member ) {
+            wp_send_json_error( [ 'message' => __( 'We could not find this email in the partner list. Please reach out via /contact.', 'tta' ) ] );
+        }
+
+        if ( empty( $member['partner'] ) ) {
+            wp_send_json_error( [ 'message' => __( 'This email is not linked to a partner invite. Please reach out via /contact.', 'tta' ) ] );
+        }
+
+        if ( $member['partner'] !== $partner['uniquecompanyidentifier'] ) {
+            wp_send_json_error(
+                [
+                    'message' => sprintf(
+                        /* translators: %s: partner name */
+                        __( 'This email is linked to a different partner. Please use the invite from %s or contact us at /contact.', 'tta' ),
+                        $partner['company_name']
+                    ),
+                ]
+            );
+        }
+
+        if ( email_exists( $email ) ) {
+            wp_send_json_error( [ 'message' => __( 'A WordPress account with this email already exists. Please reach out via /contact.', 'tta' ) ] );
+        }
+
+        $username = sanitize_user( strstr( $email, '@', true ) );
+        if ( username_exists( $username ) ) {
+            $username .= '_' . wp_generate_password( 4, false, false );
+        }
+
+        $user_id = wp_insert_user(
+            [
+                'user_login'         => $username,
+                'user_email'         => $email,
+                'user_pass'          => $pass,
+                'first_name'         => $first,
+                'last_name'          => $last,
+                'role'               => 'subscriber',
+                'show_admin_bar_front' => 'false',
+            ]
+        );
+
+        if ( is_wp_error( $user_id ) ) {
+            wp_send_json_error( [ 'message' => $user_id->get_error_message() ] );
+        }
+
+        update_user_meta( $user_id, 'show_admin_bar_front', 'false' );
+
+        $updated = $wpdb->update(
+            $members_table,
+            [
+                'wpuserid'            => intval( $user_id ),
+                'first_name'          => $first,
+                'last_name'           => $last,
+                'membership_level'    => 'premium',
+                'subscription_status' => 'active',
+                'joined_at'           => current_time( 'mysql' ),
+            ],
+            [ 'id' => intval( $member['id'] ) ],
+            [ '%d', '%s', '%s', '%s', '%s', '%s' ],
+            [ '%d' ]
+        );
+
+        if ( false === $updated ) {
+            wp_delete_user( $user_id );
+            wp_send_json_error( [ 'message' => __( 'Unable to update member record.', 'tta' ) ] );
+        }
+
+        wp_set_current_user( $user_id );
+        wp_set_auth_cookie( $user_id, true );
+        $user_obj = get_user_by( 'id', $user_id );
+        if ( $user_obj ) {
+            do_action( 'wp_login', $user_obj->user_login, $user_obj );
+        }
+
+        TTA_Cache::flush();
+
+        wp_send_json_success( [ 'message' => __( 'Account created! Redirecting…', 'tta' ) ] );
     }
 
     /**
