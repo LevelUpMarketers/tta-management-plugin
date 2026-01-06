@@ -17,7 +17,7 @@
     $spinner.hide();
 
     function resetState() {
-      $response.removeClass('error updated').text('');
+      $response.removeClass('error updated').html('');
     }
 
     function setToggleState($toggle, isVisible) {
@@ -46,11 +46,11 @@
     });
 
     function showError(message) {
-      $response.removeClass('updated').addClass('error').text(message);
+      $response.removeClass('updated').addClass('error').html(message);
     }
 
     function showSuccess(message) {
-      $response.removeClass('error').addClass('updated').text(message);
+      $response.removeClass('error').addClass('updated').html(message);
     }
 
     $form.on('submit', function (event) {

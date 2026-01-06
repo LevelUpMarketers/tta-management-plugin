@@ -679,28 +679,55 @@ class TTA_Ajax_Partners {
             ARRAY_A
         );
 
+        $contact_link = '<a href="/contact">' . esc_html__( 'on our Contact page', 'tta' ) . '</a>';
+
         if ( ! $member ) {
-            wp_send_json_error( [ 'message' => __( 'We could not find this email in the partner list. Please reach out via /contact.', 'tta' ) ] );
+            wp_send_json_error(
+                [
+                    'message' => sprintf(
+                        /* translators: %s: contact link */
+                        __( 'We could not find this email in the partner list. Please reach out using the form %s.', 'tta' ),
+                        wp_kses( $contact_link, [ 'a' => [ 'href' => [] ] ] )
+                    ),
+                ]
+            );
         }
 
         if ( empty( $member['partner'] ) ) {
-            wp_send_json_error( [ 'message' => __( 'This email is not linked to a partner invite. Please reach out via /contact.', 'tta' ) ] );
+            wp_send_json_error(
+                [
+                    'message' => sprintf(
+                        /* translators: %s: contact link */
+                        __( 'This email is not linked to a partner invite. Please reach out using the form %s.', 'tta' ),
+                        wp_kses( $contact_link, [ 'a' => [ 'href' => [] ] ] )
+                    ),
+                ]
+            );
         }
 
         if ( $member['partner'] !== $partner['uniquecompanyidentifier'] ) {
             wp_send_json_error(
                 [
                     'message' => sprintf(
-                        /* translators: %s: partner name */
-                        __( 'This email is linked to a different partner. Please use the invite from %s or contact us at /contact.', 'tta' ),
-                        $partner['company_name']
+                        /* translators: 1: partner name, 2: contact link */
+                        __( "This email isn't found! Are you sure this is the email address that %1$s would have provided to us? Please try a different email address. If you're still having trouble, contact us using the contact form %2$s", 'tta' ),
+                        esc_html( $partner['company_name'] ),
+                        wp_kses( $contact_link, [ 'a' => [ 'href' => [] ] ] )
                     ),
                 ]
             );
         }
 
         if ( email_exists( $email ) ) {
-            wp_send_json_error( [ 'message' => __( 'A WordPress account with this email already exists. Please reach out via /contact.', 'tta' ) ] );
+            wp_send_json_error(
+                [
+                    'message' => sprintf(
+                        /* translators: %s: contact link */
+                        __( 'A WordPress account with this email already exists. Please reach out using the form %s.', 'tta' ),
+                        wp_kses( $contact_link, [ 'a' => [ 'href' => [] ] ] )
+                    ),
+                ]
+            );
         }
 
         $username = sanitize_user( strstr( $email, '@', true ) );
