@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'TTA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TTA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'TTA_PLUGIN_VERSION', '1.0.8' );
-define( 'TTA_DB_VERSION', '1.13.1' );
+define( 'TTA_DB_VERSION', '1.16.0' );
 define( 'TTA_BASIC_MEMBERSHIP_PRICE', 10.00 );
 define( 'TTA_PREMIUM_MEMBERSHIP_PRICE', 17.00 );
 define( 'TTA_REENTRY_TICKET_PRICE', 25.00 );
@@ -247,6 +247,8 @@ require_once TTA_PLUGIN_DIR . 'includes/frontend/class-cart-page-manager.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-checkout-page-manager.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-events-list-page.php';
 require_once TTA_PLUGIN_DIR . 'includes/frontend/class-login-register-page.php';
+require_once TTA_PLUGIN_DIR . 'includes/frontend/class-partner-login-page.php';
+require_once TTA_PLUGIN_DIR . 'includes/frontend/class-partner-admin-page.php';
 require_once TTA_PLUGIN_DIR . 'includes/login/class-tta-login-branding.php';
 require_once TTA_PLUGIN_DIR . 'includes/api/class-authorizenet-api.php';
 require_once TTA_PLUGIN_DIR . 'includes/email/class-email-handler.php';
@@ -256,6 +258,8 @@ require_once TTA_PLUGIN_DIR . 'includes/sms/class-sms-handler.php';
 require_once TTA_PLUGIN_DIR . 'includes/sms/class-sms-reminders.php';
 require_once TTA_PLUGIN_DIR . 'includes/waitlist/class-waitlist.php';
 require_once TTA_PLUGIN_DIR . 'includes/ajax/class-ajax-handler.php';
+require_once TTA_PLUGIN_DIR . 'includes/classes/class-tta-partner-import-job.php';
+require_once TTA_PLUGIN_DIR . 'includes/admin/class-partners-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-members-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-events-admin.php';
 require_once TTA_PLUGIN_DIR . 'includes/admin/class-venues-admin.php';
@@ -307,6 +311,7 @@ class TTA_Plugin {
 
         // Admin pages
         if ( is_admin() ) {
+            TTA_Partners_Admin::get_instance();
             TTA_Members_Admin::get_instance();
             TTA_Events_Admin::get_instance();
             TTA_Tickets_Admin::get_instance();

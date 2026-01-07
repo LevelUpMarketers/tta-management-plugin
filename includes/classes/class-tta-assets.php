@@ -28,7 +28,7 @@ class TTA_Assets {
      */
     public static function enqueue_backend_assets( $hook_suffix ) {
         $page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
-        if ( in_array( $page, [ 'tta-events','tta-members','tta-tickets','tta-comms','tta-ads','tta-venues','tta-refund-requests','tta-settings' ], true ) ) {
+        if ( in_array( $page, [ 'tta-events','tta-members','tta-tickets','tta-comms','tta-ads','tta-venues','tta-refund-requests','tta-settings','tta-partners' ], true ) ) {
 
             // 1) Make sure the full TinyMCE / Quicktags / editor CSS are loaded:
             if ( function_exists( 'wp_enqueue_editor' ) ) {
@@ -114,6 +114,9 @@ class TTA_Assets {
                     'get_event_nonce'     => wp_create_nonce( 'tta_event_get_action' ),
                     'save_event_nonce'    => wp_create_nonce( 'tta_event_save_action' ),
                     'save_member_nonce'   => wp_create_nonce( 'tta_member_save_action' ),
+                    'save_partner_nonce'  => wp_create_nonce( 'tta_partner_save_action' ),
+                    'get_partner_nonce'   => wp_create_nonce( 'tta_partner_manage_action' ),
+                    'update_partner_nonce'=> wp_create_nonce( 'tta_partner_manage_action' ),
                     'get_member_nonce'    => wp_create_nonce( 'tta_member_update_action' ),
                     'update_member_nonce' => wp_create_nonce( 'tta_member_update_action' ),
                     'get_ticket_nonce'    => wp_create_nonce( 'tta_ticket_get_action' ),
@@ -611,8 +614,15 @@ class TTA_Assets {
             );
         }
 
-        // Login/Register page template assets
-        if ( function_exists( 'is_page_template' ) && is_page_template( 'login-register-page-template.php' ) ) {
+        // Login/Register and Partner Admin page template assets
+        if (
+            function_exists( 'is_page_template' )
+            && (
+                is_page_template( 'login-register-page-template.php' )
+                || is_page_template( 'partner-admin-page-template.php' )
+                || is_page_template( 'partner-login-page-template.php' )
+            )
+        ) {
             wp_enqueue_style(
                 'tta-login-register-css',
                 TTA_PLUGIN_URL . 'assets/css/frontend/login-register.css',
@@ -630,22 +640,66 @@ class TTA_Assets {
 
             $redirect_url = apply_filters( 'tta_login_register_redirect_url', home_url( '/events' ) );
 
-            wp_localize_script(
-                'tta-login-register-js',
-                'ttaLoginRegister',
-                [
-                    'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
-                    'nonce'                => wp_create_nonce( 'tta_frontend_nonce' ),
-                    'redirectUrl'          => esc_url_raw( $redirect_url ),
-                    'emailMismatch'        => __( 'Email addresses do not match.', 'tta' ),
-                    'passwordMismatch'     => __( 'Passwords do not match.', 'tta' ),
-                    'passwordRequirements' => __( 'Password must be at least 8 characters and include upper and lower case letters and a number.', 'tta' ),
-                    'requestFailed'        => __( 'Request failed.', 'tta' ),
-                    'successMessage'       => __( 'Account created! Redirecting…', 'tta' ),
-                    'showPassword'         => __( 'Show password', 'tta' ),
-                    'hidePassword'         => __( 'Hide password', 'tta' ),
-                ]
-            );
+            $login_register_localize = [
+                'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
+                'nonce'                => wp_create_nonce( 'tta_frontend_nonce' ),
+                'redirectUrl'          => esc_url_raw( $redirect_url ),
+                'emailMismatch'        => __( 'Email addresses do not match.', 'tta' ),
+                'passwordMismatch'     => __( 'Passwords do not match.', 'tta' ),
+                'passwordRequirements' => __( 'Password must be at least 8 characters and include upper and lower case letters and a number.', 'tta' ),
+                'requestFailed'        => __( 'Request failed.', 'tta' ),
+                'successMessage'       => __( 'Account created! Redirecting…', 'tta' ),
+                'showPassword'         => __( 'Show password', 'tta' ),
+                'hidePassword'         => __( 'Hide password', 'tta' ),
+            ];
+
+            if ( function_exists( 'is_page_template' ) && is_page_template( 'partner-login-page-template.php' ) ) {
+                global $wpdb;
+
+                $page_id      = get_queried_object_id();
+                $partner_name = TTA_Cache::remember(
+                    'partner_login_assets_' . $page_id,
+                    static function () use ( $wpdb, $page_id ) {
+                        if ( ! $page_id ) {
+                            return '';
+                        }
+
+                        $table = $wpdb->prefix . 'tta_partners';
+
+                        return (string) $wpdb->get_var(
+                            $wpdb->prepare(
+                                "SELECT company_name FROM {$table} WHERE signuppageid = %d LIMIT 1",
+                                $page_id
+                            )
+                        );
+                    },
+                    MINUTE_IN_SECONDS * 5
+                );
+
+                $partner_name = $partner_name ?: __( 'our partner', 'tta' );
+                $contact_link = '<a href="/contact">' . esc_html__( 'on our Contact page', 'tta' ) . '</a>';
+
+                $login_register_localize['isPartnerLogin'] = true;
+                $login_register_localize['partnerPageId']  = $page_id;
+                $login_register_localize['partnerName']    = $partner_name;
+                $login_register_localize['requestFailed']  = sprintf(
+                    /* translators: 1: partner name, 2: contact link */
+                    __( 'We don\'t seem to have this email address associated with %1$s! Are you sure you\'re using the email address that %1$s would have provided to us? If you\'re still having trouble, contact us %2$s.', 'tta' ),
+                    esc_html( $partner_name ),
+                    wp_kses( $contact_link, [ 'a' => [ 'href' => [] ] ] )
+                );
+            }
+
+            wp_localize_script( 'tta-login-register-js', 'ttaLoginRegister', $login_register_localize );
+
+            if ( is_page_template( 'partner-admin-page-template.php' ) ) {
+                wp_enqueue_style(
+                    'tta-partner-dashboard-css',
+                    TTA_PLUGIN_URL . 'assets/css/frontend/member-dashboard.css',
+                    [ 'tta-login-register-css' ],
+                    TTA_PLUGIN_VERSION
+                );
+            }
         }
 
         // 5) Host Check-In template assets

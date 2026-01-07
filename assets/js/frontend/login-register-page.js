@@ -17,7 +17,7 @@
     $spinner.hide();
 
     function resetState() {
-      $response.removeClass('error updated').text('');
+      $response.removeClass('error updated').html('');
     }
 
     function setToggleState($toggle, isVisible) {
@@ -46,11 +46,31 @@
     });
 
     function showError(message) {
-      $response.removeClass('updated').addClass('error').text(message);
+      $response.removeClass('updated').addClass('error').html(message);
     }
 
     function showSuccess(message) {
-      $response.removeClass('error').addClass('updated').text(message);
+      $response.removeClass('error').addClass('updated').html(message);
+    }
+
+    function extractErrorMessage(response, fallback) {
+      if (!response) {
+        return fallback;
+      }
+
+      if (response.data && response.data.message) {
+        return response.data.message;
+      }
+
+      if (response.responseJSON && response.responseJSON.data && response.responseJSON.data.message) {
+        return response.responseJSON.data.message;
+      }
+
+      if (typeof response.responseText === 'string' && response.responseText.length) {
+        return response.responseText;
+      }
+
+      return fallback;
     }
 
     $form.on('submit', function (event) {
@@ -82,8 +102,9 @@
       $button.prop('disabled', true);
       $spinner.show().css({ opacity: 0 }).fadeTo(200, 1);
 
-      $.post(settings.ajaxUrl, {
-        action: 'tta_register',
+      var action = settings.isPartnerLogin ? 'tta_partner_register' : 'tta_register';
+      var payload = {
+        action: action,
         nonce: settings.nonce,
         first_name: $form.find('[name="first_name"]').val(),
         last_name: $form.find('[name="last_name"]').val(),
@@ -91,23 +112,31 @@
         email_verify: emailVerify,
         password: password,
         password_verify: passwordVerify
-      }, null, 'json').done(function (response) {
+      };
+
+      if (settings.isPartnerLogin && settings.partnerPageId) {
+        payload.page_id = settings.partnerPageId;
+      }
+
+      $.post(settings.ajaxUrl, payload, null, 'json').done(function (response) {
         $spinner.fadeOut(200);
         if (response && response.success) {
-          showSuccess(settings.successMessage || 'Account created! Redirecting…');
+          var successMsg = (response.data && response.data.message) ? response.data.message : (settings.successMessage || 'Account created! Redirecting…');
+          showSuccess(successMsg);
           var redirectUrl = settings.redirectUrl || window.location.href;
           setTimeout(function () {
             window.location.href = redirectUrl;
           }, 600);
         } else {
           $button.prop('disabled', false);
-          var msg = response && response.data && response.data.message ? response.data.message : (settings.requestFailed || 'Request failed.');
+          var msg = extractErrorMessage(response, settings.requestFailed || 'Request failed.');
           showError(msg);
         }
-      }).fail(function () {
+      }).fail(function (jqXHR) {
         $spinner.fadeOut(200);
         $button.prop('disabled', false);
-        showError(settings.requestFailed || 'Request failed.');
+        var msg = extractErrorMessage(jqXHR, settings.requestFailed || 'Request failed.');
+        showError(msg);
       });
     });
   });
