@@ -134,6 +134,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                   'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
                   'nonce'       => wp_create_nonce( 'tta_partner_upload_action' ),
                   'fetchNonce'  => wp_create_nonce( 'tta_partner_fetch_action' ),
+                  'updateNonce' => wp_create_nonce( 'tta_partner_member_action' ),
                   'pageId'      => $page_id,
                   'noFile'      => __( 'Please select a CSV file to upload.', 'tta' ),
                   'emptyFile'   => __( 'The selected file appears to be empty.', 'tta' ),
@@ -142,6 +143,8 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                   'error'       => __( 'Upload failed.', 'tta' ),
                   'noResults'   => __( 'No partner members found.', 'tta' ),
                   'paginationLabel' => __( 'Page %1$d of %2$d', 'tta' ),
+                  'employmentSuccess' => __( 'Member marked as no longer employed.', 'tta' ),
+                  'employmentError'   => __( 'Unable to update the member. Please try again.', 'tta' ),
               ];
               ?>
               <script>
@@ -465,6 +468,8 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         }
         var status = (m.wpuserid && parseInt(m.wpuserid,10) !== 0) ? '<?php echo esc_js( __( 'Active', 'tta' ) ); ?>' : '<?php echo esc_js( __( 'Inactive', 'tta' ) ); ?>';
         html += '<p><strong><?php echo esc_js( __( 'Status', 'tta' ) ); ?>:</strong> ' + status + '</p>';
+        html += '<button type="button" class="tta-button tta-button-secondary tta-license-employment-btn" data-member-id="' + (m.id || '') + '"><?php echo esc_js( __( 'No Longer Employed', 'tta' ) ); ?></button>';
+        html += '<p class="tta-license-employment-response" role="status" aria-live="polite"></p>';
         html += '</div></div>';
       });
       html += '</div>';
@@ -520,6 +525,36 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
       var expanded = $btn.attr('aria-expanded') === 'true';
       $btn.attr('aria-expanded', !expanded);
       $panel.attr('hidden', expanded);
+    });
+
+    $results.on('click', '.tta-license-employment-btn', function(){
+      var $btn = $(this);
+      var memberId = parseInt($btn.data('member-id'), 10);
+      if (!memberId) {
+        return;
+      }
+      var $panel = $btn.closest('.tta-license-panel');
+      var $message = $panel.find('.tta-license-employment-response');
+      $message.removeClass('error updated').text('');
+      $btn.prop('disabled', true);
+      $.post(uploadCfg.ajaxUrl, {
+        action: 'tta_partner_end_employment',
+        nonce: uploadCfg.updateNonce,
+        page_id: uploadCfg.pageId,
+        member_id: memberId
+      }, null, 'json').done(function(res){
+        $btn.prop('disabled', false);
+        if (res && res.success) {
+          $message.removeClass('error').addClass('updated').text(res.data && res.data.message ? res.data.message : (uploadCfg.employmentSuccess || 'Member updated.'));
+          fetchMembers(1);
+        } else {
+          var msg = res && res.data && res.data.message ? res.data.message : (uploadCfg.employmentError || 'Request failed.');
+          $message.removeClass('updated').addClass('error').text(msg);
+        }
+      }).fail(function(){
+        $btn.prop('disabled', false);
+        $message.removeClass('updated').addClass('error').text(uploadCfg.employmentError || 'Request failed.');
+      });
     });
 
     $pagination.on('click', '.tta-license-page', function(){

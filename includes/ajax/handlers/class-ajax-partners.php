@@ -11,6 +11,7 @@ class TTA_Ajax_Partners {
         add_action( 'wp_ajax_tta_upload_partner_licenses', [ __CLASS__, 'upload_partner_licenses' ] );
         add_action( 'wp_ajax_tta_fetch_partner_members', [ __CLASS__, 'fetch_partner_members' ] );
         add_action( 'wp_ajax_tta_add_partner_member', [ __CLASS__, 'add_partner_member' ] );
+        add_action( 'wp_ajax_tta_partner_end_employment', [ __CLASS__, 'end_member_employment' ] );
         add_action( 'wp_ajax_tta_partner_import_status', [ __CLASS__, 'partner_import_status' ] );
         add_action( 'wp_ajax_tta_partner_register', [ __CLASS__, 'partner_register' ] );
         add_action( 'wp_ajax_nopriv_tta_partner_register', [ __CLASS__, 'partner_register' ] );
@@ -888,6 +889,69 @@ class TTA_Ajax_Partners {
                 'pages'     => $per_page ? ceil( $total / $per_page ) : 0,
             ]
         );
+    }
+
+    /**
+     * Mark a partner member as no longer employed.
+     */
+    public static function end_member_employment() {
+        check_ajax_referer( 'tta_partner_member_action', 'nonce' );
+
+        if ( ! is_user_logged_in() ) {
+            wp_send_json_error( [ 'message' => __( 'You must be logged in.', 'tta' ) ] );
+        }
+
+        $page_id   = isset( $_POST['page_id'] ) ? intval( $_POST['page_id'] ) : 0;
+        $member_id = isset( $_POST['member_id'] ) ? intval( $_POST['member_id'] ) : 0;
+
+        if ( ! $page_id || ! $member_id ) {
+            wp_send_json_error( [ 'message' => __( 'Missing member details.', 'tta' ) ] );
+        }
+
+        global $wpdb;
+        $partners_table = $wpdb->prefix . 'tta_partners';
+        $members_table  = $wpdb->prefix . 'tta_members';
+
+        $partner = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$partners_table} WHERE adminpageid = %d LIMIT 1",
+                $page_id
+            ),
+            ARRAY_A
+        );
+
+        if ( ! $partner ) {
+            wp_send_json_error( [ 'message' => __( 'Partner not found for this page.', 'tta' ) ] );
+        }
+
+        $current_user_id = get_current_user_id();
+        $can_manage      = current_user_can( 'manage_options' );
+        $is_partner_user = intval( $partner['wpuserid'] ) === $current_user_id;
+
+        if ( ! $can_manage && ! $is_partner_user ) {
+            wp_send_json_error( [ 'message' => __( 'You do not have permission to update this member.', 'tta' ) ] );
+        }
+
+        $updated = $wpdb->query(
+            $wpdb->prepare(
+                "UPDATE {$members_table} SET membership_level = %s, subscription_status = NULL WHERE id = %d AND partner = %s",
+                'free',
+                $member_id,
+                $partner['uniquecompanyidentifier']
+            )
+        );
+
+        if ( false === $updated ) {
+            wp_send_json_error( [ 'message' => __( 'Unable to update the member record.', 'tta' ) ] );
+        }
+
+        if ( 0 === $updated ) {
+            wp_send_json_error( [ 'message' => __( 'Member not found for this partner.', 'tta' ) ] );
+        }
+
+        TTA_Cache::flush();
+
+        wp_send_json_success( [ 'message' => __( 'Member marked as no longer employed.', 'tta' ) ] );
     }
 
     /**
