@@ -79,14 +79,31 @@
 }
 
 .tta-license-panel{
-	padding-left: 10px;
-    margin-bottom: 10px;
+	padding-left: 0;
+	padding-right: 0;
+	margin-bottom: 10px;
+	text-align: center;
+	padding-top: 20px;
+	padding-bottom: 10px;
 }
 
 .tta-license-panel p{
 	display: inline-block;
-    margin-right: 10px;
-    margin-bottom: 0;
+	margin-right: 10px;
+	margin-left: 10px;
+	margin-bottom: 0;
+}
+
+.tta-license-panel strong{
+	display: block;
+}
+
+.tta-license-employment-btn{
+	margin-top: 10px;
+}
+
+.form-table.tta-partner-profile-table td{
+	min-width: 200px;
 }
 
 .tta-license-section.tta-license-summary, .tta-bulk-upload-license-section, .tta-license-single-add, .tta-license-search{
