@@ -932,12 +932,32 @@ class TTA_Ajax_Partners {
             wp_send_json_error( [ 'message' => __( 'You do not have permission to update this member.', 'tta' ) ] );
         }
 
-        $updated = $wpdb->query(
+        $member = $wpdb->get_row(
             $wpdb->prepare(
-                "UPDATE {$members_table} SET membership_level = %s, subscription_status = NULL WHERE id = %d AND partner = %s",
-                'free',
+                "SELECT id, partner FROM {$members_table} WHERE id = %d AND partner = %s LIMIT 1",
                 $member_id,
                 $partner['uniquecompanyidentifier']
+            ),
+            ARRAY_A
+        );
+
+        if ( ! $member || empty( $member['partner'] ) ) {
+            wp_send_json_error( [ 'message' => __( 'Member not found for this partner.', 'tta' ) ] );
+        }
+
+        $max_length = 191;
+        $prefix     = 'notemployed-';
+        if ( strlen( $member['partner'] ) + strlen( $prefix ) > $max_length ) {
+            $prefix = 'nle-';
+        }
+        $new_partner = $prefix . $member['partner'];
+
+        $updated = $wpdb->query(
+            $wpdb->prepare(
+                "UPDATE {$members_table} SET membership_level = %s, subscription_status = NULL, partner = %s WHERE id = %d",
+                'free',
+                $new_partner,
+                intval( $member['id'] )
             )
         );
 
