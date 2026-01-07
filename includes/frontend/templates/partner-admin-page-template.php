@@ -262,6 +262,14 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
 
                     <div class="tta-license-search">
                       <h3><?php esc_html_e( 'All Members', 'tta' ); ?></h3>
+                      <p class="tta-section-intro">
+                        <?php
+                        echo wp_kses(
+                            __( 'Below are the Members you&#039;ve uploaded or added individually. Search by First Name, Last Name, or Email address. If a Member&#039;s Status reads as "Active", that means they&#039;ve taken advantage of their Membership benefits and created an account! If a Member is no longer eligible for their Membership benefits, simply search for that member and click the "No Longer Employed" button.', 'tta' ),
+                            []
+                        );
+                        ?>
+                      </p>
                       <div class="tta-license-search-fields">
                         <input type="text" id="tta-search-first" placeholder="<?php esc_attr_e( 'First Name', 'tta' ); ?>" />
                         <input type="text" id="tta-search-last" placeholder="<?php esc_attr_e( 'Last Name', 'tta' ); ?>" />

@@ -99,7 +99,10 @@
 }
 
 .tta-license-employment-btn{
-	margin-top: 10px;
+	margin-top: 20px;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .tta-license-single-add .tta-admin-progress-response-p{
