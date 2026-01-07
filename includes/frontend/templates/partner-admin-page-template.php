@@ -145,6 +145,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                   'paginationLabel' => __( 'Page %1$d of %2$d', 'tta' ),
                   'employmentSuccess' => __( 'Member marked as no longer employed.', 'tta' ),
                   'employmentError'   => __( 'Unable to update the member. Please try again.', 'tta' ),
+                  'employmentConfirm' => __( "Are you sure you want to remove this person? They'll lose their Membership and will need to sign up for their own paid Membership if they want to keep Membership benefits.", 'tta' ),
               ];
               ?>
               <script>
@@ -531,6 +532,10 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
       var $btn = $(this);
       var memberId = parseInt($btn.data('member-id'), 10);
       if (!memberId) {
+        return;
+      }
+      var confirmMessage = uploadCfg.employmentConfirm || 'Are you sure you want to remove this person?';
+      if (!window.confirm(confirmMessage)) {
         return;
       }
       var $panel = $btn.closest('.tta-license-panel');
