@@ -246,6 +246,9 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
 
                     <div class="tta-license-single-add">
                       <h3><?php esc_html_e( 'Add an Individual Member', 'tta' ); ?></h3>
+                      <p class="tta-section-intro">
+                        <?php esc_html_e( 'Provide a first name, last name, and email address below to add members individually.', 'tta' ); ?>
+                      </p>
                       <div class="tta-license-single-fields">
                         <input type="text" id="tta-single-first" placeholder="<?php esc_attr_e( 'First Name', 'tta' ); ?>" />
                         <input type="text" id="tta-single-last" placeholder="<?php esc_attr_e( 'Last Name', 'tta' ); ?>" />
