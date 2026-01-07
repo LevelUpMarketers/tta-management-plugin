@@ -196,6 +196,9 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                   <div id="tab-licenses" class="tta-dashboard-section notranslate" data-nosnippet style="display:none;">
                     <div class="tta-license-section tta-license-summary">
                       <h3><?php esc_html_e( 'Member License Info', 'tta' ); ?></h3>
+                      <p class="tta-section-intro">
+                        <?php esc_html_e( 'Below is the info about your Licenses. One License is assigned to each Member. Active Licenses represent the amount of Members that have utilized their Membership benefits and created an account.', 'tta' ); ?>
+                      </p>
                       <ul>
                         <li><strong><?php esc_html_e( 'License Limit:', 'tta' ); ?></strong> <?php echo $license_limit > 0 ? esc_html( number_format_i18n( $license_limit ) ) : esc_html__( 'Unlimited', 'tta' ); ?></li>
                         <li><strong><?php esc_html_e( 'Used Licenses:', 'tta' ); ?></strong> <?php echo esc_html( number_format_i18n( $counts['total'] ) ); ?></li>
