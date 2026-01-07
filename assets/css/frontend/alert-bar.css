@@ -102,6 +102,12 @@
 	margin-top: 10px;
 }
 
+.tta-license-single-add .tta-admin-progress-response-p{
+	font-size: 16px;
+	font-weight: normal;
+	margin-top: 10px !important;
+}
+
 .form-table.tta-partner-profile-table td{
 	min-width: 200px;
 }

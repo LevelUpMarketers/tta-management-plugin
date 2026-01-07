@@ -146,6 +146,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                   'employmentSuccess' => __( 'Member marked as no longer employed.', 'tta' ),
                   'employmentError'   => __( 'Unable to update the member. Please try again.', 'tta' ),
                   'employmentConfirm' => __( "Are you sure you want to remove this person? They'll lose their Membership and will need to sign up for their own paid Membership if they want to keep Membership benefits.", 'tta' ),
+                  'singleMissing' => __( "Whoops - looks like some info is missing! Please make sure you've provided a first name, last name, and email address.", 'tta' ),
               ];
               ?>
               <script>
@@ -247,13 +248,13 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                     <div class="tta-license-single-add">
                       <h3><?php esc_html_e( 'Add an Individual Member', 'tta' ); ?></h3>
                       <p class="tta-section-intro">
-                        <?php esc_html_e( 'Provide a first name, last name, and email address below to add members individually.', 'tta' ); ?>
+                        <?php esc_html_e( 'Provide a First Name, Last Name, and Email address below to add members individually.', 'tta' ); ?>
                       </p>
                       <div class="tta-license-single-fields">
                         <input type="text" id="tta-single-first" placeholder="<?php esc_attr_e( 'First Name', 'tta' ); ?>" />
                         <input type="text" id="tta-single-last" placeholder="<?php esc_attr_e( 'Last Name', 'tta' ); ?>" />
                         <input type="text" id="tta-single-email" placeholder="<?php esc_attr_e( 'Email', 'tta' ); ?>" />
-                        <button type="button" class="tta-button tta-button-primary" id="tta-single-add-btn"><?php esc_html_e( 'Add Member', 'tta' ); ?></button>
+                        <button type="button" class="tta-button" id="tta-single-add-btn"><?php esc_html_e( 'Add Member', 'tta' ); ?></button>
                         <img class="tta-admin-progress-spinner-svg" id="tta-single-spinner" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" />
                       </div>
                       <p id="tta-single-response" class="tta-admin-progress-response-p" role="status" aria-live="polite"></p>
@@ -422,7 +423,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
       var last = $singleLast.val();
       var email = $singleEmail.val();
       if (!first || !last || !email) {
-        singleError(uploadCfg.emptyFile || 'Please provide first name, last name, and email.');
+        singleError(uploadCfg.singleMissing || 'Please provide first name, last name, and email.');
         return;
       }
       $singleBtn.prop('disabled', true);
