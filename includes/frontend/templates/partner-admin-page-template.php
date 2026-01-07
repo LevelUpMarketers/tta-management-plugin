@@ -324,6 +324,15 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     $progressHolderSpinner.css({ display: 'none', opacity: 0 });
     $singleSpinner.hide();
 
+    function capitalizeWords(value) {
+      if (!value) {
+        return '';
+      }
+      return value.toString().toLowerCase().replace(/\b\w/g, function(letter){
+        return letter.toUpperCase();
+      });
+    }
+
     function resetState() {
       $resp.removeClass('error updated').text('');
       $respMsg.removeClass('error updated').text('');
@@ -450,16 +459,18 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
       var html = '<div class="tta-license-accordion">';
       
       members.forEach(function(m){
-        var name = ((m.first_name || '') + ' ' + (m.last_name || '')).trim();
+        var firstName = capitalizeWords(m.first_name || '');
+        var lastName = capitalizeWords(m.last_name || '');
+        var name = (firstName + ' ' + lastName).trim();
         html += '<div class="tta-license-item">';
         html += '<button type="button" class="tta-license-toggle" aria-expanded="false">' +
-                '<span class="tta-license-col tta-license-col-name tta-license-col-firstname">' + (m.first_name || '') + '</span>' +
-                '<span class="tta-license-col tta-license-col-name tta-license-col-lastname">' + (m.last_name || '') + ' - </span>' +
+                '<span class="tta-license-col tta-license-col-name tta-license-col-firstname">' + firstName + '</span>' +
+                '<span class="tta-license-col tta-license-col-name tta-license-col-lastname">' + lastName + ' - </span>' +
                 '<span class="tta-license-col tta-license-col-email">' + (m.email || '') + '</span>' +
                 '</button>';
         html += '<div class="tta-license-panel" hidden>';
-        html += '<p><strong><?php echo esc_js( __( 'First Name', 'tta' ) ); ?>:</strong> ' + (m.first_name || '') + '</p>';
-        html += '<p><strong><?php echo esc_js( __( 'Last Name', 'tta' ) ); ?>:</strong> ' + (m.last_name || '') + '</p>';
+        html += '<p><strong><?php echo esc_js( __( 'First Name', 'tta' ) ); ?>:</strong> ' + firstName + '</p>';
+        html += '<p><strong><?php echo esc_js( __( 'Last Name', 'tta' ) ); ?>:</strong> ' + lastName + '</p>';
         html += '<p><strong><?php echo esc_js( __( 'Email', 'tta' ) ); ?>:</strong> ' + (m.email || '') + '</p>';
         if (m.joined_at){
           var joined = new Date(m.joined_at.replace(' ', 'T'));
