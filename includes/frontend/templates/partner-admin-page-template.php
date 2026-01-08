@@ -59,6 +59,37 @@ echo do_shortcode( $header_shortcode );
       bottom: 20px !important;
     }
   }
+
+  @media (max-width: 1200px) {
+    .page-template-partner-admin-page-template .tta-dashboard-sidebar {
+      flex: 0 0 150px;
+      display: block;
+    }
+
+    .page-template-partner-admin-page-template .form-table.tta-partner-profile-table td {
+      min-width: 200px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+      display: block;
+    }
+
+    .page-template-partner-admin-page-template #tta-single-add-btn,
+    .page-template-partner-admin-page-template #tta-license-search-btn {
+      display: block;
+      margin-top: 20px;
+    }
+
+    .page-template-partner-admin-page-template .tta-license-search-fields input,
+    .page-template-partner-admin-page-template .tta-license-single-fields input {
+      margin-top: 10px;
+    }
+
+    .page-template-partner-admin-page-template #tta-license-search-btn,
+    .page-template-partner-admin-page-template #tta-license-reset-btn {
+      width: 130px;
+    }
+  }
 </style>
 <?php
 
