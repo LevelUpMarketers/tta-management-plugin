@@ -359,7 +359,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var $btn = $('#tta-license-upload-btn');
     var $respMsg = $('#tta-license-upload-response-message');
     var $spinner = $('.tta-license-upload .tta-admin-progress-spinner-svg');
-    var $progressBar = $('#tta-license-upload-response');
+    var $progressBar = $('#tta-upload-progress');
     var $progressSpinner = $('#tta-upload-progress-spinner');
     var $progressHolderSpinner = $('.tta-license-upload-progress-holder .tta-admin-progress-spinner-svg');
     var currentJob = null;
@@ -424,7 +424,6 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
       $progressSpinner.show();
       $progressHolderSpinner.stop(true, true).css({ display: 'inline-block' }).fadeTo(200, 1);
       updateProgress(0);
-      $resp.css('opacity', 1);
 
       $.ajax({
         url: uploadCfg.ajaxUrl,
