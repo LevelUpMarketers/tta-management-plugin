@@ -15,6 +15,55 @@ global $post, $wpdb;
 
 get_header();
 
+$header_shortcode = '[vc_row full_width="stretch_row_content_no_spaces" css=".vc_custom_1670382516702{background-image: url(https://trying-to-adult-rva-2025.local/wp-content/uploads/2022/12/IMG-4418.png?id=70) !important;background-position: center !important;background-repeat: no-repeat !important;background-size: cover !important;}"][vc_column][vc_empty_space height="300px" el_id="jre-header-title-empty"][vc_column_text css_animation="slideInLeft" el_id="jre-homepage-id-1" css=".vc_custom_1671885403487{margin-left: 50px !important;padding-left: 50px !important;}"]<p id="jre-homepage-id-3">BECOME A MEMBER</p>[/vc_column_text][/vc_column][/vc_row]';
+echo do_shortcode( $header_shortcode );
+?>
+<style>
+  .page-template-partner-login-page-template .vc_custom_1670382516702 {
+    background-color: #000;
+  }
+
+  .page-template-partner-login-page-template #jre-homepage-id-1 {
+    margin-left: 50px !important;
+    padding-left: 50px !important;
+  }
+
+  .page-template-partner-login-page-template #single-blocks > div > div > div.vc_row.wpb_row.vc_row-fluid.vc_custom_1670382516702.wpex-vc-full-width-row.wpex-vc-full-width-row--no-padding.wpex-relative.wpex-vc_row-has-fill.wpex-vc-reset-negative-margin > div {
+    background-color: #000;
+  }
+
+  .page-template-partner-login-page-template #jre-homepage-id-3 {
+    bottom: 65px;
+  }
+
+  @media (max-width: 960px) {
+    .page-template-partner-login-page-template #jre-homepage-id-1 {
+      margin-left: 0 !important;
+      padding-left: 0 !important;
+    }
+
+    .page-template-partner-login-page-template #jre-homepage-id-3 {
+      bottom: 0 !important;
+    }
+
+    .page-template-partner-login-page-template #single-blocks > div > div > div.vc_row.wpb_row.vc_row-fluid.vc_custom_1670382516702.wpex-vc-full-width-row.wpex-vc-full-width-row--no-padding.wpex-relative.wpex-vc_row-has-fill.wpex-vc-reset-negative-margin > div {
+      height: 245px;
+    }
+  }
+
+  @media (max-width: 530px) {
+    .page-template-partner-login-page-template #jre-homepage-id-1 #jre-homepage-id-3 {
+      font-size: 50px;
+      padding: 0 15px;
+    }
+
+    .page-template-partner-login-page-template #jre-homepage-id-3 {
+      bottom: 20px !important;
+    }
+  }
+</style>
+<?php
+
 $page_id = isset( $post->ID ) ? intval( $post->ID ) : 0;
 $partner = TTA_Cache::remember(
     'partner_login_page_' . $page_id,
