@@ -90,7 +90,18 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
           <section class="tta-partner-admin-placeholder">
             <div class="tta-member-dashboard-wrap notranslate" data-nosnippet>
               <h2><?php echo esc_html( $partner['company_name'] ); ?></h2>
-              <p><?php echo esc_html( sprintf( /* translators: %s: partner contact first name */ __( 'Welcome, %s!', 'tta' ), $partner['contact_first_name'] ) ); ?></p>
+              <p>
+                <?php
+                echo esc_html(
+                    sprintf(
+                        /* translators: 1: partner contact first name, 2: partner company name */
+                        __( "Welcome %1$s! We're excited to have you and %2$s as one of our valued Partners.", 'tta' ),
+                        $partner['contact_first_name'],
+                        $partner['company_name']
+                    )
+                );
+                ?>
+              </p>
               <?php
               $members_table = $wpdb->prefix . 'tta_members';
               $identifier    = $partner['uniquecompanyidentifier'] ?? '';
