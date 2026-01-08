@@ -468,7 +468,7 @@ class TTA_Ajax_Partners {
 
         wp_send_json_success(
             [
-                'message'  => __( 'Import started. You can continue browsing while we process the file.', 'tta' ),
+                'message'  => __( 'Import started. Please keep this page open while we process the file.', 'tta' ),
                 'job_id'   => $job_id,
                 'total'    => $total_rows,
             ]
