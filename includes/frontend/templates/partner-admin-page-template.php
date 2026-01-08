@@ -123,7 +123,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
   <div class="tta-account-access-inner">
     <?php if ( ! is_user_logged_in() ) : ?>
       <section class="tta-login-column">
-        <h1 class="tta-section-title"><?php esc_html_e( 'Already Have an Account? Log In Below!', 'tta' ); ?></h1>
+        <h1 class="tta-section-title"><?php esc_html_e( 'Welcome, Partner! Log in Below.', 'tta' ); ?></h1>
         <p class="tta-section-intro">
           <?php
           echo wp_kses(
