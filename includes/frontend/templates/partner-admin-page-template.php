@@ -93,6 +93,18 @@ echo do_shortcode( $header_shortcode );
     .page-template-partner-admin-page-template #tta-license-reset-btn {
       margin-top: 10px;
     }
+
+    .page-template-partner-admin-page-template .tta-license-panel p {
+      display: block;
+      margin-right: 10px;
+      margin-left: 10px;
+      margin-bottom: 10px;
+    }
+
+    .page-template-partner-admin-page-template .tta-member-dashboard-wrap {
+      padding-left: 0;
+      padding-right: 0;
+    }
   }
 </style>
 <?php
