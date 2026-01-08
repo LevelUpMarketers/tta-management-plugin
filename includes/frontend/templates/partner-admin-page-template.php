@@ -92,13 +92,14 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
               <h2><?php echo esc_html( $partner['company_name'] ); ?></h2>
               <p>
                 <?php
-                echo esc_html(
-                    sprintf(
+                printf(
+                    esc_html__(
                         /* translators: 1: partner contact first name, 2: partner company name */
-                        __( "Welcome %1$s! We're excited to have you and %2$s as one of our valued Partners.", 'tta' ),
-                        $partner['contact_first_name'],
-                        $partner['company_name']
-                    )
+                        "Welcome %1$s! We're excited to have you and %2$s as one of our valued Partners.",
+                        'tta'
+                    ),
+                    esc_html( $partner['contact_first_name'] ?? '' ),
+                    esc_html( $partner['company_name'] ?? '' )
                 );
                 ?>
               </p>
