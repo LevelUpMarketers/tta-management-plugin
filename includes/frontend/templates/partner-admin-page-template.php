@@ -17,45 +17,45 @@ $header_shortcode = '[vc_row full_width="stretch_row_content_no_spaces" css=".vc
 echo do_shortcode( $header_shortcode );
 ?>
 <style>
-  .tta-partner-admin-page .vc_custom_1670382516702 {
+  .page-template-partner-admin-page-template .vc_custom_1670382516702 {
     background-color: #000;
   }
 
-  .tta-partner-admin-page #jre-homepage-id-1 {
+  .page-template-partner-admin-page-template #jre-homepage-id-1 {
     margin-left: 50px !important;
     padding-left: 50px !important;
   }
 
-  .tta-partner-admin-page #single-blocks > div > div > div.vc_row.wpb_row.vc_row-fluid.vc_custom_1670382516702.wpex-vc-full-width-row.wpex-vc-full-width-row--no-padding.wpex-relative.wpex-vc_row-has-fill.wpex-vc-reset-negative-margin > div {
+  .page-template-partner-admin-page-template #single-blocks > div > div > div.vc_row.wpb_row.vc_row-fluid.vc_custom_1670382516702.wpex-vc-full-width-row.wpex-vc-full-width-row--no-padding.wpex-relative.wpex-vc_row-has-fill.wpex-vc-reset-negative-margin > div {
     background-color: #000;
   }
 
-  .tta-partner-admin-page #jre-homepage-id-3 {
+  .page-template-partner-admin-page-template #jre-homepage-id-3 {
     bottom: 65px;
   }
 
   @media (max-width: 960px) {
-    .tta-partner-admin-page #jre-homepage-id-1 {
+    .page-template-partner-admin-page-template #jre-homepage-id-1 {
       margin-left: 0 !important;
       padding-left: 0 !important;
     }
 
-    .tta-partner-admin-page #jre-homepage-id-3 {
+    .page-template-partner-admin-page-template #jre-homepage-id-3 {
       bottom: 0 !important;
     }
 
-    .tta-partner-admin-page #single-blocks > div > div > div.vc_row.wpb_row.vc_row-fluid.vc_custom_1670382516702.wpex-vc-full-width-row.wpex-vc-full-width-row--no-padding.wpex-relative.wpex-vc_row-has-fill.wpex-vc-reset-negative-margin > div {
+    .page-template-partner-admin-page-template #single-blocks > div > div > div.vc_row.wpb_row.vc_row-fluid.vc_custom_1670382516702.wpex-vc-full-width-row.wpex-vc-full-width-row--no-padding.wpex-relative.wpex-vc_row-has-fill.wpex-vc-reset-negative-margin > div {
       height: 245px;
     }
   }
 
   @media (max-width: 530px) {
-    .tta-partner-admin-page #jre-homepage-id-1 #jre-homepage-id-3 {
+    .page-template-partner-admin-page-template #jre-homepage-id-1 #jre-homepage-id-3 {
       font-size: 50px;
       padding: 0 15px;
     }
 
-    .tta-partner-admin-page #jre-homepage-id-3 {
+    .page-template-partner-admin-page-template #jre-homepage-id-3 {
       bottom: 20px !important;
     }
   }
