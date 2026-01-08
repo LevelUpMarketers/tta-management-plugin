@@ -286,9 +286,6 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                           <div class="tta-admin-progress-response-p-message-holder">
                             <p id="tta-license-upload-response-message" class="tta-admin-progress-response-p-message" role="status" aria-live="polite"></p>
                           </div>
-                          <div class="tta-license-upload-progress-bar-div">
-                            <p id="tta-license-upload-response" class="tta-admin-progress-response-p" role="status" aria-live="polite" style="width:0%;"></p>
-                          </div>
                         </div>
                         <div class="tta-progress-wrap" aria-live="polite">
                           <div class="tta-progress-bar" id="tta-upload-progress" style="width:0%" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
@@ -360,7 +357,6 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     var uploadCfg = window.TTA_Partner_Licenses || {};
     var $file = $('#tta-license-file');
     var $btn = $('#tta-license-upload-btn');
-    var $resp = $('#tta-license-upload-response');
     var $respMsg = $('#tta-license-upload-response-message');
     var $spinner = $('.tta-license-upload .tta-admin-progress-spinner-svg');
     var $progressBar = $('#tta-license-upload-response');
@@ -398,9 +394,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
     }
 
     function resetState() {
-      $resp.removeClass('error updated').text('');
       $respMsg.removeClass('error updated').text('');
-      $resp.css('opacity', 0);
     }
 
     function showError(msg) {
