@@ -196,6 +196,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
                   'employmentError'   => __( 'Unable to update the member. Please try again.', 'tta' ),
                   'employmentConfirm' => __( "Are you sure you want to remove this person? They'll lose their Membership and will need to sign up for their own paid Membership if they want to keep Membership benefits.", 'tta' ),
                   'singleMissing' => __( "Whoops - looks like some info is missing! Please make sure you've provided a first name, last name, and email address.", 'tta' ),
+                  'processingNote' => __( 'Import started. Please keep this page open while we process the file.', 'tta' ),
               ];
               ?>
               <script>
@@ -434,10 +435,9 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
         dataType: 'json'
       }).done(function(res){
         $btn.prop('disabled', false);
-        $spinner.hide();
         // Keep progress spinners visible until job completes; hide only on fail or completion.
         if (res && res.success) {
-          showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.success || 'Import started. Please remain on this page while we process the file.'));
+          showSuccess(res.data && res.data.message ? res.data.message : (uploadCfg.processingNote || 'Import started. Please keep this page open while we process the file.'));
           currentJob = res.data && res.data.job_id ? res.data.job_id : null;
           if (currentJob) {
             startPolling();
@@ -448,12 +448,13 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
           showError(msg);
           updateProgress(0);
           $progressSpinner.hide();
+          $spinner.hide();
         }
       }).fail(function(){
         $btn.prop('disabled', false);
-        $spinner.hide();
         $progressSpinner.hide();
         $progressHolderSpinner.fadeOut(200);
+        $spinner.hide();
         showError(uploadCfg.error || 'Upload failed.');
       });
     });
@@ -673,6 +674,7 @@ $lost_pw_url  = wp_lostpassword_url( $redirect_url );
             pollTimer = null;
             $progressSpinner.hide();
             $progressHolderSpinner.fadeOut(200);
+            $spinner.hide();
             fetchMembers(1);
           }
         });
