@@ -268,10 +268,71 @@ class TTA_Ajax_Tickets {
                 $ute
             )
         );
+        $event_id = (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT id FROM {$wpdb->prefix}tta_events WHERE ute_id = %s UNION SELECT id FROM {$wpdb->prefix}tta_events_archive WHERE ute_id = %s LIMIT 1",
+                $ute,
+                $ute
+            )
+        );
         $filename_base = $event_name ? sanitize_file_name( $event_name ) : $ute;
         $filename      = sprintf( 'tta-attendees-%s.csv', $filename_base );
 
-        $attendees = tta_get_event_attendees( $ute );
+        $ticket_ids = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT id FROM {$wpdb->prefix}tta_tickets WHERE event_ute_id = %s",
+                $ute
+            )
+        );
+        $archive_ids = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT id FROM {$wpdb->prefix}tta_tickets_archive WHERE event_ute_id = %s",
+                $ute
+            )
+        );
+        $ticket_ids = array_values( array_unique( array_merge( $ticket_ids, $archive_ids ) ) );
+
+        $rows = [];
+        foreach ( $ticket_ids as $ticket_id ) {
+            $ticket_id = intval( $ticket_id );
+            foreach ( tta_get_ticket_attendees( $ticket_id ) as $attendee ) {
+                $rows[] = [
+                    'first_name' => $attendee['first_name'] ?? '',
+                    'last_name'  => $attendee['last_name'] ?? '',
+                    'email'      => $attendee['email'] ?? '',
+                    'status'     => 'Verified',
+                ];
+            }
+
+            if ( $event_id ) {
+                foreach ( tta_get_ticket_refunded_attendees( $ticket_id, $event_id ) as $attendee ) {
+                    $rows[] = [
+                        'first_name' => $attendee['first_name'] ?? '',
+                        'last_name'  => $attendee['last_name'] ?? '',
+                        'email'      => $attendee['email'] ?? '',
+                        'status'     => 'Refunded',
+                    ];
+                }
+
+                foreach ( tta_get_ticket_pending_refund_attendees( $ticket_id, $event_id ) as $attendee ) {
+                    $rows[] = [
+                        'first_name' => $attendee['first_name'] ?? '',
+                        'last_name'  => $attendee['last_name'] ?? '',
+                        'email'      => $attendee['email'] ?? '',
+                        'status'     => 'Pending refund Request',
+                    ];
+                }
+            }
+        }
+
+        foreach ( tta_get_event_waitlist_entries( $ute ) as $entry ) {
+            $rows[] = [
+                'first_name' => $entry['first_name'] ?? '',
+                'last_name'  => $entry['last_name'] ?? '',
+                'email'      => $entry['email'] ?? '',
+                'status'     => 'Waitlist',
+            ];
+        }
 
         nocache_headers();
         header( 'Content-Type: text/csv; charset=utf-8' );
@@ -282,13 +343,14 @@ class TTA_Ajax_Tickets {
             wp_die( esc_html__( 'Unable to generate export file.', 'tta' ) );
         }
 
-        fputcsv( $output, [ 'First Name', 'Last Name', 'Email' ] );
+        fputcsv( $output, [ 'First Name', 'Last Name', 'Email', 'Status' ] );
 
-        foreach ( $attendees as $attendee ) {
+        foreach ( $rows as $attendee ) {
             $first_name = sanitize_text_field( $attendee['first_name'] ?? '' );
             $last_name  = sanitize_text_field( $attendee['last_name'] ?? '' );
             $email      = sanitize_email( $attendee['email'] ?? '' );
-            fputcsv( $output, [ $first_name, $last_name, $email ] );
+            $status     = sanitize_text_field( $attendee['status'] ?? '' );
+            fputcsv( $output, [ $first_name, $last_name, $email, $status ] );
         }
 
         fclose( $output );

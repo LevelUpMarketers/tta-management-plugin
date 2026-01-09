@@ -3089,6 +3089,49 @@ function tta_get_member_waitlist_events( $wp_user_id ) {
 }
 
 /**
+ * Retrieve waitlist entries for an event.
+ *
+ * @param string $event_ute_id Event ute_id.
+ * @return array[] List of waitlist entries.
+ */
+function tta_get_event_waitlist_entries( $event_ute_id ) {
+    $event_ute_id = tta_sanitize_text_field( $event_ute_id );
+    if ( '' === $event_ute_id ) {
+        return [];
+    }
+
+    $cache_key = 'event_waitlist_entries_' . $event_ute_id;
+    $cached    = TTA_Cache::get( $cache_key );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    global $wpdb;
+    $waitlist_table = $wpdb->prefix . 'tta_waitlist';
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT first_name, last_name, email FROM {$waitlist_table} WHERE event_ute_id = %s ORDER BY added_at ASC",
+            $event_ute_id
+        ),
+        ARRAY_A
+    );
+
+    $entries = [];
+    foreach ( $rows as $row ) {
+        $entries[] = [
+            'first_name' => sanitize_text_field( $row['first_name'] ?? '' ),
+            'last_name'  => sanitize_text_field( $row['last_name'] ?? '' ),
+            'email'      => sanitize_email( $row['email'] ?? '' ),
+        ];
+    }
+
+    $ttl = empty( $entries ) ? 60 : 300;
+    TTA_Cache::set( $cache_key, $entries, $ttl );
+
+    return $entries;
+}
+
+/**
  * Retrieve past events purchased by a user.
  *
  * @param int $wp_user_id WordPress user ID.
