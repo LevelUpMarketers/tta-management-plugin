@@ -707,6 +707,12 @@ $tickets = $wpdb->get_results(
             data-event-ute-id="<?php echo esc_attr( $event_ute_id ); ?>">
       <?php esc_html_e( 'Add New Ticket', 'tta' ); ?>
     </button>
+    <button type="button"
+            id="export-all-attendees"
+            class="button"
+            data-event-ute-id="<?php echo esc_attr( $event_ute_id ); ?>">
+      <?php esc_html_e( 'Export All Attendees', 'tta' ); ?>
+    </button>
     <div class="tta-admin-progress-spinner-div">
         <img class="tta-admin-progress-spinner-svg" src="http://trying-to-adult-rva-2025.local/wp-content/plugins/tta-management-plugin/assets/images/admin/loading.svg" alt="Loading…" style="display:none; opacity:0;">
     </div>

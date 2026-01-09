@@ -10,6 +10,7 @@ class TTA_Ajax_Tickets {
     public static function init() {
         add_action( 'wp_ajax_tta_get_ticket_form', [ __CLASS__, 'get_ticket_form' ] );
         add_action( 'wp_ajax_tta_update_ticket',   [ __CLASS__, 'update_ticket' ] );
+        add_action( 'wp_ajax_tta_export_attendees', [ __CLASS__, 'export_attendees' ] );
     }
 
     /**
@@ -242,6 +243,126 @@ class TTA_Ajax_Tickets {
         // 7) All done
         TTA_Cache::flush();
         wp_send_json_success( [ 'message' => __( 'Tickets & waitlists saved.', 'tta' ) ] );
+    }
+
+    /**
+     * Export all attendees for an event as a CSV download.
+     */
+    public static function export_attendees() {
+        check_ajax_referer( 'tta_export_attendees_action', 'nonce' );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You do not have permission to export attendees.', 'tta' ) );
+        }
+
+        $ute = tta_sanitize_text_field( $_GET['event_ute_id'] ?? '' );
+        if ( '' === $ute ) {
+            wp_die( esc_html__( 'Missing event identifier.', 'tta' ) );
+        }
+
+        global $wpdb;
+        $event_name = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT name FROM {$wpdb->prefix}tta_events WHERE ute_id = %s UNION SELECT name FROM {$wpdb->prefix}tta_events_archive WHERE ute_id = %s LIMIT 1",
+                $ute,
+                $ute
+            )
+        );
+        $event_id = (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT id FROM {$wpdb->prefix}tta_events WHERE ute_id = %s UNION SELECT id FROM {$wpdb->prefix}tta_events_archive WHERE ute_id = %s LIMIT 1",
+                $ute,
+                $ute
+            )
+        );
+        $filename_base = $event_name ? sanitize_file_name( $event_name ) : $ute;
+        $filename      = sprintf( 'tta-attendees-%s.csv', $filename_base );
+
+        $ticket_ids = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT id FROM {$wpdb->prefix}tta_tickets WHERE event_ute_id = %s",
+                $ute
+            )
+        );
+        $archive_ids = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT id FROM {$wpdb->prefix}tta_tickets_archive WHERE event_ute_id = %s",
+                $ute
+            )
+        );
+        $ticket_ids = array_values( array_unique( array_merge( $ticket_ids, $archive_ids ) ) );
+
+        $rows = [];
+        foreach ( $ticket_ids as $ticket_id ) {
+            $ticket_id = intval( $ticket_id );
+            foreach ( tta_get_ticket_attendees( $ticket_id ) as $attendee ) {
+                $rows[] = [
+                    'first_name' => $attendee['first_name'] ?? '',
+                    'last_name'  => $attendee['last_name'] ?? '',
+                    'email'      => $attendee['email'] ?? '',
+                    'phone'      => $attendee['phone'] ?? '',
+                    'status'     => 'Verified',
+                ];
+            }
+
+            if ( $event_id ) {
+                foreach ( tta_get_ticket_refunded_attendees( $ticket_id, $event_id ) as $attendee ) {
+                    $rows[] = [
+                        'first_name' => $attendee['first_name'] ?? '',
+                        'last_name'  => $attendee['last_name'] ?? '',
+                        'email'      => $attendee['email'] ?? '',
+                        'phone'      => $attendee['phone'] ?? '',
+                        'status'     => 'Refunded',
+                    ];
+                }
+
+                foreach ( tta_get_ticket_pending_refund_attendees( $ticket_id, $event_id ) as $attendee ) {
+                    $rows[] = [
+                        'first_name' => $attendee['first_name'] ?? '',
+                        'last_name'  => $attendee['last_name'] ?? '',
+                        'email'      => $attendee['email'] ?? '',
+                        'phone'      => $attendee['phone'] ?? '',
+                        'status'     => 'Pending refund Request',
+                    ];
+                }
+            }
+        }
+
+        foreach ( tta_get_event_waitlist_entries( $ute ) as $entry ) {
+            $rows[] = [
+                'first_name' => $entry['first_name'] ?? '',
+                'last_name'  => $entry['last_name'] ?? '',
+                'email'      => $entry['email'] ?? '',
+                'phone'      => $entry['phone'] ?? '',
+                'status'     => 'Waitlist',
+            ];
+        }
+
+        nocache_headers();
+        header( 'Content-Type: text/csv; charset=utf-8' );
+        header( 'Content-Disposition: attachment; filename=' . $filename );
+
+        $output = fopen( 'php://output', 'w' );
+        if ( false === $output ) {
+            wp_die( esc_html__( 'Unable to generate export file.', 'tta' ) );
+        }
+
+        $timestamp = wp_date( 'n/j/Y \\a\\t g:i a' );
+        fputcsv( $output, [ sprintf( 'Attendee info current as of %s', $timestamp ) ] );
+        fputcsv( $output, [ 'First Name', 'Last Name', 'Email', 'Phone', 'Status' ] );
+
+        foreach ( $rows as $attendee ) {
+            $first_name = sanitize_text_field( $attendee['first_name'] ?? '' );
+            $last_name  = sanitize_text_field( $attendee['last_name'] ?? '' );
+            $email      = sanitize_email( $attendee['email'] ?? '' );
+            $phone      = sanitize_text_field( $attendee['phone'] ?? '' );
+            $status     = sanitize_text_field( $attendee['status'] ?? '' );
+            $phone_value = '' !== $phone ? $phone : 'N/A';
+            fputcsv( $output, [ $first_name, $last_name, $email, $phone_value, $status ] );
+        }
+
+        fclose( $output );
+        exit;
     }
 }
 

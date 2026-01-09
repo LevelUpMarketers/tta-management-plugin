@@ -7,4 +7,4 @@ The count is computed using the `tta_get_remaining_ticket_count()` helper so sol
 - An event with one ticket type, limit 10, and 3 sold will show **7 Tickets Left**.
 - An event with two ticket types each limited to 15, where 4 and 5 have sold, will show **18 Tickets Left**.
 
-Use the arrow at the end of each row to expand and edit individual ticket types.
+Use the arrow at the end of each row to expand and edit individual ticket types. The **Manage Tickets** panel includes **Add New Ticket** and **Export All Attendees** actions so staff can append ticket types or download attendee data for the selected event. The export downloads a CSV with a timestamp row (for example, “Attendee info current as of 1/9/2026 at 8:41 am”), followed by **First Name**, **Last Name**, **Email**, **Phone**, and **Status** for every attendee across all ticket types, including Verified, Waitlist, Refunded, and Pending refund Request entries. Phone defaults to **N/A** when not available.
