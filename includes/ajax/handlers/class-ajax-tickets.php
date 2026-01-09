@@ -300,6 +300,7 @@ class TTA_Ajax_Tickets {
                     'first_name' => $attendee['first_name'] ?? '',
                     'last_name'  => $attendee['last_name'] ?? '',
                     'email'      => $attendee['email'] ?? '',
+                    'phone'      => $attendee['phone'] ?? '',
                     'status'     => 'Verified',
                 ];
             }
@@ -310,6 +311,7 @@ class TTA_Ajax_Tickets {
                         'first_name' => $attendee['first_name'] ?? '',
                         'last_name'  => $attendee['last_name'] ?? '',
                         'email'      => $attendee['email'] ?? '',
+                        'phone'      => $attendee['phone'] ?? '',
                         'status'     => 'Refunded',
                     ];
                 }
@@ -319,6 +321,7 @@ class TTA_Ajax_Tickets {
                         'first_name' => $attendee['first_name'] ?? '',
                         'last_name'  => $attendee['last_name'] ?? '',
                         'email'      => $attendee['email'] ?? '',
+                        'phone'      => $attendee['phone'] ?? '',
                         'status'     => 'Pending refund Request',
                     ];
                 }
@@ -330,6 +333,7 @@ class TTA_Ajax_Tickets {
                 'first_name' => $entry['first_name'] ?? '',
                 'last_name'  => $entry['last_name'] ?? '',
                 'email'      => $entry['email'] ?? '',
+                'phone'      => $entry['phone'] ?? '',
                 'status'     => 'Waitlist',
             ];
         }
@@ -343,14 +347,16 @@ class TTA_Ajax_Tickets {
             wp_die( esc_html__( 'Unable to generate export file.', 'tta' ) );
         }
 
-        fputcsv( $output, [ 'First Name', 'Last Name', 'Email', 'Status' ] );
+        fputcsv( $output, [ 'First Name', 'Last Name', 'Email', 'Phone', 'Status' ] );
 
         foreach ( $rows as $attendee ) {
             $first_name = sanitize_text_field( $attendee['first_name'] ?? '' );
             $last_name  = sanitize_text_field( $attendee['last_name'] ?? '' );
             $email      = sanitize_email( $attendee['email'] ?? '' );
+            $phone      = sanitize_text_field( $attendee['phone'] ?? '' );
             $status     = sanitize_text_field( $attendee['status'] ?? '' );
-            fputcsv( $output, [ $first_name, $last_name, $email, $status ] );
+            $phone_value = '' !== $phone ? $phone : 'N/A';
+            fputcsv( $output, [ $first_name, $last_name, $email, $phone_value, $status ] );
         }
 
         fclose( $output );

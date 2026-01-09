@@ -3110,7 +3110,7 @@ function tta_get_event_waitlist_entries( $event_ute_id ) {
     $waitlist_table = $wpdb->prefix . 'tta_waitlist';
     $rows = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT first_name, last_name, email FROM {$waitlist_table} WHERE event_ute_id = %s ORDER BY added_at ASC",
+            "SELECT first_name, last_name, email, phone FROM {$waitlist_table} WHERE event_ute_id = %s ORDER BY added_at ASC",
             $event_ute_id
         ),
         ARRAY_A
@@ -3122,6 +3122,7 @@ function tta_get_event_waitlist_entries( $event_ute_id ) {
             'first_name' => sanitize_text_field( $row['first_name'] ?? '' ),
             'last_name'  => sanitize_text_field( $row['last_name'] ?? '' ),
             'email'      => sanitize_email( $row['email'] ?? '' ),
+            'phone'      => sanitize_text_field( $row['phone'] ?? '' ),
         ];
     }
 
