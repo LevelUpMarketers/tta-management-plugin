@@ -5650,7 +5650,7 @@ function tta_render_login_register_section( $redirect ) {
         ]
     );
 
-    $lost_pw_url = wp_lostpassword_url( $redirect );
+    $lost_pw_url = wp_lostpassword_url();
 
     ob_start();
     ?>
@@ -5732,7 +5732,7 @@ function tta_render_membership_checkout_section( $redirect ) {
         ]
     );
 
-    $lost_pw_url = wp_lostpassword_url( $redirect );
+    $lost_pw_url = wp_lostpassword_url();
 
     ob_start();
     ?>

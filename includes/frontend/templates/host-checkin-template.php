@@ -15,7 +15,7 @@ if ( ! $context['is_logged_in'] ) {
     echo do_shortcode( $header_shortcode );
 
     $form_html   = wp_login_form( [ 'echo' => false, 'redirect' => get_permalink() ] );
-    $lost_pw_url = wp_lostpassword_url( get_permalink() );
+    $lost_pw_url = wp_lostpassword_url();
     echo '<div id="tta-login-wrap" class="tta-login-wrap">' . $form_html . '<p class="login-lost-password"><a href="' . esc_url( $lost_pw_url ) . '">' . esc_html__( 'Forgot your password?', 'tta' ) . '</a></p></div>';
 
     get_footer();
@@ -85,4 +85,3 @@ echo do_shortcode( $header_shortcode );
 </div>
 <?php
 get_footer();
-

@@ -7,7 +7,8 @@ update each record via AJAX. Attendance status writes back to the
 `tta_attendees` table and the interface updates instantly without a full refresh.
 
 Visitors who aren't logged in are shown a styled login form with a **Forgot your
-password?** link so volunteers can quickly authenticate from any device.
+password?** link that goes to the default WordPress reset screen without a
+`redirect_to` parameter so volunteers can quickly authenticate from any device.
 
 Events remain listed for 24 hours after their scheduled end time, giving hosts
 extra time to check people in or mark no-shows before the event drops off the
