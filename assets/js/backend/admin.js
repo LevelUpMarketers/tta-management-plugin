@@ -1152,6 +1152,23 @@ jQuery(function($){
     $(this).closest('p.submit').before($tpl);
   });
 
+  // Export all attendees for an event
+  $(document).on('click', '#export-all-attendees', function(){
+    var eventUteId = $(this).data('event-ute-id');
+
+    if (!eventUteId) {
+      return;
+    }
+
+    var query = $.param({
+      action: 'tta_export_attendees',
+      event_ute_id: eventUteId,
+      nonce: TTA_Ajax.export_attendees_nonce
+    });
+
+    window.location = TTA_Ajax.ajax_url + '?' + query;
+  });
+
   // Remove a newly added ticket & re-number
   $(document).on('click', '.tta-delete-new-ticket', function(){
     // Remove this ticket block
