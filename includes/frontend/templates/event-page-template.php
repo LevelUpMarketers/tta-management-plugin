@@ -738,7 +738,7 @@ $form_html = wp_login_form( [
 ] );
 
 // 2. Build the lost-password link
-$lost_pw_url = wp_lostpassword_url( get_permalink() ); // redirect back here after reset
+$lost_pw_url = wp_lostpassword_url();
 $lost_pw_html = sprintf(
     '<p class="login-lost-password"><a href="%s">%s</a></p>',
     esc_url( $lost_pw_url ),

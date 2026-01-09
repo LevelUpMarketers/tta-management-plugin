@@ -19,7 +19,7 @@ flow.
 - **WordPress login form** on the left-hand column. Users are redirected to
   the Events Listings page (`/events`) after a successful login. A “Forgot
 your password?” link points to the standard WordPress password reset
-screen.
+screen and intentionally omits any `redirect_to` parameter.
 - **Custom registration form** on the right-hand column that mirrors the
   validation rules used across the site (matching email/password pairs and
   strong password requirements). Registration happens via the existing

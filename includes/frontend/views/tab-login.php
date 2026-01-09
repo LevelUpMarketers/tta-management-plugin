@@ -12,7 +12,7 @@ $form_html = wp_login_form(
         'form_id'  => $form_id,
     ]
 );
-$lost_pw_url = wp_lostpassword_url( home_url( '/member-dashboard/?tab=' . $tab_slug ) );
+$lost_pw_url = wp_lostpassword_url();
 ?>
 <div id="tab-<?php echo esc_attr( $tab_slug ); ?>" class="tta-dashboard-section notranslate" data-nosnippet>
   <section class="tta-message-center tta-login-accordion tta-login-message">

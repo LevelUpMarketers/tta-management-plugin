@@ -117,7 +117,7 @@ $login_form   = wp_login_form(
         'remember' => true,
     ]
 );
-$lost_pw_url  = wp_lostpassword_url( $redirect_url );
+$lost_pw_url  = wp_lostpassword_url();
 ?>
 <div class="tta-account-access tta-partner-admin-page">
   <div class="tta-account-access-inner">

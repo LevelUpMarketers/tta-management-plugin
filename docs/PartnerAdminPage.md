@@ -8,7 +8,9 @@ Page Attributes dropdown.
 
 ## Behavior
 - **Login-first experience:** Visitors who are not logged in see the standard
-  WordPress login form. Successful logins return to the same page.
+  WordPress login form with a **Forgot your password?** link that routes to
+  the default WordPress reset screen without a `redirect_to` parameter.
+  Successful logins return to the same page.
 - **Access control:** Only the partner contact stored on the related
   `tta_partners.wpuserid` row or site administrators (`manage_options`) can
   view partner content; others see an access-restricted notice.
