@@ -17,6 +17,11 @@ Page Attributes dropdown.
   Licenses**, which offers a CSV upload (plus downloadable sample) to bulk
   create partner-linked members. Uploaded rows populate first name, last name,
   email, and the partner’s `uniquecompanyidentifier` into `tta_members.partner`.
+- **Member offboarding:** Each member row in the license accordion includes a
+  **No Longer Employed** button that updates the matching `tta_members` record
+  to set `membership_level` to `free`, clears `subscription_status`, and
+  prefixes the `partner` value with `notemployed-` (or `nle-` if the resulting
+  string would exceed the column length).
 - **Auto-assignment:** Partner admin pages created via the admin UI are
   automatically set to this template.
 

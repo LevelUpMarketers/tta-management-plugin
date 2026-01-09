@@ -11,6 +11,7 @@ class TTA_Ajax_Partners {
         add_action( 'wp_ajax_tta_upload_partner_licenses', [ __CLASS__, 'upload_partner_licenses' ] );
         add_action( 'wp_ajax_tta_fetch_partner_members', [ __CLASS__, 'fetch_partner_members' ] );
         add_action( 'wp_ajax_tta_add_partner_member', [ __CLASS__, 'add_partner_member' ] );
+        add_action( 'wp_ajax_tta_partner_end_employment', [ __CLASS__, 'end_member_employment' ] );
         add_action( 'wp_ajax_tta_partner_import_status', [ __CLASS__, 'partner_import_status' ] );
         add_action( 'wp_ajax_tta_partner_register', [ __CLASS__, 'partner_register' ] );
         add_action( 'wp_ajax_nopriv_tta_partner_register', [ __CLASS__, 'partner_register' ] );
@@ -467,7 +468,7 @@ class TTA_Ajax_Partners {
 
         wp_send_json_success(
             [
-                'message'  => __( 'Import started. You can continue browsing while we process the file.', 'tta' ),
+                'message'  => __( 'Import started. Please keep this page open while we process the file.', 'tta' ),
                 'job_id'   => $job_id,
                 'total'    => $total_rows,
             ]
@@ -873,7 +874,7 @@ class TTA_Ajax_Partners {
 
         $members = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT id, first_name, last_name, email, joined_at, wpuserid FROM {$members_table} WHERE {$where_sql} ORDER BY id DESC LIMIT %d OFFSET %d",
+                "SELECT id, first_name, last_name, email, joined_at, wpuserid FROM {$members_table} WHERE {$where_sql} ORDER BY first_name ASC, last_name ASC, id ASC LIMIT %d OFFSET %d",
                 array_merge( $params, [ $per_page, $offset ] )
             ),
             ARRAY_A
@@ -888,6 +889,89 @@ class TTA_Ajax_Partners {
                 'pages'     => $per_page ? ceil( $total / $per_page ) : 0,
             ]
         );
+    }
+
+    /**
+     * Mark a partner member as no longer employed.
+     */
+    public static function end_member_employment() {
+        check_ajax_referer( 'tta_partner_member_action', 'nonce' );
+
+        if ( ! is_user_logged_in() ) {
+            wp_send_json_error( [ 'message' => __( 'You must be logged in.', 'tta' ) ] );
+        }
+
+        $page_id   = isset( $_POST['page_id'] ) ? intval( $_POST['page_id'] ) : 0;
+        $member_id = isset( $_POST['member_id'] ) ? intval( $_POST['member_id'] ) : 0;
+
+        if ( ! $page_id || ! $member_id ) {
+            wp_send_json_error( [ 'message' => __( 'Missing member details.', 'tta' ) ] );
+        }
+
+        global $wpdb;
+        $partners_table = $wpdb->prefix . 'tta_partners';
+        $members_table  = $wpdb->prefix . 'tta_members';
+
+        $partner = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$partners_table} WHERE adminpageid = %d LIMIT 1",
+                $page_id
+            ),
+            ARRAY_A
+        );
+
+        if ( ! $partner ) {
+            wp_send_json_error( [ 'message' => __( 'Partner not found for this page.', 'tta' ) ] );
+        }
+
+        $current_user_id = get_current_user_id();
+        $can_manage      = current_user_can( 'manage_options' );
+        $is_partner_user = intval( $partner['wpuserid'] ) === $current_user_id;
+
+        if ( ! $can_manage && ! $is_partner_user ) {
+            wp_send_json_error( [ 'message' => __( 'You do not have permission to update this member.', 'tta' ) ] );
+        }
+
+        $member = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT id, partner FROM {$members_table} WHERE id = %d AND partner = %s LIMIT 1",
+                $member_id,
+                $partner['uniquecompanyidentifier']
+            ),
+            ARRAY_A
+        );
+
+        if ( ! $member || empty( $member['partner'] ) ) {
+            wp_send_json_error( [ 'message' => __( 'Member not found for this partner.', 'tta' ) ] );
+        }
+
+        $max_length = 191;
+        $prefix     = 'notemployed-';
+        if ( strlen( $member['partner'] ) + strlen( $prefix ) > $max_length ) {
+            $prefix = 'nle-';
+        }
+        $new_partner = $prefix . $member['partner'];
+
+        $updated = $wpdb->query(
+            $wpdb->prepare(
+                "UPDATE {$members_table} SET membership_level = %s, subscription_status = NULL, partner = %s WHERE id = %d",
+                'free',
+                $new_partner,
+                intval( $member['id'] )
+            )
+        );
+
+        if ( false === $updated ) {
+            wp_send_json_error( [ 'message' => __( 'Unable to update the member record.', 'tta' ) ] );
+        }
+
+        if ( 0 === $updated ) {
+            wp_send_json_error( [ 'message' => __( 'Member not found for this partner.', 'tta' ) ] );
+        }
+
+        TTA_Cache::flush();
+
+        wp_send_json_success( [ 'message' => __( 'Member marked as no longer employed.', 'tta' ) ] );
     }
 
     /**
