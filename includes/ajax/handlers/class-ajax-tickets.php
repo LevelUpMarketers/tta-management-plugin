@@ -347,6 +347,8 @@ class TTA_Ajax_Tickets {
             wp_die( esc_html__( 'Unable to generate export file.', 'tta' ) );
         }
 
+        $timestamp = wp_date( 'n/j/Y \\a\\t g:i a' );
+        fputcsv( $output, [ sprintf( 'Attendee info current as of %s', $timestamp ) ] );
         fputcsv( $output, [ 'First Name', 'Last Name', 'Email', 'Phone', 'Status' ] );
 
         foreach ( $rows as $attendee ) {
