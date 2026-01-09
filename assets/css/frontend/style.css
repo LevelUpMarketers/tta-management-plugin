@@ -112,6 +112,13 @@
   font-weight:600;
 }
 
+.page-template-host-checkin-template #tta-login-wrap{
+  text-align:center;
+  margin-top:20px;
+  padding-left:20px;
+  padding-right:20px;
+}
+
 .button.tta-mark-attendance{
   display: block;
   margin-bottom: 10px;
@@ -299,4 +306,3 @@
 .tta-header-logout-div {
   display: inline-block;
 }
-
