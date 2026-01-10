@@ -11,3 +11,8 @@ Each code has three fields:
 - **Discount Amount** – numeric value for the discount.
 
 Use **Add Discount Code** to insert additional rows. Existing rows can be removed with the × button. Click **Save Discount Codes** when finished. Codes are stored in a dedicated table and cached for quick lookups.
+
+The discount codes table also tracks one-time usage metadata:
+
+- **onetime** – flag that marks a code as one-time use (`0`/`1`).
+- **used** – timestamp populated when a one-time code is redeemed successfully.

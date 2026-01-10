@@ -228,6 +228,8 @@ class TTA_DB_Setup {
             code VARCHAR(50) NOT NULL,
             type ENUM('flat','percent') DEFAULT 'percent',
             amount DECIMAL(10,2) DEFAULT 0.00,
+            onetime TINYINT(1) DEFAULT 0,
+            used DATETIME DEFAULT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
