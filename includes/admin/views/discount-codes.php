@@ -3,9 +3,23 @@
 <h1><?php esc_html_e( 'Manage Discount Codes', 'tta' ); ?></h1>
 <form method="post">
 <table class="widefat" id="tta-discount-codes-table">
-<thead><tr><th><?php esc_html_e( 'Code', 'tta' ); ?></th><th><?php esc_html_e( 'Type', 'tta' ); ?></th><th><?php esc_html_e( 'Amount', 'tta' ); ?></th><th></th></tr></thead>
+<thead><tr><th><?php esc_html_e( 'Code', 'tta' ); ?></th><th><?php esc_html_e( 'Type', 'tta' ); ?></th><th><?php esc_html_e( 'Amount', 'tta' ); ?></th><th><?php esc_html_e( 'One-Time Use?', 'tta' ); ?></th><th><?php esc_html_e( 'Date of Use', 'tta' ); ?></th><th></th></tr></thead>
 <tbody>
 <?php if ( ! empty( $codes ) ) : foreach ( $codes as $i => $row ) : ?>
+<?php
+$onetime = ! empty( $row['onetime'] ) ? 1 : 0;
+$used_raw = $row['used'] ?? '';
+$used_display = 'N/A';
+if ( $onetime && ! empty( $used_raw ) ) {
+    $timestamp = strtotime( $used_raw );
+    if ( false !== $timestamp ) {
+        $used_display = date_i18n(
+            get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+            $timestamp
+        );
+    }
+}
+?>
 <tr>
 <td><input type="text" name="codes[<?php echo esc_attr( $i ); ?>][code]" value="<?php echo esc_attr( $row['code'] ); ?>" class="regular-text"></td>
 <td>
@@ -15,6 +29,16 @@
 </select>
 </td>
 <td><input type="number" name="codes[<?php echo esc_attr( $i ); ?>][amount]" step="0.01" min="0" value="<?php echo esc_attr( $row['amount'] ); ?>"></td>
+<td>
+<select name="codes[<?php echo esc_attr( $i ); ?>][onetime]">
+<option value="0" <?php selected( $onetime, 0 ); ?>><?php esc_html_e( 'No', 'tta' ); ?></option>
+<option value="1" <?php selected( $onetime, 1 ); ?>><?php esc_html_e( 'Yes', 'tta' ); ?></option>
+</select>
+</td>
+<td>
+<input type="text" class="regular-text" value="<?php echo esc_attr( $used_display ); ?>" readonly>
+<input type="hidden" name="codes[<?php echo esc_attr( $i ); ?>][used]" value="<?php echo esc_attr( $used_raw ); ?>">
+</td>
 <td><button class="button tta-remove-code">&times;</button></td>
 </tr>
 <?php endforeach; endif; ?>
@@ -37,6 +61,12 @@ jQuery(function($){
             '<option value="percent" selected><?php echo esc_js( __( 'Percentage Off', 'tta' ) ); ?></option>'+
             '</select></td>'+
             '<td><input type="number" name="codes['+index+'][amount]" step="0.01" min="0" value="0"></td>'+
+            '<td><select name="codes['+index+'][onetime]">'+
+            '<option value="0" selected><?php echo esc_js( __( 'No', 'tta' ) ); ?></option>'+
+            '<option value="1"><?php echo esc_js( __( 'Yes', 'tta' ) ); ?></option>'+
+            '</select></td>'+
+            '<td><input type="text" class="regular-text" value="<?php echo esc_js( __( 'N/A', 'tta' ) ); ?>" readonly>'+
+            '<input type="hidden" name="codes['+index+'][used]" value=""></td>'+
             '<td><button class="button tta-remove-code">&times;</button></td>'+
             '</tr>';
         $('#tta-discount-codes-table tbody').append(row);

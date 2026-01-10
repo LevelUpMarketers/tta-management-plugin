@@ -38,7 +38,16 @@ class TTA_Discount_Codes_Admin {
                     }
                     $type   = in_array( $row['type'] ?? 'percent', [ 'flat', 'percent' ], true ) ? $row['type'] : 'percent';
                     $amount = floatval( $row['amount'] ?? 0 );
-                    $new[]  = [ 'code' => $code, 'type' => $type, 'amount' => $amount ];
+                    $onetime = isset( $row['onetime'] ) ? absint( $row['onetime'] ) : 0;
+                    $used_raw = sanitize_text_field( $row['used'] ?? '' );
+                    $used = '' === $used_raw ? null : $used_raw;
+                    $new[]  = [
+                        'code' => $code,
+                        'type' => $type,
+                        'amount' => $amount,
+                        'onetime' => $onetime ? 1 : 0,
+                        'used' => $used,
+                    ];
                 }
             }
             tta_save_global_discount_codes( $new );
