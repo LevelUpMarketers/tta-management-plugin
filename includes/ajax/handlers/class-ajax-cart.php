@@ -230,6 +230,14 @@ class TTA_Ajax_Cart {
             foreach ( $globals as $g ) {
                 if ( $g['code'] && strcasecmp( $g['code'], $code_to_add ) === 0 ) {
                     $valid = true;
+                    $is_onetime = ! empty( $g['onetime'] );
+                    $used_at = $g['used'] ?? '';
+                    if ( $is_onetime && ! empty( $used_at ) ) {
+                        $valid = false;
+                        $message = __( 'Whoops! Looks like this one-time discount code has already been used!', 'tta' );
+                    } elseif ( $is_onetime ) {
+                        $message = __( 'Discount applied! Thanks for referring a Member - see you soon!', 'tta' );
+                    }
                     break;
                 }
             }
@@ -245,9 +253,13 @@ class TTA_Ajax_Cart {
             if ( $valid ) {
                 $_SESSION['tta_discount_codes'][] = $code_to_add;
                 $_SESSION['tta_discount_codes']   = array_unique( $_SESSION['tta_discount_codes'] );
-                $message = __( 'Discount applied!', 'tta' );
+                if ( '' === $message ) {
+                    $message = __( 'Discount applied!', 'tta' );
+                }
             } else {
-                $message = __( 'Invalid discount code.', 'tta' );
+                if ( '' === $message ) {
+                    $message = __( 'Invalid discount code.', 'tta' );
+                }
             }
         }
 
