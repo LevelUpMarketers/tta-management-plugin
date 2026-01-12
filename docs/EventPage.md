@@ -14,6 +14,8 @@ and the address opens a Google Maps search.
 On screens wider than 768px this ad column sticks in view while scrolling but stays within its parent container. The StickySidebar library keeps the panel anchored until the bottom of its parent is reached. An extra 148px top offset keeps the ad clear of the site menu.
 The event details sidebar remains on the left and the main content occupies the
 center.
+The Event Details list now includes a Google Calendar link beneath the Location
+entry so visitors can add the event to their personal calendar.
 
 ## Current User Context Helper
 
@@ -110,5 +112,4 @@ Each event page outputs JSON‑LD Event schema. The markup includes the event na
 ## Related Events
 
 A grid of other upcoming events appears below the main content. Thumbnails are rendered with background images so they remain the same size even when the source photos vary. Each card links to its Event Page and shows the date beneath the title.
-
 

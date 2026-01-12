@@ -419,6 +419,37 @@ if ( $raw_content ) {
 }
 
 // ───────────────
+// 9c) Build Google Calendar link
+// ───────────────
+$calendar_end_ts = $end_ts;
+if ( ! $event['all_day_event'] && ( ! $end || $end_ts <= $start_ts ) ) {
+    $calendar_end_ts = $start_ts + HOUR_IN_SECONDS;
+}
+$google_calendar_dates = $event['all_day_event']
+    ? gmdate( 'Ymd', $start_ts ) . '/' . gmdate( 'Ymd', strtotime( '+1 day', $start_ts ) )
+    : gmdate( 'Ymd\\THis\\Z', $start_ts ) . '/' . gmdate( 'Ymd\\THis\\Z', $calendar_end_ts );
+$event_permalink = get_permalink( $page_id );
+$details_parts   = [];
+if ( $description_excerpt ) {
+    $details_parts[] = $description_excerpt;
+}
+if ( $event_permalink ) {
+    $details_parts[] = $event_permalink;
+}
+$google_calendar_url = 'https://calendar.google.com/calendar/render?' . http_build_query(
+    [
+        'action'   => 'TEMPLATE',
+        'text'     => $event['name'],
+        'dates'    => $google_calendar_dates,
+        'details'  => implode( "\n\n", $details_parts ),
+        'location' => $formatted_address,
+    ],
+    '',
+    '&',
+    PHP_QUERY_RFC3986
+);
+
+// ───────────────
 // 10) Determine sidebar cost row
 // ───────────────
 if ( $ticket_count > 1 ) {
@@ -1121,6 +1152,15 @@ echo '<div id="tta-login-wrap">' . $form_html . $lost_pw_html . '</div>';
               <strong><?php esc_html_e( 'Location', 'tta' ); ?>:</strong>
               <a href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener">
                 <?php echo esc_html( $formatted_address ); ?>
+              </a>
+            </div>
+          </li>
+          <li>
+            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/googlecalendar.svg' ); ?>" alt="<?php echo esc_attr__( 'Google Calendar', 'tta' ); ?>">
+            <div class="tta-event-details-icon-after">
+              <strong><?php esc_html_e( 'Calendar', 'tta' ); ?>:</strong>
+              <a href="<?php echo esc_url( $google_calendar_url ); ?>" target="_blank" rel="noopener">
+                <?php esc_html_e( 'Add to Google Calendar', 'tta' ); ?>
               </a>
             </div>
           </li>
