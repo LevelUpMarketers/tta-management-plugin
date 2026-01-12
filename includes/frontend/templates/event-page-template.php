@@ -1163,6 +1163,14 @@ echo '<div id="tta-login-wrap">' . $form_html . $lost_pw_html . '</div>';
               </a>
             </div>
           </li>
+          <li>
+            <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/ics-calendar.svg' ); ?>" alt="<?php echo esc_attr__( 'Calendar File Download', 'tta' ); ?>">
+            <div class="tta-event-details-icon-after">
+              <a style="font-weight:bold;" href="<?php echo esc_url( '#' ); ?>" target="_blank" rel="noopener">
+                <?php esc_html_e( 'Other Calendars (File Download)', 'tta' ); ?>
+              </a>
+            </div>
+          </li>
           <li class="tta-event-map-embed">
             <iframe
               width="100%" height="200" frameborder="0" style="border:0"
