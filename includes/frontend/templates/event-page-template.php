@@ -1158,8 +1158,7 @@ echo '<div id="tta-login-wrap">' . $form_html . $lost_pw_html . '</div>';
           <li>
             <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/googlecalendar.svg' ); ?>" alt="<?php echo esc_attr__( 'Google Calendar', 'tta' ); ?>">
             <div class="tta-event-details-icon-after">
-              <strong><?php esc_html_e( 'Calendar', 'tta' ); ?>:</strong>
-              <a href="<?php echo esc_url( $google_calendar_url ); ?>" target="_blank" rel="noopener">
+              <a style="font-weight:bold;" href="<?php echo esc_url( $google_calendar_url ); ?>" target="_blank" rel="noopener">
                 <?php esc_html_e( 'Add to Google Calendar', 'tta' ); ?>
               </a>
             </div>
