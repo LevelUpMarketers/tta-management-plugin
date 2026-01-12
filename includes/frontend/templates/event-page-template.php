@@ -448,6 +448,13 @@ $google_calendar_url = 'https://calendar.google.com/calendar/render?' . http_bui
     '&',
     PHP_QUERY_RFC3986
 );
+$ics_download_url = add_query_arg(
+    [
+        'tta_event_ics' => '1',
+        'event_ute_id'  => $event['ute_id'],
+    ],
+    home_url( '/' )
+);
 
 // ───────────────
 // 10) Determine sidebar cost row
@@ -1166,7 +1173,7 @@ echo '<div id="tta-login-wrap">' . $form_html . $lost_pw_html . '</div>';
           <li>
             <img class="tta-event-details-icon" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/public/event-page-icons/ics-calendar.svg' ); ?>" alt="<?php echo esc_attr__( 'Calendar File Download', 'tta' ); ?>">
             <div class="tta-event-details-icon-after">
-              <a style="font-weight:bold;" href="<?php echo esc_url( '#' ); ?>" target="_blank" rel="noopener">
+              <a style="font-weight:bold;" href="<?php echo esc_url( $ics_download_url ); ?>" target="_blank" rel="noopener">
                 <?php esc_html_e( 'Other Calendars (File Download)', 'tta' ); ?>
               </a>
             </div>

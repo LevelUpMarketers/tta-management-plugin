@@ -16,7 +16,8 @@ The event details sidebar remains on the left and the main content occupies the
 center.
 The Event Details list now includes Google Calendar and downloadable calendar
 file links beneath the Location entry so visitors can add the event to their
-personal calendar.
+personal calendar. The file download link triggers a dynamic `.ics` response so
+event updates are reflected at download time.
 
 ## Current User Context Helper
 
