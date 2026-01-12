@@ -4571,7 +4571,7 @@ function tta_get_next_event() {
 
     $row = $wpdb->get_row(
         $wpdb->prepare(
-            "SELECT id, name, date, time, address, page_id, type, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost, hosts, volunteers, host_notes, mainimageid FROM {$events_table} WHERE date >= %s ORDER BY date ASC, time ASC LIMIT 1",
+            "SELECT id, ute_id, name, date, time, address, page_id, type, all_day_event, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost, hosts, volunteers, host_notes, mainimageid FROM {$events_table} WHERE date >= %s ORDER BY date ASC, time ASC LIMIT 1",
             current_time( 'Y-m-d' )
         ),
         ARRAY_A
@@ -4584,12 +4584,14 @@ function tta_get_next_event() {
 
     $event = [
         'id'                 => intval( $row['id'] ),
+        'ute_id'             => sanitize_text_field( $row['ute_id'] ),
         'name'               => sanitize_text_field( $row['name'] ),
         'date'               => $row['date'],
         'time'               => $row['time'],
         'address'            => tta_format_address( $row['address'] ),
         'page_id'            => intval( $row['page_id'] ),
         'type'               => sanitize_text_field( $row['type'] ),
+        'all_day_event'      => (bool) ( $row['all_day_event'] ?? false ),
         'venue_name'         => sanitize_text_field( $row['venuename'] ),
         'venue_url'          => esc_url_raw( $row['venueurl'] ),
         'base_cost'          => floatval( $row['baseeventcost'] ),
@@ -4639,7 +4641,7 @@ function tta_get_event_for_email( $event_ute_id ) {
 
     $row = $wpdb->get_row(
         $wpdb->prepare(
-            "SELECT id, name, date, time, address, page_id, type, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost, host_notes FROM {$events_table} WHERE ute_id = %s",
+            "SELECT id, ute_id, name, date, time, address, page_id, type, all_day_event, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost, host_notes FROM {$events_table} WHERE ute_id = %s",
             $event_ute_id
         ),
         ARRAY_A
@@ -4648,7 +4650,7 @@ function tta_get_event_for_email( $event_ute_id ) {
     if ( ! $row ) {
         $row = $wpdb->get_row(
             $wpdb->prepare(
-                "SELECT id, name, date, time, address, page_id, type, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost, host_notes FROM {$archive_table} WHERE ute_id = %s",
+                "SELECT id, ute_id, name, date, time, address, page_id, type, all_day_event, venuename, venueurl, baseeventcost, discountedmembercost, premiummembercost, host_notes FROM {$archive_table} WHERE ute_id = %s",
                 $event_ute_id
             ),
             ARRAY_A
@@ -4662,6 +4664,7 @@ function tta_get_event_for_email( $event_ute_id ) {
 
     $event = [
         'id'           => intval( $row['id'] ),
+        'ute_id'       => sanitize_text_field( $row['ute_id'] ),
         'name'         => sanitize_text_field( $row['name'] ),
         'date'         => $row['date'],
         'time'         => $row['time'],
@@ -4669,6 +4672,7 @@ function tta_get_event_for_email( $event_ute_id ) {
         'page_id'      => intval( $row['page_id'] ),
         'page_url'     => get_permalink( intval( $row['page_id'] ) ),
         'type'         => sanitize_text_field( $row['type'] ),
+        'all_day_event' => (bool) ( $row['all_day_event'] ?? false ),
         'venue_name'   => sanitize_text_field( $row['venuename'] ),
         'venue_url'    => esc_url_raw( $row['venueurl'] ),
         'base_cost'    => floatval( $row['baseeventcost'] ),
@@ -4679,6 +4683,97 @@ function tta_get_event_for_email( $event_ute_id ) {
 
     TTA_Cache::set( $cache_key, $event, 300 );
     return $event;
+}
+
+/**
+ * Build calendar URLs for a given event.
+ *
+ * @param array $event Event data (must include ute_id, name, date, time).
+ * @return array{google_calendar_url:string,ics_download_url:string}
+ */
+function tta_build_event_calendar_links( array $event ) {
+    $ute_id = sanitize_text_field( $event['ute_id'] ?? '' );
+    $name   = sanitize_text_field( $event['name'] ?? '' );
+    $date   = $event['date'] ?? '';
+    $time   = $event['time'] ?? '';
+    if ( '' === $name || '' === $date ) {
+        return [
+            'google_calendar_url' => '',
+            'ics_download_url'    => '',
+        ];
+    }
+
+    $event_permalink = $event['page_url'] ?? '';
+    if ( ! $event_permalink && ! empty( $event['page_id'] ) ) {
+        $event_permalink = get_permalink( intval( $event['page_id'] ) );
+    }
+
+    $description_excerpt = '';
+    if ( ! empty( $event['page_id'] ) ) {
+        $page_id = intval( $event['page_id'] );
+        $description_excerpt = TTA_Cache::remember( 'event_email_excerpt_' . $page_id, function() use ( $page_id ) {
+            $page_post = get_post( $page_id );
+            if ( ! $page_post ) {
+                return '';
+            }
+            return wp_trim_words( wp_strip_all_tags( $page_post->post_content ), 30, '…' );
+        }, 600 );
+    }
+
+    $details_parts = [];
+    if ( $description_excerpt ) {
+        $details_parts[] = $description_excerpt;
+    }
+    if ( $event_permalink ) {
+        $details_parts[] = $event_permalink;
+    }
+
+    $tz       = wp_timezone();
+    $parts    = array_pad( explode( '|', $time ), 2, '' );
+    $start    = $parts[0] ?? '';
+    $end      = $parts[1] ?? '';
+    $start_dt = date_create_from_format( 'Y-m-d H:i', $date . ' ' . ( $start ?: '00:00' ), $tz );
+    $start_ts = $start_dt ? $start_dt->getTimestamp() : strtotime( $date . ' ' . ( $start ?: '00:00' ) );
+    $end_dt   = ! empty( $event['all_day_event'] )
+        ? $start_dt
+        : date_create_from_format( 'Y-m-d H:i', $date . ' ' . ( $end ?: '00:00' ), $tz );
+    $end_ts = $end_dt ? $end_dt->getTimestamp() : strtotime( $date . ' ' . ( $end ?: '00:00' ) );
+    if ( empty( $event['all_day_event'] ) && ( ! $end || $end_ts <= $start_ts ) ) {
+        $end_ts = $start_ts + HOUR_IN_SECONDS;
+    }
+
+    $google_calendar_dates = ! empty( $event['all_day_event'] )
+        ? gmdate( 'Ymd', $start_ts ) . '/' . gmdate( 'Ymd', strtotime( '+1 day', $start_ts ) )
+        : gmdate( 'Ymd\\THis\\Z', $start_ts ) . '/' . gmdate( 'Ymd\\THis\\Z', $end_ts );
+
+    $google_calendar_url = 'https://calendar.google.com/calendar/render?' . http_build_query(
+        [
+            'action'   => 'TEMPLATE',
+            'text'     => $name,
+            'dates'    => $google_calendar_dates,
+            'details'  => implode( "\n\n", $details_parts ),
+            'location' => $event['address'] ?? '',
+        ],
+        '',
+        '&',
+        PHP_QUERY_RFC3986
+    );
+
+    $ics_download_url = '';
+    if ( '' !== $ute_id ) {
+        $ics_download_url = add_query_arg(
+            [
+                'tta_event_ics' => '1',
+                'event_ute_id'  => $ute_id,
+            ],
+            home_url( '/' )
+        );
+    }
+
+    return [
+        'google_calendar_url' => $google_calendar_url,
+        'ics_download_url'    => $ics_download_url,
+    ];
 }
 
 /**
@@ -6222,6 +6317,7 @@ function tta_build_waitlist_notification_context( array $entry, array $event ) {
 
     $address      = $normalized['address'] ?? '';
     $address_link = $address ? esc_url( 'https://maps.google.com/?q=' . rawurlencode( $address ) ) : '';
+    $calendar_links = tta_build_event_calendar_links( $normalized );
 
     $names = tta_get_event_host_volunteer_names( intval( $normalized['id'] ?? 0 ) );
     $host  = $names['hosts'] ? implode( ', ', $names['hosts'] ) : 'TBD';
@@ -6236,6 +6332,8 @@ function tta_build_waitlist_notification_context( array $entry, array $event ) {
         '{venue_url}'          => esc_url( $normalized['venue_url'] ?? '' ),
         '{event_address}'      => $address,
         '{event_address_link}' => $address_link,
+        '{event_google_calendar_link}' => esc_url( $calendar_links['google_calendar_url'] ?? '' ),
+        '{event_ics_download_link}'    => esc_url( $calendar_links['ics_download_url'] ?? '' ),
         '{event_host}'         => $host,
         '{event_hosts}'        => $host,
         '{event_volunteer}'    => $vol,
@@ -6409,6 +6507,7 @@ function tta_send_assistance_note_email( $event_ute_id, $wp_user_id, $note ) {
     }
 
     $context = tta_get_user_context_by_id( $wp_user_id );
+    $calendar_links = tta_build_event_calendar_links( $event );
     $tokens = [
         '{event_name}'           => $event['name'] ?? '',
         '{event_address}'        => $event['address'] ?? '',
@@ -6416,6 +6515,8 @@ function tta_send_assistance_note_email( $event_ute_id, $wp_user_id, $note ) {
             ? esc_url( 'https://maps.google.com/?q=' . rawurlencode( $event['address'] ) )
             : '',
         '{event_link}'           => $event['page_url'] ?? '',
+        '{event_google_calendar_link}' => esc_url( $calendar_links['google_calendar_url'] ?? '' ),
+        '{event_ics_download_link}'    => esc_url( $calendar_links['ics_download_url'] ?? '' ),
         '{dashboard_profile_url}'  => home_url( '/member-dashboard/?tab=profile' ),
         '{dashboard_upcoming_url}' => home_url( '/member-dashboard/?tab=upcoming' ),
         '{dashboard_past_url}'       => home_url( '/member-dashboard/?tab=past' ),

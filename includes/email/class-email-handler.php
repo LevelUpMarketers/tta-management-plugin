@@ -115,6 +115,7 @@ class TTA_Email_Handler {
      * @return array
      */
     protected function build_tokens( array $event, array $member, array $attendees, array $refund = [] ) {
+        $calendar_links = tta_build_event_calendar_links( $event );
         $tokens = [
             '{event_name}'           => $event['name'] ?? '',
             '{event_address}'        => $event['address'] ?? '',
@@ -122,6 +123,8 @@ class TTA_Email_Handler {
                 ? esc_url( 'https://maps.google.com/?q=' . rawurlencode( $event['address'] ) )
                 : '',
             '{event_link}'           => $event['page_url'] ?? '',
+            '{event_google_calendar_link}' => esc_url( $calendar_links['google_calendar_url'] ?? '' ),
+            '{event_ics_download_link}'    => esc_url( $calendar_links['ics_download_url'] ?? '' ),
             '{dashboard_profile_url}'  => home_url( '/member-dashboard/?tab=profile' ),
             '{dashboard_upcoming_url}' => home_url( '/member-dashboard/?tab=upcoming' ),
             '{dashboard_past_url}'       => home_url( '/member-dashboard/?tab=past' ),

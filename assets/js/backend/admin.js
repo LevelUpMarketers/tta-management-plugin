@@ -1599,6 +1599,8 @@ $(document).on('click', '.tta-remove-waitlist-entry', function(e){
         '{event_address}': ev.address || '123 Main St',
         '{event_address_link}': ev.address_link || '#',
         '{event_link}': ev.page_url || '#',
+        '{event_google_calendar_link}': ev.google_calendar_url || '#',
+        '{event_ics_download_link}': ev.ics_download_url || '#',
         '{dashboard_profile_url}': ev.dashboard_profile_url || '#',
         '{dashboard_upcoming_url}': ev.dashboard_upcoming_url || '#',
         '{dashboard_waitlist_url}': ev.dashboard_waitlist_url || '#',

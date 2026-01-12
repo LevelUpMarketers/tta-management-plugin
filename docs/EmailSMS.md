@@ -96,6 +96,8 @@ Buttons labelled with tokens (e.g. `{event_name}`) insert placeholders into the 
 {event_address}
 {event_address_link}
 {event_link}
+{event_google_calendar_link}
+{event_ics_download_link}
 {dashboard_profile_url}
 {dashboard_upcoming_url}
 {dashboard_waitlist_url}
@@ -112,6 +114,9 @@ Buttons labelled with tokens (e.g. `{event_name}`) insert placeholders into the 
 ```
 
 `{event_address_link}` outputs a Google Maps URL for the event address.
+`{event_google_calendar_link}` outputs a Google Calendar URL that pre-fills the
+event details. `{event_ics_download_link}` generates a downloadable `.ics` file
+for the same event.
 
 Dashboard URL tokens accept an optional `anchor` attribute. For example:
 
