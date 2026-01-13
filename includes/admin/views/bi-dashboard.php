@@ -246,63 +246,77 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                                             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Total unique people who claimed any ticket for this event, including refunded attendees.', 'tta' ); ?>" style="margin-left:4px;">
                                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
                                             </span>
-                                            <label><?php esc_html_e( 'Total Signups', 'tta' ); ?></label>
+                                            <label>
+                                                <?php esc_html_e( 'Total Signups:', 'tta' ); ?>
+                                                <span class="tta-bi-metric-value"><?php echo esc_html( number_format_i18n( $metrics['total_signups'] ) ); ?></span>
+                                            </label>
                                         </th>
-                                        <td><?php echo esc_html( number_format_i18n( $metrics['total_signups'] ) ); ?></td>
                                     </tr>
                                     <tr>
                                         <th>
                                             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Total unique attendees marked as checked in for this event.', 'tta' ); ?>" style="margin-left:4px;">
                                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
                                             </span>
-                                            <label><?php esc_html_e( 'Total Attended', 'tta' ); ?></label>
+                                            <label>
+                                                <?php esc_html_e( 'Total Attended:', 'tta' ); ?>
+                                                <span class="tta-bi-metric-value"><?php echo esc_html( number_format_i18n( $metrics['total_attended'] ) ); ?></span>
+                                            </label>
                                         </th>
-                                        <td><?php echo esc_html( number_format_i18n( $metrics['total_attended'] ) ); ?></td>
                                     </tr>
                                     <tr>
                                         <th>
                                             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Checked-in attendees who were marked as Standard (Basic) members on their member record as of the event date.', 'tta' ); ?>" style="margin-left:4px;">
                                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
                                             </span>
-                                            <label><?php esc_html_e( 'Total Number of Standard Members', 'tta' ); ?></label>
+                                            <label>
+                                                <?php esc_html_e( 'Total Number of Standard Members:', 'tta' ); ?>
+                                                <span class="tta-bi-metric-value"><?php echo esc_html( number_format_i18n( $metrics['basic_attended'] ) ); ?></span>
+                                            </label>
                                         </th>
-                                        <td><?php echo esc_html( number_format_i18n( $metrics['basic_attended'] ) ); ?></td>
                                     </tr>
                                     <tr>
                                         <th>
                                             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Checked-in attendees who were marked as Premium members on their member record as of the event date.', 'tta' ); ?>" style="margin-left:4px;">
                                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
                                             </span>
-                                            <label><?php esc_html_e( 'Total Number of Premium Members', 'tta' ); ?></label>
+                                            <label>
+                                                <?php esc_html_e( 'Total Number of Premium Members:', 'tta' ); ?>
+                                                <span class="tta-bi-metric-value"><?php echo esc_html( number_format_i18n( $metrics['premium_attended'] ) ); ?></span>
+                                            </label>
                                         </th>
-                                        <td><?php echo esc_html( number_format_i18n( $metrics['premium_attended'] ) ); ?></td>
                                     </tr>
                                     <tr>
                                         <th>
                                             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Gross ticket sales for this event before refunds are applied.', 'tta' ); ?>" style="margin-left:4px;">
                                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
                                             </span>
-                                            <label><?php esc_html_e( 'Total Ticket Sales', 'tta' ); ?></label>
+                                            <label>
+                                                <?php esc_html_e( 'Total Ticket Sales:', 'tta' ); ?>
+                                                <span class="tta-bi-metric-value"><?php echo esc_html( '$' . number_format_i18n( $metrics['revenue'], 2 ) ); ?></span>
+                                            </label>
                                         </th>
-                                        <td><?php echo esc_html( '$' . number_format_i18n( $metrics['revenue'], 2 ) ); ?></td>
                                     </tr>
                                     <tr>
                                         <th>
                                             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Total refunded amount issued for tickets associated with this event.', 'tta' ); ?>" style="margin-left:4px;">
                                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
                                             </span>
-                                            <label><?php esc_html_e( 'Total Refunds Issued', 'tta' ); ?></label>
+                                            <label>
+                                                <?php esc_html_e( 'Total Refunds Issued:', 'tta' ); ?>
+                                                <span class="tta-bi-metric-value"><?php echo esc_html( '$' . number_format_i18n( $metrics['refunds'], 2 ) ); ?></span>
+                                            </label>
                                         </th>
-                                        <td><?php echo esc_html( '$' . number_format_i18n( $metrics['refunds'], 2 ) ); ?></td>
                                     </tr>
                                     <tr>
                                         <th>
                                             <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Net profit after subtracting refunds from total ticket sales.', 'tta' ); ?>" style="margin-left:4px;">
                                                 <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
                                             </span>
-                                            <label><?php esc_html_e( 'Net Profit', 'tta' ); ?></label>
+                                            <label>
+                                                <?php esc_html_e( 'Net Profit:', 'tta' ); ?>
+                                                <span class="tta-bi-metric-value"><?php echo esc_html( '$' . number_format_i18n( $metrics['net_profit'], 2 ) ); ?></span>
+                                            </label>
                                         </th>
-                                        <td><?php echo esc_html( '$' . number_format_i18n( $metrics['net_profit'], 2 ) ); ?></td>
                                     </tr>
                                 </tbody>
                             </table>
