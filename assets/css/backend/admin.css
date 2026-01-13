@@ -543,6 +543,10 @@ form p.submit{
     display:inline-block;
 }
 
+#tta-bi-dashboard .form-table th {
+  min-width: 320px;
+}
+
 #tta-admin-update-payment-form input, #tta-admin-update-payment-form select, #tta-admin-reactivate-subscription-form input, #tta-admin-reactivate-subscription-form select, #tta-admin-change-level-form input, #tta-admin-change-level-form select{
     width:198px;
 }
