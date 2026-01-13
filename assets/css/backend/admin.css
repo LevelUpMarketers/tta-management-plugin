@@ -377,7 +377,7 @@ form p.submit{
   font-size: 18px;
 }
 
-.tta-bi-compare-section.is-visible {
+#tta-bi-dashboard .tta-bi-compare-section.is-visible {
   display: flex;
 }
 
