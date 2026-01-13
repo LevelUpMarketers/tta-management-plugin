@@ -100,13 +100,16 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                         $page_id        = intval( $event['page_id'] );
                         $event_page_url = $page_id ? get_permalink( $page_id ) : '#';
                         $event_ute_id   = sanitize_text_field( $event['ute_id'] ?? '' );
+                        $event_date_end = $event['date'] ? $event['date'] . ' 23:59:59' : '';
                         $metrics        = TTA_Cache::remember(
                             'tta_bi_event_metrics_' . $event_ute_id,
-                            function () use ( $wpdb, $event_ute_id ) {
+                            function () use ( $wpdb, $event_ute_id, $event_date_end ) {
                                 if ( '' === $event_ute_id ) {
                                     return [
                                         'total_signups'  => 0,
                                         'total_attended' => 0,
+                                        'basic_attended' => 0,
+                                        'premium_attended' => 0,
                                         'revenue'        => 0,
                                         'refunds'        => 0,
                                         'net_profit'     => 0,
@@ -116,6 +119,7 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                                 $att_archive     = $wpdb->prefix . 'tta_attendees_archive';
                                 $tickets_table   = $wpdb->prefix . 'tta_tickets';
                                 $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
+                                $members_table   = $wpdb->prefix . 'tta_members';
 
                                 $total_signups = (int) $wpdb->get_var(
                                     $wpdb->prepare(
@@ -153,6 +157,44 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                                     )
                                 );
 
+                                $basic_attended = 0;
+                                $premium_attended = 0;
+                                if ( $event_date_end ) {
+                                    $attendee_emails_sql = "
+                                        SELECT DISTINCT LOWER(a.email) AS email
+                                        FROM {$att_table} a
+                                        JOIN {$tickets_table} t ON a.ticket_id = t.id
+                                        WHERE t.event_ute_id = %s AND a.status = 'checked_in'
+                                        UNION ALL
+                                        SELECT DISTINCT LOWER(a.email) AS email
+                                        FROM {$att_archive} a
+                                        JOIN {$tickets_archive} t ON a.ticket_id = t.id
+                                        WHERE t.event_ute_id = %s AND a.status = 'checked_in'
+                                    ";
+
+                                    $basic_attended = (int) $wpdb->get_var(
+                                        $wpdb->prepare(
+                                            "SELECT COUNT(*) FROM ({$attendee_emails_sql}) attendee_emails
+                                                JOIN {$members_table} m ON LOWER(m.email) = attendee_emails.email
+                                                WHERE m.membership_level = 'basic' AND m.joined_at <= %s",
+                                            $event_ute_id,
+                                            $event_ute_id,
+                                            $event_date_end
+                                        )
+                                    );
+
+                                    $premium_attended = (int) $wpdb->get_var(
+                                        $wpdb->prepare(
+                                            "SELECT COUNT(*) FROM ({$attendee_emails_sql}) attendee_emails
+                                                JOIN {$members_table} m ON LOWER(m.email) = attendee_emails.email
+                                                WHERE m.membership_level = 'premium' AND m.joined_at <= %s",
+                                            $event_ute_id,
+                                            $event_ute_id,
+                                            $event_date_end
+                                        )
+                                    );
+                                }
+
                                 $event_metrics = tta_get_event_metrics( $event_ute_id );
                                 $revenue       = isset( $event_metrics['revenue'] ) ? (float) $event_metrics['revenue'] : 0;
                                 $refunds       = isset( $event_metrics['refunded_amount'] ) ? (float) $event_metrics['refunded_amount'] : 0;
@@ -160,6 +202,8 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                                 return [
                                     'total_signups'  => $total_signups,
                                     'total_attended' => $total_attended,
+                                    'basic_attended' => $basic_attended,
+                                    'premium_attended' => $premium_attended,
                                     'revenue'        => $revenue,
                                     'refunds'        => $refunds,
                                     'net_profit'     => $revenue - $refunds,
@@ -214,6 +258,24 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                                             <label><?php esc_html_e( 'Total Attended', 'tta' ); ?></label>
                                         </th>
                                         <td><?php echo esc_html( number_format_i18n( $metrics['total_attended'] ) ); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Checked-in attendees who were marked as Standard (Basic) members on their member record as of the event date.', 'tta' ); ?>" style="margin-left:4px;">
+                                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
+                                            </span>
+                                            <label><?php esc_html_e( 'Total Number of Standard Members', 'tta' ); ?></label>
+                                        </th>
+                                        <td><?php echo esc_html( number_format_i18n( $metrics['basic_attended'] ) ); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Checked-in attendees who were marked as Premium members on their member record as of the event date.', 'tta' ); ?>" style="margin-left:4px;">
+                                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
+                                            </span>
+                                            <label><?php esc_html_e( 'Total Number of Premium Members', 'tta' ); ?></label>
+                                        </th>
+                                        <td><?php echo esc_html( number_format_i18n( $metrics['premium_attended'] ) ); ?></td>
                                     </tr>
                                     <tr>
                                         <th>
