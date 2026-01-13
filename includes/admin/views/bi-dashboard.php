@@ -133,6 +133,9 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                 <option value="last_quarter"><?php esc_html_e( 'Last Quarter', 'tta' ); ?></option>
                 <option value="last_year"><?php esc_html_e( 'Last Year', 'tta' ); ?></option>
             </select>
+            <div class="tta-admin-progress-spinner-div tta-bi-compare-spinner">
+                <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" style="display:none; opacity:0;">
+            </div>
         </div>
 
         <div class="tta-bi-compare-section" aria-hidden="true">

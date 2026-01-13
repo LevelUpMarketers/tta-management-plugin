@@ -340,6 +340,11 @@ form p.submit{
   min-width: 220px;
 }
 
+#tta-bi-dashboard .tta-bi-compare-select .tta-admin-progress-spinner-div {
+  display: block;
+  margin-top: 8px;
+}
+
 #tta-bi-dashboard .tta-bi-compare-section {
   display: none;
   gap: 24px;

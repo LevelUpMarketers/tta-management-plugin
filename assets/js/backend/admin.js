@@ -488,11 +488,15 @@ jQuery(function($){
       return;
     }
 
+    var $spinner = $select.closest('.tta-bi-compare-select').find('.tta-admin-progress-spinner-svg');
+    $spinner.css({ opacity: 1, display: 'inline-block' });
+
     $.post(TTA_Ajax.ajax_url, {
       action: 'tta_bi_comparison_overview',
       nonce: TTA_Ajax.bi_comparison_overview_nonce,
       comparison: comparison
     }, function(res){
+      $spinner.fadeOut(200);
       if (!res || !res.success || !res.data) {
         return;
       }
@@ -514,7 +518,9 @@ jQuery(function($){
       $('.tta-bi-compare-column').last().find('.tta-bi-compare-heading').text(res.data.current_label || 'Current Period (to date)');
 
       $('.tta-bi-compare-section').addClass('is-visible').attr('aria-hidden', false);
-    }, 'json');
+    }, 'json').fail(function(){
+      $spinner.fadeOut(200);
+    });
   });
 
   // Email Logs tab
