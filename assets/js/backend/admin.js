@@ -465,6 +465,58 @@ jQuery(function($){
     });
   });
 
+  //
+  // BI Dashboard: comparison toggle and selector
+  //
+  $(document).on('change', '#tta-bi-compare-toggle', function(){
+    var $toggle = $(this);
+    var isChecked = $toggle.is(':checked');
+    var $selectWrap = $('.tta-bi-compare-select');
+    var $section = $('.tta-bi-compare-section');
+
+    $selectWrap.toggle(isChecked).attr('aria-hidden', !isChecked);
+    if (!isChecked) {
+      $section.removeClass('is-visible').attr('aria-hidden', true);
+      $('#tta-bi-compare-select').val('');
+    }
+  });
+
+  $(document).on('change', '#tta-bi-compare-select', function(){
+    var $select = $(this);
+    var comparison = $select.val();
+    if (!comparison) {
+      return;
+    }
+
+    $.post(TTA_Ajax.ajax_url, {
+      action: 'tta_bi_comparison_overview',
+      nonce: TTA_Ajax.bi_comparison_overview_nonce,
+      comparison: comparison
+    }, function(res){
+      if (!res || !res.success || !res.data) {
+        return;
+      }
+
+      var previous = res.data.previous || {};
+      var current = res.data.current || {};
+      $('.tta-bi-compare-value').each(function(){
+        var key = $(this).data('metric');
+        var side = $(this).data('compare-side');
+        if (side === 'previous' && previous[key] !== undefined) {
+          $(this).text(previous[key]);
+        }
+        if (side === 'current' && current[key] !== undefined) {
+          $(this).text(current[key]);
+        }
+      });
+
+      $('.tta-bi-compare-column').first().find('.tta-bi-compare-heading').text(res.data.previous_label || 'Previous Period');
+      $('.tta-bi-compare-column').last().find('.tta-bi-compare-heading').text(res.data.current_label || 'Current Period (to date)');
+
+      $('.tta-bi-compare-section').addClass('is-visible').attr('aria-hidden', false);
+    }, 'json');
+  });
+
   // Email Logs tab
   var $logs = $('#tta-email-logs');
   if ($logs.length) {

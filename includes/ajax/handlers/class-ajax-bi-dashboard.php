@@ -6,6 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class TTA_Ajax_BI_Dashboard {
     public static function init() {
         add_action( 'wp_ajax_tta_bi_monthly_overview', [ __CLASS__, 'monthly_overview' ] );
+        add_action( 'wp_ajax_tta_bi_comparison_overview', [ __CLASS__, 'comparison_overview' ] );
     }
 
     public static function monthly_overview() {
@@ -26,5 +27,24 @@ class TTA_Ajax_BI_Dashboard {
         $display = tta_format_bi_monthly_overview_metrics( $metrics );
 
         wp_send_json_success( [ 'metrics' => $display ] );
+    }
+
+    public static function comparison_overview() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( [ 'message' => __( 'Unauthorized.', 'tta' ) ], 403 );
+        }
+
+        check_ajax_referer( 'tta_bi_comparison_overview_action', 'nonce' );
+
+        $comparison = sanitize_text_field( $_POST['comparison'] ?? '' );
+        if ( ! in_array( $comparison, [ 'last_month', 'last_quarter', 'last_year' ], true ) ) {
+            wp_send_json_error( [ 'message' => __( 'Invalid comparison.', 'tta' ) ], 400 );
+        }
+
+        global $wpdb;
+        $table   = $wpdb->prefix . 'tta_events_archive';
+        $metrics = tta_get_bi_comparison_metrics( $table, $comparison );
+
+        wp_send_json_success( $metrics );
     }
 }

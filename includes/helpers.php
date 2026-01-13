@@ -6839,31 +6839,55 @@ function tta_get_event_metrics( $event_ute_id ) {
  * }
  */
 function tta_get_bi_monthly_overview_metrics( $events_table, $month = '' ) {
-    global $wpdb;
-
     $month = sanitize_text_field( $month );
     if ( ! preg_match( '/^\d{4}-\d{2}$/', $month ) ) {
         $month = gmdate( 'Y-m' );
     }
 
-    $cache_key = 'tta_bi_monthly_overview_' . md5( $events_table . '_' . $month );
+    $month_start = $month . '-01';
+    $month_end   = gmdate( 'Y-m-t', strtotime( $month_start ) );
+
+    return tta_get_bi_overview_metrics_for_range( $events_table, $month_start, $month_end );
+}
+
+/**
+ * Get aggregated BI metrics for archived events in a date range.
+ *
+ * @param string $events_table Archived events table name.
+ * @param string $start_date   Start date (Y-m-d).
+ * @param string $end_date     End date (Y-m-d).
+ * @return array{
+ *     total_events:int,
+ *     total_signups:int,
+ *     total_attended:int,
+ *     basic_attended:int,
+ *     premium_attended:int,
+ *     total_sales:float,
+ *     total_refunds:float,
+ *     net_profit:float
+ * }
+ */
+function tta_get_bi_overview_metrics_for_range( $events_table, $start_date, $end_date ) {
+    global $wpdb;
+
+    $start_date = sanitize_text_field( $start_date );
+    $end_date   = sanitize_text_field( $end_date );
+
+    $cache_key = 'tta_bi_overview_range_' . md5( $events_table . '_' . $start_date . '_' . $end_date );
     return TTA_Cache::remember(
         $cache_key,
-        function () use ( $wpdb, $events_table, $month ) {
+        function () use ( $wpdb, $events_table, $start_date, $end_date ) {
             $att_table       = $wpdb->prefix . 'tta_attendees';
             $att_archive     = $wpdb->prefix . 'tta_attendees_archive';
             $tickets_table   = $wpdb->prefix . 'tta_tickets';
             $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
             $members_table   = $wpdb->prefix . 'tta_members';
 
-            $month_start = $month . '-01';
-            $month_end   = gmdate( 'Y-m-t', strtotime( $month_start ) );
-
             $event_ids = $wpdb->get_col(
                 $wpdb->prepare(
                     "SELECT ute_id FROM {$events_table} WHERE date BETWEEN %s AND %s",
-                    $month_start,
-                    $month_end
+                    $start_date,
+                    $end_date
                 )
             );
             $event_ids = array_filter( array_map( 'sanitize_text_field', (array) $event_ids ) );
@@ -6981,6 +7005,82 @@ function tta_get_bi_monthly_overview_metrics( $events_table, $month = '' ) {
         },
         300
     );
+}
+
+/**
+ * Get comparison metrics for the BI dashboard.
+ *
+ * @param string      $events_table Archived events table name.
+ * @param string      $comparison   Comparison key (last_month|last_quarter|last_year).
+ * @param string|null $as_of_date   Date for "current" period (Y-m-d).
+ * @return array{
+ *     previous_label:string,
+ *     current_label:string,
+ *     previous:array,
+ *     current:array
+ * }
+ */
+function tta_get_bi_comparison_metrics( $events_table, $comparison, $as_of_date = null ) {
+    $comparison = sanitize_text_field( $comparison );
+    $as_of_date = $as_of_date ? sanitize_text_field( $as_of_date ) : gmdate( 'Y-m-d' );
+
+    if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $as_of_date ) ) {
+        $as_of_date = gmdate( 'Y-m-d' );
+    }
+
+    $as_of_ts = strtotime( $as_of_date . ' 23:59:59' );
+    $year     = (int) gmdate( 'Y', $as_of_ts );
+    $month    = (int) gmdate( 'n', $as_of_ts );
+
+    $current_start = '';
+    $current_end   = gmdate( 'Y-m-d', $as_of_ts );
+    $previous_start = '';
+    $previous_end   = '';
+    $previous_label = '';
+    $current_label  = '';
+
+    if ( 'last_month' === $comparison ) {
+        $current_start = gmdate( 'Y-m-01', $as_of_ts );
+        $prev_start_ts = strtotime( 'first day of last month', $as_of_ts );
+        $prev_end_ts   = strtotime( 'last day of last month', $as_of_ts );
+        $previous_start = gmdate( 'Y-m-d', $prev_start_ts );
+        $previous_end   = gmdate( 'Y-m-d', $prev_end_ts );
+        $previous_label = gmdate( 'F Y', $prev_start_ts );
+        $current_label  = gmdate( 'F Y', $as_of_ts ) . ' (to date)';
+    } elseif ( 'last_quarter' === $comparison ) {
+        $current_quarter = (int) ceil( $month / 3 );
+        $current_quarter_start_month = ( $current_quarter - 1 ) * 3 + 1;
+        $current_start = gmdate( 'Y-' . sprintf( '%02d', $current_quarter_start_month ) . '-01', $as_of_ts );
+
+        $previous_quarter = $current_quarter - 1;
+        $previous_year = $year;
+        if ( $previous_quarter < 1 ) {
+            $previous_quarter = 4;
+            $previous_year--;
+        }
+
+        $previous_start_month = ( $previous_quarter - 1 ) * 3 + 1;
+        $previous_start = gmdate( $previous_year . '-' . sprintf( '%02d', $previous_start_month ) . '-01' );
+        $previous_end   = gmdate( 'Y-m-t', strtotime( $previous_start . ' +2 months' ) );
+        $previous_label = sprintf( 'Q%d %d', $previous_quarter, $previous_year );
+        $current_label  = sprintf( 'Q%d %d (to date)', $current_quarter, $year );
+    } elseif ( 'last_year' === $comparison ) {
+        $current_start = gmdate( $year . '-01-01' );
+        $previous_start = gmdate( ( $year - 1 ) . '-01-01' );
+        $previous_end   = gmdate( ( $year - 1 ) . '-12-31' );
+        $previous_label = (string) ( $year - 1 );
+        $current_label  = (string) $year . ' (to date)';
+    }
+
+    $previous_metrics = tta_get_bi_overview_metrics_for_range( $events_table, $previous_start, $previous_end );
+    $current_metrics  = tta_get_bi_overview_metrics_for_range( $events_table, $current_start, $current_end );
+
+    return [
+        'previous_label' => $previous_label,
+        'current_label'  => $current_label,
+        'previous'       => tta_format_bi_monthly_overview_metrics( $previous_metrics ),
+        'current'        => tta_format_bi_monthly_overview_metrics( $current_metrics ),
+    ];
 }
 
 /**

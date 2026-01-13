@@ -118,6 +118,96 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
             </div>
         </div>
 
+        <div class="tta-bi-compare-toggle">
+            <label for="tta-bi-compare-toggle">
+                <input type="checkbox" id="tta-bi-compare-toggle">
+                <?php esc_html_e( 'Compare to...', 'tta' ); ?>
+            </label>
+        </div>
+
+        <div class="tta-bi-compare-select" aria-hidden="true">
+            <label for="tta-bi-compare-select" class="screen-reader-text"><?php esc_html_e( 'Select a Comparison Period', 'tta' ); ?></label>
+            <select id="tta-bi-compare-select">
+                <option value="" disabled selected><?php esc_html_e( 'Make a Selection...', 'tta' ); ?></option>
+                <option value="last_month"><?php esc_html_e( 'Last Month', 'tta' ); ?></option>
+                <option value="last_quarter"><?php esc_html_e( 'Last Quarter', 'tta' ); ?></option>
+                <option value="last_year"><?php esc_html_e( 'Last Year', 'tta' ); ?></option>
+            </select>
+        </div>
+
+        <div class="tta-bi-compare-section" aria-hidden="true">
+            <div class="tta-bi-compare-column">
+                <h4 class="tta-bi-compare-heading"><?php esc_html_e( 'Previous Period', 'tta' ); ?></h4>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Events', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="previous" data-metric="total_events">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="previous" data-metric="total_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number Actually Attended', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="previous" data-metric="total_attended">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Standard Members That Attended', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="previous" data-metric="basic_attended">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Premium Members That Attended', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="previous" data-metric="premium_attended">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Ticket Sales', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="previous" data-metric="total_sales">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Refunds Issued', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="previous" data-metric="total_refunds">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Net Profit', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="previous" data-metric="net_profit">—</span>
+                </div>
+            </div>
+            <div class="tta-bi-compare-column">
+                <h4 class="tta-bi-compare-heading"><?php esc_html_e( 'Current Period (to date)', 'tta' ); ?></h4>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Events', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="current" data-metric="total_events">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="current" data-metric="total_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number Actually Attended', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="current" data-metric="total_attended">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Standard Members That Attended', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="current" data-metric="basic_attended">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Premium Members That Attended', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="current" data-metric="premium_attended">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Ticket Sales', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="current" data-metric="total_sales">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Refunds Issued', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="current" data-metric="total_refunds">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Net Profit', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value" data-compare-side="current" data-metric="net_profit">—</span>
+                </div>
+            </div>
+        </div>
+
         <form method="get" class="tta-bi-search-sort">
             <input type="hidden" name="page" value="tta-bi-dashboard">
             <input type="hidden" name="tab" value="events">
