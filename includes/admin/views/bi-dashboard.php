@@ -132,6 +132,9 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                 <option value="last_month"><?php esc_html_e( 'Month-To-Date', 'tta' ); ?></option>
                 <option value="last_quarter"><?php esc_html_e( 'Quarter-To-Date', 'tta' ); ?></option>
                 <option value="last_year"><?php esc_html_e( 'Year-To-Date', 'tta' ); ?></option>
+                <option value="last_30_days"><?php esc_html_e( 'Last 30 Days', 'tta' ); ?></option>
+                <option value="last_90_days"><?php esc_html_e( 'Last 90 Days', 'tta' ); ?></option>
+                <option value="last_365_days"><?php esc_html_e( 'Last 365 Days', 'tta' ); ?></option>
             </select>
             <div class="tta-admin-progress-spinner-div tta-bi-compare-spinner">
                 <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" style="display:none; opacity:0;">

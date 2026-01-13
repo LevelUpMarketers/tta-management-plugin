@@ -37,7 +37,7 @@ class TTA_Ajax_BI_Dashboard {
         check_ajax_referer( 'tta_bi_comparison_overview_action', 'nonce' );
 
         $comparison = sanitize_text_field( $_POST['comparison'] ?? '' );
-        if ( ! in_array( $comparison, [ 'last_month', 'last_quarter', 'last_year' ], true ) ) {
+        if ( ! in_array( $comparison, [ 'last_month', 'last_quarter', 'last_year', 'last_30_days', 'last_90_days', 'last_365_days' ], true ) ) {
             wp_send_json_error( [ 'message' => __( 'Invalid comparison.', 'tta' ) ], 400 );
         }
 

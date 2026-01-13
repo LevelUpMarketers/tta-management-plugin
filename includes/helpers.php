@@ -7011,7 +7011,7 @@ function tta_get_bi_overview_metrics_for_range( $events_table, $start_date, $end
  * Get comparison metrics for the BI dashboard.
  *
  * @param string      $events_table Archived events table name.
- * @param string      $comparison   Comparison key (last_month|last_quarter|last_year).
+ * @param string      $comparison   Comparison key (last_month|last_quarter|last_year|last_30_days|last_90_days|last_365_days).
  * @param string|null $as_of_date   Date for "current" period (Y-m-d).
  * @return array{
  *     previous_label:string,
@@ -7070,6 +7070,14 @@ function tta_get_bi_comparison_metrics( $events_table, $comparison, $as_of_date 
         $previous_end   = gmdate( ( $year - 1 ) . '-12-31' );
         $previous_label = (string) ( $year - 1 );
         $current_label  = (string) $year . ' (to date)';
+    } elseif ( in_array( $comparison, [ 'last_30_days', 'last_90_days', 'last_365_days' ], true ) ) {
+        $days = (int) str_replace( [ 'last_', '_days' ], '', $comparison );
+        $current_start = gmdate( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days', $as_of_ts ) );
+        $previous_end_ts = strtotime( '-1 day', strtotime( $current_start ) );
+        $previous_start = gmdate( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days', $previous_end_ts ) );
+        $previous_end   = gmdate( 'Y-m-d', $previous_end_ts );
+        $previous_label = sprintf( __( 'Previous %d Days', 'tta' ), $days );
+        $current_label  = sprintf( __( 'Last %d Days', 'tta' ), $days );
     }
 
     $previous_metrics = tta_get_bi_overview_metrics_for_range( $events_table, $previous_start, $previous_end );
