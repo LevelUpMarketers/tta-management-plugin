@@ -147,6 +147,9 @@ class TTA_Assets {
                         $e['dashboard_past_url']    = home_url( '/member-dashboard/?tab=past' );
                         $e['dashboard_billing_url'] = home_url( '/member-dashboard/?tab=billing' );
                         $e['address_link']          = $e['address'] ? esc_url( 'https://maps.google.com/?q=' . rawurlencode( $e['address'] ) ) : '';
+                        $calendar_links             = tta_build_event_calendar_links( $e );
+                        $e['google_calendar_url']   = $calendar_links['google_calendar_url'];
+                        $e['ics_download_url']      = $calendar_links['ics_download_url'];
                         $e['date']                  = $e['date_formatted'];
                         $e['time']                  = $e['time_formatted'];
                         return $e;

@@ -327,6 +327,8 @@ class TTA_Comms_Admin {
             echo '<button type="button" class="button tta-insert-token" data-token="{event_address}">{event_address}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{event_address_link}">{event_address_link}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{event_link}">{event_link}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{event_google_calendar_link}">{event_google_calendar_link}</button> ';
+            echo '<button type="button" class="button tta-insert-token" data-token="{event_ics_download_link}">{event_ics_download_link}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{event_date}">{event_date}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{event_time}">{event_time}</button> ';
             echo '<button type="button" class="button tta-insert-token" data-token="{event_type}">{event_type}</button> ';
@@ -428,6 +430,8 @@ class TTA_Comms_Admin {
         echo '<button type="button" class="button tta-insert-token" data-token="{event_address}">{event_address}</button> ';
         echo '<button type="button" class="button tta-insert-token" data-token="{event_address_link}">{event_address_link}</button> ';
         echo '<button type="button" class="button tta-insert-token" data-token="{event_link}">{event_link}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{event_google_calendar_link}">{event_google_calendar_link}</button> ';
+        echo '<button type="button" class="button tta-insert-token" data-token="{event_ics_download_link}">{event_ics_download_link}</button> ';
         echo '<button type="button" class="button tta-insert-token" data-token="{event_date}">{event_date}</button> ';
         echo '<button type="button" class="button tta-insert-token" data-token="{event_time}">{event_time}</button> ';
         echo '<button type="button" class="button tta-insert-token" data-token="{event_type}">{event_type}</button> ';
@@ -646,4 +650,3 @@ class TTA_Comms_Admin {
         echo '</div>';
     }
 }
-
