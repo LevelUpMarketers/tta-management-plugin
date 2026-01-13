@@ -382,7 +382,7 @@ jQuery(function($){
   });
 
   //
-  // BI Dashboard: archived events accordion (placeholder content)
+  // BI Dashboard: archived events accordion
   //
   $(document).on('click', '.tta-bi-event-row', function(e){
     if ($(e.target).is('a, button, input, textarea, select')) {
@@ -392,6 +392,7 @@ jQuery(function($){
     var $row      = $(this);
     var $arrow    = $row.find('.tta-toggle-arrow');
     var colspan   = $row.find('td').length;
+    var eventId   = $row.data('bi-event-id');
     var $existing = $row.next('.tta-inline-row');
 
     if ($existing.length) {
@@ -412,6 +413,9 @@ jQuery(function($){
 
     $arrow.addClass('open');
 
+    var $template = $('#tta-bi-event-template-' + eventId);
+    var templateHtml = $template.length ? $template.html() : '';
+
     var $newRow = $(
       '<tr class="tta-inline-row">' +
         '<td colspan="' + colspan + '">' +
@@ -421,7 +425,7 @@ jQuery(function($){
     );
     $row.after($newRow);
 
-    $newRow.find('.tta-inline-container').fadeIn(200, function(){
+    $newRow.find('.tta-inline-container').html(templateHtml).fadeIn(200, function(){
       var offset = $newRow.offset().top;
       $('html, body').animate({ scrollTop: offset - 120 }, 300);
     });

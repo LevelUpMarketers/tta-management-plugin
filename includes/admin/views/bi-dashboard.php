@@ -99,6 +99,74 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
 
                         $page_id        = intval( $event['page_id'] );
                         $event_page_url = $page_id ? get_permalink( $page_id ) : '#';
+                        $event_ute_id   = sanitize_text_field( $event['ute_id'] ?? '' );
+                        $metrics        = TTA_Cache::remember(
+                            'tta_bi_event_metrics_' . $event_ute_id,
+                            function () use ( $wpdb, $event_ute_id ) {
+                                if ( '' === $event_ute_id ) {
+                                    return [
+                                        'total_signups'  => 0,
+                                        'total_attended' => 0,
+                                        'revenue'        => 0,
+                                        'refunds'        => 0,
+                                        'net_profit'     => 0,
+                                    ];
+                                }
+                                $att_table       = $wpdb->prefix . 'tta_attendees';
+                                $att_archive     = $wpdb->prefix . 'tta_attendees_archive';
+                                $tickets_table   = $wpdb->prefix . 'tta_tickets';
+                                $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
+
+                                $total_signups = (int) $wpdb->get_var(
+                                    $wpdb->prepare(
+                                        "SELECT COUNT(DISTINCT email) FROM (
+                                            SELECT LOWER(a.email) AS email
+                                            FROM {$att_table} a
+                                            JOIN {$tickets_table} t ON a.ticket_id = t.id
+                                            WHERE t.event_ute_id = %s
+                                            UNION ALL
+                                            SELECT LOWER(a.email) AS email
+                                            FROM {$att_archive} a
+                                            JOIN {$tickets_archive} t ON a.ticket_id = t.id
+                                            WHERE t.event_ute_id = %s
+                                        ) AS attendee_emails",
+                                        $event_ute_id,
+                                        $event_ute_id
+                                    )
+                                );
+
+                                $total_attended = (int) $wpdb->get_var(
+                                    $wpdb->prepare(
+                                        "SELECT COUNT(DISTINCT email) FROM (
+                                            SELECT LOWER(a.email) AS email
+                                            FROM {$att_table} a
+                                            JOIN {$tickets_table} t ON a.ticket_id = t.id
+                                            WHERE t.event_ute_id = %s AND a.status = 'checked_in'
+                                            UNION ALL
+                                            SELECT LOWER(a.email) AS email
+                                            FROM {$att_archive} a
+                                            JOIN {$tickets_archive} t ON a.ticket_id = t.id
+                                            WHERE t.event_ute_id = %s AND a.status = 'checked_in'
+                                        ) AS attendee_emails",
+                                        $event_ute_id,
+                                        $event_ute_id
+                                    )
+                                );
+
+                                $event_metrics = tta_get_event_metrics( $event_ute_id );
+                                $revenue       = isset( $event_metrics['revenue'] ) ? (float) $event_metrics['revenue'] : 0;
+                                $refunds       = isset( $event_metrics['refunded_amount'] ) ? (float) $event_metrics['refunded_amount'] : 0;
+
+                                return [
+                                    'total_signups'  => $total_signups,
+                                    'total_attended' => $total_attended,
+                                    'revenue'        => $revenue,
+                                    'refunds'        => $refunds,
+                                    'net_profit'     => $revenue - $refunds,
+                                ];
+                            },
+                            300
+                        );
                         ?>
                         <tr class="tta-bi-event-row" data-bi-event-id="<?php echo esc_attr( $event['id'] ); ?>">
                             <td><?php echo $img_html; ?></td>
@@ -126,6 +194,57 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                                     alt="<?php esc_attr_e( 'Toggle Details', 'tta' ); ?>">
                             </td>
                         </tr>
+                        <script type="text/template" id="tta-bi-event-template-<?php echo esc_attr( $event['id'] ); ?>">
+                            <table class="form-table">
+                                <tbody>
+                                    <tr>
+                                        <th>
+                                            <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Total unique people who claimed any ticket for this event, including refunded attendees.', 'tta' ); ?>" style="margin-left:4px;">
+                                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
+                                            </span>
+                                            <label><?php esc_html_e( 'Total Signups', 'tta' ); ?></label>
+                                        </th>
+                                        <td><?php echo esc_html( number_format_i18n( $metrics['total_signups'] ) ); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Total unique attendees marked as checked in for this event.', 'tta' ); ?>" style="margin-left:4px;">
+                                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
+                                            </span>
+                                            <label><?php esc_html_e( 'Total Attended', 'tta' ); ?></label>
+                                        </th>
+                                        <td><?php echo esc_html( number_format_i18n( $metrics['total_attended'] ) ); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Gross ticket sales for this event before refunds are applied.', 'tta' ); ?>" style="margin-left:4px;">
+                                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
+                                            </span>
+                                            <label><?php esc_html_e( 'Total Ticket Sales', 'tta' ); ?></label>
+                                        </th>
+                                        <td><?php echo esc_html( '$' . number_format_i18n( $metrics['revenue'], 2 ) ); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Total refunded amount issued for tickets associated with this event.', 'tta' ); ?>" style="margin-left:4px;">
+                                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
+                                            </span>
+                                            <label><?php esc_html_e( 'Total Refunds Issued', 'tta' ); ?></label>
+                                        </th>
+                                        <td><?php echo esc_html( '$' . number_format_i18n( $metrics['refunds'], 2 ) ); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            <span class="tta-tooltip-icon" data-tooltip="<?php esc_attr_e( 'Net profit after subtracting refunds from total ticket sales.', 'tta' ); ?>" style="margin-left:4px;">
+                                                <img src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/question.svg' ); ?>" alt="<?php esc_attr_e( 'Help', 'tta' ); ?>">
+                                            </span>
+                                            <label><?php esc_html_e( 'Net Profit', 'tta' ); ?></label>
+                                        </th>
+                                        <td><?php echo esc_html( '$' . number_format_i18n( $metrics['net_profit'], 2 ) ); ?></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </script>
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr><td colspan="7"><?php esc_html_e( 'No archived events found.', 'tta' ); ?></td></tr>
