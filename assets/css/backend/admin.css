@@ -543,13 +543,6 @@ form p.submit{
   }
 }
 
-/* BI Dashboard styling */
-.tta-bi-chart svg {font: 10px sans-serif; margin-bottom:20px;}
-.tta-bi-tooltip {position:absolute; background:#fff; border:1px solid #ccc; padding:4px 8px; font-size:12px; border-radius:4px; pointer-events:none; box-shadow:0 1px 3px rgba(0,0,0,0.2);}
-.tta-bi-legend {font-size:12px; margin-top:10px; padding-top:4px;}
-.tta-bi-legend span{display:inline-block;margin-right:10px;}
-
-
 /* Refund Requests page */
 .tta-refund-request summary {
   font-weight: 600;
