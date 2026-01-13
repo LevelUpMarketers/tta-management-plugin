@@ -431,6 +431,40 @@ jQuery(function($){
     });
   });
 
+  //
+  // BI Dashboard: monthly overview selector
+  //
+  $(document).on('change', '#tta-bi-month-selector', function(){
+    var $select = $(this);
+    var month = $select.val();
+    if (!month) {
+      return;
+    }
+
+    var $spinner = $select.closest('.tta-bi-month-selector').find('.tta-admin-progress-spinner-svg');
+    $spinner.css({ opacity: 1, display: 'inline-block' });
+
+    $.post(TTA_Ajax.ajax_url, {
+      action: 'tta_bi_monthly_overview',
+      nonce: TTA_Ajax.bi_monthly_overview_nonce,
+      month: month
+    }, function(res){
+      $spinner.fadeOut(200);
+      if (!res || !res.success || !res.data || !res.data.metrics) {
+        return;
+      }
+      var metrics = res.data.metrics;
+      $('.tta-bi-monthly-overview__value').each(function(){
+        var key = $(this).data('metric');
+        if (metrics[key] !== undefined) {
+          $(this).text(metrics[key]);
+        }
+      });
+    }, 'json').fail(function(){
+      $spinner.fadeOut(200);
+    });
+  });
+
   // Email Logs tab
   var $logs = $('#tta-email-logs');
   if ($logs.length) {

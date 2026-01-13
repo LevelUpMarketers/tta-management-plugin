@@ -4,7 +4,7 @@ The **TTA BI Dashboard** appears as its own menu item in the WordPress admin. Th
 
 ## Current State
 
-- **Event Revenue Info tab**: Lists archived events with a basic search/sort header and pagination. Rows expand accordion-style to show attendance and revenue metrics, including total signups, total attended, standard/premium member attendance (based on member records as of the event date), gross ticket sales, refunds issued, and net profit. A Monthly Overview section above the search controls aggregates the current month’s totals across archived events in that month.
+- **Event Revenue Info tab**: Lists archived events with a basic search/sort header and pagination. Rows expand accordion-style to show attendance and revenue metrics, including total signups, total attended, standard/premium member attendance (based on member records as of the event date), gross ticket sales, refunds issued, and net profit. A Monthly Overview section above the search controls aggregates the selected month’s totals across archived events, with a month selector that updates via AJAX.
 - **Members tab**: Placeholder only while new UI and data logic are rebuilt.
 - **Predictive Analytics tab**: Placeholder only while new UI and data logic are rebuilt.
 

@@ -305,6 +305,20 @@ form p.submit{
   font-size: 18px;
 }
 
+#tta-bi-dashboard .tta-bi-month-selector {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#tta-bi-dashboard .tta-bi-month-selector select {
+  min-width: 220px;
+}
+
+#tta-bi-dashboard .tta-bi-month-selector .tta-admin-progress-spinner-div {
+  display: block;
+  margin-top: 8px;
+}
+
 .tta-delete-new-ticket img, .tta-delete-ticket img{
     width: 15px;
     top: 2px;
