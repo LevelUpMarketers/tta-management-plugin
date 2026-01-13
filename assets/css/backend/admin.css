@@ -277,6 +277,34 @@ form p.submit{
   margin-left: 6px;
 }
 
+#tta-bi-dashboard .tta-bi-monthly-overview {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+#tta-bi-dashboard .tta-bi-monthly-overview__stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px 24px;
+}
+
+#tta-bi-dashboard .tta-bi-monthly-overview__stat {
+  display: inline-block;
+  min-width: 180px;
+}
+
+#tta-bi-dashboard .tta-bi-monthly-overview__label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+#tta-bi-dashboard .tta-bi-monthly-overview__value {
+  display: block;
+  font-size: 18px;
+}
+
 .tta-delete-new-ticket img, .tta-delete-ticket img{
     width: 15px;
     top: 2px;

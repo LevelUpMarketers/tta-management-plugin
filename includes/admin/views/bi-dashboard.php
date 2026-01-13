@@ -48,6 +48,181 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
             ARRAY_A
         );
         ?>
+        <?php
+        $current_month = gmdate( 'Y-m' );
+        $month_start   = gmdate( 'Y-m-01 00:00:00' );
+        $month_end     = gmdate( 'Y-m-t 23:59:59' );
+        $monthly_metrics = TTA_Cache::remember(
+            'tta_bi_monthly_overview_' . $current_month,
+            function () use ( $wpdb, $table, $month_start, $month_end ) {
+                $att_table       = $wpdb->prefix . 'tta_attendees';
+                $att_archive     = $wpdb->prefix . 'tta_attendees_archive';
+                $tickets_table   = $wpdb->prefix . 'tta_tickets';
+                $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
+                $members_table   = $wpdb->prefix . 'tta_members';
+
+                $event_ids = $wpdb->get_col(
+                    $wpdb->prepare(
+                        "SELECT ute_id FROM {$table} WHERE date BETWEEN %s AND %s",
+                        gmdate( 'Y-m-d', strtotime( $month_start ) ),
+                        gmdate( 'Y-m-d', strtotime( $month_end ) )
+                    )
+                );
+                $event_ids = array_filter( array_map( 'sanitize_text_field', (array) $event_ids ) );
+                if ( empty( $event_ids ) ) {
+                    return [
+                        'total_events'          => 0,
+                        'total_signups'         => 0,
+                        'total_attended'        => 0,
+                        'basic_attended'        => 0,
+                        'premium_attended'      => 0,
+                        'total_sales'           => 0,
+                        'total_refunds'         => 0,
+                        'net_profit'            => 0,
+                    ];
+                }
+
+                $placeholders = implode( ',', array_fill( 0, count( $event_ids ), '%s' ) );
+
+                $total_signups = (int) $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT COUNT(DISTINCT email) FROM (
+                            SELECT LOWER(a.email) AS email
+                            FROM {$att_table} a
+                            JOIN {$tickets_table} t ON a.ticket_id = t.id
+                            WHERE t.event_ute_id IN ({$placeholders})
+                            UNION ALL
+                            SELECT LOWER(a.email) AS email
+                            FROM {$att_archive} a
+                            JOIN {$tickets_archive} t ON a.ticket_id = t.id
+                            WHERE t.event_ute_id IN ({$placeholders})
+                        ) AS attendee_emails",
+                        array_merge( $event_ids, $event_ids )
+                    )
+                );
+
+                $total_attended = (int) $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT COUNT(DISTINCT email) FROM (
+                            SELECT LOWER(a.email) AS email
+                            FROM {$att_table} a
+                            JOIN {$tickets_table} t ON a.ticket_id = t.id
+                            WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                            UNION ALL
+                            SELECT LOWER(a.email) AS email
+                            FROM {$att_archive} a
+                            JOIN {$tickets_archive} t ON a.ticket_id = t.id
+                            WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                        ) AS attendee_emails",
+                        array_merge( $event_ids, $event_ids )
+                    )
+                );
+
+                $basic_attended = (int) $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT COUNT(DISTINCT attendee_emails.email)
+                         FROM (
+                            SELECT DISTINCT LOWER(a.email) AS email, e.date AS event_date
+                            FROM {$att_table} a
+                            JOIN {$tickets_table} t ON a.ticket_id = t.id
+                            JOIN {$table} e ON t.event_ute_id = e.ute_id
+                            WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                            UNION ALL
+                            SELECT DISTINCT LOWER(a.email) AS email, e.date AS event_date
+                            FROM {$att_archive} a
+                            JOIN {$tickets_archive} t ON a.ticket_id = t.id
+                            JOIN {$table} e ON t.event_ute_id = e.ute_id
+                            WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                         ) attendee_emails
+                         JOIN {$members_table} m ON LOWER(m.email) = attendee_emails.email
+                         WHERE m.membership_level = 'basic' AND m.joined_at <= CONCAT(attendee_emails.event_date, ' 23:59:59')",
+                        array_merge( $event_ids, $event_ids )
+                    )
+                );
+
+                $premium_attended = (int) $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT COUNT(DISTINCT attendee_emails.email)
+                         FROM (
+                            SELECT DISTINCT LOWER(a.email) AS email, e.date AS event_date
+                            FROM {$att_table} a
+                            JOIN {$tickets_table} t ON a.ticket_id = t.id
+                            JOIN {$table} e ON t.event_ute_id = e.ute_id
+                            WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                            UNION ALL
+                            SELECT DISTINCT LOWER(a.email) AS email, e.date AS event_date
+                            FROM {$att_archive} a
+                            JOIN {$tickets_archive} t ON a.ticket_id = t.id
+                            JOIN {$table} e ON t.event_ute_id = e.ute_id
+                            WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                         ) attendee_emails
+                         JOIN {$members_table} m ON LOWER(m.email) = attendee_emails.email
+                         WHERE m.membership_level = 'premium' AND m.joined_at <= CONCAT(attendee_emails.event_date, ' 23:59:59')",
+                        array_merge( $event_ids, $event_ids )
+                    )
+                );
+
+                $total_sales   = 0;
+                $total_refunds = 0;
+                foreach ( $event_ids as $event_id ) {
+                    $event_metrics = tta_get_event_metrics( $event_id );
+                    $total_sales   += isset( $event_metrics['revenue'] ) ? (float) $event_metrics['revenue'] : 0;
+                    $total_refunds += isset( $event_metrics['refunded_amount'] ) ? (float) $event_metrics['refunded_amount'] : 0;
+                }
+
+                return [
+                    'total_events'     => count( $event_ids ),
+                    'total_signups'    => $total_signups,
+                    'total_attended'   => $total_attended,
+                    'basic_attended'   => $basic_attended,
+                    'premium_attended' => $premium_attended,
+                    'total_sales'      => $total_sales,
+                    'total_refunds'    => $total_refunds,
+                    'net_profit'       => $total_sales - $total_refunds,
+                ];
+            },
+            300
+        );
+        ?>
+
+        <div class="tta-bi-monthly-overview">
+            <h3><?php esc_html_e( 'Monthly Overview', 'tta' ); ?></h3>
+            <div class="tta-bi-monthly-overview__stats">
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Events', 'tta' ); ?></span>
+                    <span class="tta-bi-monthly-overview__value"><?php echo esc_html( number_format_i18n( $monthly_metrics['total_events'] ) ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-monthly-overview__value"><?php echo esc_html( number_format_i18n( $monthly_metrics['total_signups'] ) ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number Actually Attended', 'tta' ); ?></span>
+                    <span class="tta-bi-monthly-overview__value"><?php echo esc_html( number_format_i18n( $monthly_metrics['total_attended'] ) ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Standard Members That Attended', 'tta' ); ?></span>
+                    <span class="tta-bi-monthly-overview__value"><?php echo esc_html( number_format_i18n( $monthly_metrics['basic_attended'] ) ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Premium Members That Attended', 'tta' ); ?></span>
+                    <span class="tta-bi-monthly-overview__value"><?php echo esc_html( number_format_i18n( $monthly_metrics['premium_attended'] ) ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Ticket Sales', 'tta' ); ?></span>
+                    <span class="tta-bi-monthly-overview__value"><?php echo esc_html( '$' . number_format_i18n( $monthly_metrics['total_sales'], 2 ) ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Refunds Issued', 'tta' ); ?></span>
+                    <span class="tta-bi-monthly-overview__value"><?php echo esc_html( '$' . number_format_i18n( $monthly_metrics['total_refunds'], 2 ) ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Net Profit', 'tta' ); ?></span>
+                    <span class="tta-bi-monthly-overview__value"><?php echo esc_html( '$' . number_format_i18n( $monthly_metrics['net_profit'], 2 ) ); ?></span>
+                </div>
+            </div>
+        </div>
+
         <form method="get" class="tta-bi-search-sort">
             <input type="hidden" name="page" value="tta-bi-dashboard">
             <input type="hidden" name="tab" value="events">
