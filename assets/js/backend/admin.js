@@ -381,6 +381,52 @@ jQuery(function($){
     }, 'json');
   });
 
+  //
+  // BI Dashboard: archived events accordion (placeholder content)
+  //
+  $(document).on('click', '.tta-bi-event-row', function(e){
+    if ($(e.target).is('a, button, input, textarea, select')) {
+      return;
+    }
+
+    var $row      = $(this);
+    var $arrow    = $row.find('.tta-toggle-arrow');
+    var colspan   = $row.find('td').length;
+    var $existing = $row.next('.tta-inline-row');
+
+    if ($existing.length) {
+      $arrow.removeClass('open');
+      $existing.find('.tta-inline-container').fadeOut(200, function(){
+        $existing.remove();
+      });
+      return;
+    }
+
+    $('.tta-inline-row').each(function(){
+      var $otherRow = $(this).prev('tr');
+      $otherRow.find('.tta-toggle-arrow').removeClass('open');
+      $(this).find('.tta-inline-container').fadeOut(200, function(){
+        $(this).closest('.tta-inline-row').remove();
+      });
+    });
+
+    $arrow.addClass('open');
+
+    var $newRow = $(
+      '<tr class="tta-inline-row">' +
+        '<td colspan="' + colspan + '">' +
+          '<div class="tta-inline-container tta-bi-inline-container" style="display:none;"></div>' +
+        '</td>' +
+      '</tr>'
+    );
+    $row.after($newRow);
+
+    $newRow.find('.tta-inline-container').fadeIn(200, function(){
+      var offset = $newRow.offset().top;
+      $('html, body').animate({ scrollTop: offset - 120 }, 300);
+    });
+  });
+
   // Email Logs tab
   var $logs = $('#tta-email-logs');
   if ($logs.length) {

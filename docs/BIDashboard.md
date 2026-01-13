@@ -4,7 +4,7 @@ The **TTA BI Dashboard** appears as its own menu item in the WordPress admin. Th
 
 ## Current State
 
-- **Events tab**: Placeholder only while new UI and data logic are rebuilt.
+- **Event Revenue Info tab**: Lists archived events with a basic search/sort header and pagination. Rows expand accordion-style, but the detail panel is intentionally blank while the revenue layout is rebuilt.
 - **Members tab**: Placeholder only while new UI and data logic are rebuilt.
 - **Predictive Analytics tab**: Placeholder only while new UI and data logic are rebuilt.
 

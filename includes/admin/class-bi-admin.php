@@ -23,7 +23,7 @@ class TTA_BI_Admin {
     public function render_page() {
         $tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'events';
         $tabs = [
-            'events'   => 'Event Sales & Tickets',
+            'events'   => 'Event Revenue Info',
             'members'  => 'Membership Metrics',
             'predict'  => 'Predictive Analytics',
         ];
