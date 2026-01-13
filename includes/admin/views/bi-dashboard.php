@@ -129,9 +129,9 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
             <label for="tta-bi-compare-select" class="screen-reader-text"><?php esc_html_e( 'Select a Comparison Period', 'tta' ); ?></label>
             <select id="tta-bi-compare-select">
                 <option value="" disabled selected><?php esc_html_e( 'Make a Selection...', 'tta' ); ?></option>
-                <option value="last_month"><?php esc_html_e( 'Last Month', 'tta' ); ?></option>
-                <option value="last_quarter"><?php esc_html_e( 'Last Quarter', 'tta' ); ?></option>
-                <option value="last_year"><?php esc_html_e( 'Last Year', 'tta' ); ?></option>
+                <option value="last_month"><?php esc_html_e( 'Month-To-Date', 'tta' ); ?></option>
+                <option value="last_quarter"><?php esc_html_e( 'Quarter-To-Date', 'tta' ); ?></option>
+                <option value="last_year"><?php esc_html_e( 'Year-To-Date', 'tta' ); ?></option>
             </select>
             <div class="tta-admin-progress-spinner-div tta-bi-compare-spinner">
                 <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" style="display:none; opacity:0;">
