@@ -488,7 +488,7 @@ jQuery(function($){
         return;
       }
       var metrics = res.data.metrics;
-      $('.tta-bi-members-monthly-overview__value').each(function(){
+      $('.tta-bi-members-monthly-overview .tta-bi-members-monthly-overview__value').each(function(){
         var key = $(this).data('metric');
         if (metrics[key] !== undefined) {
           $(this).text(metrics[key]);

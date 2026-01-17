@@ -553,7 +553,7 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
         }
         ?>
 
-        <div class="tta-bi-monthly-overview">
+        <div class="tta-bi-monthly-overview tta-bi-members-metrics">
             <h3><?php esc_html_e( 'Member Metrics', 'tta' ); ?></h3>
             <div class="tta-bi-monthly-overview__stats">
                 <div class="tta-bi-monthly-overview__stat">
@@ -575,7 +575,7 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
             </div>
         </div>
 
-        <div class="tta-bi-monthly-overview">
+        <div class="tta-bi-monthly-overview tta-bi-members-monthly-overview">
             <h3><?php esc_html_e( 'Monthly Overview', 'tta' ); ?></h3>
             <div class="tta-bi-monthly-overview__stats">
                 <div class="tta-bi-monthly-overview__stat">
