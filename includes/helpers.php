@@ -6823,6 +6823,294 @@ function tta_get_event_metrics( $event_ute_id ) {
 }
 
 /**
+ * Get aggregated BI metrics for archived events in a given month.
+ *
+ * @param string $events_table Archived events table name.
+ * @param string $month        Month in YYYY-MM format.
+ * @return array{
+ *     total_events:int,
+ *     total_signups:int,
+ *     total_attended:int,
+ *     basic_attended:int,
+ *     premium_attended:int,
+ *     total_sales:float,
+ *     total_refunds:float,
+ *     net_profit:float
+ * }
+ */
+function tta_get_bi_monthly_overview_metrics( $events_table, $month = '' ) {
+    $month = sanitize_text_field( $month );
+    if ( ! preg_match( '/^\d{4}-\d{2}$/', $month ) ) {
+        $month = gmdate( 'Y-m' );
+    }
+
+    $month_start = $month . '-01';
+    $month_end   = gmdate( 'Y-m-t', strtotime( $month_start ) );
+
+    return tta_get_bi_overview_metrics_for_range( $events_table, $month_start, $month_end );
+}
+
+/**
+ * Get aggregated BI metrics for archived events in a date range.
+ *
+ * @param string $events_table Archived events table name.
+ * @param string $start_date   Start date (Y-m-d).
+ * @param string $end_date     End date (Y-m-d).
+ * @return array{
+ *     total_events:int,
+ *     total_signups:int,
+ *     total_attended:int,
+ *     basic_attended:int,
+ *     premium_attended:int,
+ *     total_sales:float,
+ *     total_refunds:float,
+ *     net_profit:float
+ * }
+ */
+function tta_get_bi_overview_metrics_for_range( $events_table, $start_date, $end_date ) {
+    global $wpdb;
+
+    $start_date = sanitize_text_field( $start_date );
+    $end_date   = sanitize_text_field( $end_date );
+
+    $cache_key = 'tta_bi_overview_range_' . md5( $events_table . '_' . $start_date . '_' . $end_date );
+    return TTA_Cache::remember(
+        $cache_key,
+        function () use ( $wpdb, $events_table, $start_date, $end_date ) {
+            $att_table       = $wpdb->prefix . 'tta_attendees';
+            $att_archive     = $wpdb->prefix . 'tta_attendees_archive';
+            $tickets_table   = $wpdb->prefix . 'tta_tickets';
+            $tickets_archive = $wpdb->prefix . 'tta_tickets_archive';
+            $members_table   = $wpdb->prefix . 'tta_members';
+
+            $event_ids = $wpdb->get_col(
+                $wpdb->prepare(
+                    "SELECT ute_id FROM {$events_table} WHERE date BETWEEN %s AND %s",
+                    $start_date,
+                    $end_date
+                )
+            );
+            $event_ids = array_filter( array_map( 'sanitize_text_field', (array) $event_ids ) );
+            if ( empty( $event_ids ) ) {
+                return [
+                    'total_events'     => 0,
+                    'total_signups'    => 0,
+                    'total_attended'   => 0,
+                    'basic_attended'   => 0,
+                    'premium_attended' => 0,
+                    'total_sales'      => 0,
+                    'total_refunds'    => 0,
+                    'net_profit'       => 0,
+                ];
+            }
+
+            $placeholders = implode( ',', array_fill( 0, count( $event_ids ), '%s' ) );
+
+            $total_signups = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT email) FROM (
+                        SELECT LOWER(a.email) AS email
+                        FROM {$att_table} a
+                        JOIN {$tickets_table} t ON a.ticket_id = t.id
+                        WHERE t.event_ute_id IN ({$placeholders})
+                        UNION ALL
+                        SELECT LOWER(a.email) AS email
+                        FROM {$att_archive} a
+                        JOIN {$tickets_archive} t ON a.ticket_id = t.id
+                        WHERE t.event_ute_id IN ({$placeholders})
+                    ) AS attendee_emails",
+                    array_merge( $event_ids, $event_ids )
+                )
+            );
+
+            $total_attended = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT email) FROM (
+                        SELECT LOWER(a.email) AS email
+                        FROM {$att_table} a
+                        JOIN {$tickets_table} t ON a.ticket_id = t.id
+                        WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                        UNION ALL
+                        SELECT LOWER(a.email) AS email
+                        FROM {$att_archive} a
+                        JOIN {$tickets_archive} t ON a.ticket_id = t.id
+                        WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                    ) AS attendee_emails",
+                    array_merge( $event_ids, $event_ids )
+                )
+            );
+
+            $basic_attended = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT attendee_emails.email)
+                     FROM (
+                        SELECT DISTINCT LOWER(a.email) AS email, e.date AS event_date
+                        FROM {$att_table} a
+                        JOIN {$tickets_table} t ON a.ticket_id = t.id
+                        JOIN {$events_table} e ON t.event_ute_id = e.ute_id
+                        WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                        UNION ALL
+                        SELECT DISTINCT LOWER(a.email) AS email, e.date AS event_date
+                        FROM {$att_archive} a
+                        JOIN {$tickets_archive} t ON a.ticket_id = t.id
+                        JOIN {$events_table} e ON t.event_ute_id = e.ute_id
+                        WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                     ) attendee_emails
+                     JOIN {$members_table} m ON LOWER(m.email) = attendee_emails.email
+                     WHERE m.membership_level = 'basic' AND m.joined_at <= CONCAT(attendee_emails.event_date, ' 23:59:59')",
+                    array_merge( $event_ids, $event_ids )
+                )
+            );
+
+            $premium_attended = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT attendee_emails.email)
+                     FROM (
+                        SELECT DISTINCT LOWER(a.email) AS email, e.date AS event_date
+                        FROM {$att_table} a
+                        JOIN {$tickets_table} t ON a.ticket_id = t.id
+                        JOIN {$events_table} e ON t.event_ute_id = e.ute_id
+                        WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                        UNION ALL
+                        SELECT DISTINCT LOWER(a.email) AS email, e.date AS event_date
+                        FROM {$att_archive} a
+                        JOIN {$tickets_archive} t ON a.ticket_id = t.id
+                        JOIN {$events_table} e ON t.event_ute_id = e.ute_id
+                        WHERE t.event_ute_id IN ({$placeholders}) AND a.status = 'checked_in'
+                     ) attendee_emails
+                     JOIN {$members_table} m ON LOWER(m.email) = attendee_emails.email
+                     WHERE m.membership_level = 'premium' AND m.joined_at <= CONCAT(attendee_emails.event_date, ' 23:59:59')",
+                    array_merge( $event_ids, $event_ids )
+                )
+            );
+
+            $total_sales   = 0;
+            $total_refunds = 0;
+            foreach ( $event_ids as $event_id ) {
+                $event_metrics = tta_get_event_metrics( $event_id );
+                $total_sales   += isset( $event_metrics['revenue'] ) ? (float) $event_metrics['revenue'] : 0;
+                $total_refunds += isset( $event_metrics['refunded_amount'] ) ? (float) $event_metrics['refunded_amount'] : 0;
+            }
+
+            return [
+                'total_events'     => count( $event_ids ),
+                'total_signups'    => $total_signups,
+                'total_attended'   => $total_attended,
+                'basic_attended'   => $basic_attended,
+                'premium_attended' => $premium_attended,
+                'total_sales'      => $total_sales,
+                'total_refunds'    => $total_refunds,
+                'net_profit'       => $total_sales - $total_refunds,
+            ];
+        },
+        300
+    );
+}
+
+/**
+ * Get comparison metrics for the BI dashboard.
+ *
+ * @param string      $events_table Archived events table name.
+ * @param string      $comparison   Comparison key (last_month|last_quarter|last_year|last_30_days|last_90_days|last_365_days).
+ * @param string|null $as_of_date   Date for "current" period (Y-m-d).
+ * @return array{
+ *     previous_label:string,
+ *     current_label:string,
+ *     previous:array,
+ *     current:array
+ * }
+ */
+function tta_get_bi_comparison_metrics( $events_table, $comparison, $as_of_date = null ) {
+    $comparison = sanitize_text_field( $comparison );
+    $as_of_date = $as_of_date ? sanitize_text_field( $as_of_date ) : gmdate( 'Y-m-d' );
+
+    if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $as_of_date ) ) {
+        $as_of_date = gmdate( 'Y-m-d' );
+    }
+
+    $as_of_ts = strtotime( $as_of_date . ' 23:59:59' );
+    $year     = (int) gmdate( 'Y', $as_of_ts );
+    $month    = (int) gmdate( 'n', $as_of_ts );
+
+    $current_start = '';
+    $current_end   = gmdate( 'Y-m-d', $as_of_ts );
+    $previous_start = '';
+    $previous_end   = '';
+    $previous_label = '';
+    $current_label  = '';
+
+    if ( 'last_month' === $comparison ) {
+        $current_start = gmdate( 'Y-m-01', $as_of_ts );
+        $prev_start_ts = strtotime( 'first day of last month', $as_of_ts );
+        $prev_end_ts   = strtotime( 'last day of last month', $as_of_ts );
+        $previous_start = gmdate( 'Y-m-d', $prev_start_ts );
+        $previous_end   = gmdate( 'Y-m-d', $prev_end_ts );
+        $previous_label = gmdate( 'F Y', $prev_start_ts );
+        $current_label  = gmdate( 'F Y', $as_of_ts ) . ' (to date)';
+    } elseif ( 'last_quarter' === $comparison ) {
+        $current_quarter = (int) ceil( $month / 3 );
+        $current_quarter_start_month = ( $current_quarter - 1 ) * 3 + 1;
+        $current_start = gmdate( 'Y-' . sprintf( '%02d', $current_quarter_start_month ) . '-01', $as_of_ts );
+
+        $previous_quarter = $current_quarter - 1;
+        $previous_year = $year;
+        if ( $previous_quarter < 1 ) {
+            $previous_quarter = 4;
+            $previous_year--;
+        }
+
+        $previous_start_month = ( $previous_quarter - 1 ) * 3 + 1;
+        $previous_start = gmdate( $previous_year . '-' . sprintf( '%02d', $previous_start_month ) . '-01' );
+        $previous_end   = gmdate( 'Y-m-t', strtotime( $previous_start . ' +2 months' ) );
+        $previous_label = sprintf( 'Q%d %d', $previous_quarter, $previous_year );
+        $current_label  = sprintf( 'Q%d %d (to date)', $current_quarter, $year );
+    } elseif ( 'last_year' === $comparison ) {
+        $current_start = gmdate( $year . '-01-01' );
+        $previous_start = gmdate( ( $year - 1 ) . '-01-01' );
+        $previous_end   = gmdate( ( $year - 1 ) . '-12-31' );
+        $previous_label = (string) ( $year - 1 );
+        $current_label  = (string) $year . ' (to date)';
+    } elseif ( in_array( $comparison, [ 'last_30_days', 'last_90_days', 'last_365_days' ], true ) ) {
+        $days = (int) str_replace( [ 'last_', '_days' ], '', $comparison );
+        $current_start = gmdate( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days', $as_of_ts ) );
+        $previous_end_ts = strtotime( '-1 day', strtotime( $current_start ) );
+        $previous_start = gmdate( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days', $previous_end_ts ) );
+        $previous_end   = gmdate( 'Y-m-d', $previous_end_ts );
+        $previous_label = sprintf( __( 'Previous %d Days', 'tta' ), $days );
+        $current_label  = sprintf( __( 'Last %d Days', 'tta' ), $days );
+    }
+
+    $previous_metrics = tta_get_bi_overview_metrics_for_range( $events_table, $previous_start, $previous_end );
+    $current_metrics  = tta_get_bi_overview_metrics_for_range( $events_table, $current_start, $current_end );
+
+    return [
+        'previous_label' => $previous_label,
+        'current_label'  => $current_label,
+        'previous'       => tta_format_bi_monthly_overview_metrics( $previous_metrics ),
+        'current'        => tta_format_bi_monthly_overview_metrics( $current_metrics ),
+    ];
+}
+
+/**
+ * Format BI monthly overview metrics for display.
+ *
+ * @param array $metrics Raw metrics array.
+ * @return array<string,string>
+ */
+function tta_format_bi_monthly_overview_metrics( array $metrics ) {
+    return [
+        'total_events'     => number_format_i18n( (int) ( $metrics['total_events'] ?? 0 ) ),
+        'total_signups'    => number_format_i18n( (int) ( $metrics['total_signups'] ?? 0 ) ),
+        'total_attended'   => number_format_i18n( (int) ( $metrics['total_attended'] ?? 0 ) ),
+        'basic_attended'   => number_format_i18n( (int) ( $metrics['basic_attended'] ?? 0 ) ),
+        'premium_attended' => number_format_i18n( (int) ( $metrics['premium_attended'] ?? 0 ) ),
+        'total_sales'      => '$' . number_format_i18n( (float) ( $metrics['total_sales'] ?? 0 ), 2 ),
+        'total_refunds'    => '$' . number_format_i18n( (float) ( $metrics['total_refunds'] ?? 0 ), 2 ),
+        'net_profit'       => '$' . number_format_i18n( (float) ( $metrics['net_profit'] ?? 0 ), 2 ),
+    ];
+}
+
+/**
  * Export event metrics to an Excel spreadsheet.
  *
  * @param string $start_date Optional start date Y-m-d.

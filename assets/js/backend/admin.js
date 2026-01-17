@@ -381,6 +381,148 @@ jQuery(function($){
     }, 'json');
   });
 
+  //
+  // BI Dashboard: archived events accordion
+  //
+  $(document).on('click', '.tta-bi-event-row', function(e){
+    if ($(e.target).is('a, button, input, textarea, select')) {
+      return;
+    }
+
+    var $row      = $(this);
+    var $arrow    = $row.find('.tta-toggle-arrow');
+    var colspan   = $row.find('td').length;
+    var eventId   = $row.data('bi-event-id');
+    var $existing = $row.next('.tta-inline-row');
+
+    if ($existing.length) {
+      $arrow.removeClass('open');
+      $existing.find('.tta-inline-container').fadeOut(200, function(){
+        $existing.remove();
+      });
+      return;
+    }
+
+    $('.tta-inline-row').each(function(){
+      var $otherRow = $(this).prev('tr');
+      $otherRow.find('.tta-toggle-arrow').removeClass('open');
+      $(this).find('.tta-inline-container').fadeOut(200, function(){
+        $(this).closest('.tta-inline-row').remove();
+      });
+    });
+
+    $arrow.addClass('open');
+
+    var $template = $('#tta-bi-event-template-' + eventId);
+    var templateHtml = $template.length ? $template.html() : '';
+
+    var $newRow = $(
+      '<tr class="tta-inline-row">' +
+        '<td colspan="' + colspan + '">' +
+          '<div class="tta-inline-container tta-bi-inline-container" style="display:none;"></div>' +
+        '</td>' +
+      '</tr>'
+    );
+    $row.after($newRow);
+
+    $newRow.find('.tta-inline-container').html(templateHtml).fadeIn(200, function(){
+      var offset = $newRow.offset().top;
+      $('html, body').animate({ scrollTop: offset - 120 }, 300);
+    });
+  });
+
+  //
+  // BI Dashboard: monthly overview selector
+  //
+  $(document).on('change', '#tta-bi-month-selector', function(){
+    var $select = $(this);
+    var month = $select.val();
+    if (!month) {
+      return;
+    }
+
+    var $spinner = $select.closest('.tta-bi-month-selector').find('.tta-admin-progress-spinner-svg');
+    $spinner.css({ opacity: 1, display: 'inline-block' });
+
+    $.post(TTA_Ajax.ajax_url, {
+      action: 'tta_bi_monthly_overview',
+      nonce: TTA_Ajax.bi_monthly_overview_nonce,
+      month: month
+    }, function(res){
+      $spinner.fadeOut(200);
+      if (!res || !res.success || !res.data || !res.data.metrics) {
+        return;
+      }
+      var metrics = res.data.metrics;
+      $('.tta-bi-monthly-overview__value').each(function(){
+        var key = $(this).data('metric');
+        if (metrics[key] !== undefined) {
+          $(this).text(metrics[key]);
+        }
+      });
+    }, 'json').fail(function(){
+      $spinner.fadeOut(200);
+    });
+  });
+
+  //
+  // BI Dashboard: comparison toggle and selector
+  //
+  $(document).on('change', '#tta-bi-compare-toggle', function(){
+    var $toggle = $(this);
+    var isChecked = $toggle.is(':checked');
+    var $selectWrap = $('.tta-bi-compare-select');
+    var $section = $('.tta-bi-compare-section');
+
+    $selectWrap.toggle(isChecked).attr('aria-hidden', !isChecked);
+    if (!isChecked) {
+      $section.removeClass('is-visible').attr('aria-hidden', true);
+      $('#tta-bi-compare-select').val('');
+    }
+  });
+
+  $(document).on('change', '#tta-bi-compare-select', function(){
+    var $select = $(this);
+    var comparison = $select.val();
+    if (!comparison) {
+      return;
+    }
+
+    var $spinner = $select.closest('.tta-bi-compare-select').find('.tta-admin-progress-spinner-svg');
+    $spinner.css({ opacity: 1, display: 'inline-block' });
+
+    $.post(TTA_Ajax.ajax_url, {
+      action: 'tta_bi_comparison_overview',
+      nonce: TTA_Ajax.bi_comparison_overview_nonce,
+      comparison: comparison
+    }, function(res){
+      $spinner.fadeOut(200);
+      if (!res || !res.success || !res.data) {
+        return;
+      }
+
+      var previous = res.data.previous || {};
+      var current = res.data.current || {};
+      $('.tta-bi-compare-value').each(function(){
+        var key = $(this).data('metric');
+        var side = $(this).data('compare-side');
+        if (side === 'previous' && previous[key] !== undefined) {
+          $(this).text(previous[key]);
+        }
+        if (side === 'current' && current[key] !== undefined) {
+          $(this).text(current[key]);
+        }
+      });
+
+      $('.tta-bi-compare-column').first().find('.tta-bi-compare-heading').text(res.data.previous_label || 'Previous Period');
+      $('.tta-bi-compare-column').last().find('.tta-bi-compare-heading').text(res.data.current_label || 'Current Period (to date)');
+
+      $('.tta-bi-compare-section').addClass('is-visible').attr('aria-hidden', false);
+    }, 'json').fail(function(){
+      $spinner.fadeOut(200);
+    });
+  });
+
   // Email Logs tab
   var $logs = $('#tta-email-logs');
   if ($logs.length) {

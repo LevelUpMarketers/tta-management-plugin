@@ -28,7 +28,7 @@ class TTA_Assets {
      */
     public static function enqueue_backend_assets( $hook_suffix ) {
         $page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
-        if ( in_array( $page, [ 'tta-events','tta-members','tta-tickets','tta-comms','tta-ads','tta-venues','tta-refund-requests','tta-settings','tta-partners' ], true ) ) {
+        if ( in_array( $page, [ 'tta-events', 'tta-members', 'tta-tickets', 'tta-comms', 'tta-ads', 'tta-venues', 'tta-refund-requests', 'tta-settings', 'tta-partners', 'tta-bi-dashboard' ], true ) ) {
 
             // 1) Make sure the full TinyMCE / Quicktags / editor CSS are loaded:
             if ( function_exists( 'wp_enqueue_editor' ) ) {
@@ -131,6 +131,8 @@ class TTA_Assets {
                     'attendee_admin_nonce' => wp_create_nonce( 'tta_attendee_admin_action' ),
                     'waitlist_admin_nonce' => wp_create_nonce( 'tta_waitlist_admin_action' ),
                     'authnet_test_nonce'   => wp_create_nonce( 'tta_authnet_test_action' ),
+                    'bi_monthly_overview_nonce' => wp_create_nonce( 'tta_bi_monthly_overview_action' ),
+                    'bi_comparison_overview_nonce' => wp_create_nonce( 'tta_bi_comparison_overview_action' ),
                     'email_logs_nonce'    => wp_create_nonce( 'tta_email_logs_action' ),
                     'email_log_clear_nonce' => wp_create_nonce( 'tta_email_clear_action' ),
                     'banned_members_nonce' => wp_create_nonce( 'tta_banned_members_action' ),
