@@ -566,6 +566,65 @@ jQuery(function($){
     });
   });
 
+  //
+  // BI Dashboard: membership comparison toggle and selector
+  //
+  $(document).on('change', '#tta-bi-members-compare-toggle', function(){
+    var $toggle = $(this);
+    var isChecked = $toggle.is(':checked');
+    var $selectWrap = $('.tta-bi-members-compare-select');
+    var $section = $('.tta-bi-members-compare-section');
+
+    $selectWrap.toggle(isChecked).attr('aria-hidden', !isChecked);
+    if (!isChecked) {
+      $section.removeClass('is-visible').attr('aria-hidden', true);
+      $('#tta-bi-members-compare-select').val('');
+    }
+  });
+
+  $(document).on('change', '#tta-bi-members-compare-select', function(){
+    var $select = $(this);
+    var comparison = $select.val();
+    if (!comparison) {
+      return;
+    }
+
+    var $spinner = $select.closest('.tta-bi-members-compare-select').find('.tta-admin-progress-spinner-svg');
+    $spinner.css({ opacity: 1, display: 'inline-block' });
+
+    $.post(TTA_Ajax.ajax_url, {
+      action: 'tta_bi_members_comparison_overview',
+      nonce: TTA_Ajax.bi_members_comparison_overview_nonce,
+      comparison: comparison
+    }, function(res){
+      $spinner.fadeOut(200);
+      if (!res || !res.success || !res.data) {
+        return;
+      }
+
+      var previous = res.data.previous || {};
+      var current = res.data.current || {};
+      $('.tta-bi-members-compare-value').each(function(){
+        var key = $(this).data('metric');
+        var side = $(this).data('compare-side');
+        if (side === 'previous' && previous[key] !== undefined) {
+          $(this).text(previous[key]);
+        }
+        if (side === 'current' && current[key] !== undefined) {
+          $(this).text(current[key]);
+        }
+      });
+
+      var $columns = $('.tta-bi-members-compare-section .tta-bi-members-compare-heading');
+      $columns.first().text(res.data.previous_label || 'Previous Period');
+      $columns.last().text(res.data.current_label || 'Current Period (to date)');
+
+      $('.tta-bi-members-compare-section').addClass('is-visible').attr('aria-hidden', false);
+    }, 'json').fail(function(){
+      $spinner.fadeOut(200);
+    });
+  });
+
   // Email Logs tab
   var $logs = $('#tta-email-logs');
   if ($logs.length) {

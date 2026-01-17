@@ -7388,6 +7388,89 @@ function tta_get_bi_comparison_metrics( $events_table, $comparison, $as_of_date 
 }
 
 /**
+ * Get comparison metrics for the membership BI dashboard.
+ *
+ * @param string      $comparison Comparison key (last_month|last_quarter|last_year|last_30_days|last_90_days|last_365_days).
+ * @param string|null $as_of_date Date for "current" period (Y-m-d).
+ * @return array{
+ *     previous_label:string,
+ *     current_label:string,
+ *     previous:array<string,string>,
+ *     current:array<string,string>
+ * }
+ */
+function tta_get_bi_membership_comparison_metrics( $comparison, $as_of_date = null ) {
+    $comparison = sanitize_text_field( $comparison );
+    $as_of_date = $as_of_date ? sanitize_text_field( $as_of_date ) : gmdate( 'Y-m-d' );
+
+    if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $as_of_date ) ) {
+        $as_of_date = gmdate( 'Y-m-d' );
+    }
+
+    $as_of_ts = strtotime( $as_of_date . ' 23:59:59' );
+    $year     = (int) gmdate( 'Y', $as_of_ts );
+    $month    = (int) gmdate( 'n', $as_of_ts );
+
+    $current_start  = '';
+    $current_end    = gmdate( 'Y-m-d', $as_of_ts );
+    $previous_start = '';
+    $previous_end   = '';
+    $previous_label = '';
+    $current_label  = '';
+
+    if ( 'last_month' === $comparison ) {
+        $current_start = gmdate( 'Y-m-01', $as_of_ts );
+        $prev_start_ts = strtotime( 'first day of last month', $as_of_ts );
+        $prev_end_ts   = strtotime( 'last day of last month', $as_of_ts );
+        $previous_start = gmdate( 'Y-m-d', $prev_start_ts );
+        $previous_end   = gmdate( 'Y-m-d', $prev_end_ts );
+        $previous_label = gmdate( 'F Y', $prev_start_ts );
+        $current_label  = gmdate( 'F Y', $as_of_ts ) . ' (to date)';
+    } elseif ( 'last_quarter' === $comparison ) {
+        $current_quarter = (int) ceil( $month / 3 );
+        $current_quarter_start_month = ( $current_quarter - 1 ) * 3 + 1;
+        $current_start = gmdate( 'Y-' . sprintf( '%02d', $current_quarter_start_month ) . '-01', $as_of_ts );
+
+        $previous_quarter = $current_quarter - 1;
+        $previous_year = $year;
+        if ( $previous_quarter < 1 ) {
+            $previous_quarter = 4;
+            $previous_year--;
+        }
+
+        $previous_start_month = ( $previous_quarter - 1 ) * 3 + 1;
+        $previous_start = gmdate( $previous_year . '-' . sprintf( '%02d', $previous_start_month ) . '-01' );
+        $previous_end   = gmdate( 'Y-m-t', strtotime( $previous_start . ' +2 months' ) );
+        $previous_label = sprintf( 'Q%d %d', $previous_quarter, $previous_year );
+        $current_label  = sprintf( 'Q%d %d (to date)', $current_quarter, $year );
+    } elseif ( 'last_year' === $comparison ) {
+        $current_start = gmdate( $year . '-01-01' );
+        $previous_start = gmdate( ( $year - 1 ) . '-01-01' );
+        $previous_end   = gmdate( ( $year - 1 ) . '-12-31' );
+        $previous_label = (string) ( $year - 1 );
+        $current_label  = (string) $year . ' (to date)';
+    } elseif ( in_array( $comparison, [ 'last_30_days', 'last_90_days', 'last_365_days' ], true ) ) {
+        $days = (int) str_replace( [ 'last_', '_days' ], '', $comparison );
+        $current_start = gmdate( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days', $as_of_ts ) );
+        $previous_end_ts = strtotime( '-1 day', strtotime( $current_start ) );
+        $previous_start = gmdate( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days', $previous_end_ts ) );
+        $previous_end   = gmdate( 'Y-m-d', $previous_end_ts );
+        $previous_label = sprintf( __( 'Previous %d Days', 'tta' ), $days );
+        $current_label  = sprintf( __( 'Last %d Days', 'tta' ), $days );
+    }
+
+    $previous_metrics = tta_get_bi_membership_overview_metrics_for_range( $previous_start, $previous_end );
+    $current_metrics  = tta_get_bi_membership_overview_metrics_for_range( $current_start, $current_end );
+
+    return [
+        'previous_label' => $previous_label,
+        'current_label'  => $current_label,
+        'previous'       => tta_format_bi_membership_overview_metrics( $previous_metrics ),
+        'current'        => tta_format_bi_membership_overview_metrics( $current_metrics ),
+    ];
+}
+
+/**
  * Format BI monthly overview metrics for display.
  *
  * @param array $metrics Raw metrics array.

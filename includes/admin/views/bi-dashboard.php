@@ -614,6 +614,102 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                 <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" style="display:none; opacity:0;">
             </div>
         </div>
+
+        <div class="tta-bi-compare-toggle tta-bi-members-compare-toggle">
+            <label for="tta-bi-members-compare-toggle">
+                <input type="checkbox" id="tta-bi-members-compare-toggle">
+                <?php esc_html_e( 'Compare to...', 'tta' ); ?>
+            </label>
+        </div>
+
+        <div class="tta-bi-compare-select tta-bi-members-compare-select" aria-hidden="true">
+            <label for="tta-bi-members-compare-select" class="screen-reader-text"><?php esc_html_e( 'Select a Comparison Period', 'tta' ); ?></label>
+            <select id="tta-bi-members-compare-select">
+                <option value="" disabled selected><?php esc_html_e( 'Make a Selection...', 'tta' ); ?></option>
+                <option value="last_month"><?php esc_html_e( 'Month-To-Date', 'tta' ); ?></option>
+                <option value="last_quarter"><?php esc_html_e( 'Quarter-To-Date', 'tta' ); ?></option>
+                <option value="last_year"><?php esc_html_e( 'Year-To-Date', 'tta' ); ?></option>
+                <option value="last_30_days"><?php esc_html_e( 'Last 30 Days', 'tta' ); ?></option>
+                <option value="last_90_days"><?php esc_html_e( 'Last 90 Days', 'tta' ); ?></option>
+                <option value="last_365_days"><?php esc_html_e( 'Last 365 Days', 'tta' ); ?></option>
+            </select>
+            <div class="tta-admin-progress-spinner-div tta-bi-compare-spinner">
+                <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" style="display:none; opacity:0;">
+            </div>
+        </div>
+
+        <div class="tta-bi-compare-section tta-bi-members-compare-section" aria-hidden="true">
+            <div class="tta-bi-compare-column">
+                <h4 class="tta-bi-compare-heading tta-bi-members-compare-heading"><?php esc_html_e( 'Previous Period', 'tta' ); ?></h4>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_members">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Standard Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_standard">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Premium Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_premium">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Standard Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_standard_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Premium Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_premium_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Cancellations', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_cancellations">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Estimated Monthly Revenue', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_estimated_revenue">—</span>
+                </div>
+            </div>
+            <div class="tta-bi-compare-column">
+                <h4 class="tta-bi-compare-heading tta-bi-members-compare-heading"><?php esc_html_e( 'Current Period (to date)', 'tta' ); ?></h4>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_members">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Standard Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_standard">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Premium Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_premium">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Standard Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_standard_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Premium Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_premium_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Cancellations', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_cancellations">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Estimated Monthly Revenue', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_estimated_revenue">—</span>
+                </div>
+            </div>
+        </div>
     <?php else : ?>
         <div class="notice notice-info">
             <p>

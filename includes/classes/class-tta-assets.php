@@ -134,6 +134,7 @@ class TTA_Assets {
                     'bi_monthly_overview_nonce' => wp_create_nonce( 'tta_bi_monthly_overview_action' ),
                     'bi_members_monthly_overview_nonce' => wp_create_nonce( 'tta_bi_members_monthly_overview_action' ),
                     'bi_comparison_overview_nonce' => wp_create_nonce( 'tta_bi_comparison_overview_action' ),
+                    'bi_members_comparison_overview_nonce' => wp_create_nonce( 'tta_bi_members_comparison_overview_action' ),
                     'email_logs_nonce'    => wp_create_nonce( 'tta_email_logs_action' ),
                     'email_log_clear_nonce' => wp_create_nonce( 'tta_email_clear_action' ),
                     'banned_members_nonce' => wp_create_nonce( 'tta_banned_members_action' ),
