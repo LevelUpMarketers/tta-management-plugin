@@ -494,6 +494,15 @@ jQuery(function($){
           $(this).text(metrics[key]);
         }
       });
+
+      var $selectedOption = $select.find('option:selected');
+      var monthName = $selectedOption.data('month-name');
+      if (!monthName) {
+        monthName = ($selectedOption.text() || '').trim().split(' ')[0];
+      }
+      if (monthName) {
+        $('.tta-bi-members-monthly-overview__title').text(monthName + ' Monthly Overview');
+      }
     }, 'json').fail(function(){
       $spinner.fadeOut(200);
     });

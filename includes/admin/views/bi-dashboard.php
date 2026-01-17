@@ -554,18 +554,9 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
         ?>
 
         <?php $current_month_name = date_i18n( 'F', current_time( 'timestamp' ) ); ?>
+        <?php $current_month_overview_title = sprintf( __( '%s Monthly Overview', 'tta' ), $current_month_name ); ?>
         <div class="tta-bi-monthly-overview tta-bi-members-metrics">
-            <h3>
-                <?php
-                echo esc_html(
-                    sprintf(
-                        /* translators: %s is the current month name. */
-                        __( 'Current %s Membership Metrics', 'tta' ),
-                        $current_month_name
-                    )
-                );
-                ?>
-            </h3>
+            <h3><?php esc_html_e( 'Current Membership Metrics', 'tta' ); ?></h3>
             <div class="tta-bi-monthly-overview__stats">
                 <div class="tta-bi-monthly-overview__stat">
                     <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Members', 'tta' ); ?></span>
@@ -587,7 +578,7 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
         </div>
 
         <div class="tta-bi-monthly-overview tta-bi-members-monthly-overview">
-            <h3><?php esc_html_e( 'Monthly Overview', 'tta' ); ?></h3>
+            <h3 class="tta-bi-members-monthly-overview__title"><?php echo esc_html( $current_month_overview_title ); ?></h3>
             <div class="tta-bi-monthly-overview__stats">
                 <div class="tta-bi-monthly-overview__stat">
                     <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
@@ -611,9 +602,12 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
         <div class="tta-bi-month-selector">
             <label for="tta-bi-members-month-selector" class="screen-reader-text"><?php esc_html_e( 'Select a Month', 'tta' ); ?></label>
             <select id="tta-bi-members-month-selector">
-                <option value="" disabled selected><?php esc_html_e( 'Select a Month...', 'tta' ); ?></option>
+                <option value="" disabled><?php esc_html_e( 'Select a Month...', 'tta' ); ?></option>
                 <?php foreach ( $available_months as $month ) : ?>
-                    <option value="<?php echo esc_attr( $month ); ?>"><?php echo esc_html( date_i18n( 'F Y', strtotime( $month . '-01' ) ) ); ?></option>
+                    <?php $month_name = date_i18n( 'F', strtotime( $month . '-01' ) ); ?>
+                    <option value="<?php echo esc_attr( $month ); ?>" data-month-name="<?php echo esc_attr( $month_name ); ?>" <?php selected( $month, $current_month ); ?>>
+                        <?php echo esc_html( date_i18n( 'F Y', strtotime( $month . '-01' ) ) ); ?>
+                    </option>
                 <?php endforeach; ?>
             </select>
             <div class="tta-admin-progress-spinner-div">
