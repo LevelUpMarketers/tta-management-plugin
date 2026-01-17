@@ -554,7 +554,7 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
         ?>
 
         <div class="tta-bi-monthly-overview">
-            <h3><?php esc_html_e( 'Monthly Overview', 'tta' ); ?></h3>
+            <h3><?php esc_html_e( 'Member Metrics', 'tta' ); ?></h3>
             <div class="tta-bi-monthly-overview__stats">
                 <div class="tta-bi-monthly-overview__stat">
                     <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Members', 'tta' ); ?></span>
@@ -569,16 +569,22 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                     <span class="tta-bi-members-monthly-overview__value" data-metric="total_premium"><?php echo esc_html( $monthly_metrics_display['total_premium'] ); ?></span>
                 </div>
                 <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Estimated Monthly Revenue', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_estimated_revenue"><?php echo esc_html( $monthly_metrics_display['total_estimated_revenue'] ); ?></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tta-bi-monthly-overview">
+            <h3><?php esc_html_e( 'Monthly Overview', 'tta' ); ?></h3>
+            <div class="tta-bi-monthly-overview__stats">
+                <div class="tta-bi-monthly-overview__stat">
                     <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
                     <span class="tta-bi-members-monthly-overview__value" data-metric="total_signups"><?php echo esc_html( $monthly_metrics_display['total_signups'] ); ?></span>
                 </div>
                 <div class="tta-bi-monthly-overview__stat">
                     <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Cancellations', 'tta' ); ?></span>
                     <span class="tta-bi-members-monthly-overview__value" data-metric="total_cancellations"><?php echo esc_html( $monthly_metrics_display['total_cancellations'] ); ?></span>
-                </div>
-                <div class="tta-bi-monthly-overview__stat">
-                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Estimated Monthly Revenue', 'tta' ); ?></span>
-                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_estimated_revenue"><?php echo esc_html( $monthly_metrics_display['total_estimated_revenue'] ); ?></span>
                 </div>
             </div>
         </div>
