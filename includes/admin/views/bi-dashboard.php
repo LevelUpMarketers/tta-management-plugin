@@ -3,7 +3,6 @@ $tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'events';
 $tab_labels = [
     'events'  => 'Event Revenue Info',
     'members' => 'Members',
-    'predict' => 'Predictive Analytics',
 ];
 $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['events'];
 ?>
