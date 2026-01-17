@@ -15,6 +15,8 @@ An **Export Members** form lets administrators download a spreadsheet with the s
 - A complete payment history table including event purchases and membership charges
 - Event History table listing each event the member registered for with current attendance status and quick buttons to mark them as **Attended** or **No Show**
 - Membership cancellation entries noting who performed the action and the last four digits of the card
+- Membership start entries noting the membership level, price, transaction ID, subscription ID (if known), and timestamp
+- Membership change entries noting previous level, new level, price, who changed it, and timestamp
 - Any private notes stored with the member record appear in the expanded detail view rather than as a table column
 
 The summary metrics, member email and notes appear as columns in a single-row `widefat` table above the payment history for quick reference. The “Member Summary” heading also includes a tooltip describing the data shown.

@@ -1998,6 +1998,152 @@ function tta_log_membership_cancellation( $wp_user_id, $level, $actor = 'member'
 }
 
 /**
+ * Normalize a membership label to a level slug.
+ *
+ * @param string $label Membership label.
+ * @return string Membership level slug.
+ */
+function tta_normalize_membership_level_from_label( $label ) {
+    $label = strtolower( sanitize_text_field( $label ) );
+    if ( false !== strpos( $label, 'premium' ) ) {
+        return 'premium';
+    }
+    if ( false !== strpos( $label, 'standard' ) || false !== strpos( $label, 'basic' ) ) {
+        return 'basic';
+    }
+    if ( false !== strpos( $label, 're-entry' ) || false !== strpos( $label, 'reentry' ) ) {
+        return 'reentry';
+    }
+    return 'free';
+}
+
+/**
+ * Record a membership start event in member history after a purchase.
+ *
+ * @param array $items   Purchased items.
+ * @param int   $user_id Buyer WordPress user ID.
+ */
+function tta_log_membership_start_from_purchase( array $items, $user_id ) {
+    $user_id = intval( $user_id );
+    if ( ! $user_id ) {
+        return;
+    }
+
+    $membership_item = null;
+    foreach ( $items as $item ) {
+        if ( ! empty( $item['membership'] ) ) {
+            $membership_item = $item;
+            break;
+        }
+    }
+
+    if ( ! $membership_item ) {
+        return;
+    }
+
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $hist_table    = $wpdb->prefix . 'tta_memberhistory';
+    $tx_table      = $wpdb->prefix . 'tta_transactions';
+
+    $member_id = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT id FROM {$members_table} WHERE wpuserid = %d LIMIT 1",
+            $user_id
+        )
+    );
+    if ( ! $member_id ) {
+        return;
+    }
+
+    $membership_label = sanitize_text_field( $membership_item['membership'] );
+    $membership_level = tta_normalize_membership_level_from_label( $membership_label );
+    $price            = isset( $membership_item['final_price'] )
+        ? floatval( $membership_item['final_price'] )
+        : floatval( $membership_item['price'] ?? 0 );
+
+    $transaction_row = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT transaction_id FROM {$tx_table} WHERE wpuserid = %d AND details LIKE %s ORDER BY created_at DESC LIMIT 1",
+            $user_id,
+            '%"membership"%'
+        ),
+        ARRAY_A
+    );
+    $transaction_id = $transaction_row['transaction_id'] ?? '';
+    $subscription_id = tta_get_user_subscription_id( $user_id );
+
+    $data = [
+        'occurred_at'    => current_time( 'mysql' ),
+        'level'          => $membership_level,
+        'price'          => $price,
+        'transaction_id' => sanitize_text_field( $transaction_id ),
+        'subscription_id' => sanitize_text_field( $subscription_id ),
+    ];
+
+    $wpdb->insert(
+        $hist_table,
+        [
+            'member_id'   => intval( $member_id ),
+            'wpuserid'    => intval( $user_id ),
+            'event_id'    => 0,
+            'action_type' => 'membership_start',
+            'action_data' => wp_json_encode( $data ),
+        ],
+        [ '%d', '%d', '%d', '%s', '%s' ]
+    );
+
+    TTA_Cache::delete( 'billing_hist_' . $user_id );
+}
+
+/**
+ * Record a membership level change in member history.
+ *
+ * @param int    $wp_user_id WordPress user ID.
+ * @param string $previous   Previous membership level.
+ * @param string $new        New membership level.
+ * @param float  $price      New membership price.
+ * @param string $actor      Who changed the level (member or admin).
+ */
+function tta_log_membership_change( $wp_user_id, $previous, $new, $price, $actor = 'member' ) {
+    global $wpdb;
+    $members_table = $wpdb->prefix . 'tta_members';
+    $hist_table    = $wpdb->prefix . 'tta_memberhistory';
+
+    $member_id = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT id FROM {$members_table} WHERE wpuserid = %d LIMIT 1",
+            intval( $wp_user_id )
+        )
+    );
+    if ( ! $member_id ) {
+        return;
+    }
+
+    $data = [
+        'occurred_at'    => current_time( 'mysql' ),
+        'previous_level' => sanitize_text_field( $previous ),
+        'new_level'      => sanitize_text_field( $new ),
+        'price'          => floatval( $price ),
+        'by'             => sanitize_text_field( $actor ),
+    ];
+
+    $wpdb->insert(
+        $hist_table,
+        [
+            'member_id'   => intval( $member_id ),
+            'wpuserid'    => intval( $wp_user_id ),
+            'event_id'    => 0,
+            'action_type' => 'membership_change',
+            'action_data' => wp_json_encode( $data ),
+        ],
+        [ '%d', '%d', '%d', '%s', '%s' ]
+    );
+
+    TTA_Cache::delete( 'billing_hist_' . $wp_user_id );
+}
+
+/**
  * Record a subscription status change in member history.
  *
  * @param int    $wp_user_id WordPress user ID.
@@ -7463,6 +7609,8 @@ function tta_handle_subscription_retry( $token ) {
     }
 }
 add_action( 'tta_retry_membership_subscription', 'tta_handle_subscription_retry', 10, 1 );
+
+add_action( 'tta_after_purchase_logged', 'tta_log_membership_start_from_purchase', 20, 2 );
 
 /**
  * Handle admin-post request for exporting member metrics.
