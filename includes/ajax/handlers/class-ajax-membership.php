@@ -115,6 +115,7 @@ class TTA_Ajax_Membership {
         }
 
         tta_update_user_membership_level( $user_id, $level );
+        tta_log_membership_change( $user_id, $current, $level, $amount, 'member' );
         TTA_Cache::flush();
         TTA_Email_Handler::get_instance()->send_membership_change_email( $user_id, $level );
 
@@ -235,4 +236,3 @@ class TTA_Ajax_Membership {
 }
 
 TTA_Ajax_Membership::init();
-

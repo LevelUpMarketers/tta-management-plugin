@@ -2,6 +2,21 @@
 <div id="tta-bi-dashboard" class="wrap">
 <?php if ( $tab === 'members' ) : ?>
   <section class="tta-bi-section">
+    <h2>Monthly Overview</h2>
+    <label>Timeframe:
+      <select class="tta-bi-range" data-chart="members_overview">
+        <option value="1">Last month</option>
+        <option value="3">Last 3 months</option>
+        <option value="6">Last 6 months</option>
+        <option value="12">Last 12 months</option>
+        <option value="24">Last 24 months</option>
+      </select>
+    </label>
+    <p>Summary of member totals, signups, cancellations, and estimated monthly revenue.</p>
+    <div id="tta-bi-members-overview" class="tta-bi-chart"></div>
+  </section>
+
+  <section class="tta-bi-section">
     <h2>Subscription Status</h2>
     <label>Timeframe:
       <select class="tta-bi-range" data-chart="subs">
@@ -147,7 +162,7 @@
 (function(){
   const selects=document.querySelectorAll('.tta-bi-range');
   const compares=document.querySelectorAll('.tta-bi-compare input');
-  const map={subs:'#tta-bi-subscription-chart',signups:'#tta-bi-signups-chart',revenue:'#tta-bi-revenue-chart',cumulative:'#tta-bi-cumulative',ticket_sales:'#tta-bi-ticket-sales',avg_tickets:'#tta-bi-avg-tickets',by_level:'#tta-bi-by-level',churn:'#tta-bi-churn',prediction:'#tta-bi-prediction'};
+  const map={members_overview:'#tta-bi-members-overview',subs:'#tta-bi-subscription-chart',signups:'#tta-bi-signups-chart',revenue:'#tta-bi-revenue-chart',cumulative:'#tta-bi-cumulative',ticket_sales:'#tta-bi-ticket-sales',avg_tickets:'#tta-bi-avg-tickets',by_level:'#tta-bi-by-level',churn:'#tta-bi-churn',prediction:'#tta-bi-prediction'};
   const tooltip=d3.select('body').append('div').attr('class','tta-bi-tooltip').style('visibility','hidden');
   const valFmt=v=>'$'+(+v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 
@@ -165,6 +180,7 @@
     if(!sel)return;
     document.querySelector(sel).innerHTML='';
     switch(chart){
+      case 'members_overview': renderOverview(sel, data.members_overview); break;
       case 'subs': renderBar(sel, data.subs, 'count','Subscriptions'); break;
       case 'signups': renderLine(sel, data.signups,'count','Signups', data.signups_prev); break;
       case 'revenue': renderLine(sel, data.revenue,'amount','Revenue', data.revenue_prev); break;
@@ -183,6 +199,39 @@
     const sel=document.querySelector(`select[data-chart="${chart}"]`);
     if(sel) load(sel);
   }));
+
+  function renderOverview(sel, d){
+    if (!d || !d.length) {
+      return;
+    }
+    const table=document.createElement('table');
+    table.className='widefat striped';
+    table.innerHTML=
+      '<thead><tr>'+
+      '<th>Month</th>'+
+      '<th>Total Members</th>'+
+      '<th>Standard Members</th>'+
+      '<th>Premium Members</th>'+
+      '<th>Signups</th>'+
+      '<th>Cancellations</th>'+
+      '<th>Estimated Monthly Revenue</th>'+
+      '</tr></thead>';
+    const tbody=document.createElement('tbody');
+    d.forEach(row=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=
+        `<td>${row.label}</td>`+
+        `<td>${row.total_members}</td>`+
+        `<td>${row.standard_members}</td>`+
+        `<td>${row.premium_members}</td>`+
+        `<td>${row.signups}</td>`+
+        `<td>${row.cancellations}</td>`+
+        `<td>${valFmt(row.estimated_revenue)}</td>`;
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    document.querySelector(sel).appendChild(table);
+  }
 
   function renderBar(sel,d,val,label){
     const svg=d3.select(sel).append('svg').attr('width',620).attr('height',320);

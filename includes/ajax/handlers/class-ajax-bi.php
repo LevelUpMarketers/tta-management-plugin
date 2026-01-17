@@ -35,6 +35,78 @@ class TTA_Ajax_BI {
 
         $data = [];
 
+        if ( 'all' === $chart || 'members_overview' === $chart ) {
+            $cache_key = 'bi_members_overview_' . md5( (string) $months );
+            $overview  = TTA_Cache::get( $cache_key );
+            if ( false === $overview ) {
+                $overview = [];
+                foreach ( $labels as $label ) {
+                    $month_start_ts = strtotime( $label . '-01 00:00:00' );
+                    $month_start    = gmdate( 'Y-m-01 00:00:00', $month_start_ts );
+                    $month_end      = gmdate( 'Y-m-t 23:59:59', $month_start_ts );
+
+                    $total_members = (int) $wpdb->get_var(
+                        $wpdb->prepare(
+                            "SELECT COUNT(*) FROM {$members} WHERE joined_at <= %s",
+                            $month_end
+                        )
+                    );
+                    $standard_members = (int) $wpdb->get_var(
+                        $wpdb->prepare(
+                            "SELECT COUNT(*) FROM {$members} WHERE membership_level = 'basic' AND joined_at <= %s",
+                            $month_end
+                        )
+                    );
+                    $premium_members = (int) $wpdb->get_var(
+                        $wpdb->prepare(
+                            "SELECT COUNT(*) FROM {$members} WHERE membership_level = 'premium' AND joined_at <= %s",
+                            $month_end
+                        )
+                    );
+                    $signups = (int) $wpdb->get_var(
+                        $wpdb->prepare(
+                            "SELECT COUNT(*) FROM {$hist} WHERE action_type = 'membership_start' AND action_date >= %s AND action_date <= %s",
+                            $month_start,
+                            $month_end
+                        )
+                    );
+                    $cancellations = (int) $wpdb->get_var(
+                        $wpdb->prepare(
+                            "SELECT COUNT(*) FROM {$hist} WHERE action_type = 'membership_cancel' AND action_date >= %s AND action_date <= %s",
+                            $month_start,
+                            $month_end
+                        )
+                    );
+                    $active_basic = (int) $wpdb->get_var(
+                        $wpdb->prepare(
+                            "SELECT COUNT(*) FROM {$members} WHERE membership_level = 'basic' AND subscription_status = 'active' AND joined_at <= %s",
+                            $month_end
+                        )
+                    );
+                    $active_premium = (int) $wpdb->get_var(
+                        $wpdb->prepare(
+                            "SELECT COUNT(*) FROM {$members} WHERE membership_level = 'premium' AND subscription_status = 'active' AND joined_at <= %s",
+                            $month_end
+                        )
+                    );
+                    $estimated_revenue = ( $active_basic * TTA_BASIC_MEMBERSHIP_PRICE ) + ( $active_premium * TTA_PREMIUM_MEMBERSHIP_PRICE );
+
+                    $overview[] = [
+                        'label'             => $label,
+                        'total_members'     => $total_members,
+                        'standard_members'  => $standard_members,
+                        'premium_members'   => $premium_members,
+                        'signups'           => $signups,
+                        'cancellations'     => $cancellations,
+                        'estimated_revenue' => round( $estimated_revenue, 2 ),
+                    ];
+                }
+                TTA_Cache::set( $cache_key, $overview, 300 );
+            }
+
+            $data['members_overview'] = $overview;
+        }
+
         if ( 'all' === $chart || 'subs' === $chart ) {
             $active    = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$members} WHERE subscription_status = 'active'" );
             $cancelled = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$members} WHERE subscription_status = 'cancelled'" );

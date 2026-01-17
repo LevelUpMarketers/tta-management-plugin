@@ -235,7 +235,9 @@ class TTA_Ajax_Membership_Admin {
             wp_send_json_error( [ 'message' => $res['error'] ] );
         }
 
+        $previous_level = strtolower( $member['membership_level'] ?? 'free' );
         tta_update_user_membership_level( $member['wpuserid'], $level );
+        tta_log_membership_change( $member['wpuserid'], $previous_level, $level, $amount, 'admin' );
         TTA_Cache::flush();
 
         wp_send_json_success( [ 'message' => __( 'Membership updated.', 'tta' ) ] );
