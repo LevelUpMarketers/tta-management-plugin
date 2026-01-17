@@ -6997,6 +6997,121 @@ function tta_get_bi_monthly_overview_metrics( $events_table, $month = '' ) {
 }
 
 /**
+ * Get aggregated BI membership metrics for a given month.
+ *
+ * @param string $month Month in YYYY-MM format.
+ * @return array{
+ *     total_members:int,
+ *     total_standard:int,
+ *     total_premium:int,
+ *     total_signups:int,
+ *     total_cancellations:int,
+ *     total_estimated_revenue:float
+ * }
+ */
+function tta_get_bi_membership_monthly_overview_metrics( $month = '' ) {
+    $month = sanitize_text_field( $month );
+    if ( ! preg_match( '/^\d{4}-\d{2}$/', $month ) ) {
+        $month = gmdate( 'Y-m' );
+    }
+
+    $month_start = $month . '-01';
+    $month_end   = gmdate( 'Y-m-t', strtotime( $month_start ) );
+
+    return tta_get_bi_membership_overview_metrics_for_range( $month_start, $month_end );
+}
+
+/**
+ * Get aggregated BI membership metrics for a date range.
+ *
+ * @param string $start_date Start date (Y-m-d).
+ * @param string $end_date   End date (Y-m-d).
+ * @return array{
+ *     total_members:int,
+ *     total_standard:int,
+ *     total_premium:int,
+ *     total_signups:int,
+ *     total_cancellations:int,
+ *     total_estimated_revenue:float
+ * }
+ */
+function tta_get_bi_membership_overview_metrics_for_range( $start_date, $end_date ) {
+    global $wpdb;
+
+    $start_date = sanitize_text_field( $start_date );
+    $end_date   = sanitize_text_field( $end_date );
+    $end_stamp  = $end_date . ' 23:59:59';
+
+    $cache_key = 'tta_bi_membership_overview_' . md5( $start_date . '_' . $end_date );
+    return TTA_Cache::remember(
+        $cache_key,
+        function () use ( $wpdb, $start_date, $end_date, $end_stamp ) {
+            $members_table = $wpdb->prefix . 'tta_members';
+            $history_table = $wpdb->prefix . 'tta_memberhistory';
+
+            $total_standard = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(*)
+                     FROM {$members_table}
+                     WHERE membership_level = 'basic'
+                       AND joined_at <= %s
+                       AND ( subscription_status IS NULL
+                             OR subscription_status NOT IN ('paymentproblem', 'cancelled') )",
+                    $end_stamp
+                )
+            );
+
+            $total_premium = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(*)
+                     FROM {$members_table}
+                     WHERE membership_level = 'premium'
+                       AND joined_at <= %s
+                       AND ( subscription_status IS NULL
+                             OR subscription_status NOT IN ('paymentproblem', 'cancelled') )",
+                    $end_stamp
+                )
+            );
+
+            $total_signups = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT wpuserid)
+                     FROM {$history_table}
+                     WHERE action_type = 'membership_start'
+                       AND action_date BETWEEN %s AND %s",
+                    $start_date . ' 00:00:00',
+                    $end_date . ' 23:59:59'
+                )
+            );
+
+            $total_cancellations = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT wpuserid)
+                     FROM {$history_table}
+                     WHERE action_type = 'membership_cancel'
+                       AND action_date BETWEEN %s AND %s",
+                    $start_date . ' 00:00:00',
+                    $end_date . ' 23:59:59'
+                )
+            );
+
+            $total_estimated_revenue = (float) $total_standard * (float) tta_get_membership_price( 'basic' );
+            $total_estimated_revenue += (float) $total_premium * (float) tta_get_membership_price( 'premium' );
+
+            return [
+                'total_members'           => $total_standard + $total_premium,
+                'total_standard'          => $total_standard,
+                'total_premium'           => $total_premium,
+                'total_signups'           => $total_signups,
+                'total_cancellations'     => $total_cancellations,
+                'total_estimated_revenue' => $total_estimated_revenue,
+            ];
+        },
+        300
+    );
+}
+
+/**
  * Get aggregated BI metrics for archived events in a date range.
  *
  * @param string $events_table Archived events table name.
@@ -7253,6 +7368,23 @@ function tta_format_bi_monthly_overview_metrics( array $metrics ) {
         'total_sales'      => '$' . number_format_i18n( (float) ( $metrics['total_sales'] ?? 0 ), 2 ),
         'total_refunds'    => '$' . number_format_i18n( (float) ( $metrics['total_refunds'] ?? 0 ), 2 ),
         'net_profit'       => '$' . number_format_i18n( (float) ( $metrics['net_profit'] ?? 0 ), 2 ),
+    ];
+}
+
+/**
+ * Format BI membership overview metrics for display.
+ *
+ * @param array $metrics Raw metrics array.
+ * @return array<string,string>
+ */
+function tta_format_bi_membership_overview_metrics( array $metrics ) {
+    return [
+        'total_members'           => number_format_i18n( (int) ( $metrics['total_members'] ?? 0 ) ),
+        'total_standard'          => number_format_i18n( (int) ( $metrics['total_standard'] ?? 0 ) ),
+        'total_premium'           => number_format_i18n( (int) ( $metrics['total_premium'] ?? 0 ) ),
+        'total_signups'           => number_format_i18n( (int) ( $metrics['total_signups'] ?? 0 ) ),
+        'total_cancellations'     => number_format_i18n( (int) ( $metrics['total_cancellations'] ?? 0 ) ),
+        'total_estimated_revenue' => '$' . number_format_i18n( (float) ( $metrics['total_estimated_revenue'] ?? 0 ), 2 ),
     ];
 }
 

@@ -520,6 +520,81 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
         );
         echo '</div></div>';
         ?>
+    <?php elseif ( 'members' === $tab ) : ?>
+        <?php
+        global $wpdb;
+        $members_table = $wpdb->prefix . 'tta_members';
+        $history_table = $wpdb->prefix . 'tta_memberhistory';
+
+        $current_month = gmdate( 'Y-m' );
+        $monthly_metrics = tta_get_bi_membership_monthly_overview_metrics( $current_month );
+        $monthly_metrics_display = tta_format_bi_membership_overview_metrics( $monthly_metrics );
+        $available_months = TTA_Cache::remember(
+            'tta_bi_members_month_list',
+            function () use ( $wpdb, $members_table, $history_table ) {
+                $months = $wpdb->get_col(
+                    "SELECT month FROM (
+                        SELECT DISTINCT DATE_FORMAT(action_date, '%Y-%m') AS month
+                        FROM {$history_table}
+                        WHERE action_type IN ('membership_start', 'membership_cancel')
+                        UNION
+                        SELECT DISTINCT DATE_FORMAT(joined_at, '%Y-%m') AS month
+                        FROM {$members_table}
+                    ) AS month_list
+                    ORDER BY month DESC"
+                );
+                return array_filter( array_map( 'sanitize_text_field', (array) $months ) );
+            },
+            300
+        );
+
+        if ( ! in_array( $current_month, $available_months, true ) ) {
+            array_unshift( $available_months, $current_month );
+        }
+        ?>
+
+        <div class="tta-bi-monthly-overview">
+            <h3><?php esc_html_e( 'Monthly Overview', 'tta' ); ?></h3>
+            <div class="tta-bi-monthly-overview__stats">
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Members', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_members"><?php echo esc_html( $monthly_metrics_display['total_members'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Standard Members', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_standard"><?php echo esc_html( $monthly_metrics_display['total_standard'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Premium Members', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_premium"><?php echo esc_html( $monthly_metrics_display['total_premium'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_signups"><?php echo esc_html( $monthly_metrics_display['total_signups'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Cancellations', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_cancellations"><?php echo esc_html( $monthly_metrics_display['total_cancellations'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Estimated Monthly Revenue', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_estimated_revenue"><?php echo esc_html( $monthly_metrics_display['total_estimated_revenue'] ); ?></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tta-bi-month-selector">
+            <label for="tta-bi-members-month-selector" class="screen-reader-text"><?php esc_html_e( 'Select a Month', 'tta' ); ?></label>
+            <select id="tta-bi-members-month-selector">
+                <option value="" disabled selected><?php esc_html_e( 'Select a Month...', 'tta' ); ?></option>
+                <?php foreach ( $available_months as $month ) : ?>
+                    <option value="<?php echo esc_attr( $month ); ?>"><?php echo esc_html( date_i18n( 'F Y', strtotime( $month . '-01' ) ) ); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <div class="tta-admin-progress-spinner-div">
+                <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" style="display:none; opacity:0;">
+            </div>
+        </div>
     <?php else : ?>
         <div class="notice notice-info">
             <p>
