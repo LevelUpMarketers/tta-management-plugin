@@ -553,8 +553,19 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
         }
         ?>
 
+        <?php $current_month_name = date_i18n( 'F', current_time( 'timestamp' ) ); ?>
         <div class="tta-bi-monthly-overview tta-bi-members-metrics">
-            <h3><?php esc_html_e( 'Member Metrics', 'tta' ); ?></h3>
+            <h3>
+                <?php
+                echo esc_html(
+                    sprintf(
+                        /* translators: %s is the current month name. */
+                        __( 'Current %s Membership Metrics', 'tta' ),
+                        $current_month_name
+                    )
+                );
+                ?>
+            </h3>
             <div class="tta-bi-monthly-overview__stats">
                 <div class="tta-bi-monthly-overview__stat">
                     <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Members', 'tta' ); ?></span>
@@ -581,6 +592,14 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
                 <div class="tta-bi-monthly-overview__stat">
                     <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
                     <span class="tta-bi-members-monthly-overview__value" data-metric="total_signups"><?php echo esc_html( $monthly_metrics_display['total_signups'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Standard Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_standard_signups"><?php echo esc_html( $monthly_metrics_display['total_standard_signups'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Premium Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_premium_signups"><?php echo esc_html( $monthly_metrics_display['total_premium_signups'] ); ?></span>
                 </div>
                 <div class="tta-bi-monthly-overview__stat">
                     <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Cancellations', 'tta' ); ?></span>

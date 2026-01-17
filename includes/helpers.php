@@ -7006,6 +7006,8 @@ function tta_get_bi_monthly_overview_metrics( $events_table, $month = '' ) {
  *     total_premium:int,
  *     total_signups:int,
  *     total_cancellations:int,
+ *     total_standard_signups:int,
+ *     total_premium_signups:int,
  *     total_estimated_revenue:float
  * }
  */
@@ -7032,6 +7034,8 @@ function tta_get_bi_membership_monthly_overview_metrics( $month = '' ) {
  *     total_premium:int,
  *     total_signups:int,
  *     total_cancellations:int,
+ *     total_standard_signups:int,
+ *     total_premium_signups:int,
  *     total_estimated_revenue:float
  * }
  */
@@ -7084,6 +7088,35 @@ function tta_get_bi_membership_overview_metrics_for_range( $start_date, $end_dat
                 )
             );
 
+            $basic_like = '%' . $wpdb->esc_like( '"level":"basic"' ) . '%';
+            $premium_like = '%' . $wpdb->esc_like( '"level":"premium"' ) . '%';
+
+            $total_standard_signups = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT wpuserid)
+                     FROM {$history_table}
+                     WHERE action_type = 'membership_start'
+                       AND action_date BETWEEN %s AND %s
+                       AND action_data LIKE %s",
+                    $start_date . ' 00:00:00',
+                    $end_date . ' 23:59:59',
+                    $basic_like
+                )
+            );
+
+            $total_premium_signups = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT wpuserid)
+                     FROM {$history_table}
+                     WHERE action_type = 'membership_start'
+                       AND action_date BETWEEN %s AND %s
+                       AND action_data LIKE %s",
+                    $start_date . ' 00:00:00',
+                    $end_date . ' 23:59:59',
+                    $premium_like
+                )
+            );
+
             $total_cancellations = (int) $wpdb->get_var(
                 $wpdb->prepare(
                     "SELECT COUNT(DISTINCT wpuserid)
@@ -7104,6 +7137,8 @@ function tta_get_bi_membership_overview_metrics_for_range( $start_date, $end_dat
                 'total_premium'           => $total_premium,
                 'total_signups'           => $total_signups,
                 'total_cancellations'     => $total_cancellations,
+                'total_standard_signups'  => $total_standard_signups,
+                'total_premium_signups'   => $total_premium_signups,
                 'total_estimated_revenue' => $total_estimated_revenue,
             ];
         },
@@ -7384,6 +7419,8 @@ function tta_format_bi_membership_overview_metrics( array $metrics ) {
         'total_premium'           => number_format_i18n( (int) ( $metrics['total_premium'] ?? 0 ) ),
         'total_signups'           => number_format_i18n( (int) ( $metrics['total_signups'] ?? 0 ) ),
         'total_cancellations'     => number_format_i18n( (int) ( $metrics['total_cancellations'] ?? 0 ) ),
+        'total_standard_signups'  => number_format_i18n( (int) ( $metrics['total_standard_signups'] ?? 0 ) ),
+        'total_premium_signups'   => number_format_i18n( (int) ( $metrics['total_premium_signups'] ?? 0 ) ),
         'total_estimated_revenue' => '$' . number_format_i18n( (float) ( $metrics['total_estimated_revenue'] ?? 0 ), 2 ),
     ];
 }
