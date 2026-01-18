@@ -6839,7 +6839,13 @@ function tta_login_redirect( $redirect_to, $requested_redirect_to, $user ) {
         }
 
         $referer = wp_get_referer();
-        return $referer ? $referer : home_url( '/' );
+        $referer_path = $referer ? wp_parse_url( $referer, PHP_URL_PATH ) : '';
+        $is_login_referer = $referer_path && false !== strpos( $referer_path, 'wp-login.php' );
+        if ( ! $referer || $is_login_referer ) {
+            return tta_get_last_events_url();
+        }
+
+        return $referer;
     }
     return $redirect_to;
 }
