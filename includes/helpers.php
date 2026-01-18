@@ -6831,21 +6831,7 @@ add_action( 'admin_init', 'tta_block_dashboard_access' );
  */
 function tta_login_redirect( $redirect_to, $requested_redirect_to, $user ) {
     if ( $user instanceof WP_User && ! user_can( $user, 'manage_options' ) ) {
-        if ( $requested_redirect_to ) {
-            $validated = wp_validate_redirect( $requested_redirect_to, home_url( '/' ) );
-            if ( $validated ) {
-                return $validated;
-            }
-        }
-
-        $referer = wp_get_referer();
-        $referer_path = $referer ? wp_parse_url( $referer, PHP_URL_PATH ) : '';
-        $is_login_referer = $referer_path && false !== strpos( $referer_path, 'wp-login.php' );
-        if ( ! $referer || $is_login_referer ) {
-            return tta_get_last_events_url();
-        }
-
-        return $referer;
+        return tta_get_last_events_url();
     }
     return $redirect_to;
 }
