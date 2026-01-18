@@ -6831,6 +6831,19 @@ add_action( 'admin_init', 'tta_block_dashboard_access' );
  */
 function tta_login_redirect( $redirect_to, $requested_redirect_to, $user ) {
     if ( $user instanceof WP_User && ! user_can( $user, 'manage_options' ) ) {
+        if ( $requested_redirect_to ) {
+            $partner_post_id = url_to_postid( $requested_redirect_to );
+            if ( $partner_post_id ) {
+                $template_slug = get_page_template_slug( $partner_post_id );
+                if ( 'partner-admin-page-template.php' === $template_slug ) {
+                    $validated = wp_validate_redirect( $requested_redirect_to, tta_get_last_events_url() );
+                    if ( $validated ) {
+                        return $validated;
+                    }
+                }
+            }
+        }
+
         return tta_get_last_events_url();
     }
     return $redirect_to;
