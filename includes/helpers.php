@@ -5843,8 +5843,8 @@ function tta_render_attendee_fields( TTA_Cart $cart, $disabled = false ) {
                 $ln_val  = '';
                 $em_val  = '';
                 $ph_val  = '';
-                $sms_chk = '';
-                $em_chk  = '';
+                $sms_chk = 'checked';
+                $em_chk  = 'checked';
                 $locked = '';
                 if ( ! $used_default && $context['member'] ) {
                     $fn_val  = esc_attr( $context['member']['first_name'] );
@@ -6832,14 +6832,19 @@ add_action( 'admin_init', 'tta_block_dashboard_access' );
 function tta_login_redirect( $redirect_to, $requested_redirect_to, $user ) {
     if ( $user instanceof WP_User && ! user_can( $user, 'manage_options' ) ) {
         if ( $requested_redirect_to ) {
-            $validated = wp_validate_redirect( $requested_redirect_to, home_url( '/' ) );
-            if ( $validated ) {
-                return $validated;
+            $partner_post_id = url_to_postid( $requested_redirect_to );
+            if ( $partner_post_id ) {
+                $template_slug = get_page_template_slug( $partner_post_id );
+                if ( 'partner-admin-page-template.php' === $template_slug ) {
+                    $validated = wp_validate_redirect( $requested_redirect_to, tta_get_last_events_url() );
+                    if ( $validated ) {
+                        return $validated;
+                    }
+                }
             }
         }
 
-        $referer = wp_get_referer();
-        return $referer ? $referer : home_url( '/' );
+        return tta_get_last_events_url();
     }
     return $redirect_to;
 }
@@ -6994,6 +6999,156 @@ function tta_get_bi_monthly_overview_metrics( $events_table, $month = '' ) {
     $month_end   = gmdate( 'Y-m-t', strtotime( $month_start ) );
 
     return tta_get_bi_overview_metrics_for_range( $events_table, $month_start, $month_end );
+}
+
+/**
+ * Get aggregated BI membership metrics for a given month.
+ *
+ * @param string $month Month in YYYY-MM format.
+ * @return array{
+ *     total_members:int,
+ *     total_standard:int,
+ *     total_premium:int,
+ *     total_signups:int,
+ *     total_cancellations:int,
+ *     total_standard_signups:int,
+ *     total_premium_signups:int,
+ *     total_estimated_revenue:float
+ * }
+ */
+function tta_get_bi_membership_monthly_overview_metrics( $month = '' ) {
+    $month = sanitize_text_field( $month );
+    if ( ! preg_match( '/^\d{4}-\d{2}$/', $month ) ) {
+        $month = gmdate( 'Y-m' );
+    }
+
+    $month_start = $month . '-01';
+    $month_end   = gmdate( 'Y-m-t', strtotime( $month_start ) );
+
+    return tta_get_bi_membership_overview_metrics_for_range( $month_start, $month_end );
+}
+
+/**
+ * Get aggregated BI membership metrics for a date range.
+ *
+ * @param string $start_date Start date (Y-m-d).
+ * @param string $end_date   End date (Y-m-d).
+ * @return array{
+ *     total_members:int,
+ *     total_standard:int,
+ *     total_premium:int,
+ *     total_signups:int,
+ *     total_cancellations:int,
+ *     total_standard_signups:int,
+ *     total_premium_signups:int,
+ *     total_estimated_revenue:float
+ * }
+ */
+function tta_get_bi_membership_overview_metrics_for_range( $start_date, $end_date ) {
+    global $wpdb;
+
+    $start_date = sanitize_text_field( $start_date );
+    $end_date   = sanitize_text_field( $end_date );
+    $end_stamp  = $end_date . ' 23:59:59';
+
+    $cache_key = 'tta_bi_membership_overview_' . md5( $start_date . '_' . $end_date );
+    return TTA_Cache::remember(
+        $cache_key,
+        function () use ( $wpdb, $start_date, $end_date, $end_stamp ) {
+            $members_table = $wpdb->prefix . 'tta_members';
+            $history_table = $wpdb->prefix . 'tta_memberhistory';
+
+            $total_standard = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(*)
+                     FROM {$members_table}
+                     WHERE membership_level = 'basic'
+                       AND joined_at <= %s
+                       AND ( subscription_status IS NULL
+                             OR subscription_status NOT IN ('paymentproblem', 'cancelled') )",
+                    $end_stamp
+                )
+            );
+
+            $total_premium = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(*)
+                     FROM {$members_table}
+                     WHERE membership_level = 'premium'
+                       AND joined_at <= %s
+                       AND ( subscription_status IS NULL
+                             OR subscription_status NOT IN ('paymentproblem', 'cancelled') )",
+                    $end_stamp
+                )
+            );
+
+            $total_signups = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT wpuserid)
+                     FROM {$history_table}
+                     WHERE action_type = 'membership_start'
+                       AND action_date BETWEEN %s AND %s",
+                    $start_date . ' 00:00:00',
+                    $end_date . ' 23:59:59'
+                )
+            );
+
+            $basic_like = '%' . $wpdb->esc_like( '"level":"basic"' ) . '%';
+            $premium_like = '%' . $wpdb->esc_like( '"level":"premium"' ) . '%';
+
+            $total_standard_signups = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT wpuserid)
+                     FROM {$history_table}
+                     WHERE action_type = 'membership_start'
+                       AND action_date BETWEEN %s AND %s
+                       AND action_data LIKE %s",
+                    $start_date . ' 00:00:00',
+                    $end_date . ' 23:59:59',
+                    $basic_like
+                )
+            );
+
+            $total_premium_signups = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT wpuserid)
+                     FROM {$history_table}
+                     WHERE action_type = 'membership_start'
+                       AND action_date BETWEEN %s AND %s
+                       AND action_data LIKE %s",
+                    $start_date . ' 00:00:00',
+                    $end_date . ' 23:59:59',
+                    $premium_like
+                )
+            );
+
+            $total_cancellations = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(DISTINCT wpuserid)
+                     FROM {$history_table}
+                     WHERE action_type = 'membership_cancel'
+                       AND action_date BETWEEN %s AND %s",
+                    $start_date . ' 00:00:00',
+                    $end_date . ' 23:59:59'
+                )
+            );
+
+            $total_estimated_revenue = (float) $total_standard * (float) tta_get_membership_price( 'basic' );
+            $total_estimated_revenue += (float) $total_premium * (float) tta_get_membership_price( 'premium' );
+
+            return [
+                'total_members'           => $total_standard + $total_premium,
+                'total_standard'          => $total_standard,
+                'total_premium'           => $total_premium,
+                'total_signups'           => $total_signups,
+                'total_cancellations'     => $total_cancellations,
+                'total_standard_signups'  => $total_standard_signups,
+                'total_premium_signups'   => $total_premium_signups,
+                'total_estimated_revenue' => $total_estimated_revenue,
+            ];
+        },
+        300
+    );
 }
 
 /**
@@ -7238,6 +7393,89 @@ function tta_get_bi_comparison_metrics( $events_table, $comparison, $as_of_date 
 }
 
 /**
+ * Get comparison metrics for the membership BI dashboard.
+ *
+ * @param string      $comparison Comparison key (last_month|last_quarter|last_year|last_30_days|last_90_days|last_365_days).
+ * @param string|null $as_of_date Date for "current" period (Y-m-d).
+ * @return array{
+ *     previous_label:string,
+ *     current_label:string,
+ *     previous:array<string,string>,
+ *     current:array<string,string>
+ * }
+ */
+function tta_get_bi_membership_comparison_metrics( $comparison, $as_of_date = null ) {
+    $comparison = sanitize_text_field( $comparison );
+    $as_of_date = $as_of_date ? sanitize_text_field( $as_of_date ) : gmdate( 'Y-m-d' );
+
+    if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $as_of_date ) ) {
+        $as_of_date = gmdate( 'Y-m-d' );
+    }
+
+    $as_of_ts = strtotime( $as_of_date . ' 23:59:59' );
+    $year     = (int) gmdate( 'Y', $as_of_ts );
+    $month    = (int) gmdate( 'n', $as_of_ts );
+
+    $current_start  = '';
+    $current_end    = gmdate( 'Y-m-d', $as_of_ts );
+    $previous_start = '';
+    $previous_end   = '';
+    $previous_label = '';
+    $current_label  = '';
+
+    if ( 'last_month' === $comparison ) {
+        $current_start = gmdate( 'Y-m-01', $as_of_ts );
+        $prev_start_ts = strtotime( 'first day of last month', $as_of_ts );
+        $prev_end_ts   = strtotime( 'last day of last month', $as_of_ts );
+        $previous_start = gmdate( 'Y-m-d', $prev_start_ts );
+        $previous_end   = gmdate( 'Y-m-d', $prev_end_ts );
+        $previous_label = gmdate( 'F Y', $prev_start_ts );
+        $current_label  = gmdate( 'F Y', $as_of_ts ) . ' (to date)';
+    } elseif ( 'last_quarter' === $comparison ) {
+        $current_quarter = (int) ceil( $month / 3 );
+        $current_quarter_start_month = ( $current_quarter - 1 ) * 3 + 1;
+        $current_start = gmdate( 'Y-' . sprintf( '%02d', $current_quarter_start_month ) . '-01', $as_of_ts );
+
+        $previous_quarter = $current_quarter - 1;
+        $previous_year = $year;
+        if ( $previous_quarter < 1 ) {
+            $previous_quarter = 4;
+            $previous_year--;
+        }
+
+        $previous_start_month = ( $previous_quarter - 1 ) * 3 + 1;
+        $previous_start = gmdate( $previous_year . '-' . sprintf( '%02d', $previous_start_month ) . '-01' );
+        $previous_end   = gmdate( 'Y-m-t', strtotime( $previous_start . ' +2 months' ) );
+        $previous_label = sprintf( 'Q%d %d', $previous_quarter, $previous_year );
+        $current_label  = sprintf( 'Q%d %d (to date)', $current_quarter, $year );
+    } elseif ( 'last_year' === $comparison ) {
+        $current_start = gmdate( $year . '-01-01' );
+        $previous_start = gmdate( ( $year - 1 ) . '-01-01' );
+        $previous_end   = gmdate( ( $year - 1 ) . '-12-31' );
+        $previous_label = (string) ( $year - 1 );
+        $current_label  = (string) $year . ' (to date)';
+    } elseif ( in_array( $comparison, [ 'last_30_days', 'last_90_days', 'last_365_days' ], true ) ) {
+        $days = (int) str_replace( [ 'last_', '_days' ], '', $comparison );
+        $current_start = gmdate( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days', $as_of_ts ) );
+        $previous_end_ts = strtotime( '-1 day', strtotime( $current_start ) );
+        $previous_start = gmdate( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days', $previous_end_ts ) );
+        $previous_end   = gmdate( 'Y-m-d', $previous_end_ts );
+        $previous_label = sprintf( __( 'Previous %d Days', 'tta' ), $days );
+        $current_label  = sprintf( __( 'Last %d Days', 'tta' ), $days );
+    }
+
+    $previous_metrics = tta_get_bi_membership_overview_metrics_for_range( $previous_start, $previous_end );
+    $current_metrics  = tta_get_bi_membership_overview_metrics_for_range( $current_start, $current_end );
+
+    return [
+        'previous_label' => $previous_label,
+        'current_label'  => $current_label,
+        'previous'       => tta_format_bi_membership_overview_metrics( $previous_metrics ),
+        'current'        => tta_format_bi_membership_overview_metrics( $current_metrics ),
+    ];
+}
+
+/**
  * Format BI monthly overview metrics for display.
  *
  * @param array $metrics Raw metrics array.
@@ -7253,6 +7491,25 @@ function tta_format_bi_monthly_overview_metrics( array $metrics ) {
         'total_sales'      => '$' . number_format_i18n( (float) ( $metrics['total_sales'] ?? 0 ), 2 ),
         'total_refunds'    => '$' . number_format_i18n( (float) ( $metrics['total_refunds'] ?? 0 ), 2 ),
         'net_profit'       => '$' . number_format_i18n( (float) ( $metrics['net_profit'] ?? 0 ), 2 ),
+    ];
+}
+
+/**
+ * Format BI membership overview metrics for display.
+ *
+ * @param array $metrics Raw metrics array.
+ * @return array<string,string>
+ */
+function tta_format_bi_membership_overview_metrics( array $metrics ) {
+    return [
+        'total_members'           => number_format_i18n( (int) ( $metrics['total_members'] ?? 0 ) ),
+        'total_standard'          => number_format_i18n( (int) ( $metrics['total_standard'] ?? 0 ) ),
+        'total_premium'           => number_format_i18n( (int) ( $metrics['total_premium'] ?? 0 ) ),
+        'total_signups'           => number_format_i18n( (int) ( $metrics['total_signups'] ?? 0 ) ),
+        'total_cancellations'     => number_format_i18n( (int) ( $metrics['total_cancellations'] ?? 0 ) ),
+        'total_standard_signups'  => number_format_i18n( (int) ( $metrics['total_standard_signups'] ?? 0 ) ),
+        'total_premium_signups'   => number_format_i18n( (int) ( $metrics['total_premium_signups'] ?? 0 ) ),
+        'total_estimated_revenue' => '$' . number_format_i18n( (float) ( $metrics['total_estimated_revenue'] ?? 0 ), 2 ),
     ];
 }
 

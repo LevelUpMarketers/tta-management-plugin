@@ -3,7 +3,6 @@ $tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'events';
 $tab_labels = [
     'events'  => 'Event Revenue Info',
     'members' => 'Members',
-    'predict' => 'Predictive Analytics',
 ];
 $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['events'];
 ?>
@@ -520,6 +519,196 @@ $tab_title = isset( $tab_labels[ $tab ] ) ? $tab_labels[ $tab ] : $tab_labels['e
         );
         echo '</div></div>';
         ?>
+    <?php elseif ( 'members' === $tab ) : ?>
+        <?php
+        global $wpdb;
+        $members_table = $wpdb->prefix . 'tta_members';
+        $history_table = $wpdb->prefix . 'tta_memberhistory';
+
+        $current_month = gmdate( 'Y-m' );
+        $monthly_metrics = tta_get_bi_membership_monthly_overview_metrics( $current_month );
+        $monthly_metrics_display = tta_format_bi_membership_overview_metrics( $monthly_metrics );
+        $available_months = TTA_Cache::remember(
+            'tta_bi_members_month_list',
+            function () use ( $wpdb, $members_table, $history_table ) {
+                $months = $wpdb->get_col(
+                    "SELECT month FROM (
+                        SELECT DISTINCT DATE_FORMAT(action_date, '%Y-%m') AS month
+                        FROM {$history_table}
+                        WHERE action_type IN ('membership_start', 'membership_cancel')
+                        UNION
+                        SELECT DISTINCT DATE_FORMAT(joined_at, '%Y-%m') AS month
+                        FROM {$members_table}
+                    ) AS month_list
+                    ORDER BY month DESC"
+                );
+                return array_filter( array_map( 'sanitize_text_field', (array) $months ) );
+            },
+            300
+        );
+
+        if ( ! in_array( $current_month, $available_months, true ) ) {
+            array_unshift( $available_months, $current_month );
+        }
+        ?>
+
+        <?php $current_month_name = date_i18n( 'F', current_time( 'timestamp' ) ); ?>
+        <?php $current_month_overview_title = sprintf( __( '%s Monthly Overview', 'tta' ), $current_month_name ); ?>
+        <div class="tta-bi-monthly-overview tta-bi-members-metrics">
+            <h3><?php esc_html_e( 'Current Membership Metrics', 'tta' ); ?></h3>
+            <div class="tta-bi-monthly-overview__stats">
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Members', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_members"><?php echo esc_html( $monthly_metrics_display['total_members'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Standard Members', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_standard"><?php echo esc_html( $monthly_metrics_display['total_standard'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Premium Members', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_premium"><?php echo esc_html( $monthly_metrics_display['total_premium'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Estimated Monthly Revenue', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_estimated_revenue"><?php echo esc_html( $monthly_metrics_display['total_estimated_revenue'] ); ?></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tta-bi-monthly-overview tta-bi-members-monthly-overview">
+            <h3 class="tta-bi-members-monthly-overview__title"><?php echo esc_html( $current_month_overview_title ); ?></h3>
+            <div class="tta-bi-monthly-overview__stats">
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_signups"><?php echo esc_html( $monthly_metrics_display['total_signups'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Standard Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_standard_signups"><?php echo esc_html( $monthly_metrics_display['total_standard_signups'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Premium Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_premium_signups"><?php echo esc_html( $monthly_metrics_display['total_premium_signups'] ); ?></span>
+                </div>
+                <div class="tta-bi-monthly-overview__stat">
+                    <span class="tta-bi-monthly-overview__label"><?php esc_html_e( 'Total Number of Cancellations', 'tta' ); ?></span>
+                    <span class="tta-bi-members-monthly-overview__value" data-metric="total_cancellations"><?php echo esc_html( $monthly_metrics_display['total_cancellations'] ); ?></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tta-bi-month-selector">
+            <label for="tta-bi-members-month-selector" class="screen-reader-text"><?php esc_html_e( 'Select a Month', 'tta' ); ?></label>
+            <select id="tta-bi-members-month-selector">
+                <option value="" disabled><?php esc_html_e( 'Select a Month...', 'tta' ); ?></option>
+                <?php foreach ( $available_months as $month ) : ?>
+                    <?php $month_name = date_i18n( 'F', strtotime( $month . '-01' ) ); ?>
+                    <option value="<?php echo esc_attr( $month ); ?>" data-month-name="<?php echo esc_attr( $month_name ); ?>" <?php selected( $month, $current_month ); ?>>
+                        <?php echo esc_html( date_i18n( 'F Y', strtotime( $month . '-01' ) ) ); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <div class="tta-admin-progress-spinner-div">
+                <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" style="display:none; opacity:0;">
+            </div>
+        </div>
+
+        <div class="tta-bi-compare-toggle tta-bi-members-compare-toggle">
+            <label for="tta-bi-members-compare-toggle">
+                <input type="checkbox" id="tta-bi-members-compare-toggle">
+                <?php esc_html_e( 'Compare to...', 'tta' ); ?>
+            </label>
+        </div>
+
+        <div class="tta-bi-compare-select tta-bi-members-compare-select" aria-hidden="true">
+            <label for="tta-bi-members-compare-select" class="screen-reader-text"><?php esc_html_e( 'Select a Comparison Period', 'tta' ); ?></label>
+            <select id="tta-bi-members-compare-select">
+                <option value="" disabled selected><?php esc_html_e( 'Make a Selection...', 'tta' ); ?></option>
+                <option value="last_month"><?php esc_html_e( 'Month-To-Date', 'tta' ); ?></option>
+                <option value="last_quarter"><?php esc_html_e( 'Quarter-To-Date', 'tta' ); ?></option>
+                <option value="last_year"><?php esc_html_e( 'Year-To-Date', 'tta' ); ?></option>
+                <option value="last_30_days"><?php esc_html_e( 'Last 30 Days', 'tta' ); ?></option>
+                <option value="last_90_days"><?php esc_html_e( 'Last 90 Days', 'tta' ); ?></option>
+                <option value="last_365_days"><?php esc_html_e( 'Last 365 Days', 'tta' ); ?></option>
+            </select>
+            <div class="tta-admin-progress-spinner-div tta-bi-compare-spinner">
+                <img class="tta-admin-progress-spinner-svg" src="<?php echo esc_url( TTA_PLUGIN_URL . 'assets/images/admin/loading.svg' ); ?>" alt="<?php esc_attr_e( 'Loading…', 'tta' ); ?>" style="display:none; opacity:0;">
+            </div>
+        </div>
+
+        <div class="tta-bi-compare-section tta-bi-members-compare-section" aria-hidden="true">
+            <div class="tta-bi-compare-column">
+                <h4 class="tta-bi-compare-heading tta-bi-members-compare-heading"><?php esc_html_e( 'Previous Period', 'tta' ); ?></h4>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_members">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Standard Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_standard">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Premium Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_premium">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Standard Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_standard_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Premium Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_premium_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Cancellations', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_cancellations">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Estimated Monthly Revenue', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="previous" data-metric="total_estimated_revenue">—</span>
+                </div>
+            </div>
+            <div class="tta-bi-compare-column">
+                <h4 class="tta-bi-compare-heading tta-bi-members-compare-heading"><?php esc_html_e( 'Current Period (to date)', 'tta' ); ?></h4>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_members">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Standard Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_standard">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Premium Members', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_premium">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Standard Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_standard_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Premium Member Signups', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_premium_signups">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Number of Cancellations', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_cancellations">—</span>
+                </div>
+                <div class="tta-bi-compare-stat">
+                    <span class="tta-bi-compare-label"><?php esc_html_e( 'Total Estimated Monthly Revenue', 'tta' ); ?></span>
+                    <span class="tta-bi-compare-value tta-bi-members-compare-value" data-compare-side="current" data-metric="total_estimated_revenue">—</span>
+                </div>
+            </div>
+        </div>
     <?php else : ?>
         <div class="notice notice-info">
             <p>
