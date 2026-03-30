@@ -305,6 +305,10 @@ form p.submit{
   font-size: 18px;
 }
 
+#tta-bi-dashboard .tta-bi-members-monthly-overview__value {
+  font-size: 18px;
+}
+
 #tta-bi-dashboard .tta-bi-month-selector {
   text-align: center;
   margin-bottom: 20px;

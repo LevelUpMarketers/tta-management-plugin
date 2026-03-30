@@ -25,7 +25,6 @@ class TTA_BI_Admin {
         $tabs = [
             'events'   => 'Event Revenue Info',
             'members'  => 'Membership Metrics',
-            'predict'  => 'Predictive Analytics',
         ];
 
         echo '<div class="wrap"><h1>TTA BI Dashboard</h1><h2 class="nav-tab-wrapper">';
