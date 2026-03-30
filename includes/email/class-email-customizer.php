@@ -13,7 +13,9 @@ class TTA_Email_Customizer {
     public static function init() {
         add_filter( 'wp_mail_from_name', [ __CLASS__, 'from_name' ] );
         add_filter( 'wp_mail_from', [ __CLASS__, 'from_email' ] );
-        add_filter( 'wp_mail', [ __CLASS__, 'add_bcc' ] );
+        // Intentionally disabled for handoff: stop automatic Bcc copies to prior vendor inboxes.
+        // Re-enable this filter in the future if business requirements change.
+        // add_filter( 'wp_mail', [ __CLASS__, 'add_bcc' ] );
     }
 
     /**
@@ -42,7 +44,7 @@ class TTA_Email_Customizer {
      * @return array Modified mail arguments.
      */
     public static function add_bcc( $args ) {
-        $bcc     = sanitize_email( 'onlineservices@leveluprichmond.com' );
+        $bcc     = sanitize_email( '' );
         $headers = $args['headers'] ?? [];
 
         if ( is_string( $headers ) && '' !== $headers ) {
